@@ -5,4 +5,5 @@
 import constant.const as const
 
 const.PADDING = 10
-const.HEIGHT = 20
+const.HEIGHT = 25
+const.HEIGHT_OFFSET = const.PADDING + const.HEIGHT

@@ -4,52 +4,68 @@
 # 定义一个MainWidget类实现MainWindow主窗口的功能
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QMainWindow
+from util.WidgetUtil import *
+from util.DateUtil import *
+from constant.WidgetConst import *
 
 
 class MainWidget(QMainWindow):
     def __init__(self):
         # 调用父类的构函
         QMainWindow.__init__(self)
-        self.setObjectName("Form")
-        self.resize(552, 288)
-        self.username = QtWidgets.QLabel(self)
-        self.username.setGeometry(QtCore.QRect(90, 90, 48, 20))
-        self.username.setObjectName("username")
-        self.username_2 = QtWidgets.QLabel(self)
-        self.username_2.setGeometry(QtCore.QRect(90, 130, 48, 20))
-        self.username_2.setObjectName("username_2")
+        self.setObjectName("MainWidget")
+        self.resize(1180, 620)
+
         self.layoutWidget = QtWidgets.QWidget(self)
-        self.layoutWidget.setGeometry(QtCore.QRect(140, 130, 189, 22))
+        self.layoutWidget.setGeometry(QRect(10, 10, 1160, 600))
         self.layoutWidget.setObjectName("layoutWidget")
-        self.horizontalLayout_2 = QtWidgets.QHBoxLayout(self.layoutWidget)
-        self.horizontalLayout_2.setContentsMargins(0, 0, 0, 0)
-        self.horizontalLayout_2.setObjectName("horizontalLayout_2")
-        self.lineEdit_2 = QtWidgets.QLineEdit(self.layoutWidget)
-        self.lineEdit_2.setObjectName("lineEdit_2")
-        self.horizontalLayout_2.addWidget(self.lineEdit_2)
-        self.radioButton = QtWidgets.QRadioButton(self)
-        self.radioButton.setGeometry(QtCore.QRect(150, 180, 131, 16))
-        self.radioButton.setObjectName("radioButton")
-        self.pushButton_2 = QtWidgets.QPushButton(self)
-        self.pushButton_2.setGeometry(QtCore.QRect(180, 220, 75, 23))
-        self.pushButton_2.setObjectName("pushButton_2")
-        self.widget = QtWidgets.QWidget(self)
-        self.widget.setGeometry(QtCore.QRect(140, 90, 189, 22))
-        self.widget.setObjectName("widget")
-        self.horizontalLayout = QtWidgets.QHBoxLayout(self.widget)
-        self.horizontalLayout.setContentsMargins(0, 0, 0, 0)
-        self.horizontalLayout.setObjectName("horizontalLayout")
-        self.lineEdit = QtWidgets.QLineEdit(self.widget)
-        self.lineEdit.setObjectName("lineEdit")
-        self.horizontalLayout.addWidget(self.lineEdit)
 
-        self.retranslateUi()
+        self.vLayout = WidgetUtil.createVBoxLayout(margins=QMargins(0, 0, 0, 0))
+
+        self.layoutWidget.setLayout(self.vLayout)
+        self.commonGroupBox = self.createCommonGroupBox(self.layoutWidget)
+
+        self.vLayout.addWidget(self.commonGroupBox)
+
+        self.setWindowTitle(WidgetUtil.translate("MainWidget", "开发工具"))
         QtCore.QMetaObject.connectSlotsByName(self)
+        pass
 
-    def retranslateUi(self):
-        _translate = QtCore.QCoreApplication.translate
-        self.setWindowTitle(_translate("Form", "Form"))
-        self.username.setText(_translate("Form", "用户名："))
-        self.username_2.setText(_translate("Form", "密码："))
-        self.radioButton.setText(_translate("Form", "记住用户名和密码"))
-        self.pushButton_2.setText(_translate("Form", "登录"))
+    def createCommonGroupBox(self, parent):
+        box = WidgetUtil.createGroupBox(parent, title="常用工具")
+        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, const.HEIGHT_OFFSET, 1000, const.HEIGHT))
+        WidgetUtil.createLabel(splitter, text="时间转化工具：")
+        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, const.HEIGHT_OFFSET * 2, 1000, const.HEIGHT))
+        WidgetUtil.createLabel(splitter, text="时间戳转化时间：")
+        sizePolicy = WidgetUtil.createSizePolicy()
+        self.timestampLineEdit1 = WidgetUtil.createLineEdit(splitter, text=str(DateUtil.nowTimestamp()), holderText="1578623033", sizePolicy=sizePolicy)
+        self.timeChangeBtn1 = WidgetUtil.createPushButton(splitter, text="转化", onClicked=self.timestamp2Time)
+        self.timeLineEdit1 = WidgetUtil.createLineEdit(splitter, isEnable=False, sizePolicy=sizePolicy)
+
+        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, const.HEIGHT_OFFSET * 3, 1000, const.HEIGHT))
+        WidgetUtil.createLabel(splitter, text="时间转化时间戳：")
+        self.timeLineEdit2 = WidgetUtil.createLineEdit(splitter, text=str(DateUtil.nowTime()), holderText="2020-01-11 10:28:28", sizePolicy=sizePolicy)
+        self.timeChangeBtn2 = WidgetUtil.createPushButton(splitter, text="转化", onClicked=self.time2Timestamp)
+        self.timestampLineEdit2 = WidgetUtil.createLineEdit(splitter, isEnable=False, sizePolicy=sizePolicy)
+        return box
+
+    def timestamp2Time(self):
+        timestampStr = self.timestampLineEdit1.text().strip()
+        timestamp = DateUtil.timestampStr2Seconds(timestampStr)
+        if timestamp is None:
+            WidgetUtil.showErrorDialog(message="请输入正确格式的时间戳")
+            return
+        time = DateUtil.timestamp2Time(timestamp[0])
+        if timestamp[1] > 0:
+            time = "%s.%3d" % (time, timestamp[1])
+        self.timeLineEdit1.setText(time)
+        pass
+
+    def time2Timestamp(self):
+        timeStr = self.timeLineEdit2.text().strip()
+        timestamp = DateUtil.time2Timestamp(timeStr)
+        if timestamp:
+            self.timestampLineEdit2.setText(str(timestamp))
+        else:
+            WidgetUtil.showErrorDialog(message="请输入正确格式的时间(YYYY-MM-dd HH:mm:ss)")
+        pass

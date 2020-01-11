@@ -29,11 +29,15 @@ class DateUtil:
         :param timeFormat: 时间格式
         :return: 时间戳 [seconds]
         """
-        # 转换成时间数组
-        timeArray = time.strptime(timeStr, timeFormat)
-        # 转换成时间戳
-        timestamp = time.mktime(timeArray)
-        return int(timestamp)
+        try:
+            # 转换成时间数组
+            timeArray = time.strptime(timeStr, timeFormat)
+            # 转换成时间戳
+            timestamp = time.mktime(timeArray)
+            return int(timestamp)
+        except ValueError as err:
+            print(err)
+            return None
 
     @staticmethod
     def reFormat(timeStr, oldFormat=DATE_TIME, newFormat=DATE_TIME):
@@ -72,8 +76,30 @@ class DateUtil:
         """
         return DateUtil.timestamp2Time(DateUtil.nowTimestamp(), timeFormat)
 
+    @staticmethod
+    def timestampStr2Seconds(timestampStr):
+        """
+        将时间戳字符串转化为int型 (s, ms)
+        :param timestampStr: 时间戳字符串（s/ms）
+        :return: (s, ms)
+        """
+        try:
+            length = len(timestampStr)
+            if length == 10:
+                return int(timestampStr), 0
+            elif length == 13:
+                return int(timestampStr[:10]), int(timestampStr[10:])
+            else:
+                print("输入的时间戳数字长度不对")
+                return None
+        except ValueError as err:
+            print(err)
+            return None
 
-# if __name__ == "__main__":
-#     print(DateUtil.nowTimestamp(True))
-#     print(DateUtil.nowTime())
-#     print(DateUtil.time2Timestamp("2020-01-10 10:23:53"))
+
+if __name__ == "__main__":
+    print(DateUtil.nowTimestamp(True))
+    print(DateUtil.nowTime())
+    print(DateUtil.time2Timestamp("2020-01-10 10:23:53"))
+
+    print(DateUtil.timestampStr2Seconds("1578740129"))
