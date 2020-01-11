@@ -6,6 +6,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QMainWindow
 from util.WidgetUtil import *
 from util.DateUtil import *
+from util.FileUtil import *
 from constant.WidgetConst import *
 
 
@@ -21,11 +22,12 @@ class MainWidget(QMainWindow):
         self.layoutWidget.setObjectName("layoutWidget")
 
         self.vLayout = WidgetUtil.createVBoxLayout(margins=QMargins(0, 0, 0, 0))
-
         self.layoutWidget.setLayout(self.vLayout)
-        self.commonGroupBox = self.createCommonGroupBox(self.layoutWidget)
+        commonGroupBox = self.createCommonGroupBox(self.layoutWidget)
+        fileGroupBox = self.createFileUtilGroupBox(self.layoutWidget)
 
-        self.vLayout.addWidget(self.commonGroupBox)
+        self.vLayout.addWidget(commonGroupBox)
+        self.vLayout.addWidget(fileGroupBox)
 
         self.setWindowTitle(WidgetUtil.translate("MainWidget", "开发工具"))
         QtCore.QMetaObject.connectSlotsByName(self)
@@ -33,19 +35,25 @@ class MainWidget(QMainWindow):
 
     def createCommonGroupBox(self, parent):
         box = WidgetUtil.createGroupBox(parent, title="常用工具")
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, const.HEIGHT_OFFSET, 1000, const.HEIGHT))
+        splitter = WidgetUtil.createSplitter(box,
+                                             geometry=QRect(const.PADDING, const.HEIGHT_OFFSET, 1140, const.HEIGHT))
         WidgetUtil.createLabel(splitter, text="时间转化工具：")
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, const.HEIGHT_OFFSET * 2, 1000, const.HEIGHT))
+        splitter = WidgetUtil.createSplitter(box,
+                                             geometry=QRect(const.PADDING, const.HEIGHT_OFFSET * 2, 1140, const.HEIGHT))
         WidgetUtil.createLabel(splitter, text="时间戳转化时间：")
-        sizePolicy = WidgetUtil.createSizePolicy()
-        self.timestampLineEdit1 = WidgetUtil.createLineEdit(splitter, text=str(DateUtil.nowTimestamp()), holderText="1578623033", sizePolicy=sizePolicy)
-        self.timeChangeBtn1 = WidgetUtil.createPushButton(splitter, text="转化", onClicked=self.timestamp2Time)
-        self.timeLineEdit1 = WidgetUtil.createLineEdit(splitter, isEnable=False, sizePolicy=sizePolicy)
+        sizePolicy = WidgetUtil.createSizePolicy(hStretch=2)
+        sizePolicy1 = WidgetUtil.createSizePolicy(hStretch=3)
+        self.timestampLineEdit1 = WidgetUtil.createLineEdit(splitter, text=str(DateUtil.nowTimestamp()),
+                                                            holderText="1578623033", sizePolicy=sizePolicy)
+        WidgetUtil.createPushButton(splitter, text="转化", onClicked=self.timestamp2Time)
+        self.timeLineEdit1 = WidgetUtil.createLineEdit(splitter, isEnable=False, sizePolicy=sizePolicy1)
 
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, const.HEIGHT_OFFSET * 3, 1000, const.HEIGHT))
-        WidgetUtil.createLabel(splitter, text="时间转化时间戳：")
-        self.timeLineEdit2 = WidgetUtil.createLineEdit(splitter, text=str(DateUtil.nowTime()), holderText="2020-01-11 10:28:28", sizePolicy=sizePolicy)
-        self.timeChangeBtn2 = WidgetUtil.createPushButton(splitter, text="转化", onClicked=self.time2Timestamp)
+        # splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, const.HEIGHT_OFFSET * 3, 1000, const.HEIGHT))
+        WidgetUtil.createLabel(splitter, text="时间转化时间戳：", alignment=Qt.AlignRight | Qt.AlignVCenter,
+                               minSize=QSize(150, const.HEIGHT))
+        self.timeLineEdit2 = WidgetUtil.createLineEdit(splitter, text=str(DateUtil.nowTime()),
+                                                       holderText="2020-01-11 10:28:28", sizePolicy=sizePolicy1)
+        WidgetUtil.createPushButton(splitter, text="转化", onClicked=self.time2Timestamp)
         self.timestampLineEdit2 = WidgetUtil.createLineEdit(splitter, isEnable=False, sizePolicy=sizePolicy)
         return box
 
@@ -68,4 +76,74 @@ class MainWidget(QMainWindow):
             self.timestampLineEdit2.setText(str(timestamp))
         else:
             WidgetUtil.showErrorDialog(message="请输入正确格式的时间(YYYY-MM-dd HH:mm:ss)")
+        pass
+
+    def createFileUtilGroupBox(self, parent):
+        box = WidgetUtil.createGroupBox(parent, title="文件工具")
+        splitter = WidgetUtil.createSplitter(box,
+                                             geometry=QRect(const.PADDING, const.HEIGHT_OFFSET, 1140, const.HEIGHT))
+        WidgetUtil.createLabel(splitter, text="文件复制/移动：")
+        splitter = WidgetUtil.createSplitter(box,
+                                             geometry=QRect(const.PADDING, const.HEIGHT_OFFSET * 2, 1140, const.HEIGHT))
+        WidgetUtil.createPushButton(splitter, text="源文件路径", onClicked=self.getSrcFilePath)
+        sizePolicy = WidgetUtil.createSizePolicy()
+        self.srcFilePathLineEdit = WidgetUtil.createLineEdit(splitter, isEnable=False, sizePolicy=sizePolicy)
+
+        WidgetUtil.createPushButton(splitter, text="目标文件路径", onClicked=self.getDstFilePath)
+        self.dstFilePathLineEdit = WidgetUtil.createLineEdit(splitter, sizePolicy=sizePolicy)
+
+        splitter = WidgetUtil.createSplitter(box,
+                                             geometry=QRect(const.PADDING, const.HEIGHT_OFFSET * 3, 1140, const.HEIGHT))
+        WidgetUtil.createLabel(splitter, text="复制/移动文件名：")
+        self.srcFnPatternsLineEdit = WidgetUtil.createLineEdit(splitter, holderText="请输入要复制/移动的文件名的正则表达式，多个以\";\"分隔",
+                                                               sizePolicy=sizePolicy)
+
+        splitter = WidgetUtil.createSplitter(box,
+                                             geometry=QRect(const.PADDING, const.HEIGHT_OFFSET * 4, 300, const.HEIGHT))
+        WidgetUtil.createPushButton(splitter, text="复制", onClicked=self.copyFiles)
+        WidgetUtil.createPushButton(splitter, text="移动", onClicked=self.moveFiles)
+        return box
+
+    def getSrcFilePath(self):
+        fp = WidgetUtil.getExistingDirectory()
+        if fp:
+            self.srcFilePathLineEdit.setText(fp)
+        pass
+
+    def getDstFilePath(self):
+        fp = WidgetUtil.getExistingDirectory()
+        if fp:
+            self.dstFilePathLineEdit.setText(fp)
+        pass
+
+    def copyFiles(self):
+        self.modifyFiles()
+        pass
+
+    def moveFiles(self):
+        self.modifyFiles(False)
+        pass
+
+    def modifyFiles(self, isCopy=True):
+        srcFileDirPath = self.srcFilePathLineEdit.text().strip()
+        if not srcFileDirPath:
+            WidgetUtil.showErrorDialog(message="请选择源文件目录")
+            return
+        dstFileDirPath = self.dstFilePathLineEdit.text().strip()
+        if not dstFileDirPath:
+            WidgetUtil.showErrorDialog(message="请选择目标文件目录")
+            return
+        while dstFileDirPath.endswith("/") or dstFileDirPath.endswith("\\"):
+            dstFileDirPath = dstFileDirPath[:len(dstFileDirPath) - 1]
+        print("目标目录：%s" % dstFileDirPath)
+        srcFnPatterns = self.srcFnPatternsLineEdit.text().strip()
+        if not srcFnPatterns:
+            WidgetUtil.showErrorDialog(message="请输入文件名匹配正则表达式")
+            return
+        srcFnPs = srcFnPatterns.split(";")
+        print(srcFnPs)
+        # ic_launch.*png;strings.xml
+        WidgetUtil.showQuestionDialog(message="你确认需要复制/移动文件吗？",
+                                      acceptFunc=lambda: FileUtil.modifyFilesPath(srcFnPs, srcFileDirPath,
+                                                                                  dstFileDirPath, isCopy))
         pass

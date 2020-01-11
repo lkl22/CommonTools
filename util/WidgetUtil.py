@@ -3,7 +3,7 @@
 # Filename: WidgetUtil.py
 # 定义一个WidgetUtil工具类实现Widget相关的功能
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtWidgets import QWidget, QSizePolicy
+from PyQt5.QtWidgets import QWidget, QMessageBox, QSizePolicy
 from PyQt5.QtCore import QRect, QMargins, QSize, Qt
 
 _translate = QtCore.QCoreApplication.translate
@@ -58,7 +58,25 @@ class WidgetUtil:
         :param message: 提示文本
         :return: 点击的button
         """
-        return QtWidgets.QMessageBox.warning(parent, title, message)
+        return QMessageBox.warning(parent, title, message)
+
+    @staticmethod
+    def showQuestionDialog(parent=None, title="Message", message="", acceptFunc=None):
+        """
+        显示一个确认弹框
+        :param parent: 父widget
+        :param title: 标题
+        :param message: 提示文本
+        :param acceptFunc: 点击确认按钮处理函数
+        :return:
+        """
+        box = QMessageBox.question(parent, title, message, QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+        if box == QMessageBox.Yes:
+            print("yes")
+            if acceptFunc:
+                acceptFunc()
+        else:
+            print("No")
 
     @staticmethod
     def createSizePolicy(hPolicy=QSizePolicy.Expanding, vPolicy=QSizePolicy.Expanding, hStretch=1, vStretch=1):
@@ -129,18 +147,21 @@ class WidgetUtil:
         return widget
 
     @staticmethod
-    def createLabel(parent: QWidget, objectName="Label", text="", geometry: QRect = None, sizePolicy: QSizePolicy = None):
+    def createLabel(parent: QWidget, objectName="Label", text="", alignment=Qt.AlignVCenter | Qt.AlignLeft, geometry: QRect = None, minSize: QSize = None, sizePolicy: QSizePolicy = None):
         """
         创建一个Label标签
         :param parent: 父QWidget
         :param objectName: objectName
         :param text: text
+        :param alignment: 文本对其方式，默认左居中
         :param geometry: geometry
+        :param minSize: minSize
         :param sizePolicy: 缩放策略
         :return: QLabel
         """
         widget = QtWidgets.QLabel(parent)
-        widgetSetAttrs(widget, objectName, geometry=geometry, sizePolicy=sizePolicy)
+        widgetSetAttrs(widget, objectName, geometry=geometry, minSize=minSize, sizePolicy=sizePolicy)
+        widget.setAlignment(alignment)
         widget.setText(_translate(contextName, text))
         return widget
 
