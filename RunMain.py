@@ -1,3 +1,7 @@
+# -*- coding: utf-8 -*-
+# python 3.x
+# Filename: RunMain.py
+# 程序的主入口
 from PyQt5 import QtCore, QtGui, QtWidgets
 from widget.MainWidget import *
 import sys

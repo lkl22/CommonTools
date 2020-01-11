@@ -1,3 +1,7 @@
+# -*- coding: utf-8 -*-
+# python 3.x
+# Filename: MainWidget.py
+# 定义一个MainWidget类实现MainWindow主窗口的功能
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QMainWindow
 
