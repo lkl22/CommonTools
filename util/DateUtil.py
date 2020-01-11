@@ -36,6 +36,20 @@ class DateUtil:
         return int(timestamp)
 
     @staticmethod
+    def reFormat(timeStr, oldFormat=DATE_TIME, newFormat=DATE_TIME):
+        """
+        时间格式转化
+        :param timeStr: 时间str
+        :param oldFormat: 旧的时间格式
+        :param newFormat: 新的时间格式
+        :return: 新格式化的时间
+        """
+        # 转换成时间数组
+        timeArray = time.strptime(timeStr, oldFormat)
+        # 转换成新的时间格式
+        return time.strftime(newFormat, timeArray)
+
+    @staticmethod
     def nowTimestamp(isMilliSecond=False):
         """
         获取当前的时间戳
@@ -59,7 +73,7 @@ class DateUtil:
         return DateUtil.timestamp2Time(DateUtil.nowTimestamp(), timeFormat)
 
 
-if __name__ == "__main__":
-    print(DateUtil.nowTimestamp(True))
-    print(DateUtil.nowTime())
-    print(DateUtil.time2Timestamp("2020-01-10 10:23:53"))
+# if __name__ == "__main__":
+#     print(DateUtil.nowTimestamp(True))
+#     print(DateUtil.nowTime())
+#     print(DateUtil.time2Timestamp("2020-01-10 10:23:53"))

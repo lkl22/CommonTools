@@ -1,0 +1,44 @@
+# -*- coding: utf-8 -*-
+# python 3.x
+# Filename: ReUtil.py
+# 定义一个ReUtil工具类实现正则相关的功能
+import re
+
+
+class ReUtil:
+    @staticmethod
+    def match(string, patternStr):
+        """
+        正则匹配查找字符串
+        :param string: 需要匹配的str
+        :param patternStr: 正则表达式
+        :return: True match
+        """
+        pattern = re.compile("^%s$" % patternStr)
+        m = pattern.match(string)
+        if m:
+            return True
+        else:
+            return False
+
+    @staticmethod
+    def matchMore(string, patternList=[]):
+        """
+        正则匹配查找字符串
+        :param string: 需要匹配的str
+        :param patternList: 正则表达式列表
+        :return: True match one
+        """
+        for patternStr in patternList:
+            if ReUtil.match(string, patternStr):
+                print("%s is match %s" % (string, patternStr))
+                return True
+        return False
+
+
+# if __name__ == "__main__":
+#     print(ReUtil.match("True.xml", ".*xml"))
+#     print(ReUtil.match("True.xml", ".xml"))
+#     print(ReUtil.match("True.xml77", "True.xml"))
+#
+#     print(ReUtil.matchMore("True.xml", ["True.xml2", ".*xml"]))
