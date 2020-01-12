@@ -86,6 +86,7 @@ class JsonDialog(QtWidgets.QDialog):
 
     def addItem(self):
         print("addItem")
+        WidgetUtil.getTreeWidgetJsonData(self.jsonTreeWidget)
 
     def delItem(self):
         print("delItem")
@@ -117,8 +118,8 @@ class JsonDialog(QtWidgets.QDialog):
 
     def decodeJsonFunc(self):
         self.getJsonData()
-        if self.jsonObj:
-            WidgetUtil.setTreeWidgetData(self.jsonTreeWidget, self.jsonObj)
+        if self.jsonObj is not None:
+            WidgetUtil.setTreeWidgetJsonData(self.jsonTreeWidget, self.jsonObj)
         pass
 
     def encodeJsonFunc(self):

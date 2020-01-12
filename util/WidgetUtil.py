@@ -312,21 +312,88 @@ class WidgetUtil:
         return widget
 
     @staticmethod
-    def setTreeWidgetData(treeWidget: QTreeWidget, data={}, isExpand=True):
+    def setTreeWidgetJsonData(treeWidget: QTreeWidget, data={}, isExpand=True):
         """
         给TreeWidget设置数据
         :param treeWidget: TreeWidget
         :param data: json数据
         :param isExpand: isExpand是否全部展开
         """
-        root = WidgetUtil.createTreeWidgetItem("root")
+        treeWidget.clear()
+        root = None
+        if DataTypeUtil.isDict(data):
+            root = WidgetUtil.createTreeWidgetItem("{}")
+        elif DataTypeUtil.isList(data):
+            root = WidgetUtil.createTreeWidgetItem("[]")
+        else:
+            print("data is not json data")
+            return
         items = WidgetUtil.createTreeWidgetItems(data)
         root.addChildren(items)
-        treeWidget.clear()
         treeWidget.addTopLevelItem(root)
         if isExpand:
             treeWidget.expandAll()
         pass
+
+    @staticmethod
+    def getTreeWidgetJsonData(treeWidget: QTreeWidget):
+        """
+        从TreeWidget解析出json数据
+        :param treeWidget: treeWidget
+        :return: json数据
+        """
+        if treeWidget.topLevelItemCount() > 0:
+            root: QTreeWidgetItem = treeWidget.topLevelItem(0)
+            jsonData = WidgetUtil.getTreeWidgetItemJsonData(root)
+            print(jsonData)
+        return None
+        pass
+
+    @staticmethod
+    def getTreeWidgetItemJsonData(treeWidgetItem: QTreeWidgetItem):
+        """
+        从TreeWidgetItem解析出json数据
+        :param treeWidgetItem: treeWidgetItem
+        :return: json数据
+        """
+        text = treeWidgetItem.text(0)
+        if text == "[]":
+            jsonData = []
+            for i in range(0, treeWidgetItem.childCount()):
+                res = WidgetUtil.getTreeWidgetItemJsonData(treeWidgetItem.child(i))
+                jsonData.append(res)
+            print(jsonData)
+            return jsonData
+        elif text == "{}":
+            jsonData = {}
+            for i in range(0, treeWidgetItem.childCount()):
+                child = treeWidgetItem.child(i)
+                res = WidgetUtil.getTreeWidgetItemJsonData(child)
+                print("root key: " + child.text(0) + " value: " + str(res))
+                jsonData = {**jsonData, **res}
+            print(jsonData)
+            return jsonData
+        elif treeWidgetItem.data(0, Qt.UserRole):
+            # 末端节点
+            dataType = treeWidgetItem.data(1, Qt.UserRole)
+            print(DataTypeUtil.parseByType(text, dataType))
+            res = DataTypeUtil.parseByType(text, dataType)
+            print("末端节点 -> %s dataType -> %d parse res -> %s" % (text, dataType, str(res)))
+            return res
+        else:
+            jsonData = {}
+            list = []
+            for i in range(0, treeWidgetItem.childCount()):
+                child = treeWidgetItem.child(i)
+                res = WidgetUtil.getTreeWidgetItemJsonData(child)
+                list.append(res)
+            if len(list) == 1:
+                jsonData[text] = list[0]
+            else:
+                jsonData[text] = list
+            print(jsonData)
+            return jsonData
+
 
     @staticmethod
     def createTreeWidgetItems(data={}):
@@ -341,7 +408,8 @@ class WidgetUtil:
                 parent = WidgetUtil.createTreeWidgetItem(key)
                 if DataTypeUtil.isList(value) or DataTypeUtil.isDict(value):
                     childList = WidgetUtil.createTreeWidgetItems(value)
-                    parent.addChildren(childList)
+                    if childList:
+                        parent.addChildren(childList)
                 else:
                     child = WidgetUtil.createTreeWidgetItem(value, isLeafNode=True)
                     parent.addChild(child)
@@ -349,10 +417,17 @@ class WidgetUtil:
         elif DataTypeUtil.isList(data):
             for item in data:
                 if DataTypeUtil.isList(item) or DataTypeUtil.isDict(item):
-                    parent = WidgetUtil.createTreeWidgetItem("[]")
+                    parent = None
+                    if DataTypeUtil.isList(item):
+                        parent = WidgetUtil.createTreeWidgetItem("[]")
+                    elif not item:
+                        parent = WidgetUtil.createTreeWidgetItem("{}")
                     childList = WidgetUtil.createTreeWidgetItems(item)
-                    for child in childList:
-                        parent.addChild(child)
+                    if parent:
+                        for child in childList:
+                            parent.addChild(child)
+                    else:
+                        parent = childList
                     L.append(parent)
                 else:
                     item = WidgetUtil.createTreeWidgetItem(item, isLeafNode=True)

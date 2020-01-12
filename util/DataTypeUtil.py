@@ -78,6 +78,22 @@ class DataTypeUtil:
         else:
             return DataTypeUtil.UNKNOWN
 
+    @staticmethod
+    def parseByType(data, dataType):
+        if dataType == DataTypeUtil.INT:
+            return int(data)
+        elif dataType == DataTypeUtil.FLOAT:
+            return float(data)
+        elif dataType == DataTypeUtil.BOOL:
+            if "False" == data or "false" == data or "N" == data or "n" == data:
+                return False
+            else:
+                return data
+        elif dataType == DataTypeUtil.STR:
+            return str(data)
+        else:
+            return None
+
 
 if __name__ == "__main__":
     print(DataTypeUtil.isInt(1))
@@ -86,3 +102,6 @@ if __name__ == "__main__":
     print(DataTypeUtil.isStr('True'))
     print(DataTypeUtil.isList(['a', 'b']))
     print(DataTypeUtil.isDict({'a': 'b'}))
+    print(DataTypeUtil.parseByType("False", DataTypeUtil.BOOL))
+    print(DataTypeUtil.parseByType("12", DataTypeUtil.INT))
+    print(DataTypeUtil.parseByType("255.789", DataTypeUtil.FLOAT))
