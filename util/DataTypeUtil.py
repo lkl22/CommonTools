@@ -2,7 +2,17 @@
 # python 3.x
 # Filename: DataTypeUtil.py
 # 定义一个DataTypeUtil工具类实现数据内型相关的功能
+
+
 class DataTypeUtil:
+    INT = 1
+    BOOL = 2
+    FLOAT = 3
+    STR = 4
+    LIST = 5
+    DICT = 6
+    UNKNOWN = 7
+
     @staticmethod
     def isDict(data):
         try:
@@ -51,6 +61,23 @@ class DataTypeUtil:
             print("%s" % err)
             return False
 
+    @staticmethod
+    def type(data):
+        if DataTypeUtil.isInt(data):
+            return DataTypeUtil.INT
+        elif DataTypeUtil.isBool(data):
+            return DataTypeUtil.BOOL
+        elif DataTypeUtil.isFloat(data):
+            return DataTypeUtil.FLOAT
+        elif DataTypeUtil.isStr(data):
+            return DataTypeUtil.STR
+        elif DataTypeUtil.isList(data):
+            return DataTypeUtil.LIST
+        elif DataTypeUtil.isDict(data):
+            return DataTypeUtil.DICT
+        else:
+            return DataTypeUtil.UNKNOWN
+
 
 if __name__ == "__main__":
     print(DataTypeUtil.isInt(1))
@@ -59,4 +86,3 @@ if __name__ == "__main__":
     print(DataTypeUtil.isStr('True'))
     print(DataTypeUtil.isList(['a', 'b']))
     print(DataTypeUtil.isDict({'a': 'b'}))
-

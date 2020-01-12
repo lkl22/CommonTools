@@ -7,7 +7,7 @@ import json
 
 class JsonUtil:
     @staticmethod
-    def encode(obj, indent=2, separators=(',', ': '), sort_keys=True):
+    def encode(obj, indent=4, separators=(',', ': '), sort_keys=True):
         """
         将 Python 数据编码为 JSON 格式数据
         :param obj: Python 数据

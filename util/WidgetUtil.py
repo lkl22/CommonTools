@@ -4,7 +4,7 @@
 # 定义一个WidgetUtil工具类实现Widget相关的功能
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtGui import QIcon, QBrush
-from PyQt5.QtWidgets import QWidget, QMessageBox, QSizePolicy, QTreeWidget
+from PyQt5.QtWidgets import QWidget, QMessageBox, QSizePolicy, QTreeWidget, QMenu, QTreeWidgetItem, QDialog
 from PyQt5.QtCore import QRect, QMargins, QSize, Qt
 from util.DataTypeUtil import *
 
@@ -280,10 +280,11 @@ class WidgetUtil:
         widgetSetAttrs(widget, objectName, toolTip=toolTip, geometry=geometry, isEnable=isEnable, sizePolicy=sizePolicy)
         # 设置树形控件头部的标题
         widget.setHeaderLabels(headerLabels)
+        widget.setContextMenuPolicy(Qt.CustomContextMenu)
         return widget
 
     @staticmethod
-    def createTreeWidgetItem(key="", value=None, keyBg: QBrush = None, valueBg: QBrush = None, keyIconPath=None):
+    def createTreeWidgetItem(key="", value=None, keyBg: QBrush = None, valueBg: QBrush = None, keyIconPath=None, isLeafNode=False, disable=False):
         """
         创建一个树形结构的展示控件item元素
         :param key: key
@@ -291,10 +292,15 @@ class WidgetUtil:
         :param keyBg: keyBg
         :param valueBg: valueBg
         :param keyIconPath: keyIconPath
+        :param isLeafNode: 是否末端节点
+        :param disable: disable
         :return: 树形结构的展示控件item元素
         """
-        widget = QtWidgets.QTreeWidgetItem()
+        widget = QTreeWidgetItem()
         widget.setText(0, str(key))
+        widget.setDisabled(disable)
+        widget.setData(0, Qt.UserRole, isLeafNode)
+        widget.setData(1, Qt.UserRole, DataTypeUtil.type(key))
         if value is not None:
             widget.setText(1, str(value))
         if keyIconPath:
@@ -313,9 +319,11 @@ class WidgetUtil:
         :param data: json数据
         :param isExpand: isExpand是否全部展开
         """
+        root = WidgetUtil.createTreeWidgetItem("root")
         items = WidgetUtil.createTreeWidgetItems(data)
+        root.addChildren(items)
         treeWidget.clear()
-        treeWidget.addTopLevelItems(items)
+        treeWidget.addTopLevelItem(root)
         if isExpand:
             treeWidget.expandAll()
         pass
@@ -333,10 +341,9 @@ class WidgetUtil:
                 parent = WidgetUtil.createTreeWidgetItem(key)
                 if DataTypeUtil.isList(value) or DataTypeUtil.isDict(value):
                     childList = WidgetUtil.createTreeWidgetItems(value)
-                    for child in childList:
-                        parent.addChild(child)
+                    parent.addChildren(childList)
                 else:
-                    child = WidgetUtil.createTreeWidgetItem(value)
+                    child = WidgetUtil.createTreeWidgetItem(value, isLeafNode=True)
                     parent.addChild(child)
                 L.append(parent)
         elif DataTypeUtil.isList(data):
@@ -348,11 +355,45 @@ class WidgetUtil:
                         parent.addChild(child)
                     L.append(parent)
                 else:
-                    item = WidgetUtil.createTreeWidgetItem(item)
+                    item = WidgetUtil.createTreeWidgetItem(item, isLeafNode=True)
                     L.append(item)
         else:
             print("err data is not dict or list")
         return L
+
+    @staticmethod
+    def createAction(parent: QMenu, text="添加", func=None):
+        """
+        创建一个菜单action
+        :param parent: QMenu
+        :param text: 显示文本
+        :param func: 触发回调函数
+        :return: QAction
+        """
+        action = QtWidgets.QAction(text, parent)
+        if func:
+            action.triggered.connect(func)
+        return action
+
+    @staticmethod
+    def createMenu(action1="添加", func1=None, action2=None, func2=None, action3=None, func3=None):
+        """
+        创建一个菜单
+        :param action1: action1
+        :param func1: 回调函数1
+        :param action2: action2
+        :param func2: 回调函数2
+        :param action3: action3
+        :param func3: 回调函数3
+        :return: QMenu
+        """
+        widget = QMenu()
+        widget.addAction(WidgetUtil.createAction(widget, action1, func1))
+        if action2:
+            widget.addAction(WidgetUtil.createAction(widget, action2, func2))
+        if action3:
+            widget.addAction(WidgetUtil.createAction(widget, action3, func3))
+        return widget
 
     @classmethod
     def translate(cls, context=contextName, text=""):
