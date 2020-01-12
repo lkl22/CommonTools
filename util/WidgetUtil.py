@@ -3,8 +3,10 @@
 # Filename: WidgetUtil.py
 # 定义一个WidgetUtil工具类实现Widget相关的功能
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtWidgets import QWidget, QMessageBox, QSizePolicy
+from PyQt5.QtGui import QIcon, QBrush
+from PyQt5.QtWidgets import QWidget, QMessageBox, QSizePolicy, QTreeWidget
 from PyQt5.QtCore import QRect, QMargins, QSize, Qt
+from util.DataTypeUtil import *
 
 _translate = QtCore.QCoreApplication.translate
 contextName = "CommonTools"
@@ -126,7 +128,8 @@ class WidgetUtil:
         return layout
 
     @staticmethod
-    def createSplitter(parent: QWidget = None, isVertical=False, objectName="Splitter", toolTip=None, geometry: QRect = None):
+    def createSplitter(parent: QWidget = None, isVertical=False, objectName="Splitter", toolTip=None,
+                       geometry: QRect = None, minSize: QSize = None, sizePolicy: QSizePolicy = None):
         """
         创建一个动态的布局管理器
         :param parent: 父QWidget
@@ -134,6 +137,8 @@ class WidgetUtil:
         :param objectName: objectName
         :param toolTip: toolTip
         :param geometry: geometry
+        :param minSize: minSize
+        :param sizePolicy: 缩放策略
         :return: QSplitter
         """
         widget = QtWidgets.QSplitter()
@@ -143,11 +148,12 @@ class WidgetUtil:
             widget.setOrientation(Qt.Vertical)
         else:
             widget.setOrientation(Qt.Horizontal)
-        widgetSetAttrs(widget, objectName, toolTip, geometry)
+        widgetSetAttrs(widget, objectName, toolTip=toolTip, geometry=geometry, minSize=minSize, sizePolicy=sizePolicy)
         return widget
 
     @staticmethod
-    def createLabel(parent: QWidget, objectName="Label", text="", alignment=Qt.AlignVCenter | Qt.AlignLeft, geometry: QRect = None, minSize: QSize = None, sizePolicy: QSizePolicy = None):
+    def createLabel(parent: QWidget, objectName="Label", text="", alignment=Qt.AlignVCenter | Qt.AlignLeft,
+                    geometry: QRect = None, minSize: QSize = None, sizePolicy: QSizePolicy = None):
         """
         创建一个Label标签
         :param parent: 父QWidget
@@ -181,14 +187,16 @@ class WidgetUtil:
         :return: QGroupBox
         """
         widget = QtWidgets.QGroupBox(parent)
-        widgetSetAttrs(widget, objectName, toolTip=toolTip, geometry=geometry, minSize=minSize, margins=margins, sizePolicy=sizePolicy)
+        widgetSetAttrs(widget, objectName, toolTip=toolTip, geometry=geometry, minSize=minSize, margins=margins,
+                       sizePolicy=sizePolicy)
         widget.setTitle(_translate(contextName, title))
         if margins:
             widget.setContentsMargins(margins)
         return widget
 
     @staticmethod
-    def createPushButton(parent: QWidget, objectName="PushButton", text="PushButton", toolTip=None, geometry: QRect = None,
+    def createPushButton(parent: QWidget, objectName="PushButton", text="PushButton", toolTip=None,
+                         geometry: QRect = None,
                          sizePolicy: QSizePolicy = None, onClicked=None):
         """
         创建一个Button
@@ -209,8 +217,8 @@ class WidgetUtil:
         return widget
 
     @staticmethod
-    def createLineEdit(parent: QWidget, objectName="LineEdit", text="", holderText="", toolTip=None, geometry: QRect = None,
-                       isEnable=True, sizePolicy: QSizePolicy = None):
+    def createLineEdit(parent: QWidget, objectName="LineEdit", text="", holderText="", toolTip=None,
+                       geometry: QRect = None, isEnable=True, sizePolicy: QSizePolicy = None):
         """
         创建一个输入文本框
         :param parent: 父QWidget
@@ -230,6 +238,121 @@ class WidgetUtil:
         if text:
             widget.setText(_translate(contextName, text))
         return widget
+
+    @staticmethod
+    def createTextEdit(parent: QWidget, objectName="TextEdit", text="", holderText="", toolTip=None,
+                       geometry: QRect = None, isEnable=True, sizePolicy: QSizePolicy = None):
+        """
+        创建一个多行文本输入框
+        :param parent: 父QWidget
+        :param objectName: objectName
+        :param text: text
+        :param holderText: holderText
+        :param toolTip: toolTip
+        :param geometry: geometry
+        :param isEnable: enable
+        :param sizePolicy: 缩放策略
+        :return: 多行文本输入框
+        """
+        widget = QtWidgets.QTextEdit(parent)
+        widgetSetAttrs(widget, objectName, toolTip=toolTip, geometry=geometry, isEnable=isEnable, sizePolicy=sizePolicy)
+        if holderText:
+            widget.setPlaceholderText(_translate(contextName, holderText))
+        if text:
+            widget.setText(_translate(contextName, text))
+        return widget
+
+    @staticmethod
+    def createTreeWidget(parent: QWidget, objectName="TreeWidget", toolTip=None, headerLabels=['格式化数据'],
+                         geometry: QRect = None, isEnable=True, sizePolicy: QSizePolicy = None):
+        """
+        创建一个树形结构的展示控件
+        :param parent: 父QWidget
+        :param objectName: objectName
+        :param toolTip: toolTip
+        :param headerLabels: headerLabels
+        :param geometry: geometry
+        :param isEnable: enable
+        :param sizePolicy: 缩放策略
+        :return: 树形结构的展示控件
+        """
+        widget = QTreeWidget(parent)
+        widgetSetAttrs(widget, objectName, toolTip=toolTip, geometry=geometry, isEnable=isEnable, sizePolicy=sizePolicy)
+        # 设置树形控件头部的标题
+        widget.setHeaderLabels(headerLabels)
+        return widget
+
+    @staticmethod
+    def createTreeWidgetItem(key="", value=None, keyBg: QBrush = None, valueBg: QBrush = None, keyIconPath=None):
+        """
+        创建一个树形结构的展示控件item元素
+        :param key: key
+        :param value: value
+        :param keyBg: keyBg
+        :param valueBg: valueBg
+        :param keyIconPath: keyIconPath
+        :return: 树形结构的展示控件item元素
+        """
+        widget = QtWidgets.QTreeWidgetItem()
+        widget.setText(0, str(key))
+        if value is not None:
+            widget.setText(1, str(value))
+        if keyIconPath:
+            widget.setIcon(0, QIcon(keyIconPath))
+        if keyBg:
+            widget.setBackground(0, keyBg)
+        if valueBg:
+            widget.setBackground(1, valueBg)
+        return widget
+
+    @staticmethod
+    def setTreeWidgetData(treeWidget: QTreeWidget, data={}, isExpand=True):
+        """
+        给TreeWidget设置数据
+        :param treeWidget: TreeWidget
+        :param data: json数据
+        :param isExpand: isExpand是否全部展开
+        """
+        items = WidgetUtil.createTreeWidgetItems(data)
+        treeWidget.clear()
+        treeWidget.addTopLevelItems(items)
+        if isExpand:
+            treeWidget.expandAll()
+        pass
+
+    @staticmethod
+    def createTreeWidgetItems(data={}):
+        """
+        根据data创建TreeWidgetItems
+        :param data: json数据
+        :return: TreeWidgetItems
+        """
+        L = []
+        if DataTypeUtil.isDict(data):
+            for key, value in data.items():
+                parent = WidgetUtil.createTreeWidgetItem(key)
+                if DataTypeUtil.isList(value) or DataTypeUtil.isDict(value):
+                    childList = WidgetUtil.createTreeWidgetItems(value)
+                    for child in childList:
+                        parent.addChild(child)
+                else:
+                    child = WidgetUtil.createTreeWidgetItem(value)
+                    parent.addChild(child)
+                L.append(parent)
+        elif DataTypeUtil.isList(data):
+            for item in data:
+                if DataTypeUtil.isList(item) or DataTypeUtil.isDict(item):
+                    parent = WidgetUtil.createTreeWidgetItem("[]")
+                    childList = WidgetUtil.createTreeWidgetItems(item)
+                    for child in childList:
+                        parent.addChild(child)
+                    L.append(parent)
+                else:
+                    item = WidgetUtil.createTreeWidgetItem(item)
+                    L.append(item)
+        else:
+            print("err data is not dict or list")
+        return L
 
     @classmethod
     def translate(cls, context=contextName, text=""):

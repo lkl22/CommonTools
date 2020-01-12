@@ -2,7 +2,6 @@
 # python 3.x
 # Filename: MainWidget.py
 # 定义一个MainWidget类实现MainWindow主窗口的功能
-from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QMainWindow
 from util.WidgetUtil import *
 from util.DateUtil import *
@@ -17,17 +16,20 @@ class MainWidget(QMainWindow):
         self.setObjectName("MainWidget")
         self.resize(1180, 620)
 
-        self.layoutWidget = QtWidgets.QWidget(self)
-        self.layoutWidget.setGeometry(QRect(10, 10, 1160, 600))
-        self.layoutWidget.setObjectName("layoutWidget")
+        layoutWidget = QtWidgets.QWidget(self)
+        layoutWidget.setGeometry(QRect(10, 10, 1160, 600))
+        layoutWidget.setObjectName("layoutWidget")
 
-        self.vLayout = WidgetUtil.createVBoxLayout(margins=QMargins(0, 0, 0, 0))
-        self.layoutWidget.setLayout(self.vLayout)
-        commonGroupBox = self.createCommonGroupBox(self.layoutWidget)
-        fileGroupBox = self.createFileUtilGroupBox(self.layoutWidget)
+        vLayout = WidgetUtil.createVBoxLayout(margins=QMargins(0, 0, 0, 0))
+        layoutWidget.setLayout(vLayout)
 
-        self.vLayout.addWidget(commonGroupBox)
-        self.vLayout.addWidget(fileGroupBox)
+        commonGroupBox = self.createCommonGroupBox(layoutWidget)
+        fileGroupBox = self.createFileUtilGroupBox(layoutWidget)
+        otherGroupBox = self.createOtherUtilGroupBox(layoutWidget)
+
+        vLayout.addWidget(commonGroupBox)
+        vLayout.addWidget(fileGroupBox)
+        vLayout.addWidget(otherGroupBox)
 
         self.setWindowTitle(WidgetUtil.translate("MainWidget", "开发工具"))
         QtCore.QMetaObject.connectSlotsByName(self)
@@ -146,4 +148,18 @@ class MainWidget(QMainWindow):
         WidgetUtil.showQuestionDialog(message="你确认需要复制/移动文件吗？",
                                       acceptFunc=lambda: FileUtil.modifyFilesPath(srcFnPs, srcFileDirPath,
                                                                                   dstFileDirPath, isCopy))
+        pass
+
+    def createOtherUtilGroupBox(self, parent):
+        box = WidgetUtil.createGroupBox(parent, title="其他工具")
+        splitter = WidgetUtil.createSplitter(box,
+                                             geometry=QRect(const.PADDING, const.HEIGHT_OFFSET, 200, const.HEIGHT))
+        WidgetUtil.createPushButton(splitter, text="Json格式化工具", onClicked=self.jumpJsonDialog)
+        return box
+
+    def jumpJsonDialog(self):
+        print("jumpJsonDialog")
+        from widget.JsonDialog import JsonDialog
+        dialog = JsonDialog()
+        dialog.show()
         pass
