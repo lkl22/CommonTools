@@ -3,6 +3,7 @@
 # Filename: DateUtil.py
 # 定义一个DateUtil工具类实现时间相关的功能
 import time
+from util.LogUtil import *
 
 DATE_TIME = "%Y-%m-%d %H:%M:%S"
 
@@ -90,16 +91,16 @@ class DateUtil:
             elif length == 13:
                 return int(timestampStr[:10]), int(timestampStr[10:])
             else:
-                print("输入的时间戳数字长度不对")
+                LogUtil.e("输入的时间戳: {0}, 长度不对".format(timestampStr))
                 return None
         except ValueError as err:
             print(err)
             return None
 
 
-if __name__ == "__main__":
-    print(DateUtil.nowTimestamp(True))
-    print(DateUtil.nowTime())
-    print(DateUtil.time2Timestamp("2020-01-10 10:23:53"))
-
-    print(DateUtil.timestampStr2Seconds("1578740129"))
+# if __name__ == "__main__":
+#     print(DateUtil.nowTimestamp(True))
+#     print(DateUtil.nowTime())
+#     print(DateUtil.time2Timestamp("2020-01-10 10:23:53"))
+#
+#     print(DateUtil.timestampStr2Seconds("1578740129"))

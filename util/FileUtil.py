@@ -5,6 +5,7 @@
 import os
 import shutil
 from util.ReUtil import *
+from util.LogUtil import *
 
 
 class FileUtil:
@@ -38,17 +39,17 @@ class FileUtil:
         :param isCopy: True 复制 False 移动
         """
         if not os.path.isfile(srcFile):
-            print("%s not exist!" % srcFile)
+            LogUtil.e("modifyFilePath", "%s not exist!" % srcFile)
         else:
             fp, fn = os.path.split(dstFile)  # 分离文件名和路径
             if not os.path.exists(fp):
                 os.makedirs(fp)  # 创建路径
             if isCopy:
                 shutil.copyfile(srcFile, dstFile)  # 复制文件
-                print("copy %s -> %s" % (srcFile, dstFile))
+                LogUtil.w("copy %s ->\nto   %s" % (srcFile, dstFile))
             else:
                 shutil.move(srcFile, dstFile)  # 移动文件
-                print("move %s -> %s" % (srcFile, dstFile))
+                LogUtil.w("move %s ->\nto   %s" % (srcFile, dstFile))
         pass
 
     @staticmethod

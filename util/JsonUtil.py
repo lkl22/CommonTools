@@ -28,6 +28,6 @@ class JsonUtil:
         return json.loads(jsonData)
 
 
-if __name__ == "__main__":
-    print(JsonUtil.encode([{'a': 1, 'e': 5, 'b': 2, 'c': 3, 'd': 4}]))
-    print(JsonUtil.decode("{\"a\":\"5\"}"))
+# if __name__ == "__main__":
+#     print(JsonUtil.encode([{'a': 1, 'e': 5, 'b': 2, 'c': 3, 'd': 4}]))
+#     print(JsonUtil.decode("{\"a\":\"5\"}"))

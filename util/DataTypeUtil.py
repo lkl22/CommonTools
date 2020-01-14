@@ -95,13 +95,13 @@ class DataTypeUtil:
             return None
 
 
-if __name__ == "__main__":
-    print(DataTypeUtil.isInt(1))
-    print(DataTypeUtil.isBool(False))
-    print(DataTypeUtil.isFloat(1.0))
-    print(DataTypeUtil.isStr('True'))
-    print(DataTypeUtil.isList(['a', 'b']))
-    print(DataTypeUtil.isDict({'a': 'b'}))
-    print(DataTypeUtil.parseByType("False", DataTypeUtil.BOOL))
-    print(DataTypeUtil.parseByType("12", DataTypeUtil.INT))
-    print(DataTypeUtil.parseByType("255.789", DataTypeUtil.FLOAT))
+# if __name__ == "__main__":
+#     print(DataTypeUtil.isInt(1))
+#     print(DataTypeUtil.isBool(False))
+#     print(DataTypeUtil.isFloat(1.0))
+#     print(DataTypeUtil.isStr('True'))
+#     print(DataTypeUtil.isList(['a', 'b']))
+#     print(DataTypeUtil.isDict({'a': 'b'}))
+#     print(DataTypeUtil.parseByType("False", DataTypeUtil.BOOL))
+#     print(DataTypeUtil.parseByType("12", DataTypeUtil.INT))
+#     print(DataTypeUtil.parseByType("255.789", DataTypeUtil.FLOAT))

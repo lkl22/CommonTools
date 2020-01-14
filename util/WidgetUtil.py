@@ -6,6 +6,8 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtGui import QIcon, QBrush
 from PyQt5.QtWidgets import QWidget, QMessageBox, QSizePolicy, QTreeWidget, QMenu, QTreeWidgetItem, QDialog
 from PyQt5.QtCore import QRect, QMargins, QSize, Qt
+
+from util import LogUtil
 from util.DataTypeUtil import *
 
 _translate = QtCore.QCoreApplication.translate
@@ -336,6 +338,47 @@ class WidgetUtil:
         pass
 
     @staticmethod
+    def createTreeWidgetItems(data={}):
+        """
+        根据data创建TreeWidgetItems
+        :param data: json数据
+        :return: TreeWidgetItems
+        """
+        L = []
+        if DataTypeUtil.isDict(data):
+            for key, value in data.items():
+                parent = WidgetUtil.createTreeWidgetItem(key)
+                if DataTypeUtil.isList(value) or DataTypeUtil.isDict(value):
+                    childList = WidgetUtil.createTreeWidgetItems(value)
+                    if childList:
+                        parent.addChildren(childList)
+                else:
+                    child = WidgetUtil.createTreeWidgetItem(value, isLeafNode=True)
+                    parent.addChild(child)
+                L.append(parent)
+        elif DataTypeUtil.isList(data):
+            for item in data:
+                if DataTypeUtil.isList(item) or DataTypeUtil.isDict(item):
+                    parent = None
+                    if DataTypeUtil.isList(item):
+                        parent = WidgetUtil.createTreeWidgetItem("[]")
+                    else:
+                        parent = WidgetUtil.createTreeWidgetItem("{}")
+                    childList = WidgetUtil.createTreeWidgetItems(item)
+                    if parent:
+                        for child in childList:
+                            parent.addChild(child)
+                    else:
+                        parent = childList
+                    L.append(parent)
+                else:
+                    item = WidgetUtil.createTreeWidgetItem(item, isLeafNode=True)
+                    L.append(item)
+        else:
+            LogUtil.e("err data is not dict or list")
+        return L
+
+    @staticmethod
     def getTreeWidgetJsonData(treeWidget: QTreeWidget):
         """
         从TreeWidget解析出json数据
@@ -393,48 +436,6 @@ class WidgetUtil:
                 jsonData[text] = list
             print(jsonData)
             return jsonData
-
-
-    @staticmethod
-    def createTreeWidgetItems(data={}):
-        """
-        根据data创建TreeWidgetItems
-        :param data: json数据
-        :return: TreeWidgetItems
-        """
-        L = []
-        if DataTypeUtil.isDict(data):
-            for key, value in data.items():
-                parent = WidgetUtil.createTreeWidgetItem(key)
-                if DataTypeUtil.isList(value) or DataTypeUtil.isDict(value):
-                    childList = WidgetUtil.createTreeWidgetItems(value)
-                    if childList:
-                        parent.addChildren(childList)
-                else:
-                    child = WidgetUtil.createTreeWidgetItem(value, isLeafNode=True)
-                    parent.addChild(child)
-                L.append(parent)
-        elif DataTypeUtil.isList(data):
-            for item in data:
-                if DataTypeUtil.isList(item) or DataTypeUtil.isDict(item):
-                    parent = None
-                    if DataTypeUtil.isList(item):
-                        parent = WidgetUtil.createTreeWidgetItem("[]")
-                    elif not item:
-                        parent = WidgetUtil.createTreeWidgetItem("{}")
-                    childList = WidgetUtil.createTreeWidgetItems(item)
-                    if parent:
-                        for child in childList:
-                            parent.addChild(child)
-                    else:
-                        parent = childList
-                    L.append(parent)
-                else:
-                    item = WidgetUtil.createTreeWidgetItem(item, isLeafNode=True)
-                    L.append(item)
-        else:
-            print("err data is not dict or list")
-        return L
 
     @staticmethod
     def createAction(parent: QMenu, text="添加", func=None):

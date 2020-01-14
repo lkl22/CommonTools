@@ -3,6 +3,7 @@
 # Filename: ReUtil.py
 # 定义一个ReUtil工具类实现正则相关的功能
 import re
+from util.LogUtil import *
 
 
 class ReUtil:
@@ -31,7 +32,7 @@ class ReUtil:
         """
         for patternStr in patternList:
             if ReUtil.match(string, patternStr):
-                print("%s is match %s" % (string, patternStr))
+                LogUtil.d("ReUtil -> matchMore: ", "%s is match %s" % (string, patternStr))
                 return True
         return False
 

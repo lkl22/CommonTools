@@ -38,16 +38,8 @@ class LogUtil:
         LogUtil.log(31, tag, *args, **kwargs)
 
 
-# if __name__ == "__main__":
-#     print("\033[1;30m\t方倍实验室\033[0m")
-#     print("\033[1;31m\t方倍实验室\033[0m")
-#     print("\033[1;32m\t方倍实验室\033[0m")
-#     print("\033[1;33m\t方倍实验室\033[0m")
-#     print("\033[1;34m\t方倍实验室\033[0m")
-#     print("\033[1;35m\t方倍实验室\033[0m")
-#     print("\033[1;36m\t方倍实验室\033[0m")
-#     print("\033[1;37m\t方倍实验室\033[0m")
-#     LogUtil.i("hello:", 12, 56, {"d": 12})
-#     LogUtil.d("hello:", 12, 56, {"d": 12})
-#     LogUtil.w("hello:", 12, 56, {"d": 12})
-#     LogUtil.e("hello:", 12, 56, {"d": 12})
+if __name__ == "__main__":
+    LogUtil.i("hello:", 12, 56, {"d": 12})
+    LogUtil.d("hello:", 12, 56, {"d": 12})
+    LogUtil.w("hello:", 12, 56, {"d": 12})
+    LogUtil.e("hello:", 12, 56, {"d": 12})
