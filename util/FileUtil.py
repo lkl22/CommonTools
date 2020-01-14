@@ -31,6 +31,19 @@ class FileUtil:
         return L
 
     @staticmethod
+    def mkFilePath(filePath):
+        """
+        创建文件到目录
+        :param filePath: 文件路径
+        """
+        try:
+            fp, fn = os.path.split(filePath)  # 分离文件名和路径
+            if not os.path.exists(fp):
+                os.makedirs(fp)  # 创建路径
+        except Exception as err:
+            LogUtil.e('mkFilePath 错误信息：', err)
+
+    @staticmethod
     def modifyFilePath(srcFile, dstFile, isCopy=True):
         """
         复制/移动文件到目标位置
@@ -41,9 +54,7 @@ class FileUtil:
         if not os.path.isfile(srcFile):
             LogUtil.e("modifyFilePath", "%s not exist!" % srcFile)
         else:
-            fp, fn = os.path.split(dstFile)  # 分离文件名和路径
-            if not os.path.exists(fp):
-                os.makedirs(fp)  # 创建路径
+            FileUtil.mkFilePath(dstFile)
             if isCopy:
                 shutil.copyfile(srcFile, dstFile)  # 复制文件
                 LogUtil.w("copy %s ->\nto   %s" % (srcFile, dstFile))
