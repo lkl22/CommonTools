@@ -37,11 +37,11 @@ class MainWidget(QMainWindow):
 
     def createCommonGroupBox(self, parent):
         box = WidgetUtil.createGroupBox(parent, title="常用工具")
-        splitter = WidgetUtil.createSplitter(box,
-                                             geometry=QRect(const.PADDING, const.HEIGHT_OFFSET, 1140, const.HEIGHT))
+        yPos = const.GROUP_BOX_MARGIN_TOP
+        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, 1140, const.HEIGHT))
         WidgetUtil.createLabel(splitter, text="时间转化工具：")
-        splitter = WidgetUtil.createSplitter(box,
-                                             geometry=QRect(const.PADDING, const.HEIGHT_OFFSET * 2, 1140, const.HEIGHT))
+        yPos += const.HEIGHT_OFFSET
+        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING,  yPos, 1140, const.HEIGHT))
         WidgetUtil.createLabel(splitter, text="时间戳转化时间：")
         sizePolicy = WidgetUtil.createSizePolicy(hStretch=2)
         sizePolicy1 = WidgetUtil.createSizePolicy(hStretch=3)
@@ -82,11 +82,12 @@ class MainWidget(QMainWindow):
 
     def createFileUtilGroupBox(self, parent):
         box = WidgetUtil.createGroupBox(parent, title="文件工具")
-        splitter = WidgetUtil.createSplitter(box,
-                                             geometry=QRect(const.PADDING, const.HEIGHT_OFFSET, 1140, const.HEIGHT))
+        yPos = const.GROUP_BOX_MARGIN_TOP
+        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, 1140, const.HEIGHT))
         WidgetUtil.createLabel(splitter, text="文件复制/移动：")
-        splitter = WidgetUtil.createSplitter(box,
-                                             geometry=QRect(const.PADDING, const.HEIGHT_OFFSET * 2, 1140, const.HEIGHT))
+
+        yPos += const.HEIGHT_OFFSET
+        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, 1140, const.HEIGHT))
         WidgetUtil.createPushButton(splitter, text="源文件路径", onClicked=self.getSrcFilePath)
         sizePolicy = WidgetUtil.createSizePolicy()
         self.srcFilePathLineEdit = WidgetUtil.createLineEdit(splitter, isEnable=False, sizePolicy=sizePolicy)
@@ -94,14 +95,14 @@ class MainWidget(QMainWindow):
         WidgetUtil.createPushButton(splitter, text="目标文件路径", onClicked=self.getDstFilePath)
         self.dstFilePathLineEdit = WidgetUtil.createLineEdit(splitter, sizePolicy=sizePolicy)
 
-        splitter = WidgetUtil.createSplitter(box,
-                                             geometry=QRect(const.PADDING, const.HEIGHT_OFFSET * 3, 1140, const.HEIGHT))
+        yPos += const.HEIGHT_OFFSET
+        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, 1140, const.HEIGHT))
         WidgetUtil.createLabel(splitter, text="复制/移动文件名：")
         self.srcFnPatternsLineEdit = WidgetUtil.createLineEdit(splitter, holderText="请输入要复制/移动的文件名的正则表达式，多个以\";\"分隔",
                                                                sizePolicy=sizePolicy)
 
-        splitter = WidgetUtil.createSplitter(box,
-                                             geometry=QRect(const.PADDING, const.HEIGHT_OFFSET * 4, 300, const.HEIGHT))
+        yPos += const.HEIGHT_OFFSET
+        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, 300, const.HEIGHT))
         WidgetUtil.createPushButton(splitter, text="复制", onClicked=self.copyFiles)
         WidgetUtil.createPushButton(splitter, text="移动", onClicked=self.moveFiles)
         return box
@@ -152,9 +153,11 @@ class MainWidget(QMainWindow):
 
     def createOtherUtilGroupBox(self, parent):
         box = WidgetUtil.createGroupBox(parent, title="其他工具")
-        splitter = WidgetUtil.createSplitter(box,
-                                             geometry=QRect(const.PADDING, const.HEIGHT_OFFSET, 200, const.HEIGHT))
+        yPos = const.GROUP_BOX_MARGIN_TOP
+        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, 200, const.HEIGHT))
         WidgetUtil.createPushButton(splitter, text="Json格式化工具", onClicked=self.jumpJsonDialog)
+
+        yPos += const.HEIGHT_OFFSET
         return box
 
     def jumpJsonDialog(self):

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # python 3.x
-# Filename: LogUtil.py
+# Filename: DomXmlUtil.py
 # 定义一个DomXmlUtil工具类实现xml操作相关的功能
 import os
 

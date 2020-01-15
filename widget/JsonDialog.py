@@ -42,7 +42,8 @@ class JsonDialog(QtWidgets.QDialog):
     def createJsonStrGroupBox(self, parent):
         sizePolicy = WidgetUtil.createSizePolicy(hStretch=2)
         box = WidgetUtil.createGroupBox(parent, title="请输入json数据", sizePolicy=sizePolicy)
-        splitter = WidgetUtil.createSplitter(box, isVertical=True, geometry=QRect(const.PADDING, 30, 450, 660))
+        yPos = const.GROUP_BOX_MARGIN_TOP
+        splitter = WidgetUtil.createSplitter(box, isVertical=True, geometry=QRect(const.PADDING, yPos, 450, 660))
         self.jsonDataTextEdit = WidgetUtil.createTextEdit(splitter, text='{"a":false, "b":[["b"],["a"]]}')
         return box
 
@@ -59,7 +60,8 @@ class JsonDialog(QtWidgets.QDialog):
     def createTreeGroupBox(self, parent):
         sizePolicy = WidgetUtil.createSizePolicy(hStretch=3)
         box = WidgetUtil.createGroupBox(parent, title="格式化后数据", sizePolicy=sizePolicy)
-        splitter = WidgetUtil.createSplitter(box, isVertical=True, geometry=QRect(const.PADDING, 30, 685, 660))
+        yPos = const.GROUP_BOX_MARGIN_TOP
+        splitter = WidgetUtil.createSplitter(box, isVertical=True, geometry=QRect(const.PADDING, yPos, 685, 660))
         self.jsonTreeWidget = WidgetUtil.createTreeWidget(splitter)
         self.jsonTreeWidget.customContextMenuRequested.connect(self.customRightMenu)
         return box
