@@ -4,7 +4,8 @@
 # 定义一个WidgetUtil工具类实现Widget相关的功能
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtGui import QIcon, QBrush
-from PyQt5.QtWidgets import QWidget, QMessageBox, QSizePolicy, QTreeWidget, QMenu, QTreeWidgetItem, QDialog
+from PyQt5.QtWidgets import QWidget, QMessageBox, QSizePolicy, QTreeWidget, QMenu, QTreeWidgetItem, QDialog, \
+    QRadioButton
 from PyQt5.QtCore import QRect, QMargins, QSize, Qt
 
 from util import LogUtil
@@ -197,6 +198,45 @@ class WidgetUtil:
         return widget
 
     @staticmethod
+    def createButtonGroup(onToggled=None):
+        """
+        创建一个QButtonGroup，给RadioButton分组
+        :param onToggled: toggled checked状态切换回调
+        :return: QButtonGroup
+        """
+        widget = QtWidgets.QButtonGroup()
+        if onToggled:
+            widget.buttonClicked.connect(onToggled)
+        return widget
+
+    @staticmethod
+    def createRadioButton(parent: QWidget, objectName="RadioButton", text="RadioButton", toolTip=None, isEnable=True,
+                          autoExclusive=True, isChecked=False, geometry: QRect = None, sizePolicy: QSizePolicy = None,
+                          onToggled=None):
+        """
+        创建一个单选按钮
+        :param parent: 父QWidget
+        :param objectName: objectName
+        :param text: text
+        :param toolTip: toolTip
+        :param isEnable: enable
+        :param autoExclusive: autoExclusive False 独立到，True 同一个父widget到为一组
+        :param isChecked: isChecked 默认是否选中，true选中
+        :param geometry: geometry
+        :param sizePolicy: 缩放策略
+        :param onToggled: toggled checked状态切换回调
+        :return: 单选按钮
+        """
+        widget = QRadioButton(parent)
+        widgetSetAttrs(widget, objectName, toolTip=toolTip, geometry=geometry, isEnable=isEnable, sizePolicy=sizePolicy)
+        widget.setText(_translate(contextName, text))
+        widget.setAutoExclusive(autoExclusive)
+        widget.setChecked(isChecked)
+        if onToggled:
+            widget.toggled.connect(onToggled)
+        return widget
+
+    @staticmethod
     def createPushButton(parent: QWidget, objectName="PushButton", text="PushButton", toolTip=None,
                          geometry: QRect = None,
                          sizePolicy: QSizePolicy = None, onClicked=None):
@@ -286,7 +326,8 @@ class WidgetUtil:
         return widget
 
     @staticmethod
-    def createTreeWidgetItem(key="", value=None, keyBg: QBrush = None, valueBg: QBrush = None, keyIconPath=None, isLeafNode=False, disable=False):
+    def createTreeWidgetItem(key="", value=None, keyBg: QBrush = None, valueBg: QBrush = None, keyIconPath=None,
+                             isLeafNode=False, disable=False):
         """
         创建一个树形结构的展示控件item元素
         :param key: key

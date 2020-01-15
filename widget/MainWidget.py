@@ -154,15 +154,24 @@ class MainWidget(QMainWindow):
     def createOtherUtilGroupBox(self, parent):
         box = WidgetUtil.createGroupBox(parent, title="其他工具")
         yPos = const.GROUP_BOX_MARGIN_TOP
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, 200, const.HEIGHT))
+        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, 300, const.HEIGHT))
         WidgetUtil.createPushButton(splitter, text="Json格式化工具", onClicked=self.jumpJsonDialog)
+
+        WidgetUtil.createPushButton(splitter, text="Android资源移动工具", onClicked=self.jumpAndroidResDialog)
 
         yPos += const.HEIGHT_OFFSET
         return box
 
     def jumpJsonDialog(self):
-        print("jumpJsonDialog")
+        LogUtil.i("jumpJsonDialog")
         from widget.JsonDialog import JsonDialog
         dialog = JsonDialog()
+        dialog.show()
+        pass
+
+    def jumpAndroidResDialog(self):
+        LogUtil.i("jumpAndroidResDialog")
+        from widget.AndroidResDialog import AndroidResDialog
+        dialog = AndroidResDialog()
         dialog.show()
         pass

@@ -3,18 +3,21 @@
 # Filename: JsonDialog.py
 # 定义一个JsonDialog类实现Json树形结构展示的功能
 from constant.WidgetConst import *
-from util.WidgetUtil import *
 from util.JsonUtil import *
 from util.DialogUtil import *
+from util.LogUtil import *
 
 
 class JsonDialog(QtWidgets.QDialog):
     def __init__(self):
         # 调用父类的构函
         QtWidgets.QDialog.__init__(self)
-        print("init json dialog")
+        LogUtil.d("Init Json Format Dialog")
         self.setObjectName("JsonDialog")
         self.resize(1280, 720)
+        self.setFixedSize(1280, 720)
+        # self.setWindowFlags(QtCore.Qt.WindowMinimizeButtonHint)
+        # self.setWindowFlags(QtCore.Qt.WindowMaximizeButtonHint)
         self.setWindowTitle(WidgetUtil.translate(text="JsonDialog"))
 
         self.jsonObj = None
