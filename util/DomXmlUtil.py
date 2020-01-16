@@ -123,7 +123,7 @@ class DomXmlUtil:
     @staticmethod
     def mergeElementChildNodes(srcElement, dstDom: Document, dstElement):
         """
-        合并两个element下到child nodes
+        合并两个element下的child nodes
         :param srcElement: 源element
         :param dstDom: 目标dom
         :param dstElement: 目标element
@@ -133,7 +133,7 @@ class DomXmlUtil:
     @staticmethod
     def mergeDocument(srcDom: Document, dstDom: Document):
         """
-        合并两个dom根节点下到nodes
+        合并两个dom根节点下的nodes
         :param srcDom: 源dom
         :param dstDom: 目标dom
         """
@@ -142,7 +142,7 @@ class DomXmlUtil:
     @staticmethod
     def mergeXml(srcFp, dstFp):
         """
-        合并两个xml文件
+        合并两个xml文件中documentElement下的所有子nodes
         :param srcFp: 源xml文件
         :param dstFp: 目标xml文件
         """
@@ -152,12 +152,89 @@ class DomXmlUtil:
             DomXmlUtil.mergeDocument(srcDom, dstDom)
             DomXmlUtil.writeXml(dstDom, dstFp)
 
+    @staticmethod
+    def createDom(rootTag='resources', qualifiedName='xmlns:android', value='http://schemas.android.com/apk/res/android'):
+        """
+        创建一个只有root tag的空Document
+        :param rootTag: rootTag
+        :param qualifiedName: qualifiedName
+        :param value: value
+        :return: Document
+        """
+        # 1.创建DOM树对象
+        document = Document()
+        # 2.创建根节点。每次都要用DOM对象来创建任何节点。
+        rootNode = document.createElement(rootTag)
+        rootNode.setAttributeNS("", qualifiedName, value)
+        # 3.用DOM对象添加根节点
+        document.appendChild(rootNode)
+        return document
+
+    @staticmethod
+    def findElements(document: Document, tagName, attrName='', attrValue=''):
+        """
+        查找document下的Elements
+        :param document: document
+        :param tagName: tagName
+        :param attrName: attrName
+        :param attrValue: attrValue
+        :return: 查找到到元素列表
+        """
+        elements: [Element] = document.getElementsByTagName(tagName)
+        res = []
+        if elements:
+            for element in elements:
+                if attrName:
+                    attribute = element.getAttribute(attrName)
+                    if attribute:
+                        if attrValue:
+                            if attribute == attrValue:
+                                res.append(element)
+                        else:
+                            res.append(element)
+                else:
+                    res.append(element)
+        return res
+
+    @staticmethod
+    def removeElements(document: Document, tagName, attrName='', attrValue=''):
+        """
+        删除document根节点下指定到元素，并返回删除的元素列表
+        :param document: document
+        :param tagName: tagName
+        :param attrName: attrName
+        :param attrValue: attrValue
+        :return: 删除的元素列表
+        """
+        removeElements = DomXmlUtil.findElements(document, tagName, attrName, attrValue)
+        res = []
+        if removeElements:
+            for element in removeElements:
+                if element.previousSibling.nodeType == Node.TEXT_NODE:
+                    res.append(document.documentElement.removeChild(element.previousSibling))
+                res.append(document.documentElement.removeChild(element))
+        return res
+
 
 if __name__ == "__main__":
-    # dom = DomXmlUtil.readXml("/Users/likunlun/PycharmProjects/res/values/strings.xml")
+    dom = DomXmlUtil.readXml("/Users/likunlun/PycharmProjects/res/values/strings.xml")
     # print(dom.toxml())
     #
     # DomXmlUtil.writeXml(dom, "/Users/likunlun/PycharmProjects/res/values/223/strings2.xml")
 
-    DomXmlUtil.mergeXml("/Users/likunlun/PycharmProjects/res/values/strings.xml",
-                        "/Users/likunlun/PycharmProjects/res/values/223/strings3.xml")
+    # DomXmlUtil.mergeXml("/Users/likunlun/PycharmProjects/res/values/strings.xml",
+    #                     "/Users/likunlun/PycharmProjects/res/values/223/strings3.xml")
+
+    # dom = DomXmlUtil.createDom()
+    # DomXmlUtil.writeXml(dom, "/Users/likunlun/PycharmProjects/res/values/223/strings2.xml")
+    # list = DomXmlUtil.findElements(dom, "string", 'name', 'ok')
+    # for e in list:
+    #     print(e.toxml())
+
+    list = DomXmlUtil.removeElements(dom, "string", 'name')
+    for e in list:
+        print(e.toxml())
+    print(dom.toxml())
+
+
+

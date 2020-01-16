@@ -14,6 +14,7 @@ RES_TYPE_LIST = ['无', 'string', 'color', 'style', 'dimen', 'plurals', 'declare
 class AndroidResDialog(QtWidgets.QDialog):
     WINDOW_WIDTH = 800
     WINDOW_HEIGHT = 600
+
     def __init__(self):
         # 调用父类的构函
         QtWidgets.QDialog.__init__(self)
@@ -47,7 +48,8 @@ class AndroidResDialog(QtWidgets.QDialog):
         width = AndroidResDialog.WINDOW_WIDTH - const.PADDING * 4
         splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
 
-        WidgetUtil.createPushButton(splitter, text="源文件路径", minSize=QSize(120, const.HEIGHT) , onClicked=self.getSrcFilePath)
+        WidgetUtil.createPushButton(splitter, text="源文件路径", minSize=QSize(120, const.HEIGHT),
+                                    onClicked=self.getSrcFilePath)
         sizePolicy = WidgetUtil.createSizePolicy()
         self.srcFilePathLineEdit = WidgetUtil.createLineEdit(splitter, isEnable=False, sizePolicy=sizePolicy)
 
@@ -58,13 +60,14 @@ class AndroidResDialog(QtWidgets.QDialog):
 
         yPos += const.HEIGHT_OFFSET
         splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
-        WidgetUtil.createLabel(splitter, text="资源文件名：", alignment=Qt.AlignVCenter | Qt.AlignRight, minSize=QSize(120, const.HEIGHT))
-        self.srcFnPatternsLineEdit = WidgetUtil.createLineEdit(splitter, holderText="请输入要复制/移动的资源文件名的正则表达式，多个以\";\"分隔",
-                                                               sizePolicy=sizePolicy)
+        WidgetUtil.createLabel(splitter, text="资源文件名：", alignment=Qt.AlignVCenter | Qt.AlignRight,
+                               minSize=QSize(120, const.HEIGHT))
+        self.srcFnPatternsLineEdit = WidgetUtil.createLineEdit(splitter, sizePolicy=sizePolicy)
 
         yPos += const.HEIGHT_OFFSET
         splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
-        WidgetUtil.createLabel(splitter, text="选择资源类型：", alignment=Qt.AlignVCenter | Qt.AlignRight, minSize=QSize(120, const.HEIGHT))
+        WidgetUtil.createLabel(splitter, text="选择资源类型：", alignment=Qt.AlignVCenter | Qt.AlignRight,
+                               minSize=QSize(120, const.HEIGHT))
         self.resTypeBg = WidgetUtil.createButtonGroup(onToggled=self.resTypeToggled)
         for i in range(len(RES_TYPE_LIST)):
             if i == 0:
@@ -82,9 +85,18 @@ class AndroidResDialog(QtWidgets.QDialog):
 
         yPos += const.HEIGHT_OFFSET
         splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
-        WidgetUtil.createLabel(splitter, text="输入资源名称：", alignment=Qt.AlignVCenter | Qt.AlignRight, minSize=QSize(120, const.HEIGHT))
+        WidgetUtil.createLabel(splitter, text="输入资源名称：", alignment=Qt.AlignVCenter | Qt.AlignRight,
+                               minSize=QSize(120, const.HEIGHT))
         self.resNamesLineEdit = WidgetUtil.createLineEdit(splitter, holderText="请输入要复制/移动的资源名称，多个以\";\"分隔",
                                                           isEnable=False, sizePolicy=sizePolicy)
+
+        yPos += const.HEIGHT_OFFSET
+        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
+        WidgetUtil.createLabel(splitter, text="输入namespace：", alignment=Qt.AlignVCenter | Qt.AlignRight,
+                               minSize=QSize(120, const.HEIGHT))
+        self.resNamespaceLineEdit = WidgetUtil.createLineEdit(splitter,
+                                                              holderText='xmlns:android="http://schemas.android.com/apk/res/android"',
+                                                              sizePolicy=sizePolicy)
 
         yPos += const.HEIGHT_OFFSET
         splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, 300, const.HEIGHT))
