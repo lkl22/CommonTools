@@ -9,13 +9,15 @@ from util.LogUtil import *
 
 
 class JsonDialog(QtWidgets.QDialog):
+    WINDOW_WIDTH = 1280
+    WINDOW_HEIGHT = 720
     def __init__(self):
         # 调用父类的构函
         QtWidgets.QDialog.__init__(self)
         LogUtil.d("Init Json Format Dialog")
         self.setObjectName("JsonDialog")
-        self.resize(1280, 720)
-        self.setFixedSize(1280, 720)
+        self.resize(JsonDialog.WINDOW_WIDTH, JsonDialog.WINDOW_HEIGHT)
+        self.setFixedSize(JsonDialog.WINDOW_WIDTH, JsonDialog.WINDOW_HEIGHT)
         # self.setWindowFlags(QtCore.Qt.WindowMinimizeButtonHint)
         # self.setWindowFlags(QtCore.Qt.WindowMaximizeButtonHint)
         self.setWindowTitle(WidgetUtil.translate(text="JsonDialog"))
@@ -24,7 +26,8 @@ class JsonDialog(QtWidgets.QDialog):
         self.curOperateItem: QTreeWidgetItem = None
 
         layoutWidget = QtWidgets.QWidget(self)
-        layoutWidget.setGeometry(QRect(10, 10, 1260, 700))
+        layoutWidget.setGeometry(QRect(const.PADDING, const.PADDING, JsonDialog.WINDOW_WIDTH - const.PADDING * 2,
+                                       JsonDialog.WINDOW_HEIGHT - const.PADDING * 2))
         layoutWidget.setObjectName("layoutWidget")
 
         hLayout = WidgetUtil.createHBoxLayout(margins=QMargins(0, 0, 0, 0))

@@ -72,12 +72,30 @@ class FileUtil:
         :param dstFp: 目标目录路径
         :param isCopy: True 复制 False 移动
         """
-        # 查找需求复制/移动的文件列表
+        # 查找需要复制/移动的文件列表
         srcFiles = FileUtil.findFilePathList(srcFp, fnPatterns)
         for srcFile in srcFiles:
             dstFile = srcFile.replace(srcFp, dstFp)
             FileUtil.modifyFilePath(srcFile, dstFile, isCopy)
         pass
+
+    @staticmethod
+    def modifyFilesName(srcFns, dstFn):
+        """
+        批量修改文件名
+        :param srcFns: 源文件path列表
+        :param dstFn: 目标文件名
+        :return: True 修改成功
+        """
+        try:
+            for srcFn in srcFns:
+                fp, fn = os.path.split(srcFn)  # 分离文件名和路径
+                os.rename(srcFn, os.path.join(fp, dstFn))
+            return True
+        except Exception as err:
+            LogUtil.e('modifyFilesName 错误信息：', err)
+            return False
+
 
 
 # if __name__ == "__main__":

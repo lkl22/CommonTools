@@ -10,14 +10,17 @@ from constant.WidgetConst import *
 
 
 class MainWidget(QMainWindow):
+    WINDOW_WIDTH = 1180
+    WINDOW_HEIGHT = 620
     def __init__(self):
         # 调用父类的构函
         QMainWindow.__init__(self)
         self.setObjectName("MainWidget")
-        self.resize(1180, 620)
+        self.resize(MainWidget.WINDOW_WIDTH, MainWidget.WINDOW_HEIGHT)
 
         layoutWidget = QtWidgets.QWidget(self)
-        layoutWidget.setGeometry(QRect(10, 10, 1160, 600))
+        layoutWidget.setGeometry(QRect(const.PADDING, const.PADDING, MainWidget.WINDOW_WIDTH - const.PADDING * 2,
+                                       MainWidget.WINDOW_HEIGHT - const.PADDING * 2))
         layoutWidget.setObjectName("layoutWidget")
 
         vLayout = WidgetUtil.createVBoxLayout(margins=QMargins(0, 0, 0, 0))
@@ -38,10 +41,11 @@ class MainWidget(QMainWindow):
     def createCommonGroupBox(self, parent):
         box = WidgetUtil.createGroupBox(parent, title="常用工具")
         yPos = const.GROUP_BOX_MARGIN_TOP
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, 1140, const.HEIGHT))
+        width = MainWidget.WINDOW_WIDTH - const.PADDING * 4
+        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
         WidgetUtil.createLabel(splitter, text="时间转化工具：")
         yPos += const.HEIGHT_OFFSET
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING,  yPos, 1140, const.HEIGHT))
+        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING,  yPos, width, const.HEIGHT))
         WidgetUtil.createLabel(splitter, text="时间戳转化时间：")
         sizePolicy = WidgetUtil.createSizePolicy(hStretch=2)
         sizePolicy1 = WidgetUtil.createSizePolicy(hStretch=3)
@@ -81,13 +85,14 @@ class MainWidget(QMainWindow):
         pass
 
     def createFileUtilGroupBox(self, parent):
-        box = WidgetUtil.createGroupBox(parent, title="文件工具")
         yPos = const.GROUP_BOX_MARGIN_TOP
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, 1140, const.HEIGHT))
-        WidgetUtil.createLabel(splitter, text="文件复制/移动：")
+        width = MainWidget.WINDOW_WIDTH - const.PADDING * 4
+        box = WidgetUtil.createGroupBox(parent, title="文件工具", minSize=QSize(width, 300))
+        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
+        WidgetUtil.createLabel(splitter, text="文件批量复制/移动：")
 
         yPos += const.HEIGHT_OFFSET
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, 1140, const.HEIGHT))
+        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
         WidgetUtil.createPushButton(splitter, text="源文件路径", onClicked=self.getSrcFilePath)
         sizePolicy = WidgetUtil.createSizePolicy()
         self.srcFilePathLineEdit = WidgetUtil.createLineEdit(splitter, isEnable=False, sizePolicy=sizePolicy)
@@ -96,8 +101,8 @@ class MainWidget(QMainWindow):
         self.dstFilePathLineEdit = WidgetUtil.createLineEdit(splitter, sizePolicy=sizePolicy)
 
         yPos += const.HEIGHT_OFFSET
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, 1140, const.HEIGHT))
-        WidgetUtil.createLabel(splitter, text="复制/移动文件名：")
+        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
+        WidgetUtil.createLabel(splitter, text="复制/移动文件的名称：")
         self.srcFnPatternsLineEdit = WidgetUtil.createLineEdit(splitter, holderText="请输入要复制/移动的文件名的正则表达式，多个以\";\"分隔",
                                                                sizePolicy=sizePolicy)
 
@@ -105,6 +110,27 @@ class MainWidget(QMainWindow):
         splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, 300, const.HEIGHT))
         WidgetUtil.createPushButton(splitter, text="复制", onClicked=self.copyFiles)
         WidgetUtil.createPushButton(splitter, text="移动", onClicked=self.moveFiles)
+
+        yPos += const.HEIGHT_OFFSET
+        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
+        WidgetUtil.createLabel(splitter, text="批量修改文件名：")
+
+        yPos += const.HEIGHT_OFFSET
+        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
+        WidgetUtil.createPushButton(splitter, text="文件路径", onClicked=self.getChangeFilePath)
+        sizePolicy = WidgetUtil.createSizePolicy()
+        self.changeFpLineEdit = WidgetUtil.createLineEdit(splitter, isEnable=False, sizePolicy=sizePolicy)
+
+
+        yPos += const.HEIGHT_OFFSET
+        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
+        WidgetUtil.createLabel(splitter, text="修改前文件名称：")
+        self.fnChangeBeforeLineEdit = WidgetUtil.createLineEdit(splitter, sizePolicy=sizePolicy)
+        WidgetUtil.createLabel(splitter, text="修改后文件名称：")
+        self.fnChangeAfterLineEdit = WidgetUtil.createLineEdit(splitter, sizePolicy=sizePolicy)
+        yPos += const.HEIGHT_OFFSET
+        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, 150, const.HEIGHT))
+        WidgetUtil.createPushButton(splitter, text="修改", onClicked=self.modifyFilesName)
         return box
 
     def getSrcFilePath(self):
@@ -138,18 +164,47 @@ class MainWidget(QMainWindow):
             return
         while dstFileDirPath.endswith("/") or dstFileDirPath.endswith("\\"):
             dstFileDirPath = dstFileDirPath[:len(dstFileDirPath) - 1]
-        print("目标目录：%s" % dstFileDirPath)
+        LogUtil.d("目标目录：", dstFileDirPath)
         srcFnPatterns = self.srcFnPatternsLineEdit.text().strip()
         if not srcFnPatterns:
             WidgetUtil.showErrorDialog(message="请输入文件名匹配正则表达式")
             return
         srcFnPs = srcFnPatterns.split(";")
-        print(srcFnPs)
+        LogUtil.d("源文件名匹配正则表达式：", srcFnPs)
         # ic_launch.*png;strings.xml
         WidgetUtil.showQuestionDialog(message="你确认需要复制/移动文件吗？",
                                       acceptFunc=lambda: FileUtil.modifyFilesPath(srcFnPs, srcFileDirPath,
                                                                                   dstFileDirPath, isCopy))
         pass
+
+    def getChangeFilePath(self):
+        fp = WidgetUtil.getExistingDirectory()
+        if fp:
+            self.changeFpLineEdit.setText(fp)
+        pass
+
+    def modifyFilesName(self):
+        changeFileDirPath = self.changeFpLineEdit.text().strip()
+        if not changeFileDirPath:
+            WidgetUtil.showErrorDialog(message="请选择要修改文件所在的目录")
+            return
+        beforeFn = self.fnChangeBeforeLineEdit.text().strip()
+        if not beforeFn:
+            WidgetUtil.showErrorDialog(message="请输入修改前文件名称")
+            return
+        afterFn = self.fnChangeAfterLineEdit.text().strip()
+        if not afterFn:
+            WidgetUtil.showErrorDialog(message="请输入修改后文件名称")
+            return
+        LogUtil.d("将指定目录：", changeFileDirPath, " 下的所有文件 ", beforeFn, " 修改为 ", afterFn)
+        # 查找需要修改名称的文件列表
+        srcFiles = FileUtil.findFilePathList(changeFileDirPath, [beforeFn])
+        if srcFiles:
+            if FileUtil.modifyFilesName(srcFiles, afterFn):
+                WidgetUtil.showErrorDialog(message="修改成功")
+        else:
+            WidgetUtil.showErrorDialog(message="指定目录下未查找到指定到文件")
+
 
     def createOtherUtilGroupBox(self, parent):
         box = WidgetUtil.createGroupBox(parent, title="其他工具")

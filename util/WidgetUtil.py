@@ -238,7 +238,7 @@ class WidgetUtil:
 
     @staticmethod
     def createPushButton(parent: QWidget, objectName="PushButton", text="PushButton", toolTip=None,
-                         geometry: QRect = None,
+                         geometry: QRect = None, minSize: QSize = None,
                          sizePolicy: QSizePolicy = None, onClicked=None):
         """
         创建一个Button
@@ -247,12 +247,13 @@ class WidgetUtil:
         :param text: text
         :param toolTip: toolTip
         :param geometry: geometry
+        :param minSize: minSize
         :param sizePolicy: 缩放策略
         :param onClicked: clicked回调函数
         :return: QPushButton
         """
         widget = QtWidgets.QPushButton(parent)
-        widgetSetAttrs(widget, objectName, toolTip=toolTip, geometry=geometry, sizePolicy=sizePolicy)
+        widgetSetAttrs(widget, objectName, toolTip=toolTip, geometry=geometry, minSize=minSize, sizePolicy=sizePolicy)
         widget.setText(_translate(contextName, text))
         if onClicked:
             widget.clicked.connect(onClicked)
