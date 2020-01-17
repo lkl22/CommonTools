@@ -3,8 +3,9 @@
 # Filename: AndroidResDialog.py
 # 定义一个AndroidResDialog类实现android xml资源文件移动合并的功能
 from constant.WidgetConst import *
-from util.WidgetUtil import *
+from util.FileUtil import *
 from util.DialogUtil import *
+from util.DomXmlUtil import *
 from util.LogUtil import *
 
 RES_TYPE_LIST = ['无', 'string', 'color', 'style', 'dimen', 'plurals', 'declare-styleable', 'array', 'string-array',
@@ -90,13 +91,13 @@ class AndroidResDialog(QtWidgets.QDialog):
         self.resNamesLineEdit = WidgetUtil.createLineEdit(splitter, holderText="请输入要复制/移动的资源名称，多个以\";\"分隔",
                                                           isEnable=False, sizePolicy=sizePolicy)
 
-        yPos += const.HEIGHT_OFFSET
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
-        WidgetUtil.createLabel(splitter, text="输入namespace：", alignment=Qt.AlignVCenter | Qt.AlignRight,
-                               minSize=QSize(120, const.HEIGHT))
-        self.resNamespaceLineEdit = WidgetUtil.createLineEdit(splitter,
-                                                              holderText='xmlns:android="http://schemas.android.com/apk/res/android"',
-                                                              sizePolicy=sizePolicy)
+        # yPos += const.HEIGHT_OFFSET
+        # splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
+        # WidgetUtil.createLabel(splitter, text="输入namespace：", alignment=Qt.AlignVCenter | Qt.AlignRight,
+        #                        minSize=QSize(120, const.HEIGHT))
+        # self.resNamespaceLineEdit = WidgetUtil.createLineEdit(splitter,
+        #                                                       holderText='xmlns:android="http://schemas.android.com/apk/res/android"',
+        #                                                       sizePolicy=sizePolicy)
 
         yPos += const.HEIGHT_OFFSET
         splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, 300, const.HEIGHT))
@@ -126,13 +127,49 @@ class AndroidResDialog(QtWidgets.QDialog):
         pass
 
     def copyElements(self):
-        self.modifyElements(False)
-        pass
-
-    def moveElements(self):
         self.modifyElements()
         pass
 
-    def modifyElements(self, isMove=True):
+    def moveElements(self):
+        self.modifyElements(False)
+        pass
 
+    def modifyElements(self, isCopy=True):
+        srcFileDirPath = self.srcFilePathLineEdit.text().strip()
+        if not srcFileDirPath:
+            WidgetUtil.showErrorDialog(message="请选择源文件目录")
+            return
+        dstFileDirPath = self.dstFilePathLineEdit.text().strip()
+        if not dstFileDirPath:
+            WidgetUtil.showErrorDialog(message="请选择目标文件目录")
+            return
+        while dstFileDirPath.endswith("/") or dstFileDirPath.endswith("\\"):
+            dstFileDirPath = dstFileDirPath[:len(dstFileDirPath) - 1]
+        LogUtil.d("目标目录：", dstFileDirPath)
+        srcFnPatterns = self.srcFnPatternsLineEdit.text().strip()
+        if not srcFnPatterns:
+            WidgetUtil.showErrorDialog(message="请输入资源文件名")
+            return
+        srcFnPs = srcFnPatterns.split(";")
+        LogUtil.d("资源文件名：", srcFnPs)
+
+        resNamesStr = self.resNamesLineEdit.text().strip()
+        attrValues = ''
+        if resNamesStr:
+            attrValues = resNamesStr.split(';')
+            LogUtil.d('资源attr名称：', attrValues)
+        attrName = 'name'
+        if self.resType == RES_TYPE_LIST[0]:
+            self.resType = ''
+            attrName = ''
+            attrValues = ''
+
+        # 查找需要修改的文件列表
+        srcFiles = FileUtil.findFilePathList(srcFileDirPath, srcFnPs)
+        if srcFiles:
+            for srcFile in srcFiles:
+                dstFile = srcFile.replace(srcFileDirPath, dstFileDirPath, 1)
+                DomXmlUtil.modifyDomElements(srcFile, dstFile, self.resType, attrName, attrValues, isCopy)
+        else:
+            WidgetUtil.showErrorDialog(message="指定目录下未查找到指定的资源文件")
         pass

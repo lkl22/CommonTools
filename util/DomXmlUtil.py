@@ -5,6 +5,7 @@
 import os
 
 from util.LogUtil import *
+from util.DataTypeUtil import *
 # 导入minidom
 from xml.dom import minidom
 from xml.dom.minidom import Document, Node
@@ -153,7 +154,8 @@ class DomXmlUtil:
             DomXmlUtil.writeXml(dstDom, dstFp)
 
     @staticmethod
-    def createDom(rootTag='resources', qualifiedName='xmlns:android', value='http://schemas.android.com/apk/res/android'):
+    def createDom(rootTag='resources', qualifiedName='xmlns:android',
+                  value='http://schemas.android.com/apk/res/android'):
         """
         创建一个只有root tag的空Document
         :param rootTag: rootTag
@@ -215,9 +217,76 @@ class DomXmlUtil:
                 res.append(document.documentElement.removeChild(element))
         return res
 
+    @staticmethod
+    def modifyElements(srcDom: Document, dstDom: Document, tagName, attrName, attrValue, isCopy=True):
+        """
+        复制/移动srcDom中指定的Elements到目标dom
+        :param srcDom: srcDom
+        :param dstDom: dstDom
+        :param tagName: tagName
+        :param attrName: attrName
+        :param attrValue: attrValue []处理一批tag，attrName相同attrValue不同的数据
+        :param isCopy: True 复制 False 移动
+        """
+        nodes = []
+        if isCopy:
+            elements = []
+            if DataTypeUtil.isList(attrValue):
+                for attr in attrValue:
+                    es = DomXmlUtil.findElements(srcDom, tagName, attrName, attr)
+                    elements.extend(es)
+            else:
+                elements = DomXmlUtil.findElements(srcDom, tagName, attrName, attrValue)
+            if elements:
+                for element in elements:
+                    if element.previousSibling.nodeType == Node.TEXT_NODE:
+                        nodes.append(element.previousSibling)
+                    nodes.append(element)
+        else:
+            nodes = []
+            if DataTypeUtil.isList(attrValue):
+                for attr in attrValue:
+                    es = DomXmlUtil.removeElements(srcDom, tagName, attrName, attr)
+                    nodes.extend(es)
+            else:
+                nodes = DomXmlUtil.removeElements(srcDom, tagName, attrName, attrValue)
+        if nodes:
+            nodes.append(dstDom.createTextNode('\n'))
+            DomXmlUtil.elementAddChildNodes(nodes, dstDom, dstDom.documentElement)
+
+    @staticmethod
+    def modifyDomElements(srcFp, dstFp, tagName, attrName, attrValue, isCopy=True):
+        """
+        复制/移动src xml中指定的Elements到目标xml
+        :param srcFp: src xml path
+        :param dstFp: dst xml path
+        :param tagName: tagName
+        :param attrName: attrName
+        :param attrValue: attrValue []处理一批tag，attrName相同attrValue不同的数据
+        :param isCopy: True 复制 False 移动
+        """
+        srcDom = DomXmlUtil.readXml(srcFp)
+        dstDom = None
+        if os.path.exists(dstFp):
+            dstDom = DomXmlUtil.readXml(dstFp)
+        else:
+            root = srcDom.documentElement
+            dstDom = Document()
+            newNode = dstDom.createElement(root.tagName)
+            attrs = root._get_attributes()
+            for a_name in attrs.keys():
+                newNode.setAttribute(a_name, attrs[a_name].value)
+            dstDom.appendChild(newNode)
+        DomXmlUtil.modifyElements(srcDom, dstDom, tagName, attrName, attrValue, isCopy)
+        if not isCopy:
+            DomXmlUtil.writeXml(srcDom, srcFp)
+        DomXmlUtil.writeXml(dstDom, dstFp)
+
+
 
 if __name__ == "__main__":
-    dom = DomXmlUtil.readXml("/Users/likunlun/PycharmProjects/res/values/strings.xml")
+    # dom = DomXmlUtil.readXml("/Users/likunlun/PycharmProjects/res/values/strings.xml")
+    # dom1 = DomXmlUtil.readXml("/Users/likunlun/PycharmProjects/res/values/colors.xml")
     # print(dom.toxml())
     #
     # DomXmlUtil.writeXml(dom, "/Users/likunlun/PycharmProjects/res/values/223/strings2.xml")
@@ -231,10 +300,15 @@ if __name__ == "__main__":
     # for e in list:
     #     print(e.toxml())
 
-    list = DomXmlUtil.removeElements(dom, "string", 'name')
-    for e in list:
-        print(e.toxml())
-    print(dom.toxml())
+    # list = DomXmlUtil.removeElements(dom, "string", 'name')
+    # for e in list:
+    #     print(e.toxml())
+    # print(dom.toxml())
 
+    # DomXmlUtil.modifyElements(dom, dom1, 'string', 'name', ['app_name', 'loaction'], False)
+    # print(dom.toxml())
+    # print(dom1.toxml())
 
-
+    DomXmlUtil.modifyDomElements('/Users/likunlun/PycharmProjects/res/values/strings.xml',
+                                 '/Users/likunlun/PycharmProjects/res/values/strings1.xml',
+                                 'string', 'name', ['app_name', 'loaction'], True)

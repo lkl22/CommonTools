@@ -203,7 +203,7 @@ class MainWidget(QMainWindow):
             if FileUtil.modifyFilesName(srcFiles, afterFn):
                 WidgetUtil.showErrorDialog(message="修改成功")
         else:
-            WidgetUtil.showErrorDialog(message="指定目录下未查找到指定到文件")
+            WidgetUtil.showErrorDialog(message="指定目录下未查找到指定的文件")
 
 
     def createOtherUtilGroupBox(self, parent):
