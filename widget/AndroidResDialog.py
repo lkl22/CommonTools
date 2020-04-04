@@ -61,9 +61,17 @@ class AndroidResDialog(QtWidgets.QDialog):
 
         yPos += const.HEIGHT_OFFSET
         splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
-        WidgetUtil.createLabel(splitter, text="资源文件名：", alignment=Qt.AlignVCenter | Qt.AlignRight,
+        WidgetUtil.createLabel(splitter, text="源资源文件名：", alignment=Qt.AlignVCenter | Qt.AlignRight,
                                minSize=QSize(120, const.HEIGHT))
-        self.srcFnPatternsLineEdit = WidgetUtil.createLineEdit(splitter, sizePolicy=sizePolicy)
+        self.srcFnPatternsLineEdit = WidgetUtil.createLineEdit(splitter, sizePolicy=sizePolicy,
+                            holderText="请输入源资源文件名称正则表达式，多个以\";\"分隔", textChanged=self.srcFnTextChanged)
+
+        yPos += const.HEIGHT_OFFSET
+        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
+        WidgetUtil.createLabel(splitter, text="目标资源文件名：", alignment=Qt.AlignVCenter | Qt.AlignRight,
+                               minSize=QSize(120, const.HEIGHT))
+        self.dstFnPatternsLineEdit = WidgetUtil.createLineEdit(splitter, sizePolicy=sizePolicy, isEnable=False,
+                                                               holderText="请输入目标资源文件名称")
 
         yPos += const.HEIGHT_OFFSET
         splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
@@ -126,6 +134,16 @@ class AndroidResDialog(QtWidgets.QDialog):
             self.resNamesLineEdit.setEnabled(True)
         pass
 
+    def srcFnTextChanged(self, data):
+        if not data:
+            self.dstFnPatternsLineEdit.setEnabled(False)
+            return
+        srcFnPs = data.split(";")
+        if len(srcFnPs) > 1:
+            self.dstFnPatternsLineEdit.setEnabled(False)
+        else:
+            self.dstFnPatternsLineEdit.setEnabled(True)
+
     def copyElements(self):
         self.modifyElements()
         pass
@@ -151,7 +169,10 @@ class AndroidResDialog(QtWidgets.QDialog):
             WidgetUtil.showErrorDialog(message="请输入资源文件名")
             return
         srcFnPs = srcFnPatterns.split(";")
-        LogUtil.d("资源文件名：", srcFnPs)
+        LogUtil.d("源资源文件名：", srcFnPs)
+
+        dstFnPs = self.dstFnPatternsLineEdit.text().strip()
+        LogUtil.d("目标资源文件名：", dstFnPs)
 
         resNamesStr = self.resNamesLineEdit.text().strip()
         attrValues = ''
@@ -169,6 +190,9 @@ class AndroidResDialog(QtWidgets.QDialog):
         if srcFiles:
             for srcFile in srcFiles:
                 dstFile = srcFile.replace(srcFileDirPath, dstFileDirPath, 1)
+                if len(srcFnPs) == 1 and dstFnPs:
+                    fp, fn = os.path.split(dstFile)  # 分离文件名和路径
+                    dstFile = os.path.join(fp, dstFnPs)
                 DomXmlUtil.modifyDomElements(srcFile, dstFile, self.resType, attrName, attrValues, isCopy)
         else:
             WidgetUtil.showErrorDialog(message="指定目录下未查找到指定的资源文件")

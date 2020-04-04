@@ -261,7 +261,7 @@ class WidgetUtil:
 
     @staticmethod
     def createLineEdit(parent: QWidget, objectName="LineEdit", text="", holderText="", toolTip=None,
-                       geometry: QRect = None, isEnable=True, sizePolicy: QSizePolicy = None):
+                       geometry: QRect = None, isEnable=True, sizePolicy: QSizePolicy = None, textChanged=None):
         """
         创建一个输入文本框
         :param parent: 父QWidget
@@ -272,6 +272,7 @@ class WidgetUtil:
         :param geometry: geometry
         :param isEnable: enable
         :param sizePolicy: 缩放策略
+        :param textChanged: 输入内容变化监听函数
         :return: QLineEdit
         """
         widget = QtWidgets.QLineEdit(parent)
@@ -280,6 +281,8 @@ class WidgetUtil:
             widget.setPlaceholderText(_translate(contextName, holderText))
         if text:
             widget.setText(_translate(contextName, text))
+        if textChanged:
+            widget.textChanged.connect(textChanged)
         return widget
 
     @staticmethod
