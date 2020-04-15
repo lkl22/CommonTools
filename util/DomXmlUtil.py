@@ -282,12 +282,40 @@ class DomXmlUtil:
             DomXmlUtil.writeXml(srcDom, srcFp)
         DomXmlUtil.writeXml(dstDom, dstFp)
 
+    @staticmethod
+    def readAndroidRes(srcFp, tagName='color', attrName='name', isSorted=True):
+        """
+        读取Android xml资源文件转化为字典数据
+        :param srcFp: src xml path
+        :param tagName: tagName
+        :param attrName: attrName
+        :param isSorted: True 排序
+        :return 字典数据
+        """
+        srcDom = DomXmlUtil.readXml(srcFp)
+        elements: [Element] = DomXmlUtil.findElements(srcDom, tagName, attrName)
+        res = {}
+        for element in elements:
+            res[element.getAttribute(attrName)] = element.firstChild.data.upper()
+        if isSorted:
+            # 按key排序, 返回的元组列表数据
+            tupleData = sorted(res.items(), key=lambda d: d[0], reverse=False)
+            res = {}
+            for item in tupleData:
+                res[item[0]] = item[1]
+        # print(res)
+        return res
 
 
 if __name__ == "__main__":
     # dom = DomXmlUtil.readXml("/Users/likunlun/PycharmProjects/res/values/strings.xml")
     # dom1 = DomXmlUtil.readXml("/Users/likunlun/PycharmProjects/res/values/colors.xml")
-    # print(dom.toxml())
+    # print(dom1.toxml())
+    # list = DomXmlUtil.findElements(dom1, 'color')
+    # for child in list:
+    #     print(child.toxml())
+
+    DomXmlUtil.readAndroidRes("/Users/likunlun/PycharmProjects/res/values/colors.xml", isSorted=False)
     #
     # DomXmlUtil.writeXml(dom, "/Users/likunlun/PycharmProjects/res/values/223/strings2.xml")
 
@@ -309,6 +337,6 @@ if __name__ == "__main__":
     # print(dom.toxml())
     # print(dom1.toxml())
 
-    DomXmlUtil.modifyDomElements('/Users/likunlun/PycharmProjects/res/values/strings.xml',
-                                 '/Users/likunlun/PycharmProjects/res/values/strings1.xml',
-                                 'string', 'name', ['app_name', 'loaction'], True)
+    # DomXmlUtil.modifyDomElements('/Users/likunlun/PycharmProjects/res/values/strings.xml',
+    #                              '/Users/likunlun/PycharmProjects/res/values/strings1.xml',
+    #                              'string', 'name', ['app_name', 'loaction'], True)

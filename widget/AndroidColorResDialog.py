@@ -25,7 +25,8 @@ class AndroidColorResDialog(QtWidgets.QDialog):
         self.setFixedSize(AndroidColorResDialog.WINDOW_WIDTH, AndroidColorResDialog.WINDOW_HEIGHT)
         self.setWindowTitle(WidgetUtil.translate(text="Android color资源管理"))
 
-        self.resType = RES_TYPE_LIST[0]
+        self.normalColorRes = {}
+        self.darkColorRes = {}
 
         layoutWidget = QtWidgets.QWidget(self)
         layoutWidget.setGeometry(QRect(const.PADDING, const.PADDING, AndroidColorResDialog.WINDOW_WIDTH - const.PADDING * 2,
@@ -68,11 +69,15 @@ class AndroidColorResDialog(QtWidgets.QDialog):
         fp = WidgetUtil.getOpenFileName()
         if fp:
             self.srcFilePathLineEdit.setText(fp)
+            self.normalColorRes = DomXmlUtil.readAndroidRes(fp)
+            # print(self.normalColorRes)
         pass
 
     def getDstFilePath(self):
         fp = WidgetUtil.getOpenFileName()
         if fp:
             self.dstFilePathLineEdit.setText(fp)
+            self.darkColorRes = DomXmlUtil.readAndroidRes(fp)
+            # print(self.darkColorRes)
         pass
 
