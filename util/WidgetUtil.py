@@ -45,6 +45,16 @@ def widgetSetAttrs(widget: QWidget, objectName, toolTip=None, geometry: QRect = 
 
 class WidgetUtil:
     @staticmethod
+    def getOpenFileName():
+        """
+        打开一个文件弹框选择一个指定的文件
+        :return: 文件路径
+        """
+        (filePath, _) = QtWidgets.QFileDialog.getOpenFileName()
+        print("选择的文件： " + filePath)
+        return filePath
+
+    @staticmethod
     def getExistingDirectory():
         """
         打开一个文件夹弹框选择一个指定的文件夹

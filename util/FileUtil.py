@@ -96,12 +96,48 @@ class FileUtil:
             LogUtil.e('modifyFilesName 错误信息：', err)
             return False
 
+    @staticmethod
+    def getProjectPath():
+        """
+        获取项目根目录
+        :return: 项目根目录
+        """
+        path = os.getcwd()
+        return os.path.split(path)[0].replace("\\", "/")
+
+    @staticmethod
+    def getConfigFp(fn):
+        """
+        获取项目下指定配置文件的path
+        :param fn: 文件名
+        :return: 项目下指定配置文件的path
+        """
+        path = FileUtil.getProjectPath() + "/config/"
+        if not os.path.isdir(path):
+            os.mkdir(path)
+        for fileName in os.listdir(path):
+            if fn in fileName:
+                return path + fileName
+        return None
+
+    @staticmethod
+    def clearPath(fp):
+        """
+        删除指定目录下所有的文件
+        :param fp: 目录path
+        """
+        try:
+            shutil.rmtree(fp)
+        except Exception as e:
+            LogUtil.e('FileUtil clearPath 错误信息：', e)
 
 
-# if __name__ == "__main__":
+if __name__ == "__main__":
 #     print(FileUtil.findFilePathList("/Users/likunlun/PycharmProjects/CarAssist/app/src/main/res", ["ic_launcher.png", "colors.xml", "strings.xml"]))
 #     FileUtil.modifyFilePath("/Users/likunlun/PycharmProjects/CarAssist/app/src/main/res/values/strings.xml",
 #                             "/Users/likunlun/PycharmProjects/CarAssist/app/src/main/res/values/11/22/strings.xml", False)
 #     FileUtil.modifyFilesPath(["strings.xml", "colors.xml"],
 #                             "/Users/likunlun/PycharmProjects/CarAssist/app/src/main/res",
 #                             "/Users/likunlun/PycharmProjects/CarAssist/app/src/main/bb", True)
+    print(FileUtil.getProjectPath())
+    print(FileUtil.getConfigFp('BaseConfig.ini'))
