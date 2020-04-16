@@ -11,7 +11,7 @@
 
 3、pip安装需要的库
 
-`pip install PyQt5 PyQt5-tools Pyinstaller --index-url https://pypi.tuna.tsinghua.edu.cn/simple/`
+`pip install PyQt5 PyQt5-tools Pyinstaller xlrd xlutils --index-url https://pypi.tuna.tsinghua.edu.cn/simple/`
 
 4、PyCharm配置
 
