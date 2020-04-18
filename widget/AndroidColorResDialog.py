@@ -57,6 +57,9 @@ class AndroidColorResDialog(QtWidgets.QDialog):
         if findExcelFn:
             if self.initFindColorRes(findExcelFn):
                 self.findExcelFnLineEdit.setText(findExcelFn)
+                self.colorNameLineEdit.setEnabled(True)
+                self.normalColorLineEdit.setEnabled(True)
+                self.darkColorLineEdit.setEnabled(True)
 
         self.setWindowModality(Qt.ApplicationModal)
         # 很关键，不加出不来
@@ -149,13 +152,13 @@ class AndroidColorResDialog(QtWidgets.QDialog):
         splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
         WidgetUtil.createLabel(splitter, text="资源名称", alignment=Qt.AlignVCenter | Qt.AlignLeft, minSize=QSize(80, const.HEIGHT))
         sizePolicy = WidgetUtil.createSizePolicy()
-        self.colorNameLineEdit = WidgetUtil.createLineEdit(splitter, sizePolicy=sizePolicy, textChanged=self.colorNameTextChange)
+        self.colorNameLineEdit = WidgetUtil.createLineEdit(splitter, isEnable=False, sizePolicy=sizePolicy, textChanged=self.colorNameTextChange)
 
         WidgetUtil.createLabel(splitter, text="normal color", alignment=Qt.AlignVCenter | Qt.AlignRight, minSize=QSize(120, const.HEIGHT))
-        self.normalColorLineEdit = WidgetUtil.createLineEdit(splitter, sizePolicy=sizePolicy, textChanged=self.normalColorTextChange)
+        self.normalColorLineEdit = WidgetUtil.createLineEdit(splitter, isEnable=False, sizePolicy=sizePolicy, textChanged=self.normalColorTextChange)
 
         WidgetUtil.createLabel(splitter, text="dark color", alignment=Qt.AlignVCenter | Qt.AlignRight, minSize=QSize(120, const.HEIGHT))
-        self.darkColorLineEdit = WidgetUtil.createLineEdit(splitter, sizePolicy=sizePolicy, textChanged=self.darkColorTextChange)
+        self.darkColorLineEdit = WidgetUtil.createLineEdit(splitter, isEnable=False, sizePolicy=sizePolicy, textChanged=self.darkColorTextChange)
 
         yPos += const.HEIGHT_OFFSET
         splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, 50, const.HEIGHT))
@@ -175,6 +178,9 @@ class AndroidColorResDialog(QtWidgets.QDialog):
                 self.findExcelFnLineEdit.setText(fp)
                 self.operaIni.addItem(AndroidColorResDialog.SECTION_ANDROID, AndroidColorResDialog.KEY_FIND_EXCEL_FN, fp)
                 self.operaIni.saveIni()
+                self.colorNameLineEdit.setEnabled(True)
+                self.normalColorLineEdit.setEnabled(True)
+                self.darkColorLineEdit.setEnabled(True)
         pass
 
     def initFindColorRes(self, fn):
