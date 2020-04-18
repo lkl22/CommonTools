@@ -9,9 +9,12 @@ class DialogUtil:
     @staticmethod
     def createBottomBtn(dialog: QDialog, okBtnText="Ok", okCallback=None, cancelBtnText=None, cancelCallback=None, ignoreBtnText=None, ignoreCallback=None):
         def okFunc():
-            dialog.close()
             if okCallback:
-                okCallback()
+                if okCallback():
+                    # 有回调函数并且处理完成
+                    dialog.close()
+            else:
+                dialog.close()
 
         def cancelFunc():
             dialog.close()

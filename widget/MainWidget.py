@@ -223,19 +223,19 @@ class MainWidget(QMainWindow):
         LogUtil.i("jumpJsonDialog")
         from widget.JsonDialog import JsonDialog
         dialog = JsonDialog()
-        dialog.show()
+        # dialog.show()
         pass
 
     def jumpAndroidResDialog(self):
         LogUtil.i("jumpAndroidResDialog")
         from widget.AndroidResDialog import AndroidResDialog
         dialog = AndroidResDialog()
-        dialog.show()
+        # dialog.show()
         pass
 
     def jumpAndroidColorResDialog(self):
         LogUtil.i("jumpAndroidResDialog")
-        from widget.AndroidColorResDialog import AndroidColorResDialog
+        from widget.colorManager.AndroidColorResDialog import AndroidColorResDialog
         dialog = AndroidColorResDialog()
-        dialog.show()
+        # dialog.show()
         pass

@@ -36,6 +36,10 @@ class ReUtil:
                 return True
         return False
 
+    @staticmethod
+    def matchColor(string):
+        patternStr = '#{0,1}(([0-9a-fA-F]{3})|([0-9a-fA-F]{6})|([0-9a-fA-F]{8}))'
+        return ReUtil.match(string, patternStr)
 
 # if __name__ == "__main__":
 #     print(ReUtil.match("True.xml", ".*xml"))
@@ -43,3 +47,14 @@ class ReUtil:
 #     print(ReUtil.match("True.xml77", "True.xml"))
 #
 #     print(ReUtil.matchMore("True.xml", ["True.xml2", ".*xml"]))
+
+#     print(ReUtil.matchColor('fff'))
+#     print(ReUtil.matchColor('ffffff'))
+#     print(ReUtil.matchColor('ffffffff'))
+#     print(ReUtil.matchColor('#fff'))
+#     print(ReUtil.matchColor('#ffFff9'))
+#     print(ReUtil.matchColor('#ffFfddff'))
+#     print(ReUtil.matchColor('#f'))
+#     print(ReUtil.matchColor('ffFgff'))
+#     print(ReUtil.matchColor('ffFfff2'))
+

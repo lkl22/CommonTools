@@ -9,9 +9,6 @@ from util.DomXmlUtil import *
 from util.LogUtil import *
 from util.OperaIni import *
 
-RES_TYPE_LIST = ['无', 'string', 'color', 'style', 'dimen', 'plurals', 'declare-styleable', 'array', 'string-array',
-                 'integer-array', 'attr']
-
 
 class AndroidColorResDialog(QtWidgets.QDialog):
     WINDOW_WIDTH = 800
@@ -60,6 +57,7 @@ class AndroidColorResDialog(QtWidgets.QDialog):
                 self.colorNameLineEdit.setEnabled(True)
                 self.normalColorLineEdit.setEnabled(True)
                 self.darkColorLineEdit.setEnabled(True)
+                self.addColorResBtn.setEnabled(True)
 
         self.setWindowModality(Qt.ApplicationModal)
         # 很关键，不加出不来
@@ -161,8 +159,9 @@ class AndroidColorResDialog(QtWidgets.QDialog):
         self.darkColorLineEdit = WidgetUtil.createLineEdit(splitter, isEnable=False, sizePolicy=sizePolicy, textChanged=self.darkColorTextChange)
 
         yPos += const.HEIGHT_OFFSET
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, 50, const.HEIGHT))
+        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, 200, const.HEIGHT))
         WidgetUtil.createPushButton(splitter, text="查找", onClicked=self.findRes)
+        self.addColorResBtn = WidgetUtil.createPushButton(splitter, text="添加color资源", isEnable=False, onClicked=self.addColorRes)
 
         yPos += const.HEIGHT_OFFSET
         splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, 230))
@@ -181,6 +180,7 @@ class AndroidColorResDialog(QtWidgets.QDialog):
                 self.colorNameLineEdit.setEnabled(True)
                 self.normalColorLineEdit.setEnabled(True)
                 self.darkColorLineEdit.setEnabled(True)
+                self.addColorResBtn.setEnabled(True)
         pass
 
     def initFindColorRes(self, fn):
@@ -253,4 +253,25 @@ class AndroidColorResDialog(QtWidgets.QDialog):
                 res = self.findColorRes
         LogUtil.e("查找到的资源：", res)
         WidgetUtil.addTableViewData(self.findResTableView, res)
+        pass
+
+    def addColorRes(self):
+        LogUtil.i("jumpAddColorResDialog")
+        from widget.colorManager.AddColorResDialog import AddColorResDialog
+        dialog = AddColorResDialog(self.addColorHandle, self.findColorRes)
+        # dialog.show()
+        pass
+
+    def addColorHandle(self, colorName, normalColor, darkColor):
+        LogUtil.e("新添加color资源：", colorName, "  ", normalColor, " dark: ", darkColor)
+        fp = self.findExcelFnLineEdit.text().strip()
+        oldBk = ExcelUtil.getBook(fp)
+        nrows = oldBk.sheets()[0].nrows
+        newBk: Workbook = ExcelUtil.copyBook(oldBk)
+        st: Worksheet = newBk.get_sheet(0)
+        st.write(nrows, 0, colorName)
+        st.write(nrows, 1, normalColor)
+        st.write(nrows, 2, darkColor)
+        self.findColorRes.append({'colorName': colorName, 'normalColor': normalColor, 'darkColor': darkColor})
+        newBk.save(fp)
         pass
