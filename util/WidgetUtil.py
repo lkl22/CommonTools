@@ -45,12 +45,12 @@ def widgetSetAttrs(widget: QWidget, objectName, toolTip=None, geometry: QRect = 
 
 class WidgetUtil:
     @staticmethod
-    def getOpenFileName():
+    def getOpenFileName(caption='', directory='', filter='', initialFilter=''):
         """
         打开一个文件弹框选择一个指定的文件
         :return: 文件路径
         """
-        (filePath, _) = QtWidgets.QFileDialog.getOpenFileName()
+        (filePath, _) = QtWidgets.QFileDialog.getOpenFileName(caption=caption, directory=directory, filter=filter, initialFilter=initialFilter)
         print("选择的文件： " + filePath)
         return filePath
 

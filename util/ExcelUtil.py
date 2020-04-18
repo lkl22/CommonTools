@@ -3,10 +3,13 @@
 # Filename: ExcelUtil.py
 # 定义一个ExcelUtil工具类实现Excel相关的功能
 
-import xlrd, xlwt
+import xlrd
+import xlwt
 from xlrd import book, sheet
 from xlutils.copy import copy
 from xlwt import Workbook, Worksheet
+
+from util.LogUtil import *
 
 
 class ExcelUtil:
@@ -17,8 +20,12 @@ class ExcelUtil:
         :param filePath:
         :return:
         """
-        book = xlrd.open_workbook(filePath)
-        return book
+        bk = None
+        try:
+            bk = xlrd.open_workbook(filePath)
+        except Exception as err:
+            LogUtil.e('ExcelUtil getBook 错误信息：', err)
+        return bk
 
     @staticmethod
     def getSheet(filePath='../config/androidRes.xls', i=0):
@@ -28,8 +35,12 @@ class ExcelUtil:
         :param i: 索引
         :return: sheet的内容
         """
-        bk = xlrd.open_workbook(filePath)
-        st = bk.sheets()[i]
+        st = None
+        try:
+            bk = xlrd.open_workbook(filePath)
+            st = bk.sheets()[i]
+        except Exception as err:
+            LogUtil.e('ExcelUtil getSheet 错误信息：', err)
         return st
 
     @staticmethod
