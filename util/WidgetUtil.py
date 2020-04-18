@@ -3,9 +3,9 @@
 # Filename: WidgetUtil.py
 # 定义一个WidgetUtil工具类实现Widget相关的功能
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtGui import QIcon, QBrush
+from PyQt5.QtGui import QIcon, QBrush, QStandardItemModel, QStandardItem
 from PyQt5.QtWidgets import QWidget, QMessageBox, QSizePolicy, QTreeWidget, QMenu, QTreeWidgetItem, QDialog, \
-    QRadioButton
+    QRadioButton, QTableView, QHeaderView
 from PyQt5.QtCore import QRect, QMargins, QSize, Qt
 
 from util import LogUtil
@@ -525,6 +525,60 @@ class WidgetUtil:
         if action3:
             widget.addAction(WidgetUtil.createAction(widget, action3, func3))
         return widget
+
+    @staticmethod
+    def createTableView(parent: QWidget, objectName="TreeWidget", toolTip=None, geometry: QRect = None, minSize: QSize = None,
+                        isEnable=True, sizePolicy: QSizePolicy = None):
+        """
+        创建一个QTableView
+        :param parent: 父QWidget
+        :param objectName: objectName
+        :param toolTip: toolTip
+        :param geometry: geometry
+        :param minSize: minSize
+        :param isEnable: isEnable
+        :param sizePolicy: 缩放策略
+        :return: QTableView
+        """
+        widget = QTableView(parent)
+        widgetSetAttrs(widget, objectName, toolTip=toolTip, geometry=geometry, minSize=minSize, isEnable=isEnable, sizePolicy=sizePolicy)
+
+        # 水平方向标签拓展剩下的窗口部分，填满表格
+        widget.horizontalHeader().setStretchLastSection(True)
+        # 水平方向，表格大小拓展到适当的尺寸
+        widget.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        return widget
+
+    @staticmethod
+    def addTableViewData(tableView: QTableView, data=[{}]):
+        """
+        TableView设置数据
+        :param tableView: QTableView
+        :param data: 数据源
+        """
+        if data:
+            rows = len(data)
+            cols = len(data[0])
+            # 设置数据层次结构，rows行cols列
+            model = QStandardItemModel(rows, cols)
+            headerLabels = []
+            for key in data[0]:
+                headerLabels.append(key)
+            # 设置水平方向头标签文本内容
+            model.setHorizontalHeaderLabels(headerLabels)
+
+            for row in range(rows):
+                column = 0
+                for value in data[row].values():
+                    item = QStandardItem(value)
+                    # 设置每个位置的文本值
+                    model.setItem(row, column, item)
+                    column = column + 1
+
+            # 实例化表格视图，设置模型为自定义的模型
+            tableView.setModel(model)
+        else:
+            LogUtil.e("data is empty")
 
     @classmethod
     def translate(cls, context=contextName, text=""):

@@ -31,8 +31,8 @@ class AndroidColorResDialog(QtWidgets.QDialog):
 
         self.normalColorRes = {}
         self.darkColorRes = {}
-        self.findNormalColorRes = {}
-        self.findDarkColorRes = {}
+
+        self.findColorRes = [{}]
 
         layoutWidget = QtWidgets.QWidget(self)
         layoutWidget.setGeometry(QRect(const.PADDING, const.PADDING, AndroidColorResDialog.WINDOW_WIDTH - const.PADDING * 2,
@@ -63,9 +63,11 @@ class AndroidColorResDialog(QtWidgets.QDialog):
         self.exec_()
 
     def createGenerateExcelGroupBox(self, parent):
-        box = WidgetUtil.createGroupBox(parent, title="生成Excel")
         yPos = const.GROUP_BOX_MARGIN_TOP
         width = AndroidColorResDialog.WINDOW_WIDTH - const.PADDING * 4
+
+        box = WidgetUtil.createGroupBox(parent, title="生成Excel", minSize=QSize(width, const.GROUP_BOX_MARGIN_TOP + const.HEIGHT_OFFSET * 5))
+
         splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
 
         WidgetUtil.createPushButton(splitter, text="normal color res XML文件路径", minSize=QSize(120, const.HEIGHT),
@@ -133,7 +135,8 @@ class AndroidColorResDialog(QtWidgets.QDialog):
         pass
 
     def createFindGroupBox(self, parent):
-        box = WidgetUtil.createGroupBox(parent, title="查找资源")
+        sizePolicy = WidgetUtil.createSizePolicy()
+        box = WidgetUtil.createGroupBox(parent, title="查找资源", sizePolicy=sizePolicy)
         yPos = const.GROUP_BOX_MARGIN_TOP
         width = AndroidColorResDialog.WINDOW_WIDTH - const.PADDING * 4
         splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
@@ -159,6 +162,8 @@ class AndroidColorResDialog(QtWidgets.QDialog):
         WidgetUtil.createPushButton(splitter, text="查找", onClicked=self.findRes)
 
         yPos += const.HEIGHT_OFFSET
+        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, 230))
+        self.findResTableView = WidgetUtil.createTableView(splitter, minSize=QSize(width, 200), sizePolicy=sizePolicy)
 
         return box
 
@@ -175,22 +180,21 @@ class AndroidColorResDialog(QtWidgets.QDialog):
     def initFindColorRes(self, fn):
         st = ExcelUtil.getSheet(fn, 0)
         if st:
-            self.findNormalColorRes = {}
-            self.findDarkColorRes = {}
+            self.findColorRes = []
             lines = ExcelUtil.getLines(st)
             for i in range(1, lines):
                 key = ExcelUtil.getCell(st, i, 0)
                 if key:
+                    colorRes = {'colorName': key}
                     normalColor = ExcelUtil.getCell(st, i, 1)
-                    if normalColor:
-                        self.findNormalColorRes[key] = normalColor
+                    colorRes['normalColor'] = normalColor
 
                     darkColor = ExcelUtil.getCell(st, i, 2)
-                    if darkColor:
-                        self.findDarkColorRes[key] = darkColor
-            if self.findNormalColorRes or self.findDarkColorRes:
-                print(self.findNormalColorRes)
-                print(self.findDarkColorRes)
+                    colorRes['darkColor'] = darkColor
+
+                    self.findColorRes.append(colorRes)
+            if self.findColorRes:
+                print(self.findColorRes)
                 return True
         else:
             return False
@@ -222,15 +226,25 @@ class AndroidColorResDialog(QtWidgets.QDialog):
 
     def findRes(self):
         colorName = self.colorNameLineEdit.text().strip()
+        res = []
         if colorName:
             LogUtil.e("需要查找的color name：", colorName)
+            for colorRes in self.findColorRes:
+                if colorName in colorRes['colorName']:
+                    res.append(colorRes)
         else:
-            normalColor = self.normalColorLineEdit.text().strip()
-            darkColor = self.darkColorLineEdit.text().strip()
+            normalColor = self.normalColorLineEdit.text().strip().upper()
+            darkColor = self.darkColorLineEdit.text().strip().upper()
             if normalColor:
                 LogUtil.e("需要查找的normal color：", normalColor)
             if darkColor:
                 LogUtil.e("需要查找的dark color：", darkColor)
+            for colorRes in self.findColorRes:
+                if normalColor in colorRes['normalColor'] and darkColor in colorRes['darkColor']:
+                    res.append(colorRes)
             if not (normalColor or darkColor):
                 LogUtil.e("没有查询条件，查询所有数据")
+                res = self.findColorRes
+        LogUtil.e("查找到的资源：", res)
+        WidgetUtil.addTableViewData(self.findResTableView, res)
         pass
