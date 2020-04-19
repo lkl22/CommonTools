@@ -33,15 +33,13 @@ class AddColorResDialog(QtWidgets.QDialog):
         vbox.addWidget(splitter)
 
         splitter = WidgetUtil.createSplitter(self, geometry=QRect(const.PADDING, const.PADDING, width, const.HEIGHT))
-        WidgetUtil.createLabel(splitter, text="normal color：", alignment=Qt.AlignVCenter | Qt.AlignLeft,
-                               minSize=QSize(100, const.HEIGHT))
+        WidgetUtil.createPushButton(splitter, text="normal color：", minSize=QSize(80, const.HEIGHT), onClicked=self.normalColorSelected)
         sizePolicy = WidgetUtil.createSizePolicy()
         self.normalColorLineEdit = WidgetUtil.createLineEdit(splitter, sizePolicy=sizePolicy)
         vbox.addWidget(splitter)
 
         splitter = WidgetUtil.createSplitter(self, geometry=QRect(const.PADDING, const.PADDING, width, const.HEIGHT))
-        WidgetUtil.createLabel(splitter, text="dark color：", alignment=Qt.AlignVCenter | Qt.AlignLeft,
-                               minSize=QSize(100, const.HEIGHT))
+        WidgetUtil.createPushButton(splitter, text="dark color：", minSize=QSize(80, const.HEIGHT), onClicked=self.darkColorSelected)
         sizePolicy = WidgetUtil.createSizePolicy()
         self.darkColorLineEdit = WidgetUtil.createLineEdit(splitter, sizePolicy=sizePolicy)
         vbox.addWidget(splitter)
@@ -58,12 +56,22 @@ class AddColorResDialog(QtWidgets.QDialog):
         # 很关键，不加出不来
         self.exec_()
 
+    def normalColorSelected(self):
+        color = WidgetUtil.getColor()
+        if color:
+            self.normalColorLineEdit.setText(color)
+
+    def darkColorSelected(self):
+        color = WidgetUtil.getColor()
+        if color:
+            self.darkColorLineEdit.setText(color)
+
     def acceptFunc(self):
         colorName = self.colorNameLineEdit.text().strip()
         if not colorName:
             WidgetUtil.showErrorDialog(message="请输入color资源名称")
             return False
-        normalColor = self.normalColorLineEdit.text().strip()
+        normalColor = self.normalColorLineEdit.text().strip().upper()
         if not normalColor:
             WidgetUtil.showErrorDialog(message="请输入normal color颜色值（#FFFFFFFF、#FFF、#FFFFFF）")
             return False
@@ -76,7 +84,7 @@ class AddColorResDialog(QtWidgets.QDialog):
                     WidgetUtil.showErrorDialog(message=colorName + "已经存在了，请输入不一样的color name")
                     return False
 
-        darkColor = self.darkColorLineEdit.text().strip()
+        darkColor = self.darkColorLineEdit.text().strip().upper()
         if darkColor and not ReUtil.matchColor(darkColor):
             WidgetUtil.showErrorDialog(message="dark color请输入正确的颜色值（#FFF、#FFFFFF、#FFFFFFFF、666、666666、66666666）")
             return False

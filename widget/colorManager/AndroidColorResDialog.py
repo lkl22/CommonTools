@@ -40,9 +40,11 @@ class AndroidColorResDialog(QtWidgets.QDialog):
         layoutWidget.setLayout(vLayout)
 
         generateExcelGroupBox = self.createGenerateExcelGroupBox(layoutWidget)
+        opacityGroupBox = self.createOpacityGroupBox(layoutWidget)
         findGroupBox = self.createFindGroupBox(layoutWidget)
 
         vLayout.addWidget(generateExcelGroupBox)
+        vLayout.addWidget(opacityGroupBox)
         vLayout.addWidget(findGroupBox)
 
         self.operaIni = OperaIni(FileUtil.getProjectPath() + "/CommonTools/config/BaseConfig.ini")
@@ -67,7 +69,7 @@ class AndroidColorResDialog(QtWidgets.QDialog):
         yPos = const.GROUP_BOX_MARGIN_TOP
         width = AndroidColorResDialog.WINDOW_WIDTH - const.PADDING * 4
 
-        box = WidgetUtil.createGroupBox(parent, title="生成Excel", minSize=QSize(width, const.GROUP_BOX_MARGIN_TOP + const.HEIGHT_OFFSET * 5))
+        box = WidgetUtil.createGroupBox(parent, title="生成Excel", minSize=QSize(width, const.GROUP_BOX_MARGIN_TOP + const.HEIGHT_OFFSET * 9 / 2))
 
         splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
 
@@ -133,6 +135,55 @@ class AndroidColorResDialog(QtWidgets.QDialog):
                 ExcelUtil.writeSheet(st, row, 2, darkColor)
             row = row + 1
         ExcelUtil.saveBook(bk, fn)
+        pass
+
+    def createOpacityGroupBox(self, parent):
+        yPos = const.GROUP_BOX_MARGIN_TOP
+        width = AndroidColorResDialog.WINDOW_WIDTH - const.PADDING * 4
+
+        box = WidgetUtil.createGroupBox(parent, title="计算不透明度", minSize=QSize(width, const.GROUP_BOX_MARGIN_TOP + const.HEIGHT_OFFSET * 3 / 2))
+
+        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
+
+        WidgetUtil.createLabel(splitter, text="不透明度：", minSize=QSize(50, const.HEIGHT))
+        sizePolicy = WidgetUtil.createSizePolicy()
+        self.percentOpacitySpinBox = WidgetUtil.createSpinBox(splitter, value=0, minValue=0, maxValue=100, step=5, suffix='%',
+                                                              sizePolicy=sizePolicy, valueChanged=self.percentOpacityChanged)
+
+        WidgetUtil.createLabel(splitter, text="透明度：", alignment=Qt.AlignVCenter | Qt.AlignRight, minSize=QSize(120, const.HEIGHT))
+        sizePolicy = WidgetUtil.createSizePolicy()
+        self.percentOpennessSpinBox = WidgetUtil.createSpinBox(splitter, value=100, minValue=0, maxValue=100, step=5,
+                                                              suffix='%',
+                                                              sizePolicy=sizePolicy,
+                                                              valueChanged=self.percentOpennessChanged)
+
+        WidgetUtil.createLabel(splitter, text="16进制数值：", alignment=Qt.AlignVCenter | Qt.AlignRight, minSize=QSize(120, const.HEIGHT))
+        self.hexOpacitySpinBox = WidgetUtil.createSpinBox(splitter, value=0, minValue=0, maxValue=255, step=1, prefix='0x',
+                                                          intBase=16, sizePolicy=sizePolicy, valueChanged=self.hexOpacityChanged)
+        return box
+
+    def percentOpacityChanged(self):
+        percentOpacity = self.percentOpacitySpinBox.value()
+        percentOpenness = 100 - percentOpacity
+        self.percentOpennessSpinBox.setValue(percentOpenness)
+        hexOpacity = int(255 * percentOpacity / 100 + 0.5)
+        self.hexOpacitySpinBox.setValue(hexOpacity)
+        pass
+
+    def percentOpennessChanged(self):
+        percentOpenness = self.percentOpennessSpinBox.value()
+        percentOpacity = 100 - percentOpenness
+        self.percentOpacitySpinBox.setValue(percentOpacity)
+        hexOpacity = int(255 * percentOpacity / 100 + 0.5)
+        self.hexOpacitySpinBox.setValue(hexOpacity)
+        pass
+
+    def hexOpacityChanged(self):
+        hexOpacity = self.hexOpacitySpinBox.value()
+        percentOpacity = int(hexOpacity * 100 / 255 + 0.5)
+        percentOpenness = 100 - percentOpacity
+        self.percentOpennessSpinBox.setValue(percentOpenness)
+        self.percentOpacitySpinBox.setValue(percentOpacity)
         pass
 
     def createFindGroupBox(self, parent):

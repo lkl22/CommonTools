@@ -3,9 +3,9 @@
 # Filename: WidgetUtil.py
 # 定义一个WidgetUtil工具类实现Widget相关的功能
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtGui import QIcon, QBrush, QStandardItemModel, QStandardItem
+from PyQt5.QtGui import QIcon, QBrush, QStandardItemModel, QStandardItem, QColor
 from PyQt5.QtWidgets import QWidget, QMessageBox, QSizePolicy, QTreeWidget, QMenu, QTreeWidgetItem, QDialog, \
-    QRadioButton, QTableView, QHeaderView
+    QRadioButton, QTableView, QHeaderView, QColorDialog, QSpinBox
 from PyQt5.QtCore import QRect, QMargins, QSize, Qt
 
 from util import LogUtil
@@ -44,6 +44,17 @@ def widgetSetAttrs(widget: QWidget, objectName, toolTip=None, geometry: QRect = 
 
 
 class WidgetUtil:
+    @staticmethod
+    def getColor():
+        """
+        打开一个颜色选择弹框
+        :return: 选择的颜色值
+        """
+        qColor: QColor = QColorDialog.getColor()
+        if qColor.isValid():
+            return qColor.name()
+        return None
+
     @staticmethod
     def getOpenFileName(caption='', directory='', filter='', initialFilter=''):
         """
@@ -168,6 +179,51 @@ class WidgetUtil:
         else:
             widget.setOrientation(Qt.Horizontal)
         widgetSetAttrs(widget, objectName, toolTip=toolTip, geometry=geometry, minSize=minSize, sizePolicy=sizePolicy)
+        return widget
+
+    @staticmethod
+    def createSpinBox(parent: QWidget = None, objectName="SpinBox", value=None, minValue=None, maxValue=None, step=None,
+                      prefix=None, suffix=None, intBase=None, toolTip=None, geometry: QRect = None, minSize: QSize = None,
+                      isEnable=True, sizePolicy: QSizePolicy = None, valueChanged=None):
+        """
+        创建一个计数器控件
+        :param parent: 父QWidget
+        :param objectName: objectName
+        :param value: 当前值
+        :param minValue: 最小值
+        :param maxValue: 最大值
+        :param step: 步长
+        :param prefix: 前缀
+        :param suffix: 后缀
+        :param intBase: 显示的进制
+        :param toolTip: toolTip
+        :param geometry: geometry
+        :param minSize: minSize
+        :param isEnable: isEnable
+        :param sizePolicy: 缩放策略
+        :param valueChanged: 数值改变监听函数
+        :return: QSpinBox
+        """
+        widget = QSpinBox()
+        if parent:
+            widget.setParent(parent)
+        widgetSetAttrs(widget, objectName, toolTip=toolTip, geometry=geometry, minSize=minSize, isEnable=isEnable, sizePolicy=sizePolicy)
+        if value:
+            widget.setValue(value)
+        if minValue:
+            widget.setMinimum(minValue)
+        if maxValue:
+            widget.setMaximum(maxValue)
+        if step:
+            widget.setSingleStep(step)
+        if prefix:
+            widget.setPrefix(prefix)
+        if suffix:
+            widget.setSuffix(suffix)
+        if intBase:
+            widget.setDisplayIntegerBase(intBase)
+        if valueChanged:
+            widget.valueChanged.connect(valueChanged)
         return widget
 
     @staticmethod
