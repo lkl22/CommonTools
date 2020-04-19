@@ -233,7 +233,7 @@ class AndroidColorResDialog(QtWidgets.QDialog):
 
         yPos += const.HEIGHT_OFFSET
         splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, 230))
-        self.findResTableView = WidgetUtil.createTableView(splitter, minSize=QSize(width, 200), sizePolicy=sizePolicy, doubleClicked=self.tabledoubleClicked)
+        self.findResTableView = WidgetUtil.createTableView(splitter, minSize=QSize(width, 200), sizePolicy=sizePolicy, doubleClicked=self.tableDoubleClicked)
 
         return box
 
@@ -351,11 +351,59 @@ class AndroidColorResDialog(QtWidgets.QDialog):
 
     def tableItemChanged(self, item: QStandardItem):
         newData = item.text().strip()
-        LogUtil.d("编辑的单元格：row ", item.row(), ' col', item.column(), ' data ', newData)
-        item.setText('ddd')
+        col = item.column()
+        LogUtil.d("编辑的单元格：row ", item.row(), ' col', col, ' data ', newData)
+        if AndroidColorResDialog.KEY_COLOR_NAME_COL_NUM == col:
+            for colorRes in self.findColorRes:
+                if colorRes[AndroidColorResDialog.KEY_COLOR_NAME] == newData \
+                        and self.curEditColorRes[AndroidColorResDialog.KEY_COLOR_NAME] != newData:
+                    WidgetUtil.showErrorDialog(
+                        message=newData + "已经存在了，请输入不一样的color name")
+                    item.setText(self.curEditColorRes[AndroidColorResDialog.KEY_COLOR_NAME])
+                    return
+            if self.curEditColorRes[AndroidColorResDialog.KEY_COLOR_NAME] != newData:
+                # 修改了并且满足条件
+                self.curEditColorRes[AndroidColorResDialog.KEY_COLOR_NAME] = newData
+                self.editExcel()
+        elif AndroidColorResDialog.KEY_NORMAL_COLOR_COL_NUM == col:
+            if not ReUtil.matchColor(newData):
+                WidgetUtil.showErrorDialog(message="normal color请输入正确的颜色值（#FFF、#FFFFFF、#FFFFFFFF、666、666666、66666666）")
+                item.setText(self.curEditColorRes[AndroidColorResDialog.KEY_NORMAL_COLOR])
+                return
+            if self.curEditColorRes[AndroidColorResDialog.KEY_NORMAL_COLOR] != newData:
+                # 修改了并且满足条件
+                self.curEditColorRes[AndroidColorResDialog.KEY_NORMAL_COLOR] = newData
+                self.editExcel()
+        elif AndroidColorResDialog.KEY_DARK_COLOR_COL_NUM == col:
+            if newData and not ReUtil.matchColor(newData):
+                WidgetUtil.showErrorDialog(message="dark color请输入正确的颜色值（#FFF、#FFFFFF、#FFFFFFFF、666、666666、66666666）")
+                item.setText(self.curEditColorRes[AndroidColorResDialog.KEY_DARK_COLOR])
+                return
+            if self.curEditColorRes[AndroidColorResDialog.KEY_DARK_COLOR] != newData:
+                # 修改了并且满足条件
+                self.curEditColorRes[AndroidColorResDialog.KEY_DARK_COLOR] = newData
+                self.editExcel()
         pass
 
-    def tabledoubleClicked(self, index: QModelIndex):
+    def editExcel(self):
+        colorName = self.curEditColorRes[AndroidColorResDialog.KEY_COLOR_NAME]
+        normalColor = self.curEditColorRes[AndroidColorResDialog.KEY_NORMAL_COLOR]
+        darkColor = self.curEditColorRes[AndroidColorResDialog.KEY_DARK_COLOR]
+        row = self.curEditColorRes[AndroidColorResDialog.KEY_ROW]
+        LogUtil.e("编辑color资源：", colorName, "  ", normalColor, " dark: ", darkColor, ' row ', row)
+        fp = self.findExcelFnLineEdit.text().strip()
+        oldBk = ExcelUtil.getBook(fp)
+        newBk: Workbook = ExcelUtil.copyBook(oldBk)
+        st: Worksheet = newBk.get_sheet(0)
+        st.write(row, AndroidColorResDialog.KEY_COLOR_NAME_COL_NUM, colorName)
+        st.write(row, AndroidColorResDialog.KEY_NORMAL_COLOR_COL_NUM, normalColor)
+        st.write(row, AndroidColorResDialog.KEY_DARK_COLOR_COL_NUM, darkColor)
+        newBk.save(fp)
+        # 修改了数据，重新查询一遍结果
+        self.findRes()
+        pass
+
+    def tableDoubleClicked(self, index: QModelIndex):
         oldValue = index.data()
         row = index.row()
         LogUtil.d("双击的单元格：row ", row, ' col', index.column(), ' data ', oldValue)

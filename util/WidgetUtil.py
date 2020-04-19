@@ -8,7 +8,7 @@ from PyQt5.QtWidgets import QWidget, QMessageBox, QSizePolicy, QTreeWidget, QMen
     QRadioButton, QTableView, QHeaderView, QColorDialog, QSpinBox
 from PyQt5.QtCore import QRect, QMargins, QSize, Qt
 
-from util import LogUtil
+from util.LogUtil import *
 from util.DataTypeUtil import *
 
 _translate = QtCore.QCoreApplication.translate
@@ -654,6 +654,9 @@ class WidgetUtil:
             # 实例化表格视图，设置模型为自定义的模型
             tableView.setModel(model)
         else:
+            model = tableView.model()
+            if model:
+                model.removeRows(0, model.rowCount())
             LogUtil.e("data is empty")
 
     @classmethod
