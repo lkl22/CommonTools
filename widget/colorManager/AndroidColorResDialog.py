@@ -2,6 +2,8 @@
 # python 3.x
 # Filename: AndroidColorResDialog.py
 # 定义一个AndroidColorResDialog类实现android color资源管理
+from PyQt5.QtCore import QModelIndex
+
 from constant.WidgetConst import *
 from util.ExcelUtil import *
 from util.DialogUtil import *
@@ -12,10 +14,18 @@ from util.OperaIni import *
 
 class AndroidColorResDialog(QtWidgets.QDialog):
     WINDOW_WIDTH = 800
-    WINDOW_HEIGHT = 600
+    WINDOW_HEIGHT = 670
 
     KEY_FIND_EXCEL_FN = "findExcelFn"
     SECTION_ANDROID = "android"
+
+    KEY_COLOR_NAME = "colorName"
+    KEY_COLOR_NAME_COL_NUM = 0
+    KEY_NORMAL_COLOR = "normalColor"
+    KEY_NORMAL_COLOR_COL_NUM = 1
+    KEY_DARK_COLOR = "darkColor"
+    KEY_DARK_COLOR_COL_NUM = 2
+    KEY_ROW = "row"
 
     def __init__(self):
         # 调用父类的构函
@@ -29,7 +39,12 @@ class AndroidColorResDialog(QtWidgets.QDialog):
         self.normalColorRes = {}
         self.darkColorRes = {}
 
+        # 查找的数据源
         self.findColorRes = [{}]
+        # 查找到的结果
+        self.findColorResResult = [{}]
+        # 当前正在编辑的color资源
+        self.curEditColorRes = {}
 
         layoutWidget = QtWidgets.QWidget(self)
         layoutWidget.setGeometry(QRect(const.PADDING, const.PADDING, AndroidColorResDialog.WINDOW_WIDTH - const.PADDING * 2,
@@ -123,16 +138,18 @@ class AndroidColorResDialog(QtWidgets.QDialog):
         fn = os.path.join(fp, 'AndroidRes.xls')
         bk = ExcelUtil.createBook()
         st = ExcelUtil.addSheet(bk, 'color')
-        ExcelUtil.writeSheet(st, 0, 0, 'key')
-        ExcelUtil.writeSheet(st, 0, 1, 'normal')
-        ExcelUtil.writeSheet(st, 0, 2, 'dark')
+        ExcelUtil.writeSheet(st, 0, AndroidColorResDialog.KEY_COLOR_NAME_COL_NUM, 'key')
+        ExcelUtil.writeSheet(st, 0, AndroidColorResDialog.KEY_NORMAL_COLOR_COL_NUM, 'normal')
+        ExcelUtil.writeSheet(st, 0, AndroidColorResDialog.KEY_DARK_COLOR_COL_NUM, 'dark')
         row = 1
         for key, value in self.normalColorRes.items():
-            ExcelUtil.writeSheet(st, row, 0, key)
-            ExcelUtil.writeSheet(st, row, 1, value)
+            ExcelUtil.writeSheet(st, row, AndroidColorResDialog.KEY_COLOR_NAME_COL_NUM, key)
+            ExcelUtil.writeSheet(st, row, AndroidColorResDialog.KEY_NORMAL_COLOR_COL_NUM, value)
             darkColor = self.darkColorRes.get(key)
             if darkColor:
-                ExcelUtil.writeSheet(st, row, 2, darkColor)
+                ExcelUtil.writeSheet(st, row, AndroidColorResDialog.KEY_DARK_COLOR_COL_NUM, darkColor)
+            else:
+                ExcelUtil.writeSheet(st, row, AndroidColorResDialog.KEY_DARK_COLOR_COL_NUM, '')
             row = row + 1
         ExcelUtil.saveBook(bk, fn)
         pass
@@ -216,7 +233,7 @@ class AndroidColorResDialog(QtWidgets.QDialog):
 
         yPos += const.HEIGHT_OFFSET
         splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, 230))
-        self.findResTableView = WidgetUtil.createTableView(splitter, minSize=QSize(width, 200), sizePolicy=sizePolicy)
+        self.findResTableView = WidgetUtil.createTableView(splitter, minSize=QSize(width, 200), sizePolicy=sizePolicy, doubleClicked=self.tabledoubleClicked)
 
         return box
 
@@ -242,12 +259,13 @@ class AndroidColorResDialog(QtWidgets.QDialog):
             for i in range(1, lines):
                 key = ExcelUtil.getCell(st, i, 0)
                 if key:
-                    colorRes = {'colorName': key}
-                    normalColor = ExcelUtil.getCell(st, i, 1)
-                    colorRes['normalColor'] = normalColor
+                    colorRes = {AndroidColorResDialog.KEY_COLOR_NAME: key}
+                    normalColor = ExcelUtil.getCell(st, i, AndroidColorResDialog.KEY_NORMAL_COLOR_COL_NUM)
+                    colorRes[AndroidColorResDialog.KEY_NORMAL_COLOR] = normalColor
 
-                    darkColor = ExcelUtil.getCell(st, i, 2)
-                    colorRes['darkColor'] = darkColor
+                    darkColor = ExcelUtil.getCell(st, i, AndroidColorResDialog.KEY_DARK_COLOR_COL_NUM)
+                    colorRes[AndroidColorResDialog.KEY_DARK_COLOR] = darkColor
+                    colorRes[AndroidColorResDialog.KEY_ROW] = i
 
                     self.findColorRes.append(colorRes)
             if self.findColorRes:
@@ -287,7 +305,7 @@ class AndroidColorResDialog(QtWidgets.QDialog):
         if colorName:
             LogUtil.e("需要查找的color name：", colorName)
             for colorRes in self.findColorRes:
-                if colorName in colorRes['colorName']:
+                if colorName in colorRes[AndroidColorResDialog.KEY_COLOR_NAME]:
                     res.append(colorRes)
         else:
             normalColor = self.normalColorLineEdit.text().strip().upper()
@@ -297,13 +315,14 @@ class AndroidColorResDialog(QtWidgets.QDialog):
             if darkColor:
                 LogUtil.e("需要查找的dark color：", darkColor)
             for colorRes in self.findColorRes:
-                if normalColor in colorRes['normalColor'] and darkColor in colorRes['darkColor']:
+                if normalColor in colorRes[AndroidColorResDialog.KEY_NORMAL_COLOR] and darkColor in colorRes[AndroidColorResDialog.KEY_DARK_COLOR]:
                     res.append(colorRes)
             if not (normalColor or darkColor):
                 LogUtil.e("没有查询条件，查询所有数据")
                 res = self.findColorRes
         LogUtil.e("查找到的资源：", res)
-        WidgetUtil.addTableViewData(self.findResTableView, res)
+        self.findColorResResult = res
+        WidgetUtil.addTableViewData(self.findResTableView, res, [AndroidColorResDialog.KEY_ROW], self.tableItemChanged)
         pass
 
     def addColorRes(self):
@@ -320,9 +339,28 @@ class AndroidColorResDialog(QtWidgets.QDialog):
         nrows = oldBk.sheets()[0].nrows
         newBk: Workbook = ExcelUtil.copyBook(oldBk)
         st: Worksheet = newBk.get_sheet(0)
-        st.write(nrows, 0, colorName)
-        st.write(nrows, 1, normalColor)
-        st.write(nrows, 2, darkColor)
-        self.findColorRes.append({'colorName': colorName, 'normalColor': normalColor, 'darkColor': darkColor})
+        st.write(nrows, AndroidColorResDialog.KEY_COLOR_NAME_COL_NUM, colorName)
+        st.write(nrows, AndroidColorResDialog.KEY_NORMAL_COLOR_COL_NUM, normalColor)
+        st.write(nrows, AndroidColorResDialog.KEY_DARK_COLOR_COL_NUM, darkColor)
+        self.findColorRes.append({AndroidColorResDialog.KEY_COLOR_NAME: colorName, AndroidColorResDialog.KEY_NORMAL_COLOR: normalColor,
+                                  AndroidColorResDialog.KEY_DARK_COLOR: darkColor, AndroidColorResDialog.KEY_ROW: nrows})
         newBk.save(fp)
+        # 添加了数据，重新查询一遍结果
+        self.findRes()
+        pass
+
+    def tableItemChanged(self, item: QStandardItem):
+        newData = item.text().strip()
+        LogUtil.d("编辑的单元格：row ", item.row(), ' col', item.column(), ' data ', newData)
+        item.setText('ddd')
+        pass
+
+    def tabledoubleClicked(self, index: QModelIndex):
+        oldValue = index.data()
+        row = index.row()
+        LogUtil.d("双击的单元格：row ", row, ' col', index.column(), ' data ', oldValue)
+        colorRes = self.findColorResResult[row]
+        LogUtil.d("Excel中源数据：row ", colorRes[AndroidColorResDialog.KEY_ROW], ' colorName ', colorRes[AndroidColorResDialog.KEY_COLOR_NAME],
+                  ' normalColor ', colorRes[AndroidColorResDialog.KEY_NORMAL_COLOR], ' darkColor ', colorRes[AndroidColorResDialog.KEY_DARK_COLOR])
+        self.curEditColorRes = colorRes
         pass

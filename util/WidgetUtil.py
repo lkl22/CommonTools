@@ -590,7 +590,7 @@ class WidgetUtil:
 
     @staticmethod
     def createTableView(parent: QWidget, objectName="TreeWidget", toolTip=None, geometry: QRect = None, minSize: QSize = None,
-                        isEnable=True, sizePolicy: QSizePolicy = None):
+                        isEnable=True, sizePolicy: QSizePolicy = None, doubleClicked=None):
         """
         创建一个QTableView
         :param parent: 父QWidget
@@ -600,6 +600,7 @@ class WidgetUtil:
         :param minSize: minSize
         :param isEnable: isEnable
         :param sizePolicy: 缩放策略
+        :param doubleClicked: 双击回调函数
         :return: QTableView
         """
         widget = QTableView(parent)
@@ -609,34 +610,47 @@ class WidgetUtil:
         widget.horizontalHeader().setStretchLastSection(True)
         # 水平方向，表格大小拓展到适当的尺寸
         widget.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        if doubleClicked:
+            widget.doubleClicked.connect(doubleClicked)
         return widget
 
     @staticmethod
-    def addTableViewData(tableView: QTableView, data=[{}]):
+    def addTableViewData(tableView: QTableView, data=[{}], ignoreCol=[], itemChanged=None):
         """
         TableView设置数据
         :param tableView: QTableView
         :param data: 数据源
+        :param ignoreCol: 需要忽略的数据列列表
+        :param itemChanged: 单元格内容变化监听函数
         """
         if data:
             rows = len(data)
             cols = len(data[0])
+            # 忽略的列数
+            ignoreColCount = 0
+            for key in data[0]:
+                if key in ignoreCol:
+                    ignoreColCount = ignoreColCount + 1
+            cols = cols - ignoreColCount
             # 设置数据层次结构，rows行cols列
             model = QStandardItemModel(rows, cols)
             headerLabels = []
             for key in data[0]:
-                headerLabels.append(key)
+                if not (key in ignoreCol):
+                    headerLabels.append(key)
             # 设置水平方向头标签文本内容
             model.setHorizontalHeaderLabels(headerLabels)
 
             for row in range(rows):
                 column = 0
-                for value in data[row].values():
-                    item = QStandardItem(value)
-                    # 设置每个位置的文本值
-                    model.setItem(row, column, item)
-                    column = column + 1
-
+                for key, value in data[row].items():
+                    if not (key in ignoreCol):
+                        item = QStandardItem(str(value))
+                        # 设置每个位置的文本值
+                        model.setItem(row, column, item)
+                        column = column + 1
+            if itemChanged:
+                model.itemChanged.connect(itemChanged)
             # 实例化表格视图，设置模型为自定义的模型
             tableView.setModel(model)
         else:
