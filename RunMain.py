@@ -2,10 +2,10 @@
 # python 3.x
 # Filename: RunMain.py
 # 程序的主入口
-from widget.MainWidget import *
-import sys
+import sys, os
 if hasattr(sys, 'frozen'):
     os.environ['PATH'] = sys._MEIPASS + ";" + os.environ['PATH']
+from widget.MainWidget import *
 from PyQt5.QtGui import QIcon
 
 if __name__ == "__main__":

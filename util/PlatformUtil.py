@@ -8,6 +8,10 @@ import platform
 class PlatformUtil:
     @staticmethod
     def isMac():
+        """
+        判断是否是mac操作系统
+        :return: true Mac 操作系统
+        """
         if platform.platform().startswith('macOS'):
             return True
         return False

@@ -38,6 +38,11 @@ class ReUtil:
 
     @staticmethod
     def matchColor(string):
+        """
+        校验颜色值
+        :param string: 颜色格式的字符串
+        :return: true 正确的颜色值
+        """
         patternStr = '#{0,1}(([0-9a-fA-F]{3})|([0-9a-fA-F]{6})|([0-9a-fA-F]{8}))'
         return ReUtil.match(string, patternStr)
 

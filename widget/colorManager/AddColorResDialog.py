@@ -33,13 +33,13 @@ class AddColorResDialog(QtWidgets.QDialog):
         vbox.addWidget(splitter)
 
         splitter = WidgetUtil.createSplitter(self, geometry=QRect(const.PADDING, const.PADDING, width, const.HEIGHT))
-        WidgetUtil.createPushButton(splitter, text="normal color：", minSize=QSize(80, const.HEIGHT), onClicked=self.normalColorSelected)
+        WidgetUtil.createPushButton(splitter, text="normal color：", minSize=QSize(100, const.HEIGHT), onClicked=self.normalColorSelected)
         sizePolicy = WidgetUtil.createSizePolicy()
         self.normalColorLineEdit = WidgetUtil.createLineEdit(splitter, sizePolicy=sizePolicy)
         vbox.addWidget(splitter)
 
         splitter = WidgetUtil.createSplitter(self, geometry=QRect(const.PADDING, const.PADDING, width, const.HEIGHT))
-        WidgetUtil.createPushButton(splitter, text="dark color：", minSize=QSize(80, const.HEIGHT), onClicked=self.darkColorSelected)
+        WidgetUtil.createPushButton(splitter, text="dark color：", minSize=QSize(100, const.HEIGHT), onClicked=self.darkColorSelected)
         sizePolicy = WidgetUtil.createSizePolicy()
         self.darkColorLineEdit = WidgetUtil.createLineEdit(splitter, sizePolicy=sizePolicy)
         vbox.addWidget(splitter)

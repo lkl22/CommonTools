@@ -320,6 +320,7 @@ class WidgetUtil:
         :param toolTip: toolTip
         :param geometry: geometry
         :param minSize: minSize
+        :param isEnable: isEnable
         :param sizePolicy: 缩放策略
         :param onClicked: clicked回调函数
         :return: QPushButton

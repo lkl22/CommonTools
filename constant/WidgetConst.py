@@ -11,4 +11,4 @@ const.HEIGHT_OFFSET = const.PADDING + const.HEIGHT
 if PlatformUtil.isMac():
     const.GROUP_BOX_MARGIN_TOP = 30
 else:
-    const.GROUP_BOX_MARGIN_TOP = 10
+    const.GROUP_BOX_MARGIN_TOP = 20

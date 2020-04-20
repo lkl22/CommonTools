@@ -74,6 +74,7 @@ class AndroidColorResDialog(QtWidgets.QDialog):
                 self.colorNameLineEdit.setEnabled(True)
                 self.normalColorLineEdit.setEnabled(True)
                 self.darkColorLineEdit.setEnabled(True)
+                self.findColorResBtn.setEnabled(True)
                 self.addColorResBtn.setEnabled(True)
 
         self.setWindowModality(Qt.ApplicationModal)
@@ -228,7 +229,7 @@ class AndroidColorResDialog(QtWidgets.QDialog):
 
         yPos += const.HEIGHT_OFFSET
         splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, 200, const.HEIGHT))
-        WidgetUtil.createPushButton(splitter, text="查找", onClicked=self.findRes)
+        self.findColorResBtn = WidgetUtil.createPushButton(splitter, text="查找", isEnable=False, onClicked=self.findRes)
         self.addColorResBtn = WidgetUtil.createPushButton(splitter, text="添加color资源", isEnable=False, onClicked=self.addColorRes)
 
         yPos += const.HEIGHT_OFFSET
@@ -248,6 +249,7 @@ class AndroidColorResDialog(QtWidgets.QDialog):
                 self.colorNameLineEdit.setEnabled(True)
                 self.normalColorLineEdit.setEnabled(True)
                 self.darkColorLineEdit.setEnabled(True)
+                self.findColorResBtn.setEnabled(True)
                 self.addColorResBtn.setEnabled(True)
         pass
 

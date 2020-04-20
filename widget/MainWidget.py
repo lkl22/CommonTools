@@ -71,7 +71,7 @@ class MainWidget(QMainWindow):
             return
         time = DateUtil.timestamp2Time(timestamp[0])
         if timestamp[1] > 0:
-            time = "%s.%3d" % (time, timestamp[1])
+            time = "%s.%03d" % (time, timestamp[1])
         self.timeLineEdit1.setText(time)
         pass
 
