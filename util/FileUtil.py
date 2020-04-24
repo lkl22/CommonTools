@@ -102,8 +102,10 @@ class FileUtil:
         获取项目根目录
         :return: 项目根目录
         """
-        path = os.getcwd()
-        return os.path.split(path)[0].replace("\\", "/")
+        path = os.getcwd().replace("\\", "/")
+        LogUtil.e("getProjectPath：", path)
+        # os.path.split(path)[0].replace("\\", "/")
+        return path
 
     @staticmethod
     def getConfigFp(fn):

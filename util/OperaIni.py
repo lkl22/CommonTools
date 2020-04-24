@@ -15,7 +15,7 @@ class OperaIni:
         if filePath:
             self.filePath = filePath
         else:
-            self.filePath = FileUtil.getProjectPath() + '/CommonTools/config/BaseConfig.ini'
+            self.filePath = FileUtil.getProjectPath() + '/config/BaseConfig.ini'
         self.configParser = configparser.ConfigParser()
         self.data = self.readIni()
 

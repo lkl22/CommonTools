@@ -62,7 +62,7 @@ class AndroidColorResDialog(QtWidgets.QDialog):
         vLayout.addWidget(opacityGroupBox)
         vLayout.addWidget(findGroupBox)
 
-        self.operaIni = OperaIni(FileUtil.getProjectPath() + "/CommonTools/config/BaseConfig.ini")
+        self.operaIni = OperaIni(FileUtil.getProjectPath() + "/config/BaseConfig.ini")
 
         LogUtil.d(FileUtil.getProjectPath())
 
