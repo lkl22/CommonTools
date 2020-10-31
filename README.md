@@ -21,7 +21,7 @@ Android color资源管理工具：
 
 3、pip安装需要的库
 
-`pip install PyQt5 PyQt5-tools Pyinstaller xlrd xlutils --index-url https://pypi.tuna.tsinghua.edu.cn/simple/`
+`pip install PyQt5 PyQt5-tools Pyinstaller xlrd xlutils uiautomator2 --index-url https://pypi.tuna.tsinghua.edu.cn/simple/`
 
 4、PyCharm配置
 
@@ -59,3 +59,7 @@ Working directory：$ProjectFileDir$
 [pycharm如何设置python版本、设置国内pip镜像、添加第三方类库](https://www.cnblogs.com/yjmyzz/p/pycharm-add-third-package-and-add-domestic-mirror.html)
 
 [使用PYINSTALLER打包多文件和目录的PYTHON项目](https://www.cnblogs.com/shiyongge/p/10582552.html)
+
+[awesome-adb](https://github.com/BlankLun/awesome-adb)
+
+[uiautomator2](https://github.com/BlankLun/uiautomator2)
