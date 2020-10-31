@@ -65,7 +65,8 @@ class WidgetUtil:
         :param initialFilter: 默认的过滤条件
         :return: 文件路径
         """
-        (filePath, _) = QtWidgets.QFileDialog.getOpenFileName(caption=caption, directory=directory, filter=filter, initialFilter=initialFilter)
+        (filePath, _) = QtWidgets.QFileDialog.getOpenFileName(caption=caption, directory=directory, filter=filter,
+                                                              initialFilter=initialFilter)
         print("选择的文件： " + filePath)
         return filePath
 
@@ -183,8 +184,8 @@ class WidgetUtil:
 
     @staticmethod
     def createSpinBox(parent: QWidget = None, objectName="SpinBox", value=None, minValue=None, maxValue=None, step=None,
-                      prefix=None, suffix=None, intBase=None, toolTip=None, geometry: QRect = None, minSize: QSize = None,
-                      isEnable=True, sizePolicy: QSizePolicy = None, valueChanged=None):
+                      prefix=None, suffix=None, intBase=None, toolTip=None, geometry: QRect = None,
+                      minSize: QSize = None, isEnable=True, sizePolicy: QSizePolicy = None, valueChanged=None):
         """
         创建一个计数器控件
         :param parent: 父QWidget
@@ -207,7 +208,8 @@ class WidgetUtil:
         widget = QSpinBox()
         if parent:
             widget.setParent(parent)
-        widgetSetAttrs(widget, objectName, toolTip=toolTip, geometry=geometry, minSize=minSize, isEnable=isEnable, sizePolicy=sizePolicy)
+        widgetSetAttrs(widget, objectName, toolTip=toolTip, geometry=geometry, minSize=minSize, isEnable=isEnable,
+                       sizePolicy=sizePolicy)
         if value:
             widget.setValue(value)
         if minValue:
@@ -326,7 +328,8 @@ class WidgetUtil:
         :return: QPushButton
         """
         widget = QtWidgets.QPushButton(parent)
-        widgetSetAttrs(widget, objectName, toolTip=toolTip, geometry=geometry, minSize=minSize, isEnable=isEnable, sizePolicy=sizePolicy)
+        widgetSetAttrs(widget, objectName, toolTip=toolTip, geometry=geometry, minSize=minSize, isEnable=isEnable,
+                       sizePolicy=sizePolicy)
         widget.setText(_translate(contextName, text))
         if onClicked:
             widget.clicked.connect(onClicked)
@@ -360,7 +363,7 @@ class WidgetUtil:
 
     @staticmethod
     def createTextEdit(parent: QWidget, objectName="TextEdit", text="", holderText="", toolTip=None,
-                       geometry: QRect = None, isEnable=True, sizePolicy: QSizePolicy = None):
+                       geometry: QRect = None, isEnable=True, sizePolicy: QSizePolicy = None, isReadOnly=False):
         """
         创建一个多行文本输入框
         :param parent: 父QWidget
@@ -371,10 +374,12 @@ class WidgetUtil:
         :param geometry: geometry
         :param isEnable: enable
         :param sizePolicy: 缩放策略
+        :param isReadOnly: 是否只读不能编辑
         :return: 多行文本输入框
         """
         widget = QtWidgets.QTextEdit(parent)
         widgetSetAttrs(widget, objectName, toolTip=toolTip, geometry=geometry, isEnable=isEnable, sizePolicy=sizePolicy)
+        widget.setReadOnly(isReadOnly)
         if holderText:
             widget.setPlaceholderText(_translate(contextName, holderText))
         if text:
@@ -590,7 +595,8 @@ class WidgetUtil:
         return widget
 
     @staticmethod
-    def createTableView(parent: QWidget, objectName="TreeWidget", toolTip=None, geometry: QRect = None, minSize: QSize = None,
+    def createTableView(parent: QWidget, objectName="TreeWidget", toolTip=None, geometry: QRect = None,
+                        minSize: QSize = None,
                         isEnable=True, sizePolicy: QSizePolicy = None, doubleClicked=None):
         """
         创建一个QTableView
@@ -605,7 +611,8 @@ class WidgetUtil:
         :return: QTableView
         """
         widget = QTableView(parent)
-        widgetSetAttrs(widget, objectName, toolTip=toolTip, geometry=geometry, minSize=minSize, isEnable=isEnable, sizePolicy=sizePolicy)
+        widgetSetAttrs(widget, objectName, toolTip=toolTip, geometry=geometry, minSize=minSize, isEnable=isEnable,
+                       sizePolicy=sizePolicy)
 
         # 水平方向标签拓展剩下的窗口部分，填满表格
         widget.horizontalHeader().setStretchLastSection(True)
