@@ -43,6 +43,12 @@ class AndroidAdbDialog(QtWidgets.QDialog):
         yPos = const.GROUP_BOX_MARGIN_TOP
         width = AndroidAdbDialog.WINDOW_WIDTH - const.PADDING * 4
         splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
+        sizePolicy = WidgetUtil.createSizePolicy()
+        WidgetUtil.createLabel(splitter, text="输入指令：", alignment=Qt.AlignVCenter | Qt.AlignRight,
+                               minSize=QSize(80, const.HEIGHT))
+        self.cmdLineEdit = WidgetUtil.createLineEdit(splitter, holderText="请输入要执行的指令，多个以\";\"分隔", sizePolicy=sizePolicy)
+        yPos += const.HEIGHT_OFFSET
+        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
         WidgetUtil.createPushButton(splitter, text="执行", onClicked=self.execCmd)
 
         yPos += const.HEIGHT_OFFSET
@@ -52,10 +58,21 @@ class AndroidAdbDialog(QtWidgets.QDialog):
         return box
 
     def execCmd(self):
-        out, err = ShellUtil.exec("ls")
-        WidgetUtil.appendTextEdit(self.execResTE, out)
-        WidgetUtil.appendTextEdit(self.execResTE, "err", '#f00')
-
-        # ShellUtil.exec("ls")
-        # ShellUtil.exec("ls")
+        cmdStr = self.cmdLineEdit.text().strip()
+        if not cmdStr:
+            WidgetUtil.showErrorDialog(message="请输入要执行的指令列表")
+            return
+        cmds = cmdStr.split(';')
+        if cmds and len(cmds) > 0:
+            for cmd in cmds:
+                if not cmd:
+                    continue
+                WidgetUtil.appendTextEdit(self.execResTE, '执行指令：')
+                WidgetUtil.appendTextEdit(self.execResTE, cmd + '\n')
+                out, err = ShellUtil.exec(cmd)
+                WidgetUtil.appendTextEdit(self.execResTE, '输出结果：')
+                WidgetUtil.appendTextEdit(self.execResTE, out)
+                if err:
+                    WidgetUtil.appendTextEdit(self.execResTE, '错误信息：\n', '#f00')
+                    WidgetUtil.appendTextEdit(self.execResTE, err, '#f00')
         pass
