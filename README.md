@@ -63,3 +63,5 @@ Working directory：$ProjectFileDir$
 [awesome-adb](https://github.com/BlankLun/awesome-adb)
 
 [uiautomator2](https://github.com/BlankLun/uiautomator2)
+
+[python中的subprocess.Popen()使用](https://www.cnblogs.com/zhoug2020/p/5079407.html)

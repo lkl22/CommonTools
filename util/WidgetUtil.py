@@ -397,6 +397,7 @@ class WidgetUtil:
         """
         textFormat = "<font color=\"" + color + "\">" + text.replace("\r\n", "<br/>").replace("\n", "<br/>") + "</font>"
         textEdit.append(textFormat)
+        # 触发实时显示数据
         QApplication.instance().processEvents()
         pass
 
