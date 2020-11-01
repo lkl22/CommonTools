@@ -5,7 +5,7 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtGui import QIcon, QBrush, QStandardItemModel, QStandardItem, QColor
 from PyQt5.QtWidgets import QWidget, QMessageBox, QSizePolicy, QTreeWidget, QMenu, QTreeWidgetItem, QDialog, \
-    QRadioButton, QTableView, QHeaderView, QColorDialog, QSpinBox
+    QRadioButton, QTableView, QHeaderView, QColorDialog, QSpinBox, QTextEdit, QApplication
 from PyQt5.QtCore import QRect, QMargins, QSize, Qt
 
 from util.LogUtil import *
@@ -385,6 +385,20 @@ class WidgetUtil:
         if text:
             widget.setText(_translate(contextName, text))
         return widget
+
+    @staticmethod
+    def appendTextEdit(textEdit: QTextEdit, text: str, color='#00f'):
+        """
+        向QTextEdit控件添加文字（指定颜色，默认蓝色）
+        :param textEdit: QTextEdit控件
+        :param text: 文本
+        :param color: 颜色值
+        :return: None
+        """
+        textFormat = "<font color=\"" + color + "\">" + text.replace("\r\n", "<br/>").replace("\n", "<br/>") + "</font>"
+        textEdit.append(textFormat)
+        QApplication.instance().processEvents()
+        pass
 
     @staticmethod
     def createTreeWidget(parent: QWidget, objectName="TreeWidget", toolTip=None, headerLabels=['格式化数据'],

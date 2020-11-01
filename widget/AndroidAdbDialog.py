@@ -7,7 +7,6 @@ from util.FileUtil import *
 from util.DialogUtil import *
 from util.ShellUtil import *
 from util.LogUtil import *
-from PyQt5.QtWidgets import QApplication
 
 
 class AndroidAdbDialog(QtWidgets.QDialog):
@@ -54,13 +53,9 @@ class AndroidAdbDialog(QtWidgets.QDialog):
 
     def execCmd(self):
         out, err = ShellUtil.exec("ls")
-        self.refreshExecResTE(out)
-        self.refreshExecResTE(err)
-        # ShellUtil.exec("ls")
-        # ShellUtil.exec("ls")
-        pass
+        WidgetUtil.appendTextEdit(self.execResTE, out)
+        WidgetUtil.appendTextEdit(self.execResTE, "err", '#f00')
 
-    def refreshExecResTE(self, text):
-        self.execResTE.append(text)
-        QApplication.instance().processEvents()
+        # ShellUtil.exec("ls")
+        # ShellUtil.exec("ls")
         pass
