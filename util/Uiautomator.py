@@ -16,13 +16,19 @@ sys.path.append("../")
 class Uiautomator:
     def __init__(self, addr=None):
         try:
-            self.d: u2.Device = u2.connect(addr)
             self.addr = addr
-            LogUtil.d("设备信息：", self.d.info)
+            self.d: u2.Device = u2.connect(addr)
+            self.info = self.d.info
+            LogUtil.d("设备信息：", self.info)
         except Exception as err:
+            self.info = None
             LogUtil.e('Uiautomator init 错误信息：', err)
 
     def checkDevice(self):
+        """
+        检查是否连接上设备，未连接上尝试重新连接一次
+        :return: True 连接成功
+        """
         if self.d:
             return True
         LogUtil.e("checkDevice", "cant find device reInit.")
@@ -30,6 +36,39 @@ class Uiautomator:
         if self.d:
             return True
         return False
+
+    def deviceInfo(self):
+        """
+        设备信息
+        :return: deviceInfo {'currentPackageName': 'com.miui.home',
+                             'displayHeight': 1920,
+                             'displayRotation': 0,
+                             'displaySizeDpX': 360,
+                             'displaySizeDpY': 640,
+                             'displayWidth': 1080,
+                             'productName': 'cancro_wc_lte',
+                             'screenOn': True, 'sdkInt': 23,
+                             'naturalOrientation': True}
+        """
+        if self.checkDevice() and self.info:
+            return self.info
+        return 'None'
+
+    def reConnect(self, addr=None):
+        """
+        重新连接设备
+        :param addr: 设备addr
+        """
+        self.__init__(addr)
+
+    def serial(self):
+        """
+        获取连接设备的serial
+        :return: 连接设备的serial
+        """
+        if self.checkDevice():
+            return self.d.serial
+        return ''
 
     def appInfo(self, packageName: str):
         """
@@ -235,7 +274,10 @@ if __name__ == '__main__':
     # print(u.swipeExt(Direction.FORWARD))  # 页面下翻, 等价于 d.swipe_ext("up")
 
     # u.screenshot('test.jpg')
-    print(u.selector(text='next').exists)
-    print(u.selector(resourceId='com.lkl.androidstudy:id/button_first').info)
+    # print(u.selector(text='next').exists)
+    # print(u.selector(resourceId='com.lkl.androidstudy:id/button_first').info)
+
+    print(u.deviceInfo())
+    print(u.serial())
     print('finished')
     pass

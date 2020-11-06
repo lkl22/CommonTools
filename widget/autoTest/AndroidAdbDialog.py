@@ -7,6 +7,7 @@ from util.FileUtil import *
 from util.DialogUtil import *
 from util.ShellUtil import *
 from util.LogUtil import *
+from util.Uiautomator import *
 
 
 class AndroidAdbDialog(QtWidgets.QDialog):
@@ -21,6 +22,8 @@ class AndroidAdbDialog(QtWidgets.QDialog):
         self.resize(AndroidAdbDialog.WINDOW_WIDTH, AndroidAdbDialog.WINDOW_HEIGHT)
         self.setFixedSize(AndroidAdbDialog.WINDOW_WIDTH, AndroidAdbDialog.WINDOW_HEIGHT)
         self.setWindowTitle(WidgetUtil.translate(text="Android Adb"))
+
+        self.u: Uiautomator = None
 
         layoutWidget = QtWidgets.QWidget(self)
         layoutWidget.setGeometry(QRect(const.PADDING, const.PADDING, AndroidAdbDialog.WINDOW_WIDTH - const.PADDING * 2,
@@ -44,20 +47,35 @@ class AndroidAdbDialog(QtWidgets.QDialog):
         width = AndroidAdbDialog.WINDOW_WIDTH - const.PADDING * 4
         splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
         sizePolicy = WidgetUtil.createSizePolicy()
-        WidgetUtil.createLabel(splitter, text="输入指令：", alignment=Qt.AlignVCenter | Qt.AlignRight,
-                               minSize=QSize(80, const.HEIGHT))
+        WidgetUtil.createLabel(splitter, text="输入要执行的shell指令：", minSize=QSize(80, const.HEIGHT))
         self.cmdLineEdit = WidgetUtil.createLineEdit(splitter, holderText="请输入要执行的指令，多个以\";\"分隔", sizePolicy=sizePolicy)
-        yPos += const.HEIGHT_OFFSET
+        WidgetUtil.createPushButton(splitter, text="执行", onClicked=self.execShellCmd)
+        yPos += const.HEIGHT_OFFSET * 2
         splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
-        WidgetUtil.createPushButton(splitter, text="执行", onClicked=self.execCmd)
+        WidgetUtil.createLabel(splitter, text="输入要连接设备的addr：", minSize=QSize(80, const.HEIGHT))
+        self.devAddrEdit = WidgetUtil.createLineEdit(splitter, holderText="the device serial/device IP", sizePolicy=sizePolicy)
+        WidgetUtil.createPushButton(splitter, text="connect", onClicked=self.connectDevice)
+        WidgetUtil.createPushButton(splitter, text="open weditor", onClicked=self.openWeditor)
 
         yPos += const.HEIGHT_OFFSET
         splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, 200))
-
         self.execResTE = WidgetUtil.createTextEdit(splitter, isReadOnly=True)
         return box
 
-    def execCmd(self):
+    def execCmd(self, cmd: str):
+        LogUtil.d("exec cmd:", cmd)
+        if cmd:
+            WidgetUtil.appendTextEdit(self.execResTE, '执行指令：')
+            WidgetUtil.appendTextEdit(self.execResTE, cmd + '\n')
+            out, err = ShellUtil.exec(cmd)
+            WidgetUtil.appendTextEdit(self.execResTE, '输出结果：')
+            WidgetUtil.appendTextEdit(self.execResTE, out)
+            if err:
+                WidgetUtil.appendTextEdit(self.execResTE, '错误信息：\n', '#f00')
+                WidgetUtil.appendTextEdit(self.execResTE, err, '#f00')
+        pass
+
+    def execShellCmd(self):
         cmdStr = self.cmdLineEdit.text().strip()
         if not cmdStr:
             WidgetUtil.showErrorDialog(message="请输入要执行的指令列表")
@@ -67,12 +85,22 @@ class AndroidAdbDialog(QtWidgets.QDialog):
             for cmd in cmds:
                 if not cmd:
                     continue
-                WidgetUtil.appendTextEdit(self.execResTE, '执行指令：')
-                WidgetUtil.appendTextEdit(self.execResTE, cmd + '\n')
-                out, err = ShellUtil.exec(cmd)
-                WidgetUtil.appendTextEdit(self.execResTE, '输出结果：')
-                WidgetUtil.appendTextEdit(self.execResTE, out)
-                if err:
-                    WidgetUtil.appendTextEdit(self.execResTE, '错误信息：\n', '#f00')
-                    WidgetUtil.appendTextEdit(self.execResTE, err, '#f00')
+                self.execCmd(cmd)
+        pass
+
+    def connectDevice(self):
+        addr = self.devAddrEdit.text().strip()
+        LogUtil.d("要连接的设备addr：", addr)
+        if self.u:
+            self.u.reConnect(addr)
+        else:
+            self.u = Uiautomator(addr)
+        WidgetUtil.appendTextEdit(self.execResTE, '设备info：' + str(self.u.deviceInfo()))
+        self.devAddrEdit.setText(self.u.serial())
+        pass
+
+    def openWeditor(self):
+        self.execCmd('weditor')
+
+        WidgetUtil.appendTextEdit(self.execResTE, 'Another weditor(0.6.1) is already running. 请打开浏览器输入"http://localhost:17310"访问')
         pass

@@ -244,7 +244,7 @@ class MainWidget(QMainWindow):
 
     def jumpAndroidAdbDialog(self):
         LogUtil.i("jumpAndroidResDialog")
-        from widget.AndroidAdbDialog import AndroidAdbDialog
+        from widget.autoTest.AndroidAdbDialog import AndroidAdbDialog
         dialog = AndroidAdbDialog()
         # dialog.show()
         pass
