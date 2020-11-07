@@ -80,6 +80,9 @@ class AndroidAdbDialog(QtWidgets.QDialog):
         self.stepsTableView.setSelectionBehavior(QAbstractItemView.SelectRows)
         # 设置选中单个
         self.stepsTableView.setSelectionMode(QAbstractItemView.SingleSelection)
+        # 设置自定义右键菜单
+        self.stepsTableView.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.stepsTableView.customContextMenuRequested.connect(self.customRightMenu)
 
         yPos += 185
         splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
@@ -163,6 +166,25 @@ class AndroidAdbDialog(QtWidgets.QDialog):
         WidgetUtil.appendTextEdit(self.execResTE, 'edit step ' + AutoTestUtil.stepName(stepType) + ' params: ' + str(params))
         self.curEditData[const.KEY_STEP_TYPE] = stepType
         self.curEditData[const.KEY_STEP_PARAMS] = params
+        self.updateTableData()
+        pass
+
+    def customRightMenu(self, pos):
+        self.curDelRow = self.stepsTableView.currentIndex().row()
+        LogUtil.i("customRightMenu", pos, ' row: ', self.curDelRow)
+        menu = WidgetUtil.createMenu("删除", func1=self.delItem)
+        menu.exec_(self.stepsTableView.mapToGlobal(pos))
+        pass
+
+    def delItem(self):
+        LogUtil.i("delItem")
+        WidgetUtil.showQuestionDialog(message="你确定需要删除吗？", acceptFunc=self.delTableItem)
+        pass
+
+    def delTableItem(self):
+        LogUtil.i("delTreeWidgetItem")
+        self.execTestSteps.remove(self.execTestSteps[self.curDelRow])
+        WidgetUtil.appendTextEdit(self.execResTE, 'del No.' + str(self.curDelRow + 1) + ' step')
         self.updateTableData()
         pass
 

@@ -17,7 +17,9 @@ class Uiautomator:
     def __init__(self, addr=None):
         try:
             self.addr = addr
-            self.d: u2.Device = u2.connect(addr)
+            self.d: u2.Device = None
+            self.info = None
+            self.d = u2.connect(addr)
             self.info = self.d.info
             LogUtil.d("设备信息：", self.info)
         except Exception as err:
