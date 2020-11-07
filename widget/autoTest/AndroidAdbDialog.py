@@ -42,7 +42,7 @@ class AndroidAdbDialog(QtWidgets.QDialog):
 
         self.setWindowModality(Qt.ApplicationModal)
         # 很关键，不加出不来
-        self.exec_()
+        # self.exec_()
 
     def createXmlResGroupBox(self, parent):
         box = WidgetUtil.createGroupBox(parent, title="Android adb")

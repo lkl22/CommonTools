@@ -17,14 +17,20 @@ class DialogUtil:
                 dialog.close()
 
         def cancelFunc():
-            dialog.close()
             if cancelCallback:
-                cancelCallback()
+                if cancelCallback():
+                    # 有回调函数并且处理完成
+                    dialog.close()
+            else:
+                dialog.close()
 
         def ignoreFunc():
-            dialog.close()
             if ignoreCallback:
-                ignoreCallback()
+                if ignoreCallback():
+                    # 有回调函数并且处理完成
+                    dialog.close()
+            else:
+                dialog.close()
 
         sizePolicy = WidgetUtil.createSizePolicy()
         hbox = WidgetUtil.createHBoxLayout()

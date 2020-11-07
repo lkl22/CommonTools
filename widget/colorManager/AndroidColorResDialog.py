@@ -47,8 +47,9 @@ class AndroidColorResDialog(QtWidgets.QDialog):
         self.curEditColorRes = {}
 
         layoutWidget = QtWidgets.QWidget(self)
-        layoutWidget.setGeometry(QRect(const.PADDING, const.PADDING, AndroidColorResDialog.WINDOW_WIDTH - const.PADDING * 2,
-                                       AndroidColorResDialog.WINDOW_HEIGHT - const.PADDING * 2))
+        layoutWidget.setGeometry(
+            QRect(const.PADDING, const.PADDING, AndroidColorResDialog.WINDOW_WIDTH - const.PADDING * 2,
+                  AndroidColorResDialog.WINDOW_HEIGHT - const.PADDING * 2))
         layoutWidget.setObjectName("layoutWidget")
 
         vLayout = WidgetUtil.createVBoxLayout(margins=QMargins(0, 0, 0, 0))
@@ -85,7 +86,8 @@ class AndroidColorResDialog(QtWidgets.QDialog):
         yPos = const.GROUP_BOX_MARGIN_TOP
         width = AndroidColorResDialog.WINDOW_WIDTH - const.PADDING * 4
 
-        box = WidgetUtil.createGroupBox(parent, title="生成Excel", minSize=QSize(width, const.GROUP_BOX_MARGIN_TOP + const.HEIGHT_OFFSET * 9 / 2))
+        box = WidgetUtil.createGroupBox(parent, title="生成Excel",
+                                        minSize=QSize(width, const.GROUP_BOX_MARGIN_TOP + const.HEIGHT_OFFSET * 9 / 2))
 
         splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
 
@@ -159,25 +161,32 @@ class AndroidColorResDialog(QtWidgets.QDialog):
         yPos = const.GROUP_BOX_MARGIN_TOP
         width = AndroidColorResDialog.WINDOW_WIDTH - const.PADDING * 4
 
-        box = WidgetUtil.createGroupBox(parent, title="计算不透明度", minSize=QSize(width, const.GROUP_BOX_MARGIN_TOP + const.HEIGHT_OFFSET * 3 / 2))
+        box = WidgetUtil.createGroupBox(parent, title="计算不透明度",
+                                        minSize=QSize(width, const.GROUP_BOX_MARGIN_TOP + const.HEIGHT_OFFSET * 3 / 2))
 
         splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
 
         WidgetUtil.createLabel(splitter, text="不透明度：", minSize=QSize(50, const.HEIGHT))
         sizePolicy = WidgetUtil.createSizePolicy()
-        self.percentOpacitySpinBox = WidgetUtil.createSpinBox(splitter, value=0, minValue=0, maxValue=100, step=5, suffix='%',
-                                                              sizePolicy=sizePolicy, valueChanged=self.percentOpacityChanged)
-
-        WidgetUtil.createLabel(splitter, text="透明度：", alignment=Qt.AlignVCenter | Qt.AlignRight, minSize=QSize(120, const.HEIGHT))
-        sizePolicy = WidgetUtil.createSizePolicy()
-        self.percentOpennessSpinBox = WidgetUtil.createSpinBox(splitter, value=100, minValue=0, maxValue=100, step=5,
+        self.percentOpacitySpinBox = WidgetUtil.createSpinBox(splitter, value=0, minValue=0, maxValue=100, step=5,
                                                               suffix='%',
                                                               sizePolicy=sizePolicy,
-                                                              valueChanged=self.percentOpennessChanged)
+                                                              valueChanged=self.percentOpacityChanged)
 
-        WidgetUtil.createLabel(splitter, text="16进制数值：", alignment=Qt.AlignVCenter | Qt.AlignRight, minSize=QSize(120, const.HEIGHT))
-        self.hexOpacitySpinBox = WidgetUtil.createSpinBox(splitter, value=0, minValue=0, maxValue=255, step=1, prefix='0x',
-                                                          intBase=16, sizePolicy=sizePolicy, valueChanged=self.hexOpacityChanged)
+        WidgetUtil.createLabel(splitter, text="透明度：", alignment=Qt.AlignVCenter | Qt.AlignRight,
+                               minSize=QSize(120, const.HEIGHT))
+        sizePolicy = WidgetUtil.createSizePolicy()
+        self.percentOpennessSpinBox = WidgetUtil.createSpinBox(splitter, value=100, minValue=0, maxValue=100, step=5,
+                                                               suffix='%',
+                                                               sizePolicy=sizePolicy,
+                                                               valueChanged=self.percentOpennessChanged)
+
+        WidgetUtil.createLabel(splitter, text="16进制数值：", alignment=Qt.AlignVCenter | Qt.AlignRight,
+                               minSize=QSize(120, const.HEIGHT))
+        self.hexOpacitySpinBox = WidgetUtil.createSpinBox(splitter, value=0, minValue=0, maxValue=255, step=1,
+                                                          prefix='0x',
+                                                          intBase=16, sizePolicy=sizePolicy,
+                                                          valueChanged=self.hexOpacityChanged)
         return box
 
     def percentOpacityChanged(self):
@@ -217,24 +226,32 @@ class AndroidColorResDialog(QtWidgets.QDialog):
 
         yPos += const.HEIGHT_OFFSET
         splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
-        WidgetUtil.createLabel(splitter, text="资源名称", alignment=Qt.AlignVCenter | Qt.AlignLeft, minSize=QSize(80, const.HEIGHT))
+        WidgetUtil.createLabel(splitter, text="资源名称", alignment=Qt.AlignVCenter | Qt.AlignLeft,
+                               minSize=QSize(80, const.HEIGHT))
         sizePolicy = WidgetUtil.createSizePolicy()
-        self.colorNameLineEdit = WidgetUtil.createLineEdit(splitter, isEnable=False, sizePolicy=sizePolicy, textChanged=self.colorNameTextChange)
+        self.colorNameLineEdit = WidgetUtil.createLineEdit(splitter, isEnable=False, sizePolicy=sizePolicy,
+                                                           textChanged=self.colorNameTextChange)
 
-        WidgetUtil.createLabel(splitter, text="normal color", alignment=Qt.AlignVCenter | Qt.AlignRight, minSize=QSize(120, const.HEIGHT))
-        self.normalColorLineEdit = WidgetUtil.createLineEdit(splitter, isEnable=False, sizePolicy=sizePolicy, textChanged=self.normalColorTextChange)
+        WidgetUtil.createLabel(splitter, text="normal color", alignment=Qt.AlignVCenter | Qt.AlignRight,
+                               minSize=QSize(120, const.HEIGHT))
+        self.normalColorLineEdit = WidgetUtil.createLineEdit(splitter, isEnable=False, sizePolicy=sizePolicy,
+                                                             textChanged=self.normalColorTextChange)
 
-        WidgetUtil.createLabel(splitter, text="dark color", alignment=Qt.AlignVCenter | Qt.AlignRight, minSize=QSize(120, const.HEIGHT))
-        self.darkColorLineEdit = WidgetUtil.createLineEdit(splitter, isEnable=False, sizePolicy=sizePolicy, textChanged=self.darkColorTextChange)
+        WidgetUtil.createLabel(splitter, text="dark color", alignment=Qt.AlignVCenter | Qt.AlignRight,
+                               minSize=QSize(120, const.HEIGHT))
+        self.darkColorLineEdit = WidgetUtil.createLineEdit(splitter, isEnable=False, sizePolicy=sizePolicy,
+                                                           textChanged=self.darkColorTextChange)
 
         yPos += const.HEIGHT_OFFSET
         splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, 200, const.HEIGHT))
         self.findColorResBtn = WidgetUtil.createPushButton(splitter, text="查找", isEnable=False, onClicked=self.findRes)
-        self.addColorResBtn = WidgetUtil.createPushButton(splitter, text="添加color资源", isEnable=False, onClicked=self.addColorRes)
+        self.addColorResBtn = WidgetUtil.createPushButton(splitter, text="添加color资源", isEnable=False,
+                                                          onClicked=self.addColorRes)
 
         yPos += const.HEIGHT_OFFSET
         splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, 230))
-        self.findResTableView = WidgetUtil.createTableView(splitter, minSize=QSize(width, 200), sizePolicy=sizePolicy, doubleClicked=self.tableDoubleClicked)
+        self.findResTableView = WidgetUtil.createTableView(splitter, minSize=QSize(width, 200), sizePolicy=sizePolicy,
+                                                           doubleClicked=self.tableDoubleClicked)
 
         return box
 
@@ -244,7 +261,8 @@ class AndroidColorResDialog(QtWidgets.QDialog):
             res = self.initFindColorRes(fp)
             if res:
                 self.findExcelFnLineEdit.setText(fp)
-                self.operaIni.addItem(AndroidColorResDialog.SECTION_ANDROID, AndroidColorResDialog.KEY_FIND_EXCEL_FN, fp)
+                self.operaIni.addItem(AndroidColorResDialog.SECTION_ANDROID, AndroidColorResDialog.KEY_FIND_EXCEL_FN,
+                                      fp)
                 self.operaIni.saveIni()
                 self.colorNameLineEdit.setEnabled(True)
                 self.normalColorLineEdit.setEnabled(True)
@@ -317,7 +335,8 @@ class AndroidColorResDialog(QtWidgets.QDialog):
             if darkColor:
                 LogUtil.e("需要查找的dark color：", darkColor)
             for colorRes in self.findColorRes:
-                if normalColor in colorRes[AndroidColorResDialog.KEY_NORMAL_COLOR] and darkColor in colorRes[AndroidColorResDialog.KEY_DARK_COLOR]:
+                if normalColor in colorRes[AndroidColorResDialog.KEY_NORMAL_COLOR] and darkColor in colorRes[
+                    AndroidColorResDialog.KEY_DARK_COLOR]:
                     res.append(colorRes)
             if not (normalColor or darkColor):
                 LogUtil.e("没有查询条件，查询所有数据")
@@ -344,8 +363,9 @@ class AndroidColorResDialog(QtWidgets.QDialog):
         st.write(nrows, AndroidColorResDialog.KEY_COLOR_NAME_COL_NUM, colorName)
         st.write(nrows, AndroidColorResDialog.KEY_NORMAL_COLOR_COL_NUM, normalColor)
         st.write(nrows, AndroidColorResDialog.KEY_DARK_COLOR_COL_NUM, darkColor)
-        self.findColorRes.append({AndroidColorResDialog.KEY_COLOR_NAME: colorName, AndroidColorResDialog.KEY_NORMAL_COLOR: normalColor,
-                                  AndroidColorResDialog.KEY_DARK_COLOR: darkColor, AndroidColorResDialog.KEY_ROW: nrows})
+        self.findColorRes.append(
+            {AndroidColorResDialog.KEY_COLOR_NAME: colorName, AndroidColorResDialog.KEY_NORMAL_COLOR: normalColor,
+             AndroidColorResDialog.KEY_DARK_COLOR: darkColor, AndroidColorResDialog.KEY_ROW: nrows})
         newBk.save(fp)
         # 添加了数据，重新查询一遍结果
         self.findRes()
@@ -410,7 +430,9 @@ class AndroidColorResDialog(QtWidgets.QDialog):
         row = index.row()
         LogUtil.d("双击的单元格：row ", row, ' col', index.column(), ' data ', oldValue)
         colorRes = self.findColorResResult[row]
-        LogUtil.d("Excel中源数据：row ", colorRes[AndroidColorResDialog.KEY_ROW], ' colorName ', colorRes[AndroidColorResDialog.KEY_COLOR_NAME],
-                  ' normalColor ', colorRes[AndroidColorResDialog.KEY_NORMAL_COLOR], ' darkColor ', colorRes[AndroidColorResDialog.KEY_DARK_COLOR])
+        LogUtil.d("Excel中源数据：row ", colorRes[AndroidColorResDialog.KEY_ROW], ' colorName ',
+                  colorRes[AndroidColorResDialog.KEY_COLOR_NAME],
+                  ' normalColor ', colorRes[AndroidColorResDialog.KEY_NORMAL_COLOR], ' darkColor ',
+                  colorRes[AndroidColorResDialog.KEY_DARK_COLOR])
         self.curEditColorRes = colorRes
         pass

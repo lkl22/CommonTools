@@ -5,7 +5,7 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtGui import QIcon, QBrush, QStandardItemModel, QStandardItem, QColor
 from PyQt5.QtWidgets import QWidget, QMessageBox, QSizePolicy, QTreeWidget, QMenu, QTreeWidgetItem, QDialog, \
-    QRadioButton, QTableView, QHeaderView, QColorDialog, QSpinBox, QTextEdit, QApplication
+    QRadioButton, QTableView, QHeaderView, QColorDialog, QSpinBox, QTextEdit, QApplication, QDoubleSpinBox
 from PyQt5.QtCore import QRect, QMargins, QSize, Qt
 
 from util.LogUtil import *
@@ -187,7 +187,7 @@ class WidgetUtil:
                       prefix=None, suffix=None, intBase=None, toolTip=None, geometry: QRect = None,
                       minSize: QSize = None, isEnable=True, sizePolicy: QSizePolicy = None, valueChanged=None):
         """
-        创建一个计数器控件
+        创建一个计数器控件 - 用于整数的显示和输入，一般显示十进制数，也可以显示二进制、十六进制的数，而且可以在显示框中增加前缀或后缀。
         :param parent: 父QWidget
         :param objectName: objectName
         :param value: 当前值
@@ -196,7 +196,7 @@ class WidgetUtil:
         :param step: 步长
         :param prefix: 前缀
         :param suffix: 后缀
-        :param intBase: 显示的进制
+        :param intBase: 显示整数使用的进制，例如 2 就表示二进制
         :param toolTip: toolTip
         :param geometry: geometry
         :param minSize: minSize
@@ -224,6 +224,52 @@ class WidgetUtil:
             widget.setSuffix(suffix)
         if intBase:
             widget.setDisplayIntegerBase(intBase)
+        if valueChanged:
+            widget.valueChanged.connect(valueChanged)
+        return widget
+
+    @staticmethod
+    def createDoubleSpinBox(parent: QWidget = None, objectName="SpinBox", value=None, minValue=None, maxValue=None,
+                            step=None, prefix=None, suffix=None, decimals=2, toolTip=None, geometry: QRect = None,
+                            minSize: QSize = None, isEnable=True, sizePolicy: QSizePolicy = None, valueChanged=None):
+        """
+        创建一个计数器控件 - 用于整数的显示和输入，一般显示十进制数，也可以显示二进制、十六进制的数，而且可以在显示框中增加前缀或后缀。
+        :param parent: 父QWidget
+        :param objectName: objectName
+        :param value: 当前值
+        :param minValue: 最小值
+        :param maxValue: 最大值
+        :param step: 步长
+        :param prefix: 前缀
+        :param suffix: 后缀
+        :param decimals: 显示数值的小数位数，例如 2 就显示两位小数
+        :param toolTip: toolTip
+        :param geometry: geometry
+        :param minSize: minSize
+        :param isEnable: isEnable
+        :param sizePolicy: 缩放策略
+        :param valueChanged: 数值改变监听函数
+        :return: QDoubleSpinBox
+        """
+        widget = QDoubleSpinBox()
+        if parent:
+            widget.setParent(parent)
+        widgetSetAttrs(widget, objectName, toolTip=toolTip, geometry=geometry, minSize=minSize, isEnable=isEnable,
+                       sizePolicy=sizePolicy)
+        if value:
+            widget.setValue(value)
+        if minValue:
+            widget.setMinimum(minValue)
+        if maxValue:
+            widget.setMaximum(maxValue)
+        if step:
+            widget.setSingleStep(step)
+        if prefix:
+            widget.setPrefix(prefix)
+        if suffix:
+            widget.setSuffix(suffix)
+        if decimals:
+            widget.setDecimals(decimals)
         if valueChanged:
             widget.valueChanged.connect(valueChanged)
         return widget

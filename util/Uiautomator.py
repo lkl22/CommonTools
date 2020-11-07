@@ -133,47 +133,66 @@ class Uiautomator:
                 LogUtil.e('press 错误信息：', err)
         return False
 
-    def click(self, x: Union[float, int], y: Union[float, int]):
+    def click(self, x: Union[float, int] = 0, y: Union[float, int] = 0, xpath=None):
         """
         click 屏幕坐标（x，y）
         :param x: x坐标
         :param y: y坐标
+        :param xpath: xpath
         :return: True click success
         """
         if self.checkDevice():
             try:
+                if xpath:
+                    XPath = self.d.xpath(xpath)
+                    if XPath.exists:
+                        XPath.click()
+                        return True
                 self.d.click(x, y)
                 return True
             except Exception as err:
                 LogUtil.e('click 错误信息：', err)
         return False
 
-    def doubleClick(self, x, y, duration=0.1):
+    def doubleClick(self, x: Union[float, int] = 0, y: Union[float, int] = 0, duration=0.1, xpath=None):
         """
         double click position
         :param x: x坐标
         :param y: y坐标
         :param duration: 两次点击间隔时间
+        :param xpath: xpath
         :return: True doubleClick success
         """
         if self.checkDevice():
             try:
+                if xpath:
+                    XPath = self.d.xpath(xpath)
+                    if XPath.exists:
+                        (x, y) = XPath.get_last_match().center()
+                        self.d.double_click(x, y, duration)
+                        return True
                 self.d.double_click(x, y, duration)
                 return True
             except Exception as err:
                 LogUtil.e('doubleClick 错误信息：', err)
         return False
 
-    def longClick(self, x, y, duration: float = .5):
+    def longClick(self, x: Union[float, int] = 0, y: Union[float, int] = 0, duration: float = .5, xpath=None):
         """
         long click at arbitrary coordinates
         :param x: x坐标
         :param y: y坐标
         :param duration: seconds of pressed
+        :param xpath: xpath
         :return: True longClick success
         """
         if self.checkDevice():
             try:
+                if xpath:
+                    XPath = self.d.xpath(xpath)
+                    if XPath.exists:
+                        XPath.long_click()
+                        return True
                 self.d.long_click(x, y, duration)
                 return True
             except Exception as err:
@@ -266,6 +285,8 @@ if __name__ == '__main__':
     # print(u.press("home"))
     # print(u.press("recent"))
     # print(u.click(2, 5))
+    print(u.longClick(
+        xpath='//*[@content-desc="设置"]/android.widget.FrameLayout[1]/android.widget.FrameLayout[1]/android.widget.ImageView[1]'))
 
     # print(u.swipe(10, 50, 100, 50))
     # print(u.swipeExt("right"))
@@ -277,7 +298,7 @@ if __name__ == '__main__':
     # print(u.selector(text='next').exists)
     # print(u.selector(resourceId='com.lkl.androidstudy:id/button_first').info)
 
-    print(u.deviceInfo())
-    print(u.serial())
+    # print(u.deviceInfo())
+    # print(u.serial())
     print('finished')
     pass
