@@ -46,7 +46,7 @@ class EditTestStepDialog(QtWidgets.QDialog):
         for i in range(len(const.STEP_TYPE_NAMES)):
             self.superTestTypes.addButton(
                 WidgetUtil.createRadioButton(splitter, text=const.STEP_TYPE_NAMES[i] + "  ",
-                                             isChecked=(stepType / 10 == i)), i)
+                                             isChecked=(stepType // 10 == i)), i)
         WidgetUtil.createLabel(splitter, text="", sizePolicy=sizePolicy)
         vbox.addWidget(splitter)
 
@@ -84,6 +84,7 @@ class EditTestStepDialog(QtWidgets.QDialog):
         self.groupBoxList.append(findParamGroupBox)
 
         self.subTestTypeToggledVisible()
+        self.setClickParam(self.params)
 
         splitter = DialogUtil.createBottomBtn(self, okCallback=self.acceptFunc, cancelBtnText="Cancel",
                                               ignoreBtnText='Test', ignoreCallback=self.testStep)
@@ -121,6 +122,7 @@ class EditTestStepDialog(QtWidgets.QDialog):
         self.stepType = index * 10
         LogUtil.i("superTestTypeToggled", self.stepType, const.STEP_TYPE_NAMES[index])
         self.subTestTypeToggledVisible()
+        self.setClickParam()
         pass
 
     def subClickTestTypeToggled(self):
@@ -185,8 +187,26 @@ class EditTestStepDialog(QtWidgets.QDialog):
         self.findXathLineEdit = WidgetUtil.createLineEdit(splitter, sizePolicy=sizePolicy)
         return box
 
+    def setClickParam(self, params: dict={}):
+        keys = params.keys()
+        if keys.__contains__(const.KEY_XPATH) and params[const.KEY_XPATH]:
+            self.clickXpathLineEdit.setText(params[const.KEY_XPATH])
+        else:
+            self.clickXpathLineEdit.setText('')
+        if keys.__contains__(const.KEY_X) and params[const.KEY_X]:
+            self.clickXPosSpinBox.setValue(params[const.KEY_X])
+        else:
+            self.clickXPosSpinBox.setValue(0.5)
+        if keys.__contains__(const.KEY_Y) and params[const.KEY_Y]:
+            self.clickXPosSpinBox.setValue(params[const.KEY_Y])
+        else:
+            self.clickYPosSpinBox.setValue(0.5)
+
     def acceptFunc(self):
         LogUtil.i("acceptFunc")
+        self.getParams()
+        if self.callbackFunc:
+            self.callbackFunc(self.stepType, self.params)
         return True
 
     def testStep(self):
@@ -202,8 +222,8 @@ class EditTestStepDialog(QtWidgets.QDialog):
     def getParams(self):
         self.params = {}
         if self.stepType // 10 == 0:
-            self.params['xpath'] = self.clickXpathLineEdit.text().strip()
-            self.params['x'] = self.clickXPosSpinBox.value()
-            self.params['y'] = self.clickYPosSpinBox.value()
+            self.params[const.KEY_XPATH] = self.clickXpathLineEdit.text().strip()
+            self.params[const.KEY_X] = self.clickXPosSpinBox.value()
+            self.params[const.KEY_Y] = self.clickYPosSpinBox.value()
         LogUtil.i("getParams", self.stepType, self.params)
         pass

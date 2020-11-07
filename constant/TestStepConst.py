@@ -19,3 +19,8 @@ const.STEP_TYPE_NAMES = ['click', 'swipe', 'find']
 const.CLICK_TYPES = ['单击', '双击', '长按']
 const.SWIPE_TYPES = ['上', '下', '左', '右']
 
+const.KEY_XPATH = 'xpath'
+const.KEY_X = 'x'
+const.KEY_Y = 'y'
+const.KEY_STEP_TYPE = 'type'
+const.KEY_STEP_PARAMS = 'params'

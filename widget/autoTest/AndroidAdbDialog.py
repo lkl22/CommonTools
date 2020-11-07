@@ -2,6 +2,9 @@
 # python 3.x
 # Filename: AndroidAdbDialog.py
 # 定义一个AndroidAdbDialog类实现android adb指令操作功能
+from PyQt5.QtCore import QModelIndex
+from PyQt5.QtWidgets import QAbstractItemView
+
 from constant.TestStepConst import *
 from constant.WidgetConst import *
 from util.FileUtil import *
@@ -15,6 +18,8 @@ from widget.autoTest.EditTestStepDialog import *
 class AndroidAdbDialog(QtWidgets.QDialog):
     WINDOW_WIDTH = 800
     WINDOW_HEIGHT = 600
+    TABLE_KEY_TYPE = '类型'
+    TABLE_KEY_PARAMS = '执行参数'
 
     def __init__(self):
         # 调用父类的构函
@@ -27,6 +32,7 @@ class AndroidAdbDialog(QtWidgets.QDialog):
 
         self.u: Uiautomator = None
         self.execTestSteps = []
+        self.execTestStepTableDatas = []
 
         layoutWidget = QtWidgets.QWidget(self)
         layoutWidget.setGeometry(QRect(const.PADDING, const.PADDING, AndroidAdbDialog.WINDOW_WIDTH - const.PADDING * 2,
@@ -36,15 +42,14 @@ class AndroidAdbDialog(QtWidgets.QDialog):
         vLayout = WidgetUtil.createVBoxLayout(margins=QMargins(0, 0, 0, 0))
         layoutWidget.setLayout(vLayout)
 
-        androidResGroupBox = self.createXmlResGroupBox(layoutWidget)
-
-        vLayout.addWidget(androidResGroupBox)
+        adbGroupBox = self.createAdbGroupBox(layoutWidget)
+        vLayout.addWidget(adbGroupBox)
 
         self.setWindowModality(Qt.ApplicationModal)
         # 很关键，不加出不来
         # self.exec_()
 
-    def createXmlResGroupBox(self, parent):
+    def createAdbGroupBox(self, parent):
         box = WidgetUtil.createGroupBox(parent, title="Android adb")
         yPos = const.GROUP_BOX_MARGIN_TOP
         width = AndroidAdbDialog.WINDOW_WIDTH - const.PADDING * 4
@@ -67,7 +72,14 @@ class AndroidAdbDialog(QtWidgets.QDialog):
 
         yPos += const.HEIGHT_OFFSET
         splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, 180))
-        self.findResTableView = WidgetUtil.createTableView(splitter, minSize=QSize(width, 150), sizePolicy=sizePolicy)
+        self.stepsTableView = WidgetUtil.createTableView(splitter, minSize=QSize(width, 150), sizePolicy=sizePolicy,
+                                                         doubleClicked=self.tableDoubleClicked)
+        # 设为不可编辑
+        self.stepsTableView.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        # 设置选中模式为选中行
+        self.stepsTableView.setSelectionBehavior(QAbstractItemView.SelectRows)
+        # 设置选中单个
+        self.stepsTableView.setSelectionMode(QAbstractItemView.SingleSelection)
 
         yPos += 185
         splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
@@ -120,14 +132,49 @@ class AndroidAdbDialog(QtWidgets.QDialog):
         WidgetUtil.appendTextEdit(self.execResTE, 'Another weditor(0.6.1) is already running. 请打开浏览器输入"http://localhost:17310"访问')
         pass
 
-    def addStep(self):
-        LogUtil.d("add step")
-        EditTestStepDialog(self.addStepCallback)
+    def updateTableData(self):
+        LogUtil.i("updateTableData")
+        self.src2TableDatas()
+        WidgetUtil.addTableViewData(self.stepsTableView, self.execTestStepTableDatas)
         pass
 
-    def addStepCallback(self):
-        LogUtil.i('addStepCallback')
+    def addStep(self):
+        LogUtil.d("add step")
+        EditTestStepDialog(self.addStepCallback, u=self.u)
         pass
+
+    def addStepCallback(self, stepType, params):
+        LogUtil.i('addStepCallback', stepType, params)
+        self.execTestSteps.append({const.KEY_STEP_TYPE: stepType, const.KEY_STEP_PARAMS: params})
+        WidgetUtil.appendTextEdit(self.execResTE, 'add step ' + AutoTestUtil.stepName(stepType) + ' params: ' + str(params))
+        self.updateTableData()
+        pass
+
+    def tableDoubleClicked(self, index: QModelIndex):
+        oldValue = index.data()
+        row = index.row()
+        LogUtil.d("双击的单元格：row ", row, ' col', index.column(), ' data ', oldValue)
+        self.curEditData = self.execTestSteps[row]
+        EditTestStepDialog(self.editStepCallback, self.curEditData[const.KEY_STEP_TYPE], self.curEditData[const.KEY_STEP_PARAMS], self.u)
+        pass
+
+    def editStepCallback(self, stepType, params):
+        LogUtil.i('editStepCallback', stepType, params)
+        WidgetUtil.appendTextEdit(self.execResTE, 'edit step ' + AutoTestUtil.stepName(stepType) + ' params: ' + str(params))
+        self.curEditData[const.KEY_STEP_TYPE] = stepType
+        self.curEditData[const.KEY_STEP_PARAMS] = params
+        self.updateTableData()
+        pass
+
+    def src2TableDatas(self):
+        self.execTestStepTableDatas = []
+        for src in self.execTestSteps:
+            self.execTestStepTableDatas.append(self.src2TableData(src))
+
+    def src2TableData(self, srcData: dict):
+        name = AutoTestUtil.stepName(srcData[const.KEY_STEP_TYPE])
+        value = str(srcData[const.KEY_STEP_PARAMS])
+        return {AndroidAdbDialog.TABLE_KEY_TYPE: name, AndroidAdbDialog.TABLE_KEY_PARAMS: value}
 
     def execSteps(self):
         LogUtil.d("exec steps")

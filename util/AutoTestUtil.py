@@ -33,13 +33,22 @@ class AutoTestUtil:
             clickFunc = self.u.doubleClick
         elif stepType % 10 == 2:
             clickFunc = self.u.longClick
-        clickFunc(x=params['x'], y=params['y'], xpath=params['xpath'])
+        clickFunc(x=params[const.KEY_X], y=params[const.KEY_Y], xpath=params[const.KEY_XPATH])
 
     def startTestSwipeStep(self, stepType, params={}):
         LogUtil.i('startTestSwipeStep', stepType, params)
 
     def startTestFindStep(self, stepType, params={}):
         LogUtil.i('startTestFindStep', stepType, params)
+
+    @staticmethod
+    def stepName(stepType: int):
+        name = const.STEP_TYPE_NAMES[stepType // 10]
+        if stepType // 10 == 0:
+            name += '(' + const.CLICK_TYPES[stepType % 10] + ')'
+        elif stepType // 10 == 1:
+            name += '(' + const.SWIPE_TYPES[stepType % 10] + ')'
+        return name
 
 
 if __name__ == "__main__":
