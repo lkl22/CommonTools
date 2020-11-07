@@ -611,8 +611,7 @@ class WidgetUtil:
 
     @staticmethod
     def createTableView(parent: QWidget, objectName="TreeWidget", toolTip=None, geometry: QRect = None,
-                        minSize: QSize = None,
-                        isEnable=True, sizePolicy: QSizePolicy = None, doubleClicked=None):
+                        minSize: QSize = None, isEnable=True, sizePolicy: QSizePolicy = None, doubleClicked=None):
         """
         创建一个QTableView
         :param parent: 父QWidget

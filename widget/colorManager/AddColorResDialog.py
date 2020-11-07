@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # python 3.x
-# Filename: AddColorResDialog.py.py
-# 定义一个AddColorResDialog.py类实现添加android color资源
+# Filename: AddColorResDialog.py
+# 定义一个AddColorResDialog类实现添加android color资源
 from constant.WidgetConst import *
 from util.DialogUtil import *
 from util.OperaIni import *

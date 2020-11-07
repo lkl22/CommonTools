@@ -2,12 +2,14 @@
 # python 3.x
 # Filename: AndroidAdbDialog.py
 # 定义一个AndroidAdbDialog类实现android adb指令操作功能
+from constant.TestStepConst import *
 from constant.WidgetConst import *
 from util.FileUtil import *
 from util.DialogUtil import *
 from util.ShellUtil import *
 from util.LogUtil import *
 from util.Uiautomator import *
+from widget.autoTest.EditTestStepDialog import *
 
 
 class AndroidAdbDialog(QtWidgets.QDialog):
@@ -24,6 +26,7 @@ class AndroidAdbDialog(QtWidgets.QDialog):
         self.setWindowTitle(WidgetUtil.translate(text="Android Adb"))
 
         self.u: Uiautomator = None
+        self.execTestSteps = []
 
         layoutWidget = QtWidgets.QWidget(self)
         layoutWidget.setGeometry(QRect(const.PADDING, const.PADDING, AndroidAdbDialog.WINDOW_WIDTH - const.PADDING * 2,
@@ -58,7 +61,19 @@ class AndroidAdbDialog(QtWidgets.QDialog):
         WidgetUtil.createPushButton(splitter, text="open weditor", onClicked=self.openWeditor)
 
         yPos += const.HEIGHT_OFFSET
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, 200))
+        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, 200, const.HEIGHT))
+        WidgetUtil.createPushButton(splitter, text="add step", onClicked=self.addStep)
+        WidgetUtil.createPushButton(splitter, text="exec steps", onClicked=self.execSteps)
+
+        yPos += const.HEIGHT_OFFSET
+        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, 180))
+        self.findResTableView = WidgetUtil.createTableView(splitter, minSize=QSize(width, 150), sizePolicy=sizePolicy)
+
+        yPos += 185
+        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
+        WidgetUtil.createLabel(splitter, text="操作信息：", minSize=QSize(80, const.HEIGHT))
+        yPos += const.HEIGHT_OFFSET
+        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, 180))
         self.execResTE = WidgetUtil.createTextEdit(splitter, isReadOnly=True)
         return box
 
@@ -103,4 +118,17 @@ class AndroidAdbDialog(QtWidgets.QDialog):
         self.execCmd('weditor')
 
         WidgetUtil.appendTextEdit(self.execResTE, 'Another weditor(0.6.1) is already running. 请打开浏览器输入"http://localhost:17310"访问')
+        pass
+
+    def addStep(self):
+        LogUtil.d("add step")
+        EditTestStepDialog(self.addStepCallback)
+        pass
+
+    def addStepCallback(self):
+        LogUtil.i('addStepCallback')
+        pass
+
+    def execSteps(self):
+        LogUtil.d("exec steps")
         pass
