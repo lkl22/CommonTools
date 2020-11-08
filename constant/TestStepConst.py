@@ -26,6 +26,10 @@ const.KEY_Y = 'y'
 const.KEY_INTERVAL_TIME = 'intervalTime'
 # 重复次数
 const.KEY_REPEAT_NUM = 'repeatNum'
+# 滑动距离
+const.KEY_DISTANCE = 'distance'
+# 滑动时长
+const.KEY_DURATION = 'duration'
 
 const.KEY_STEP_TYPE = 'type'
 const.KEY_STEP_PARAMS = 'params'

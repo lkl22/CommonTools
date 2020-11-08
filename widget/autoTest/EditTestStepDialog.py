@@ -11,7 +11,8 @@ from util.Uiautomator import *
 
 class EditTestStepDialog(QtWidgets.QDialog):
     WINDOW_WIDTH = 600
-    WINDOW_HEIGHT = 350
+    WINDOW_HEIGHT = 280
+    GROUP_BOX_HEIGHT = 130
 
     def __init__(self, callbackFunc, stepType=const.STEP_TYPE_SINGLE_CLICK, params={}, u: Uiautomator = None):
         # 调用父类的构函
@@ -85,6 +86,7 @@ class EditTestStepDialog(QtWidgets.QDialog):
 
         self.subTestTypeToggledVisible()
         self.setClickParam(self.params)
+        self.setSwipeParam(self.params)
         self.setFindParam(self.params)
 
         splitter = DialogUtil.createBottomBtn(self, okCallback=self.acceptFunc, cancelBtnText="Cancel",
@@ -124,6 +126,7 @@ class EditTestStepDialog(QtWidgets.QDialog):
         LogUtil.i("superTestTypeToggled", self.stepType, const.STEP_TYPE_NAMES[index])
         self.subTestTypeToggledVisible()
         self.setClickParam()
+        self.setSwipeParam()
         self.setFindParam()
         pass
 
@@ -145,7 +148,8 @@ class EditTestStepDialog(QtWidgets.QDialog):
 
     def createClickParamGroupBox(self, parent):
         width = EditTestStepDialog.WINDOW_WIDTH - const.PADDING * 8
-        box = WidgetUtil.createGroupBox(parent, title="click params", minSize=QSize(width, 200))
+        box = WidgetUtil.createGroupBox(parent, title="click params",
+                                        minSize=QSize(width, EditTestStepDialog.GROUP_BOX_HEIGHT))
         yPos = const.GROUP_BOX_MARGIN_TOP
         splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
         sizePolicy = WidgetUtil.createSizePolicy()
@@ -159,28 +163,48 @@ class EditTestStepDialog(QtWidgets.QDialog):
                                minSize=QSize(80, const.HEIGHT))
         WidgetUtil.createLabel(splitter, text="x坐标", alignment=Qt.AlignVCenter | Qt.AlignRight,
                                minSize=QSize(50, const.HEIGHT))
-        self.clickXPosSpinBox = WidgetUtil.createDoubleSpinBox(splitter, value=0, minValue=0, maxValue=10000, step=0.1,
-                                                               sizePolicy=sizePolicy)
+        self.clickXPosSpinBox = WidgetUtil.createDoubleSpinBox(splitter, value=0.5, minValue=0, maxValue=10000,
+                                                               step=0.1, suffix='  %/px', sizePolicy=sizePolicy)
         WidgetUtil.createLabel(splitter, text="y坐标", alignment=Qt.AlignVCenter | Qt.AlignRight,
                                minSize=QSize(50, const.HEIGHT))
-        self.clickYPosSpinBox = WidgetUtil.createDoubleSpinBox(splitter, value=0, minValue=0, maxValue=10000, step=0.1,
-                                                               sizePolicy=sizePolicy)
+        self.clickYPosSpinBox = WidgetUtil.createDoubleSpinBox(splitter, value=0.5, minValue=0, maxValue=10000,
+                                                               step=0.1, suffix='  %/px', sizePolicy=sizePolicy)
         return box
 
     def createSwipeParamGroupBox(self, parent):
         width = EditTestStepDialog.WINDOW_WIDTH - const.PADDING * 8
-        box = WidgetUtil.createGroupBox(parent, title="swipe params", minSize=QSize(width, 200))
+        box = WidgetUtil.createGroupBox(parent, title="swipe params",
+                                        minSize=QSize(width, EditTestStepDialog.GROUP_BOX_HEIGHT))
         yPos = const.GROUP_BOX_MARGIN_TOP
         splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
         sizePolicy = WidgetUtil.createSizePolicy()
-        # WidgetUtil.createLabel(splitter, text="目标对象XPath：", alignment=Qt.AlignVCenter | Qt.AlignLeft,
-        #                        minSize=QSize(80, const.HEIGHT))
-        # self.xpathLineEdit = WidgetUtil.createLineEdit(splitter, sizePolicy=sizePolicy)
+        WidgetUtil.createLabel(splitter, text="起始坐标：", alignment=Qt.AlignVCenter | Qt.AlignLeft,
+                               minSize=QSize(80, const.HEIGHT))
+        WidgetUtil.createLabel(splitter, text="x坐标", alignment=Qt.AlignVCenter | Qt.AlignRight,
+                               minSize=QSize(50, const.HEIGHT))
+        self.swipeXPosSpinBox = WidgetUtil.createDoubleSpinBox(splitter, value=0.5, minValue=0, maxValue=10000,
+                                                               step=0.1, suffix='  %/px', sizePolicy=sizePolicy)
+        WidgetUtil.createLabel(splitter, text="y坐标", alignment=Qt.AlignVCenter | Qt.AlignRight,
+                               minSize=QSize(50, const.HEIGHT))
+        self.swipeYPosSpinBox = WidgetUtil.createDoubleSpinBox(splitter, value=0.5, minValue=0, maxValue=10000,
+                                                               step=0.1, suffix='  %/px', sizePolicy=sizePolicy)
+        yPos += const.HEIGHT_OFFSET
+        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
+        WidgetUtil.createLabel(splitter, text="滑动距离：", alignment=Qt.AlignVCenter | Qt.AlignLeft,
+                               minSize=QSize(80, const.HEIGHT))
+        self.swipeDistanceSpinBox = WidgetUtil.createDoubleSpinBox(splitter, value=0.3, minValue=0, maxValue=10000,
+                                                                   step=0.1, suffix='  %/px', sizePolicy=sizePolicy)
+        WidgetUtil.createLabel(splitter, text="滑动时长：", alignment=Qt.AlignVCenter | Qt.AlignRight,
+                               minSize=QSize(80, const.HEIGHT))
+        self.swipeDurationSpinBox = WidgetUtil.createDoubleSpinBox(splitter, value=0.03, minValue=0.005, maxValue=10,
+                                                                   step=0.01, suffix='  s', decimals=3,
+                                                                   sizePolicy=sizePolicy)
         return box
 
     def createFindParamGroupBox(self, parent):
         width = EditTestStepDialog.WINDOW_WIDTH - const.PADDING * 8
-        box = WidgetUtil.createGroupBox(parent, title="find params", minSize=QSize(width, 200))
+        box = WidgetUtil.createGroupBox(parent, title="find params",
+                                        minSize=QSize(width, EditTestStepDialog.GROUP_BOX_HEIGHT))
         yPos = const.GROUP_BOX_MARGIN_TOP
         splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
         sizePolicy = WidgetUtil.createSizePolicy()
@@ -193,13 +217,11 @@ class EditTestStepDialog(QtWidgets.QDialog):
         WidgetUtil.createLabel(splitter, text="间隔时间：", alignment=Qt.AlignVCenter | Qt.AlignLeft,
                                minSize=QSize(100, const.HEIGHT))
         self.intervalTimeSpinBox = WidgetUtil.createSpinBox(splitter, value=3, minValue=1, maxValue=10, step=1,
-                                                            suffix='s',
-                                                            sizePolicy=sizePolicy)
+                                                            suffix='s', sizePolicy=sizePolicy)
         WidgetUtil.createLabel(splitter, text="等待次数：", alignment=Qt.AlignVCenter | Qt.AlignRight,
                                minSize=QSize(150, const.HEIGHT))
         self.repeatNumSpinBox = WidgetUtil.createSpinBox(splitter, value=0, minValue=0, maxValue=10, step=1,
-                                                         suffix='次',
-                                                         sizePolicy=sizePolicy)
+                                                         suffix='次', sizePolicy=sizePolicy)
         return box
 
     def setClickParam(self, params: dict = {}):
@@ -208,15 +230,33 @@ class EditTestStepDialog(QtWidgets.QDialog):
             self.clickXpathLineEdit.setText(params[const.KEY_XPATH])
         else:
             self.clickXpathLineEdit.setText('')
-        if keys.__contains__(const.KEY_X) and params[const.KEY_X]:
+        if keys.__contains__(const.KEY_X):
             self.clickXPosSpinBox.setValue(params[const.KEY_X])
         else:
             self.clickXPosSpinBox.setValue(0.5)
-        if keys.__contains__(const.KEY_Y) and params[const.KEY_Y]:
-            self.clickXPosSpinBox.setValue(params[const.KEY_Y])
+        if keys.__contains__(const.KEY_Y):
+            self.clickYPosSpinBox.setValue(params[const.KEY_Y])
         else:
             self.clickYPosSpinBox.setValue(0.5)
 
+    def setSwipeParam(self, params: dict = {}):
+        keys = params.keys()
+        if keys.__contains__(const.KEY_X):
+            self.swipeXPosSpinBox.setValue(params[const.KEY_X])
+        else:
+            self.swipeXPosSpinBox.setValue(0.5)
+        if keys.__contains__(const.KEY_Y):
+            self.swipeYPosSpinBox.setValue(params[const.KEY_Y])
+        else:
+            self.swipeYPosSpinBox.setValue(0.5)
+        if keys.__contains__(const.KEY_DISTANCE):
+            self.swipeDistanceSpinBox.setValue(params[const.KEY_DISTANCE])
+        else:
+            self.swipeDistanceSpinBox.setValue(0.3)
+        if keys.__contains__(const.KEY_DURATION):
+            self.swipeDurationSpinBox.setValue(params[const.KEY_DURATION])
+        else:
+            self.swipeDurationSpinBox.setValue(0.03)
 
     def setFindParam(self, params: dict = {}):
         keys = params.keys()
@@ -263,7 +303,12 @@ class EditTestStepDialog(QtWidgets.QDialog):
             self.params[const.KEY_XPATH] = self.clickXpathLineEdit.text().strip()
             self.params[const.KEY_X] = self.clickXPosSpinBox.value()
             self.params[const.KEY_Y] = self.clickYPosSpinBox.value()
-        if self.stepType // 10 == 2:
+        elif self.stepType // 10 == 1:
+            self.params[const.KEY_X] = self.swipeXPosSpinBox.value()
+            self.params[const.KEY_Y] = self.swipeYPosSpinBox.value()
+            self.params[const.KEY_DISTANCE] = self.swipeDistanceSpinBox.value()
+            self.params[const.KEY_DURATION] = self.swipeDurationSpinBox.value()
+        elif self.stepType // 10 == 2:
             self.params[const.KEY_XPATH] = self.findXathLineEdit.text().strip()
             self.params[const.KEY_INTERVAL_TIME] = self.intervalTimeSpinBox.value()
             self.params[const.KEY_REPEAT_NUM] = self.repeatNumSpinBox.value()

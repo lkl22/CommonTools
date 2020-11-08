@@ -56,6 +56,15 @@ class Uiautomator:
             return self.info
         return 'None'
 
+    def windowSize(self):
+        """
+        获取屏幕size
+        :return: {w, h}
+        """
+        if self.checkDevice():
+            return self.d.window_size()
+        return None
+
     def reConnect(self, addr=None):
         """
         重新连接设备

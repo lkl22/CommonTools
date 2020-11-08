@@ -34,9 +34,8 @@ class AutoTestUtil:
         return False
 
     def startTestClickStep(self, stepType, params={}, logCallback=None):
-        LogUtil.i('startTestClickStep', stepType, params)
-        if logCallback:
-            logCallback('startTestClickStep ' + AutoTestUtil.stepName(stepType) + ' params: ' + str(params))
+        log = 'startTestClickStep {} params: {}'.format(AutoTestUtil.stepName(stepType), params)
+        self.print(log, logCallback)
         clickFunc = self.u.click
         if stepType % 10 == 0:
             clickFunc = self.u.click
@@ -45,34 +44,124 @@ class AutoTestUtil:
         elif stepType % 10 == 2:
             clickFunc = self.u.longClick
         res = clickFunc(x=params[const.KEY_X], y=params[const.KEY_Y], xpath=params[const.KEY_XPATH])
-        if logCallback:
-            logCallback(str.format('result: %s\n', str(res)))
+        log = 'result: {}\n'.format(res)
+        self.print(log, logCallback)
         return res
 
     def startTestSwipeStep(self, stepType, params={}, logCallback=None):
-        LogUtil.i('startTestSwipeStep', stepType, params)
-        if logCallback:
-            logCallback('startTestSwipeStep ' + AutoTestUtil.stepName(stepType) + ' params: ' + str(params))
+        log = 'startTestSwipeStep {} params: {}'.format(AutoTestUtil.stepName(stepType), params)
+        self.print(log, logCallback)
+        size = self.u.windowSize()
+        if not size:
+            return False
+        (w, h) = size
+        log = 'screen size w: {} h: {}'.format(w, h)
+        self.print(log, logCallback)
+        fx = params[const.KEY_X]
+        fy = params[const.KEY_Y]
+        distance = params[const.KEY_DISTANCE]
+        duration = params[const.KEY_DURATION]
+        fx = self.posRel2Abs(fx, w)
+        fy = self.posRel2Abs(fy, h)
+        if fx >= w or fy >= h:
+            self.print('滑动起始坐标不在屏幕范围内请重新设置', logCallback)
+            return False
+
+        tx = fx
+        ty = fy
+        if stepType % 10 // 2 == 0:
+            # 上下
+            distance = self.posRel2Abs(distance, h)
+        else:
+            # 左右
+            distance = self.posRel2Abs(distance, w)
+        log = 'start position ({}, {}) distance {} duration {} ms'.format(fx, fy, distance, duration * 1000)
+        self.print(log, logCallback)
+
+        if stepType % 10 == 0:
+            # 上
+            ty -= distance
+            while ty < 0:
+                self.startSwipe(fx, fy, tx, 0, duration, logCallback)
+                offset = fy
+                distance -= offset
+                ty = fy - distance
+
+            if ty > 0:
+                self.startSwipe(fx, fy, tx, ty, duration, logCallback)
+            return True
+        elif stepType % 10 == 1:
+            # 下
+            ty += distance
+            while ty > h:
+                self.startSwipe(fx, fy, tx, h, duration, logCallback)
+                offset = h - fy
+                distance -= offset
+                ty = fy + distance
+
+            if ty > fy:
+                self.startSwipe(fx, fy, tx, ty, duration, logCallback)
+            return True
+        elif stepType % 10 == 2:
+            # 左
+            tx -= distance
+            while tx < 0:
+                self.startSwipe(fx, fy, 0, ty, duration, logCallback)
+                offset = fx
+                distance -= offset
+                tx = fx - distance
+
+            if tx > 0:
+                self.startSwipe(fx, fy, tx, ty, duration, logCallback)
+            return True
+        elif stepType % 10 == 3:
+            # 右
+            tx += distance
+            while tx > w:
+                self.startSwipe(fx, fy, w, ty, duration, logCallback)
+                offset = w - fx
+                distance -= offset
+                tx = fx + distance
+
+            if tx > fx:
+                self.startSwipe(fx, fy, tx, ty, duration, logCallback)
+            return True
+        return False
+
+    def startSwipe(self, fx, fy, tx, ty, duration, logCallback=None):
+        self.u.swipe(fx, fy, tx, ty, duration=duration)
+        log = 'swipe from ({}, {}) to ({}, {})'.format(fx, fy, tx, ty)
+        self.print(log, logCallback)
+
+    def posRel2Abs(self, pos, size):
+        assert pos >= 0
+
+        if pos < 1:
+            pos = int(size * pos)
+        return pos
 
     def startTestFindStep(self, stepType, params={}, logCallback=None):
-        LogUtil.i('startTestFindStep', stepType, params)
-        if logCallback:
-            logCallback('startTestFindStep ' + AutoTestUtil.stepName(stepType) + ' params: ' + str(params))
+        log = 'startTestFindStep {} params: {}'.format(AutoTestUtil.stepName(stepType), params)
+        self.print(log, logCallback)
         xpath = params[const.KEY_XPATH]
         exists = self.u.existsByXpath(xpath)
         intervalTime = params[const.KEY_INTERVAL_TIME]
         repeatNum = params[const.KEY_REPEAT_NUM]
-        LogUtil.i('startTestFindStep', stepType, params)
         while not exists and repeatNum > 0:
-            if logCallback:
-                logCallback('not find element: {} intervalTime: {} repeatNum: {}'.format(xpath, intervalTime, repeatNum))
+            log = 'not find element: {} intervalTime: {} repeatNum: {}'.format(xpath, intervalTime, repeatNum)
+            self.print(log, logCallback)
             repeatNum -= 1
             exists = self.u.existsByXpath(xpath)
             time.sleep(intervalTime)
-        if logCallback:
-            logCallback('finished {}find element: {}\n'.format('' if exists else 'not ', xpath))
-        LogUtil.i('startTestFindStep finished')
+        log = 'finished {}find element: {}\n'.format('' if exists else 'not ', xpath)
+        self.print(log, logCallback)
         return exists
+
+    def print(self, log: str, callback=None):
+        LogUtil.d(log)
+        if callback:
+            callback(log)
+        pass
 
     @staticmethod
     def stepName(stepType: int):
