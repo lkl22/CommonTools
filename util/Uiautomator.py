@@ -8,6 +8,7 @@ from typing import Union, Optional
 from uiautomator2 import Direction, Selector, UiObject
 
 from util.FileUtil import *
+from util.WidgetUtil import *
 import uiautomator2 as u2
 
 sys.path.append("../")
@@ -25,6 +26,7 @@ class Uiautomator:
         except Exception as err:
             self.info = None
             LogUtil.e('Uiautomator init 错误信息：', err)
+            WidgetUtil.showErrorDialog(message='Uiautomator init 错误信息：{}'.format(err))
 
     def checkDevice(self):
         """
