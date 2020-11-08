@@ -20,13 +20,14 @@ class Uiautomator:
             self.addr = addr
             self.d: u2.Device = None
             self.info = None
+            self.err = None
             self.d = u2.connect(addr)
             self.info = self.d.info
             LogUtil.d("设备信息：", self.info)
         except Exception as err:
             self.info = None
+            self.err = err
             LogUtil.e('Uiautomator init 错误信息：', err)
-            WidgetUtil.showErrorDialog(message='Uiautomator init 错误信息：{}'.format(err))
 
     def checkDevice(self):
         """

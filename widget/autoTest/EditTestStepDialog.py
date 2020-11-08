@@ -289,6 +289,11 @@ class EditTestStepDialog(QtWidgets.QDialog):
             self.u = Uiautomator()
         if not self.t:
             self.t = AutoTestUtil(self.u)
+        if self.u.err:
+            self.u.reConnect()
+            if self.u.err:
+                WidgetUtil.showErrorDialog(message='连接设备错误信息：{}'.format(self.u.err))
+                return
         self.getParams()
         if not self.checkParams():
             LogUtil.i("testStep params check failed.")

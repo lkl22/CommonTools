@@ -28,8 +28,6 @@ class ShellUtil:
         except Exception as err:
             LogUtil.e("执行指令发生错误：", err)
             return '', '{}'.format(err)
-            
-
 
 
 if __name__ == "__main__":

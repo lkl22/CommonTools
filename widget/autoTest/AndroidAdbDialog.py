@@ -128,6 +128,8 @@ class AndroidAdbDialog(QtWidgets.QDialog):
             self.u = Uiautomator(addr)
         WidgetUtil.appendTextEdit(self.execResTE, '设备info：' + str(self.u.deviceInfo()))
         self.devAddrEdit.setText(self.u.serial())
+        if self.u.err:
+            WidgetUtil.showErrorDialog(message='Uiautomator init 错误信息：{}'.format(self.u.err))
         pass
 
     def openWeditor(self):
@@ -203,6 +205,12 @@ class AndroidAdbDialog(QtWidgets.QDialog):
         LogUtil.d("exec steps")
         if not self.execTestSteps:
             WidgetUtil.showErrorDialog(message="请先添加要执行的操作")
+            return
+        if not self.u:
+            WidgetUtil.showErrorDialog(message='请先连接设备')
+            return
+        if self.u.err:
+            WidgetUtil.showErrorDialog(message='连接设备错误信息：{}'.format(self.u.err))
             return
         if not self.t:
             self.t = AutoTestUtil(self.u)
