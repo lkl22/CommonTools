@@ -85,6 +85,7 @@ class EditTestStepDialog(QtWidgets.QDialog):
 
         self.subTestTypeToggledVisible()
         self.setClickParam(self.params)
+        self.setFindParam(self.params)
 
         splitter = DialogUtil.createBottomBtn(self, okCallback=self.acceptFunc, cancelBtnText="Cancel",
                                               ignoreBtnText='Test', ignoreCallback=self.testStep)
@@ -123,6 +124,7 @@ class EditTestStepDialog(QtWidgets.QDialog):
         LogUtil.i("superTestTypeToggled", self.stepType, const.STEP_TYPE_NAMES[index])
         self.subTestTypeToggledVisible()
         self.setClickParam()
+        self.setFindParam()
         pass
 
     def subClickTestTypeToggled(self):
@@ -195,7 +197,7 @@ class EditTestStepDialog(QtWidgets.QDialog):
                                                             sizePolicy=sizePolicy)
         WidgetUtil.createLabel(splitter, text="等待次数：", alignment=Qt.AlignVCenter | Qt.AlignRight,
                                minSize=QSize(150, const.HEIGHT))
-        self.repeatNumSpinBox = WidgetUtil.createSpinBox(splitter, value=1, minValue=1, maxValue=10, step=1,
+        self.repeatNumSpinBox = WidgetUtil.createSpinBox(splitter, value=0, minValue=0, maxValue=10, step=1,
                                                          suffix='次',
                                                          sizePolicy=sizePolicy)
         return box
@@ -214,6 +216,22 @@ class EditTestStepDialog(QtWidgets.QDialog):
             self.clickXPosSpinBox.setValue(params[const.KEY_Y])
         else:
             self.clickYPosSpinBox.setValue(0.5)
+
+
+    def setFindParam(self, params: dict = {}):
+        keys = params.keys()
+        if keys.__contains__(const.KEY_XPATH) and params[const.KEY_XPATH]:
+            self.findXathLineEdit.setText(params[const.KEY_XPATH])
+        else:
+            self.findXathLineEdit.setText('')
+        if keys.__contains__(const.KEY_INTERVAL_TIME):
+            self.intervalTimeSpinBox.setValue(params[const.KEY_INTERVAL_TIME])
+        else:
+            self.intervalTimeSpinBox.setValue(3)
+        if keys.__contains__(const.KEY_REPEAT_NUM):
+            self.repeatNumSpinBox.setValue(params[const.KEY_REPEAT_NUM])
+        else:
+            self.repeatNumSpinBox.setValue(0)
 
     def acceptFunc(self):
         LogUtil.i("acceptFunc")
@@ -235,7 +253,8 @@ class EditTestStepDialog(QtWidgets.QDialog):
         if not self.checkParams():
             LogUtil.i("testStep params check failed.")
             return False
-        self.t.startTestStep(self.stepType, params=self.params)
+        res = self.t.startTestStep(self.stepType, params=self.params)
+        LogUtil.d('res:', res)
         return False
 
     def getParams(self):

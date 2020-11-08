@@ -26,12 +26,12 @@ class AutoTestUtil:
         if logCallback:
             logCallback('startTestStep')
         if stepType // 10 == 0:
-            self.startTestClickStep(stepType, params, logCallback)
+            return self.startTestClickStep(stepType, params, logCallback)
         elif stepType // 10 == 1:
-            self.startTestSwipeStep(stepType, params, logCallback)
+            return self.startTestSwipeStep(stepType, params, logCallback)
         elif stepType // 10 == 2:
-            self.startTestFindStep(stepType, params, logCallback)
-
+            return self.startTestFindStep(stepType, params, logCallback)
+        return False
 
     def startTestClickStep(self, stepType, params={}, logCallback=None):
         LogUtil.i('startTestClickStep', stepType, params)
@@ -47,6 +47,7 @@ class AutoTestUtil:
         res = clickFunc(x=params[const.KEY_X], y=params[const.KEY_Y], xpath=params[const.KEY_XPATH])
         if logCallback:
             logCallback(str.format('result: %s\n', str(res)))
+        return res
 
     def startTestSwipeStep(self, stepType, params={}, logCallback=None):
         LogUtil.i('startTestSwipeStep', stepType, params)
@@ -71,6 +72,7 @@ class AutoTestUtil:
         if logCallback:
             logCallback('finished {}find element: {}\n'.format('' if exists else 'not ', xpath))
         LogUtil.i('startTestFindStep finished')
+        return exists
 
     @staticmethod
     def stepName(stepType: int):
