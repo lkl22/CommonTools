@@ -183,11 +183,24 @@ class EditTestStepDialog(QtWidgets.QDialog):
         splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
         sizePolicy = WidgetUtil.createSizePolicy()
         WidgetUtil.createLabel(splitter, text="目标对象XPath：", alignment=Qt.AlignVCenter | Qt.AlignLeft,
-                               minSize=QSize(80, const.HEIGHT))
+                               minSize=QSize(100, const.HEIGHT))
         self.findXathLineEdit = WidgetUtil.createLineEdit(splitter, sizePolicy=sizePolicy)
+
+        yPos += const.HEIGHT_OFFSET
+        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
+        WidgetUtil.createLabel(splitter, text="间隔时间：", alignment=Qt.AlignVCenter | Qt.AlignLeft,
+                               minSize=QSize(100, const.HEIGHT))
+        self.intervalTimeSpinBox = WidgetUtil.createSpinBox(splitter, value=3, minValue=1, maxValue=10, step=1,
+                                                            suffix='s',
+                                                            sizePolicy=sizePolicy)
+        WidgetUtil.createLabel(splitter, text="等待次数：", alignment=Qt.AlignVCenter | Qt.AlignRight,
+                               minSize=QSize(150, const.HEIGHT))
+        self.repeatNumSpinBox = WidgetUtil.createSpinBox(splitter, value=1, minValue=1, maxValue=10, step=1,
+                                                         suffix='次',
+                                                         sizePolicy=sizePolicy)
         return box
 
-    def setClickParam(self, params: dict={}):
+    def setClickParam(self, params: dict = {}):
         keys = params.keys()
         if keys.__contains__(const.KEY_XPATH) and params[const.KEY_XPATH]:
             self.clickXpathLineEdit.setText(params[const.KEY_XPATH])
@@ -205,6 +218,9 @@ class EditTestStepDialog(QtWidgets.QDialog):
     def acceptFunc(self):
         LogUtil.i("acceptFunc")
         self.getParams()
+        if not self.checkParams():
+            LogUtil.i("testStep params check failed.")
+            return False
         if self.callbackFunc:
             self.callbackFunc(self.stepType, self.params)
         return True
@@ -216,6 +232,9 @@ class EditTestStepDialog(QtWidgets.QDialog):
         if not self.t:
             self.t = AutoTestUtil(self.u)
         self.getParams()
+        if not self.checkParams():
+            LogUtil.i("testStep params check failed.")
+            return False
         self.t.startTestStep(self.stepType, params=self.params)
         return False
 
@@ -225,5 +244,23 @@ class EditTestStepDialog(QtWidgets.QDialog):
             self.params[const.KEY_XPATH] = self.clickXpathLineEdit.text().strip()
             self.params[const.KEY_X] = self.clickXPosSpinBox.value()
             self.params[const.KEY_Y] = self.clickYPosSpinBox.value()
+        if self.stepType // 10 == 2:
+            self.params[const.KEY_XPATH] = self.findXathLineEdit.text().strip()
+            self.params[const.KEY_INTERVAL_TIME] = self.intervalTimeSpinBox.value()
+            self.params[const.KEY_REPEAT_NUM] = self.repeatNumSpinBox.value()
+
         LogUtil.i("getParams", self.stepType, self.params)
         pass
+
+    def checkParams(self):
+        if not self.params:
+            WidgetUtil.showErrorDialog(message="请先设置执行参数")
+            return False
+        keys = self.params.keys()
+        if not keys:
+            WidgetUtil.showErrorDialog(message="请先设置执行参数")
+            return False
+        if self.stepType // 10 == 2 and (not keys.__contains__(const.KEY_XPATH) or not self.params[const.KEY_XPATH]):
+            WidgetUtil.showErrorDialog(message="请设置xpath参数")
+            return False
+        return True

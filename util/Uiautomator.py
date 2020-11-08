@@ -256,6 +256,20 @@ class Uiautomator:
                 LogUtil.e('screenshot 错误信息：', err)
         return None
 
+    def existsByXpath(self, xpath):
+        """
+        通过xpath方式判断界面元素是否存在
+        :param xpath: xpath
+        :return: True 存在
+        """
+        if self.checkDevice():
+            try:
+                XPath = self.d.xpath(xpath)
+                return XPath.exists
+            except Exception as err:
+                LogUtil.e('existsByXpath 错误信息：', err)
+        return False
+
     def selector(self, className=None, text=None, resourceId=None) -> UiObject:
         if self.checkDevice():
             try:

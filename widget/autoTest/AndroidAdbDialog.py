@@ -31,6 +31,7 @@ class AndroidAdbDialog(QtWidgets.QDialog):
         self.setWindowTitle(WidgetUtil.translate(text="Android Adb"))
 
         self.u: Uiautomator = None
+        self.t: AutoTestUtil = None
         self.execTestSteps = []
         self.execTestStepTableDatas = []
 
@@ -200,4 +201,17 @@ class AndroidAdbDialog(QtWidgets.QDialog):
 
     def execSteps(self):
         LogUtil.d("exec steps")
+        if not self.execTestSteps:
+            WidgetUtil.showErrorDialog(message="请先添加要执行的操作")
+            return
+        if not self.t:
+            self.t = AutoTestUtil(self.u)
+        WidgetUtil.appendTextEdit(self.execResTE, 'start exec')
+        for step in self.execTestSteps:
+            self.t.startTestStep(step[const.KEY_STEP_TYPE], step[const.KEY_STEP_PARAMS], self.execLog)
+        WidgetUtil.appendTextEdit(self.execResTE, 'exec finished')
+        pass
+
+    def execLog(self, log: str = ''):
+        WidgetUtil.appendTextEdit(self.execResTE, log)
         pass

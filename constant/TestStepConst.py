@@ -22,5 +22,10 @@ const.SWIPE_TYPES = ['上', '下', '左', '右']
 const.KEY_XPATH = 'xpath'
 const.KEY_X = 'x'
 const.KEY_Y = 'y'
+# 间隔时长
+const.KEY_INTERVAL_TIME = 'intervalTime'
+# 重复次数
+const.KEY_REPEAT_NUM = 'repeatNum'
+
 const.KEY_STEP_TYPE = 'type'
 const.KEY_STEP_PARAMS = 'params'
