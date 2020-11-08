@@ -8,6 +8,9 @@ Android资源文件复制/移动工具：
 Android color资源管理工具：
 ![](doc/img/androidColorResTool.png)
 
+[Android 自动化测试预研：](doc/autoTest.md)
+![](doc/img/autoTest/adbDialog.png)
+
 # 开发指南
 
 ## 环境配置
