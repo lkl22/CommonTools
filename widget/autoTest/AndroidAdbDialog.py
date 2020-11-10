@@ -21,7 +21,7 @@ class AndroidAdbDialog(QtWidgets.QDialog):
     TABLE_KEY_TYPE = '类型'
     TABLE_KEY_PARAMS = '执行参数'
 
-    def __init__(self):
+    def __init__(self, execSteps=[], callback=None):
         # 调用父类的构函
         QtWidgets.QDialog.__init__(self)
         LogUtil.d("Init Android adb Dialog")
@@ -30,10 +30,15 @@ class AndroidAdbDialog(QtWidgets.QDialog):
         self.setFixedSize(AndroidAdbDialog.WINDOW_WIDTH, AndroidAdbDialog.WINDOW_HEIGHT)
         self.setWindowTitle(WidgetUtil.translate(text="Android Adb"))
 
+        self.callback = callback
         self.u: Uiautomator = None
         self.t: AutoTestUtil = None
-        self.execTestSteps = []
+        self.execTestSteps = execSteps
         self.execTestStepTableDatas = []
+        if self.callback:
+            self.adbGroupBoxHeight = 530
+        else:
+            self.adbGroupBoxHeight = 580
 
         layoutWidget = QtWidgets.QWidget(self)
         layoutWidget.setGeometry(QRect(const.PADDING, const.PADDING, AndroidAdbDialog.WINDOW_WIDTH - const.PADDING * 2,
@@ -46,20 +51,30 @@ class AndroidAdbDialog(QtWidgets.QDialog):
         adbGroupBox = self.createAdbGroupBox(layoutWidget)
         vLayout.addWidget(adbGroupBox)
 
+        if self.callback:
+            splitter = DialogUtil.createBottomBtn(self, okCallback=self.acceptFunc, cancelBtnText="Cancel")
+            vLayout.addLayout(splitter)
+
+        if self.execTestSteps:
+            self.updateTableData()
+
         self.setWindowModality(Qt.ApplicationModal)
         # 很关键，不加出不来
         self.exec_()
 
     def createAdbGroupBox(self, parent):
-        box = WidgetUtil.createGroupBox(parent, title="Android adb")
         yPos = const.GROUP_BOX_MARGIN_TOP
         width = AndroidAdbDialog.WINDOW_WIDTH - const.PADDING * 4
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
+        box = WidgetUtil.createGroupBox(parent, title="Android adb", minSize=QSize(width, self.adbGroupBoxHeight))
         sizePolicy = WidgetUtil.createSizePolicy()
-        WidgetUtil.createLabel(splitter, text="输入要执行的shell指令：", minSize=QSize(80, const.HEIGHT))
-        self.cmdLineEdit = WidgetUtil.createLineEdit(splitter, holderText="请输入要执行的指令，多个以\";\"分隔", sizePolicy=sizePolicy)
-        WidgetUtil.createPushButton(splitter, text="执行", onClicked=self.execShellCmd)
-        yPos += const.HEIGHT_OFFSET * 2
+
+        if not self.callback:
+            splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
+            WidgetUtil.createLabel(splitter, text="输入要执行的shell指令：", minSize=QSize(80, const.HEIGHT))
+            self.cmdLineEdit = WidgetUtil.createLineEdit(splitter, holderText="请输入要执行的指令，多个以\";\"分隔", sizePolicy=sizePolicy)
+            WidgetUtil.createPushButton(splitter, text="执行", onClicked=self.execShellCmd)
+            yPos += const.HEIGHT_OFFSET * 2
+
         splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
         WidgetUtil.createLabel(splitter, text="输入要连接设备的addr：", minSize=QSize(80, const.HEIGHT))
         self.devAddrEdit = WidgetUtil.createLineEdit(splitter, holderText="the device serial/device IP", sizePolicy=sizePolicy)
@@ -96,14 +111,14 @@ class AndroidAdbDialog(QtWidgets.QDialog):
     def execCmd(self, cmd: str):
         LogUtil.d("exec cmd:", cmd)
         if cmd:
-            WidgetUtil.appendTextEdit(self.execResTE, '执行指令：')
-            WidgetUtil.appendTextEdit(self.execResTE, cmd + '\n')
+            self.printRes('执行指令：')
+            self.printRes(cmd + '\n')
             out, err = ShellUtil.exec(cmd)
-            WidgetUtil.appendTextEdit(self.execResTE, '输出结果：')
-            WidgetUtil.appendTextEdit(self.execResTE, out)
+            self.printRes('输出结果：')
+            self.printRes(out)
             if err:
-                WidgetUtil.appendTextEdit(self.execResTE, '错误信息：\n', '#f00')
-                WidgetUtil.appendTextEdit(self.execResTE, err, '#f00')
+                self.printRes('错误信息：\n', '#f00')
+                self.printRes(err, '#f00')
         pass
 
     def execShellCmd(self):
@@ -126,16 +141,17 @@ class AndroidAdbDialog(QtWidgets.QDialog):
             self.u.reConnect(addr)
         else:
             self.u = Uiautomator(addr)
-        WidgetUtil.appendTextEdit(self.execResTE, '设备info：' + str(self.u.deviceInfo()))
+        self.printRes('设备info：' + str(self.u.deviceInfo()))
         self.devAddrEdit.setText(self.u.serial())
         if self.u.err:
-            WidgetUtil.showErrorDialog(message='Uiautomator init 错误信息：{}'.format(self.u.err))
-        pass
+            WidgetUtil.showErrorDialog(message='connect device错误信息：{}'.format(self.u.err))
+            return False
+        return True
 
     def openWeditor(self):
         self.execCmd('weditor')
 
-        WidgetUtil.appendTextEdit(self.execResTE, 'Another weditor(0.6.1) is already running. 请打开浏览器输入"http://localhost:17310"访问')
+        self.printRes('Another weditor(0.6.1) is already running. 请打开浏览器输入"http://localhost:17310"访问')
         pass
 
     def updateTableData(self):
@@ -152,7 +168,7 @@ class AndroidAdbDialog(QtWidgets.QDialog):
     def addStepCallback(self, stepType, params):
         LogUtil.i('addStepCallback', stepType, params)
         self.execTestSteps.append({const.KEY_STEP_TYPE: stepType, const.KEY_STEP_PARAMS: params})
-        WidgetUtil.appendTextEdit(self.execResTE, 'add step ' + AutoTestUtil.stepName(stepType) + ' params: ' + str(params))
+        self.printRes('add step ' + AutoTestUtil.stepName(stepType) + ' params: ' + str(params))
         self.updateTableData()
         pass
 
@@ -166,7 +182,7 @@ class AndroidAdbDialog(QtWidgets.QDialog):
 
     def editStepCallback(self, stepType, params):
         LogUtil.i('editStepCallback', stepType, params)
-        WidgetUtil.appendTextEdit(self.execResTE, 'edit step ' + AutoTestUtil.stepName(stepType) + ' params: ' + str(params))
+        self.printRes('edit step ' + AutoTestUtil.stepName(stepType) + ' params: ' + str(params))
         self.curEditData[const.KEY_STEP_TYPE] = stepType
         self.curEditData[const.KEY_STEP_PARAMS] = params
         self.updateTableData()
@@ -187,7 +203,7 @@ class AndroidAdbDialog(QtWidgets.QDialog):
     def delTableItem(self):
         LogUtil.i("delTreeWidgetItem")
         self.execTestSteps.remove(self.execTestSteps[self.curDelRow])
-        WidgetUtil.appendTextEdit(self.execResTE, 'del No.' + str(self.curDelRow + 1) + ' step')
+        self.printRes('del No.' + str(self.curDelRow + 1) + ' step')
         self.updateTableData()
         pass
 
@@ -206,20 +222,25 @@ class AndroidAdbDialog(QtWidgets.QDialog):
         if not self.execTestSteps:
             WidgetUtil.showErrorDialog(message="请先添加要执行的操作")
             return
-        if not self.u:
-            WidgetUtil.showErrorDialog(message='请先连接设备')
+        if not self.connectDevice():
             return
         if self.u.err:
             WidgetUtil.showErrorDialog(message='连接设备错误信息：{}'.format(self.u.err))
             return
         if not self.t:
             self.t = AutoTestUtil(self.u)
-        WidgetUtil.appendTextEdit(self.execResTE, 'start exec')
+        self.printRes('start exec')
         for step in self.execTestSteps:
-            self.t.startTestStep(step[const.KEY_STEP_TYPE], step[const.KEY_STEP_PARAMS], self.execLog)
-        WidgetUtil.appendTextEdit(self.execResTE, 'exec finished')
+            self.t.startTestStep(step[const.KEY_STEP_TYPE], step[const.KEY_STEP_PARAMS], self.printRes)
+        self.printRes('exec finished')
         pass
 
-    def execLog(self, log: str = ''):
-        WidgetUtil.appendTextEdit(self.execResTE, log)
+    def printRes(self, res: str = ''):
+        WidgetUtil.appendTextEdit(self.execResTE, res)
         pass
+
+    def acceptFunc(self):
+        LogUtil.d('acceptFunc')
+        if self.callback:
+            self.callback(self.execTestSteps)
+        return True
