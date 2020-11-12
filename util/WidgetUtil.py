@@ -657,7 +657,8 @@ class WidgetUtil:
 
     @staticmethod
     def createTableView(parent: QWidget, objectName="TreeWidget", toolTip=None, geometry: QRect = None,
-                        minSize: QSize = None, isEnable=True, sizePolicy: QSizePolicy = None, doubleClicked=None):
+                        minSize: QSize = None, isEnable=True, sizePolicy: QSizePolicy = None, doubleClicked=None,
+                        isResizeToContents=False):
         """
         创建一个QTableView
         :param parent: 父QWidget
@@ -668,6 +669,7 @@ class WidgetUtil:
         :param isEnable: isEnable
         :param sizePolicy: 缩放策略
         :param doubleClicked: 双击回调函数
+        :param isResizeToContents: 是否根据列内容来定列宽
         :return: QTableView
         """
         widget = QTableView(parent)
@@ -676,11 +678,29 @@ class WidgetUtil:
 
         # 水平方向标签拓展剩下的窗口部分，填满表格
         widget.horizontalHeader().setStretchLastSection(True)
-        # 水平方向，表格大小拓展到适当的尺寸
-        widget.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        if isResizeToContents:
+            # 根据列内容来定列宽
+            widget.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
+        else:
+            # 水平方向，表格大小拓展到适当的尺寸 所有列都扩展自适应宽度，填充充满整个屏幕宽度
+            widget.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+
         if doubleClicked:
             widget.doubleClicked.connect(doubleClicked)
         return widget
+
+    @staticmethod
+    def tableViewSetColumnWidth(tableView: QTableView, column: int = 0, width: int = 80):
+        """
+        设置tableView某行宽度为固定宽度，在设置数据后调用
+        :param tableView: QTableView
+        :param column: 列index
+        :param width: 宽度值
+        """
+        # 对第column列单独设置固定宽度
+        tableView.horizontalHeader().setSectionResizeMode(column, QHeaderView.Fixed)
+        # 设置固定宽度
+        tableView.setColumnWidth(column, width)
 
     @staticmethod
     def addTableViewData(tableView: QTableView, data=[{}], ignoreCol=[], itemChanged=None):

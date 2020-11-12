@@ -18,8 +18,8 @@ from widget.autoTest.EditTestStepDialog import *
 class AndroidAdbDialog(QtWidgets.QDialog):
     WINDOW_WIDTH = 800
     WINDOW_HEIGHT = 600
-    TABLE_KEY_TYPE = '类型'
-    TABLE_KEY_PARAMS = '执行参数'
+    TABLE_KEY_TYPE = '操作类型'
+    TABLE_KEY_DESC = '操作描述信息'
 
     def __init__(self, execSteps=[], callback=None):
         # 调用父类的构函
@@ -160,6 +160,7 @@ class AndroidAdbDialog(QtWidgets.QDialog):
         LogUtil.i("updateTableData")
         self.src2TableDatas()
         WidgetUtil.addTableViewData(self.stepsTableView, self.execTestStepTableDatas)
+        WidgetUtil.tableViewSetColumnWidth(self.stepsTableView)
         pass
 
     def addStep(self):
@@ -216,8 +217,8 @@ class AndroidAdbDialog(QtWidgets.QDialog):
 
     def src2TableData(self, srcData: dict):
         name = AutoTestUtil.stepName(srcData[const.KEY_STEP_TYPE])
-        value = str(srcData[const.KEY_STEP_PARAMS])
-        return {AndroidAdbDialog.TABLE_KEY_TYPE: name, AndroidAdbDialog.TABLE_KEY_PARAMS: value}
+        value = srcData[const.KEY_STEP_PARAMS][const.KEY_DESC]
+        return {AndroidAdbDialog.TABLE_KEY_TYPE: name, AndroidAdbDialog.TABLE_KEY_DESC: value}
 
     def execSteps(self):
         LogUtil.d("exec steps")
