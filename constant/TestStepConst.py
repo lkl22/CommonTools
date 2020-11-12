@@ -20,6 +20,8 @@ const.CLICK_TYPES = ['单击', '双击', '长按']
 const.SWIPE_TYPES = ['上', '下', '左', '右']
 
 const.KEY_XPATH = 'xpath'
+const.KEY_DESC = 'desc'
+const.KEY_AUTO_GEN_DESC = 'autoGenDesc'
 const.KEY_X = 'x'
 const.KEY_Y = 'y'
 # 间隔时长
