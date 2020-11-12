@@ -114,12 +114,14 @@ class AndroidAdbDialog(QtWidgets.QDialog):
             self.printRes('执行指令：')
             self.printRes(cmd + '\n')
             out, err = ShellUtil.exec(cmd)
-            self.printRes('输出结果：')
-            self.printRes(out)
+            if out:
+                self.printRes('输出结果：')
+                self.printRes(out)
             if err:
                 self.printRes('错误信息：\n', '#f00')
                 self.printRes(err, '#f00')
-        pass
+                return False
+        return True
 
     def execShellCmd(self):
         cmdStr = self.cmdLineEdit.text().strip()
@@ -235,8 +237,8 @@ class AndroidAdbDialog(QtWidgets.QDialog):
         self.printRes('exec finished')
         pass
 
-    def printRes(self, res: str = ''):
-        WidgetUtil.appendTextEdit(self.execResTE, res)
+    def printRes(self, res: str = '', color='#00f'):
+        WidgetUtil.appendTextEdit(self.execResTE, res, color)
         pass
 
     def acceptFunc(self):

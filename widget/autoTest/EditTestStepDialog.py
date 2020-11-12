@@ -164,11 +164,13 @@ class EditTestStepDialog(QtWidgets.QDialog):
         WidgetUtil.createLabel(splitter, text="x坐标", alignment=Qt.AlignVCenter | Qt.AlignRight,
                                minSize=QSize(50, const.HEIGHT))
         self.clickXPosSpinBox = WidgetUtil.createDoubleSpinBox(splitter, value=0.5, minValue=0, maxValue=10000,
-                                                               step=0.1, suffix='  %/px', sizePolicy=sizePolicy)
+                                                               step=0.1, suffix='  %/px', decimals=3,
+                                                               sizePolicy=sizePolicy)
         WidgetUtil.createLabel(splitter, text="y坐标", alignment=Qt.AlignVCenter | Qt.AlignRight,
                                minSize=QSize(50, const.HEIGHT))
         self.clickYPosSpinBox = WidgetUtil.createDoubleSpinBox(splitter, value=0.5, minValue=0, maxValue=10000,
-                                                               step=0.1, suffix='  %/px', sizePolicy=sizePolicy)
+                                                               step=0.1, suffix='  %/px', decimals=3,
+                                                               sizePolicy=sizePolicy)
         return box
 
     def createSwipeParamGroupBox(self, parent):
@@ -183,17 +185,17 @@ class EditTestStepDialog(QtWidgets.QDialog):
         WidgetUtil.createLabel(splitter, text="x坐标", alignment=Qt.AlignVCenter | Qt.AlignRight,
                                minSize=QSize(50, const.HEIGHT))
         self.swipeXPosSpinBox = WidgetUtil.createDoubleSpinBox(splitter, value=0.5, minValue=0, maxValue=10000,
-                                                               step=0.1, suffix='  %/px', sizePolicy=sizePolicy)
+                                                               step=0.1, suffix='  %/px', decimals=3, sizePolicy=sizePolicy)
         WidgetUtil.createLabel(splitter, text="y坐标", alignment=Qt.AlignVCenter | Qt.AlignRight,
                                minSize=QSize(50, const.HEIGHT))
         self.swipeYPosSpinBox = WidgetUtil.createDoubleSpinBox(splitter, value=0.5, minValue=0, maxValue=10000,
-                                                               step=0.1, suffix='  %/px', sizePolicy=sizePolicy)
+                                                               step=0.1, suffix='  %/px', decimals=3, sizePolicy=sizePolicy)
         yPos += const.HEIGHT_OFFSET
         splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
         WidgetUtil.createLabel(splitter, text="滑动距离：", alignment=Qt.AlignVCenter | Qt.AlignLeft,
                                minSize=QSize(80, const.HEIGHT))
         self.swipeDistanceSpinBox = WidgetUtil.createDoubleSpinBox(splitter, value=0.3, minValue=0, maxValue=10000,
-                                                                   step=0.1, suffix='  %/px', sizePolicy=sizePolicy)
+                                                                   step=0.1, suffix='  %/px', decimals=3, sizePolicy=sizePolicy)
         WidgetUtil.createLabel(splitter, text="滑动时长：", alignment=Qt.AlignVCenter | Qt.AlignRight,
                                minSize=QSize(80, const.HEIGHT))
         self.swipeDurationSpinBox = WidgetUtil.createDoubleSpinBox(splitter, value=0.03, minValue=0.005, maxValue=10,
