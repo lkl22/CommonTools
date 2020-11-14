@@ -12,6 +12,9 @@ from constant.WidgetConst import *
 class MainWidget(QMainWindow):
     WINDOW_WIDTH = 1180
     WINDOW_HEIGHT = 620
+
+    windowList = []
+
     def __init__(self):
         # 调用父类的构函
         QMainWindow.__init__(self)
@@ -209,7 +212,7 @@ class MainWidget(QMainWindow):
     def createOtherUtilGroupBox(self, parent):
         box = WidgetUtil.createGroupBox(parent, title="其他工具")
         yPos = const.GROUP_BOX_MARGIN_TOP
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, 800, const.HEIGHT))
+        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, 1000, const.HEIGHT))
         WidgetUtil.createPushButton(splitter, text="Json格式化工具", onClicked=self.jumpJsonDialog)
 
         WidgetUtil.createPushButton(splitter, text="Android资源移动工具", onClicked=self.jumpAndroidResDialog)
@@ -217,6 +220,8 @@ class MainWidget(QMainWindow):
         WidgetUtil.createPushButton(splitter, text="Android color资源管理工具", onClicked=self.jumpAndroidColorResDialog)
 
         WidgetUtil.createPushButton(splitter, text="Android adb指令工具", onClicked=self.jumpAndroidAdbDialog)
+
+        WidgetUtil.createPushButton(splitter, text="照片墙", onClicked=self.jumpPhotoWall)
 
         yPos += const.HEIGHT_OFFSET
         return box
@@ -247,4 +252,14 @@ class MainWidget(QMainWindow):
         from widget.autoTest.AndroidAdbDialog import AndroidAdbDialog
         dialog = AndroidAdbDialog()
         # dialog.show()
+        pass
+
+    def jumpPhotoWall(self):
+        LogUtil.i("jumpPhotoWall")
+        from widget.PhotoWall import PhotoWall
+        window = PhotoWall()
+        # 注：没有这句，是不打开另一个主界面的
+        self.windowList.append(window)
+        self.close()
+        window.show()
         pass

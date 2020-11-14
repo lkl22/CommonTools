@@ -2,10 +2,12 @@
 # python 3.x
 # Filename: WidgetUtil.py
 # 定义一个WidgetUtil工具类实现Widget相关的功能
+from typing import Union
+
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtGui import QIcon, QBrush, QStandardItemModel, QStandardItem, QColor
+from PyQt5.QtGui import QIcon, QBrush, QStandardItemModel, QStandardItem, QColor, QKeySequence
 from PyQt5.QtWidgets import QWidget, QMessageBox, QSizePolicy, QTreeWidget, QMenu, QTreeWidgetItem, QDialog, \
-    QRadioButton, QTableView, QHeaderView, QColorDialog, QSpinBox, QTextEdit, QApplication, QDoubleSpinBox
+    QRadioButton, QTableView, QHeaderView, QColorDialog, QSpinBox, QTextEdit, QApplication, QDoubleSpinBox, QMenuBar
 from PyQt5.QtCore import QRect, QMargins, QSize, Qt
 
 from util.LogUtil import *
@@ -180,6 +182,28 @@ class WidgetUtil:
         else:
             widget.setOrientation(Qt.Horizontal)
         widgetSetAttrs(widget, objectName, toolTip=toolTip, geometry=geometry, minSize=minSize, sizePolicy=sizePolicy)
+        return widget
+
+    @staticmethod
+    def createWidget(parent: QWidget = None, objectName='Widget', toolTip=None, geometry: QRect = None, minSize: QSize = None,
+                     margins: QMargins = None, isEnable=True, sizePolicy: QSizePolicy = None):
+        """
+        创建一个QWidget对象
+        :param parent: 父QWidget
+        :param objectName: objectName
+        :param toolTip: toolTip
+        :param geometry: 位置尺寸
+        :param minSize: 最小size
+        :param margins: margin值
+        :param isEnable: Enabled
+        :param sizePolicy: 缩放策略
+        :return: QWidget
+        """
+        widget = QWidget()
+        if parent:
+            widget.setParent(parent)
+        widgetSetAttrs(widget, objectName, toolTip=toolTip, geometry=geometry, minSize=minSize, margins=margins,
+                       isEnable=isEnable, sizePolicy=sizePolicy)
         return widget
 
     @staticmethod
@@ -622,17 +646,24 @@ class WidgetUtil:
             return jsonData
 
     @staticmethod
-    def createAction(parent: QMenu, text="添加", func=None):
+    def createAction(parent: Union[QMenu, QMenuBar], text="添加", func=None, shortcut: Union[QKeySequence, QKeySequence.StandardKey, str, int] = None,
+                     statusTip: str = None):
         """
         创建一个菜单action
-        :param parent: QMenu
+        :param parent: QMenu、QMenuBar
         :param text: 显示文本
         :param func: 触发回调函数
+        :param shortcut: 快捷键
+        :param statusTip: 状态栏信息文本
         :return: QAction
         """
         action = QtWidgets.QAction(text, parent)
         if func:
             action.triggered.connect(func)
+        if shortcut:
+            action.setShortcut(shortcut)
+        if statusTip:
+            action.setStatusTip(statusTip)
         return action
 
     @staticmethod

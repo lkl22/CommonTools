@@ -10,11 +10,12 @@ from util.LogUtil import *
 
 class FileUtil:
     @staticmethod
-    def findFilePathList(dirPath, findPatterns=[]):
+    def findFilePathList(dirPath, findPatterns=[], isFullPath=True):
         """
         查找指定目录下匹配文件名的文件路径
         :param dirPath: 查找目录path
-        :param findPatterns: 文件名匹配正则
+        :param findPatterns: 文件名匹配正则，不传返回目录下所有文件
+        :param isFullPath: True 文件全路径名，False 子文件路径
         :return: 查找到的文件path列表
         """
         L = []
@@ -23,6 +24,8 @@ class FileUtil:
         for parent, dirnames, filenames in os.walk(dirPath):
             for fn in filenames:
                 filePath = os.path.join(parent, fn).replace("\\", "/")
+                if not isFullPath:
+                    filePath = filePath.replace(os.path.join(dirPath, ''), '')
                 if len(findPatterns) > 0:
                     if ReUtil.matchMore(fn, findPatterns):
                         L.append(filePath)
@@ -135,7 +138,8 @@ class FileUtil:
 
 
 if __name__ == "__main__":
-#     print(FileUtil.findFilePathList("/Users/likunlun/PycharmProjects/CarAssist/app/src/main/res", ["ic_launcher.png", "colors.xml", "strings.xml"]))
+    # print(FileUtil.findFilePathList("/Users/likunlun/PycharmProjects/CarAssist/app/src/main/res", ["ic_launcher.png", "colors.xml", "strings.xml"]))
+    print(FileUtil.findFilePathList("/Users/likunlun/Pictures/生活照/泽林/", [".*.png", ".*.jpg", ".*.JPEG"], False))
 #     FileUtil.modifyFilePath("/Users/likunlun/PycharmProjects/CarAssist/app/src/main/res/values/strings.xml",
 #                             "/Users/likunlun/PycharmProjects/CarAssist/app/src/main/res/values/11/22/strings.xml", False)
 #     FileUtil.modifyFilesPath(["strings.xml", "colors.xml"],
