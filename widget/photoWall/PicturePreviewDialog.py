@@ -38,21 +38,21 @@ class PicturePreviewDialog(QtWidgets.QDialog):
             self.openFile.setFixedSize(150, 30)
             layout.addWidget(self.openFile)
 
-        self.zoomIn = WidgetUtil.createPushButton(self, text="", onClicked=self.largeClick)
-        self.zoomIn.setFixedSize(30, 30)
-        inIcon = QIcon(FileUtil.getIconFp('zoom_in.jpg'))
-        # in_icon = QIcon('../../icons/zoom_in.jpg')
-        self.zoomIn.setIcon(inIcon)
-        self.zoomIn.setIconSize(QSize(30, 30))
+        self.zoomIn = self.createPushBtn(FileUtil.getIconFp('zoom_in.png'), self.largeClick)
+        # self.zoomIn = self.createPushBtn('../../icons/zoom_in.png', self.largeClick)
         layout.addWidget(self.zoomIn)
 
-        self.zoomOut = WidgetUtil.createPushButton(self, text="", onClicked=self.smallClick)
-        self.zoomOut.setFixedSize(30, 30)
-        outIcon = QIcon(FileUtil.getIconFp('zoom_out.jpg'))
-        # out_icon = QIcon('../../icons/zoom_out.jpg')
-        self.zoomOut.setIcon(outIcon)
-        self.zoomOut.setIconSize(QSize(30, 30))
+        self.zoomOut = self.createPushBtn(FileUtil.getIconFp('zoom_out.png'), self.smallClick)
+        # self.zoomOut = self.createPushBtn('../../icons/zoom_out.png', self.smallClick)
         layout.addWidget(self.zoomOut)
+
+        self.rotateLeft = self.createPushBtn(FileUtil.getIconFp('rotateLeft.png'), self.rotateLeftClick)
+        # self.rotateLeft = self.createPushBtn('../../icons/rotateLeft.png', self.rotateLeftClick)
+        layout.addWidget(self.rotateLeft)
+
+        self.rotateRight = self.createPushBtn(FileUtil.getIconFp('rotateRight.png'), self.rotateRightClick)
+        # self.rotateRight = self.createPushBtn('../../icons/rotateRight.png', self.rotateRightClick)
+        layout.addWidget(self.rotateRight)
 
         self.box = ImageBox()
         self.box.resize(960, 480)
@@ -68,6 +68,14 @@ class PicturePreviewDialog(QtWidgets.QDialog):
         # 很关键，不加出不来
         self.exec_()
 
+    def createPushBtn(self, icon, onClicked):
+        btn = WidgetUtil.createPushButton(self, text="", onClicked=onClicked)
+        btn.setFixedSize(30, 30)
+        btn.setStyleSheet("background-color: white")
+        btn.setIconSize(QSize(20, 20))
+        btn.setIcon(QIcon(icon))
+        return btn
+
     def openImage(self):
         """
         select image file and open it
@@ -81,20 +89,24 @@ class PicturePreviewDialog(QtWidgets.QDialog):
         used to enlarge image
         :return:
         """
-        if self.box.scale < 2:
-            self.box.scale += 0.2
-            self.box.adjustSize()
-            self.update()
+        self.box.zoomIn()
 
     def smallClick(self):
         """
         used to reduce image
         :return:
         """
-        if self.box.scale > 0.1:
-            self.box.scale -= 0.1
-            self.box.adjustSize()
-            self.update()
+        self.box.zoomOut()
+
+    def rotateLeftClick(self):
+        LogUtil.d('rotateLeftClick')
+        self.box.rotateLeft()
+        pass
+
+    def rotateRightClick(self):
+        LogUtil.d('rotateRightClick')
+        self.box.rotateRight()
+        pass
 
 
 class ImageBox(QWidget):
@@ -107,6 +119,7 @@ class ImageBox(QWidget):
         self.endPos = None
         self.leftClick = False
         self.scale = 0.5
+        self.rotateAngle = 0
         self.setWindowTitle("ImageBox")
         LogUtil.d('ImageBox size {}'.format(self.size()))
         # self.setContentsMargins(2, 2, 2, 2)
@@ -118,6 +131,8 @@ class ImageBox(QWidget):
         :param imgPath: image file path
         :return:
         """
+        self.scale = 0.5
+        self.rotateAngle = 0
         self.img = QPixmap(imgPath)
         ow = self.img.width()
         oh = self.img.height()
@@ -131,6 +146,28 @@ class ImageBox(QWidget):
                   .format(ow, oh, self.size(), scaledWidth, scaledHeight))
         self.update()
 
+    def zoomIn(self):
+        if self.scale < 2:
+            self.scale += 0.2
+            self.adjustSize()
+            self.update()
+            LogUtil.d('zoomIn box size {}', self.size())
+
+    def zoomOut(self):
+        if self.scale > 0.1:
+            self.scale -= 0.1
+            self.adjustSize()
+            self.update()
+            LogUtil.d('zoomOut box size {}', self.size())
+
+    def rotateLeft(self):
+        self.rotateAngle -= 90
+        self.update()
+
+    def rotateRight(self):
+        self.rotateAngle += 90
+        self.update()
+
     def paintEvent(self, e):
         """
         receive paint events
@@ -140,6 +177,9 @@ class ImageBox(QWidget):
         if self.scaledImg:
             painter = QPainter()
             painter.begin(self)
+            painter.translate(self.size().width() / 2, self.size().height() / 2)
+            painter.rotate(self.rotateAngle)
+            painter.translate(- self.size().width() / 2, - self.size().height() / 2)
             painter.scale(self.scale, self.scale)
             painter.drawPixmap(self.point, self.scaledImg)
             painter.end()
