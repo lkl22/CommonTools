@@ -139,7 +139,8 @@ class FileUtil:
 
 if __name__ == "__main__":
     # print(FileUtil.findFilePathList("/Users/likunlun/PycharmProjects/CarAssist/app/src/main/res", ["ic_launcher.png", "colors.xml", "strings.xml"]))
-    print(FileUtil.findFilePathList("/Users/likunlun/Pictures/生活照/泽林/", [".*.png", ".*.jpg", ".*.JPEG"], False))
+    # print(FileUtil.findFilePathList("/Users/likunlun/Pictures/生活照/泽林/", [".*.png", ".*.jpg", ".*.JPEG"], False))
+    print(FileUtil.findFilePathList("/Users/likunlun/Pictures/生活照/泽林/", ['.*.((jpg)|(JPG)|(png)|(PNG)|(JPEG)|(jpeg))'], False))
 #     FileUtil.modifyFilePath("/Users/likunlun/PycharmProjects/CarAssist/app/src/main/res/values/strings.xml",
 #                             "/Users/likunlun/PycharmProjects/CarAssist/app/src/main/res/values/11/22/strings.xml", False)
 #     FileUtil.modifyFilesPath(["strings.xml", "colors.xml"],

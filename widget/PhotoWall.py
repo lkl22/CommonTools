@@ -1,87 +1,81 @@
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
-import os
 import sys
-import time
-# from main_un import *
-# from ceshi_format import *
-# from format_tab import *
+from util.FileUtil import *
 from util.WidgetUtil import *
+from constant.WidgetConst import *
 
 
 class PhotoWall(QMainWindow):
     WINDOW_WIDTH = 1180
     WINDOW_HEIGHT = 620
 
+    DISPLAYED_PHOTO_SIZES = [100, 150, 200]
+    PHOTO_TYPE = '.*.((jpg)|(JPG)|(png)|(PNG)|(JPEG)|(jpeg))'
+
     windowList = []
 
-    def __init__(self, parent=None):
+    def __init__(self, filePath=None):
         QMainWindow.__init__(self)
-        self.parent = parent
-        self.width = 960
-        self.height = 500
         self.setObjectName("PhotoWall")
         self.resize(PhotoWall.WINDOW_WIDTH, PhotoWall.WINDOW_HEIGHT)
+
+        self.filePath = filePath
+
+        layoutWidget = QtWidgets.QWidget(self)
+        layoutWidget.setGeometry(QRect(const.PADDING, const.PADDING * 2, PhotoWall.WINDOW_WIDTH - const.PADDING * 2,
+                                       PhotoWall.WINDOW_HEIGHT - const.PADDING * 4))
+        layoutWidget.setObjectName("layoutWidget")
 
         self.scrollAres = QScrollArea(self)
         self.scrollAres.setWidgetResizable(True)
 
         self.scrollAreaWidget = WidgetUtil.createWidget(self, 'scrollAreaWidget',
-                                                        geometry=QRect(50, 60, self.width, self.height))
+                                                        geometry=QRect(const.PADDING, const.PADDING * 2,
+                                                                       PhotoWall.WINDOW_WIDTH - const.PADDING * 4,
+                                                                       PhotoWall.WINDOW_HEIGHT - const.PADDING * 6))
 
         # 进行网络布局
         self.gridLayout = QGridLayout(self.scrollAreaWidget)
+        # 设置间距
+        self.gridLayout.setSpacing(const.PADDING)
+        self.gridLayout.setAlignment(Qt.AlignTop|Qt.AlignLeft)
         self.scrollAres.setWidget(self.scrollAreaWidget)
 
         self.vBox = WidgetUtil.createVBoxLayout()
+        self.vBox.addWidget(self.scrollAres)
+        layoutWidget.setLayout(self.vBox)
+        self.createMenuBar()
 
-        # 创建一个Action
-        exitAction = QAction(QIcon('exit.png'), 'Exit', self)
-        exitAction.setShortcut('Ctrl+Q')
-        exitAction.setStatusTip('退出程序')
+        # 设置图片的预览尺寸；
+        self.displayedPhotoSize = self.DISPLAYED_PHOTO_SIZES[0]
+        self.showCount = -1
+
+        # 图像列数
+        self.maxColumns = 1
+
+        self.setWindowTitle(WidgetUtil.translate("PhotoWall", "照片墙"))
+        QtCore.QMetaObject.connectSlotsByName(self)
+        self.show()
+
+    def createMenuBar(self):
         # 底部状态栏
         self.statusBar().showMessage('状态栏')
 
         # 顶部菜单栏
         menuBar: QMenuBar = self.menuBar()
-        # menuBar.set
         menuBar.setNativeMenuBar(False)
-        openAct = WidgetUtil.createAction(menuBar, 'Open', self.open, 'Ctrl+O', '打开文件夹')
+        openAct = WidgetUtil.createAction(menuBar, '&Open', self.openDir, 'Ctrl+O', '打开文件夹')
         menuBar.addAction(openAct)
-        fileMenu = menuBar.addMenu('File')
-        fileMenu.addAction(exitAction)
-
-
-
-        # bar = self.menuBar()
-        # file = bar.addMenu('&菜单')
-        # self.openAct = file.addAction('&Open', self.open)
-        # self.startAct = file.addAction('&start', self.start_img_viewer)
-
-        # self.open_file_pushbutton = QPushButton(self)
-        # self.open_file_pushbutton.setGeometry(150, 50, 100, 30)
-        # self.open_file_pushbutton.setObjectName('open_pushbutton')
-        # self.open_file_pushbutton.setText('打开文件夹...')
-        # self.open_file_pushbutton.clicked.connect(self.open)
-        #
-        # self.start_file_pushbutton = QPushButton(self)
-        # self.start_file_pushbutton.setGeometry(750, 50, 100, 30)
-        # self.start_file_pushbutton.setObjectName('start_pushbutton')
-        # self.start_file_pushbutton.setText('开始')
-        # self.start_file_pushbutton.clicked.connect(self.start_img_viewer)
-        #
-        # self.vBox.addWidget(self.scrollAres)
-        self.show()
-
-        # 设置图片的预览尺寸；
-        self.displayed_image_size = 150
-        self.col = 0
-        self.row = 0
-
-        self.initial_path = None
-        self.setWindowTitle(WidgetUtil.translate("PhotoWall", "照片墙"))
-        QtCore.QMetaObject.connectSlotsByName(self)
+        sizeMenu = menuBar.addMenu('&Size')
+        sizeMenu.setStatusTip('设置预览图片尺寸大小')
+        smallAct = WidgetUtil.createAction(menuBar, '&small', self.setSmallSize, statusTip='显示小图标')
+        mediumAct = WidgetUtil.createAction(menuBar, '&medium', self.setMediumSize, statusTip='显示中图标')
+        largeAct = WidgetUtil.createAction(menuBar, '&large', self.setLargeSize, statusTip='显示大图标')
+        sizeMenu.addAction(smallAct)
+        sizeMenu.addAction(mediumAct)
+        sizeMenu.addAction(largeAct)
 
     # 重写关闭事件，回到第一界面
     def closeEvent(self, event):
@@ -92,137 +86,137 @@ class PhotoWall(QMainWindow):
         window.show()
         event.accept()
 
-    def open(self):
-        file_path = QFileDialog.getExistingDirectory(self, '选择文文件夹', '/')
-        if file_path == None:
+    def setSmallSize(self):
+        if self.displayedPhotoSize != self.DISPLAYED_PHOTO_SIZES[0]:
+            self.displayedPhotoSize = self.DISPLAYED_PHOTO_SIZES[0]
+            self.startPhotoViewer()
+        pass
+
+    def setMediumSize(self):
+        if self.displayedPhotoSize != self.DISPLAYED_PHOTO_SIZES[1]:
+            self.displayedPhotoSize = self.DISPLAYED_PHOTO_SIZES[1]
+            self.startPhotoViewer()
+        pass
+
+    def setLargeSize(self):
+        if self.displayedPhotoSize != self.DISPLAYED_PHOTO_SIZES[2]:
+            self.displayedPhotoSize = self.DISPLAYED_PHOTO_SIZES[2]
+            self.startPhotoViewer()
+        pass
+
+    def openDir(self):
+        filePath = WidgetUtil.getExistingDirectory('选择文文件夹', './')
+        if not filePath:
             QMessageBox.information(self, '提示', '文件为空，请重新操作')
-        else:
-            self.initial_path = file_path
+            return
+        self.filePath = filePath
+        self.startPhotoViewer()
 
-    def start_img_viewer(self):
-        if self.initial_path:
-            file_path = self.initial_path
-            print('file_path为{}'.format(file_path))
-            print(file_path)
-            img_type = 'jpg'
-            if file_path and img_type:
+    def clearGridLayout(self):
+        self.showCount = -1
+        self.maxColumns = self.getMaxColumns()
+        while self.gridLayout.count() > 0:
+            layoutItem = self.gridLayout.itemAt(0)
+            widget = layoutItem.widget()
+            self.gridLayout.removeWidget(widget)
+            widget.setParent(None)
+            widget.deleteLater()
 
-                png_list = list(i for i in os.listdir(file_path) if str(i).endswith('.{}'.format(img_type)))
-                print(png_list)
-                num = len(png_list)
-                if num != 0:
-                    for i in range(num):
-                        image_id = str(file_path + '/' + png_list[i])
-                        print(image_id)
-                        pixmap = QPixmap(image_id)
-                        self.addImage(pixmap, image_id)
-                        print(pixmap)
-                        QApplication.processEvents()
-                else:
-                    QMessageBox.warning(self, '错误', '生成图片文件为空')
-                    self.event(exit())
+    def startPhotoViewer(self):
+        self.clearGridLayout()
+        if self.filePath:
+            filePath = self.filePath
+            LogUtil.d('file path为{}'.format(filePath))
+
+            filePaths = FileUtil.findFilePathList(filePath, [self.PHOTO_TYPE])
+            LogUtil.d('预览图片path', filePaths)
+
+            if len(filePaths) > 0:
+                for fp in filePaths:
+                    LogUtil.d('photo file path: ', fp)
+                    pixmap = QPixmap(fp)
+                    self.addImage(pixmap, fp.replace(os.path.join(filePath, ''), ''))
+                    # 触发实时显示数据
+                    QApplication.instance().processEvents()
             else:
-                QMessageBox.warning(self, '错误', '文件为空，请稍后')
+                WidgetUtil.showErrorDialog(self, '错误', '生成图片文件为空')
         else:
+            WidgetUtil.showErrorDialog(self, '错误', '文件路径为空，请稍后')
 
-            QMessageBox.warning(self, '错误', '文件为空，请稍后')
+    def addImage(self, pixmap, fp):
+        self.showCount += 1
+        row = self.showCount // self.maxColumns
+        col = self.showCount % self.maxColumns
 
-    def loc_fil(self, stre):
-        print('存放地址为{}'.format(stre))
-        self.initial_path = stre
+        LogUtil.d('行数: {} 列数: {} displayedPhotoSize: {}'.format(row, col, self.displayedPhotoSize))
 
-    def geng_path(self, loc):
-        print('路径为，，，，，，{}'.format(loc))
+        clickablePhoto = QClickableImage(self.displayedPhotoSize, self.displayedPhotoSize, pixmap, fp)
+        clickablePhoto.clicked.connect(self.onLeftClicked)
+        clickablePhoto.rightClicked.connect(self.onRightClicked)
+        self.gridLayout.addWidget(clickablePhoto, row, col)
 
-    def gen_type(self, type):
-        print('图片类型为：，，，，{}'.format(type))
+    def onLeftClicked(self, photoFp):
+        LogUtil.d('left clicked - photoFp = ' + photoFp)
+        self.statusBar().showMessage(photoFp)
 
-    def addImage(self, pixmap, image_id):
-        # 图像法列数
-        nr_of_columns = self.get_nr_of_image_columns()
-        # 这个布局内的数量
-        nr_of_widgets = self.gridLayout.count()
-        self.max_columns = nr_of_columns
-        if self.col < self.max_columns:
-            self.col = self.col + 1
-        else:
-            self.col = 0
-            self.row += 1
+    def onRightClicked(self, photoFp):
+        LogUtil.d('right clicked - photoFp = ' + photoFp)
 
-        print('行数为{}'.format(self.row))
-        print('此时布局内不含有的元素数为{}'.format(nr_of_widgets))
-
-        print('列数为{}'.format(self.col))
-        clickable_image = QClickableImage(self.displayed_image_size, self.displayed_image_size, pixmap, image_id)
-        clickable_image.clicked.connect(self.on_left_clicked)
-        clickable_image.rightClicked.connect(self.on_right_clicked)
-        self.gridLayout.addWidget(clickable_image, self.row, self.col)
-
-    def on_left_clicked(self, image_id):
-        print('left clicked - image id = ' + image_id)
-
-    def on_right_clicked(self, image_id):
-        print('right clicked - image id = ' + image_id)
-
-    def get_nr_of_image_columns(self):
+    def getMaxColumns(self):
         # 展示图片的区域
-        scroll_area_images_width = self.width
-        if scroll_area_images_width > self.displayed_image_size:
-
-            pic_of_columns = scroll_area_images_width // self.displayed_image_size  # 计算出一行几列；
+        scrollAreaPhotoWidth = PhotoWall.WINDOW_WIDTH - const.PADDING * 2
+        itemWidth = self.displayedPhotoSize + const.PADDING
+        if scrollAreaPhotoWidth > itemWidth:
+            # 计算出一行几列；
+            picOfColumns = scrollAreaPhotoWidth // itemWidth
         else:
-            pic_of_columns = 1
-        return pic_of_columns
-
-    def setDisplayedImageSize(self, image_size):
-        self.displayed_image_size = image_size
+            picOfColumns = 1
+        LogUtil.e('scrollAreaPhotoWidth: {} itemWidth: {} max col: {}'.format(scrollAreaPhotoWidth, itemWidth, picOfColumns))
+        return picOfColumns
 
 
 class QClickableImage(QWidget):
-    image_id = ''
+    photoFp = ''
 
-    def __init__(self, width=0, height=0, pixmap=None, image_id=''):
+    def __init__(self, width=0, height=0, pixmap=None, photoFp=''):
         QWidget.__init__(self)
 
         self.layout = QVBoxLayout(self)
-        self.label1 = QLabel()
-        self.label1.setObjectName('label1')
-        self.lable2 = QLabel()
-        self.lable2.setObjectName('label2')
         self.width = width
         self.height = height
         self.pixmap = pixmap
 
         if self.width and self.height:
-            self.resize(self.width, self.height)
+            self.setFixedWidth(self.width)
+            self.setMinimumHeight(self.height)
         if self.pixmap:
             pixmap = self.pixmap.scaled(QSize(self.width, self.height), Qt.KeepAspectRatio, Qt.SmoothTransformation)
-            self.label1.setPixmap(pixmap)
-            self.label1.setAlignment(Qt.AlignCenter)
-            self.layout.addWidget(self.label1)
-        if image_id:
-            self.image_id = image_id
-            self.lable2.setText(image_id)
-            self.lable2.setAlignment(Qt.AlignCenter)
-            ###让文字自适应大小
-            self.lable2.adjustSize()
-            self.layout.addWidget(self.lable2)
+            self.pixmapLabel = WidgetUtil.createLabel(self, objectName='pixmapLabel', alignment=Qt.AlignCenter)
+            self.pixmapLabel.setPixmap(pixmap)
+            self.layout.addWidget(self.pixmapLabel)
+        if photoFp:
+            self.photoFp = photoFp
+            self.descLabel = WidgetUtil.createLabel(self, objectName='descLabel', text=photoFp, alignment=Qt.AlignHCenter | Qt.AlignBottom)
+            # 让文字自适应大小
+            self.descLabel.adjustSize()
+            self.descLabel.setMaximumWidth(self.width)
+            self.descLabel.setWordWrap(True)
+            self.layout.addWidget(self.descLabel)
         self.setLayout(self.layout)
+        # self.adjustSize()
+        LogUtil.d('size: {}'.format(self.size()))
 
     clicked = pyqtSignal(object)
     rightClicked = pyqtSignal(object)
 
-    def mouseressevent(self, ev):
-        print('55555555555555555')
+    def mousePressEvent(self, ev):
+        LogUtil.d('mousePressEvent')
         if ev.button() == Qt.RightButton:
-            print('dasdasd')
+            print('RightButton')
             # 鼠标右击
-            self.rightClicked.emit(self.image_id)
+            self.rightClicked.emit(self.photoFp)
         else:
-            self.clicked.emit(self.image_id)
-
-    def imageId(self):
-        return self.image_id
+            self.clicked.emit(self.photoFp)
 
 
 if __name__ == '__main__':
