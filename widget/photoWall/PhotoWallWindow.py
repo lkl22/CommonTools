@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+# python 3.x
+# Filename: PhotoWallWindow.py
+# 定义一个PhotoWallWindow类实现照片墙功能
+
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
@@ -7,7 +12,7 @@ from util.WidgetUtil import *
 from constant.WidgetConst import *
 
 
-class PhotoWall(QMainWindow):
+class PhotoWallWindow(QMainWindow):
     WINDOW_WIDTH = 1180
     WINDOW_HEIGHT = 620
 
@@ -18,14 +23,14 @@ class PhotoWall(QMainWindow):
 
     def __init__(self, filePath=None):
         QMainWindow.__init__(self)
-        self.setObjectName("PhotoWall")
-        self.resize(PhotoWall.WINDOW_WIDTH, PhotoWall.WINDOW_HEIGHT)
+        self.setObjectName("PhotoWallWindow")
+        self.resize(PhotoWallWindow.WINDOW_WIDTH, PhotoWallWindow.WINDOW_HEIGHT)
 
         self.filePath = filePath
 
         layoutWidget = QtWidgets.QWidget(self)
-        layoutWidget.setGeometry(QRect(const.PADDING, const.PADDING * 2, PhotoWall.WINDOW_WIDTH - const.PADDING * 2,
-                                       PhotoWall.WINDOW_HEIGHT - const.PADDING * 4))
+        layoutWidget.setGeometry(QRect(const.PADDING, const.PADDING * 2, PhotoWallWindow.WINDOW_WIDTH - const.PADDING * 2,
+                                       PhotoWallWindow.WINDOW_HEIGHT - const.PADDING * 4))
         layoutWidget.setObjectName("layoutWidget")
 
         self.scrollAres = QScrollArea(self)
@@ -33,8 +38,8 @@ class PhotoWall(QMainWindow):
 
         self.scrollAreaWidget = WidgetUtil.createWidget(self, 'scrollAreaWidget',
                                                         geometry=QRect(const.PADDING, const.PADDING * 2,
-                                                                       PhotoWall.WINDOW_WIDTH - const.PADDING * 4,
-                                                                       PhotoWall.WINDOW_HEIGHT - const.PADDING * 6))
+                                                                       self.WINDOW_WIDTH - const.PADDING * 4,
+                                                                       self.WINDOW_HEIGHT - const.PADDING * 6))
 
         # 进行网络布局
         self.gridLayout = QGridLayout(self.scrollAreaWidget)
@@ -54,6 +59,9 @@ class PhotoWall(QMainWindow):
 
         # 图像列数
         self.maxColumns = 1
+
+        if filePath:
+            self.startPhotoViewer()
 
         self.setWindowTitle(WidgetUtil.translate("PhotoWall", "照片墙"))
         QtCore.QMetaObject.connectSlotsByName(self)
@@ -133,6 +141,9 @@ class PhotoWall(QMainWindow):
 
             if len(filePaths) > 0:
                 for fp in filePaths:
+                    if not self.isVisible():
+                        # 窗口关掉了需要结束循环
+                        break
                     LogUtil.d('photo file path: ', fp)
                     pixmap = QPixmap(fp)
                     self.addImage(pixmap, fp.replace(os.path.join(filePath, ''), ''))
@@ -152,6 +163,7 @@ class PhotoWall(QMainWindow):
 
         clickablePhoto = QClickableImage(self.displayedPhotoSize, self.displayedPhotoSize, pixmap, fp)
         clickablePhoto.clicked.connect(self.onLeftClicked)
+        clickablePhoto.leftDoubleClicked.connect(self.onLeftDoubleClicked)
         clickablePhoto.rightClicked.connect(self.onRightClicked)
         self.gridLayout.addWidget(clickablePhoto, row, col)
 
@@ -159,12 +171,17 @@ class PhotoWall(QMainWindow):
         LogUtil.d('left clicked - photoFp = ' + photoFp)
         self.statusBar().showMessage(photoFp)
 
+    def onLeftDoubleClicked(self, photoFp):
+        LogUtil.d('left double clicked - photoFp = ' + photoFp)
+        from widget.photoWall.PicturePreviewDialog import PicturePreviewDialog
+        PicturePreviewDialog(os.path.join(self.filePath, photoFp))
+
     def onRightClicked(self, photoFp):
         LogUtil.d('right clicked - photoFp = ' + photoFp)
 
     def getMaxColumns(self):
         # 展示图片的区域
-        scrollAreaPhotoWidth = PhotoWall.WINDOW_WIDTH - const.PADDING * 2
+        scrollAreaPhotoWidth = PhotoWallWindow.WINDOW_WIDTH - const.PADDING * 2
         itemWidth = self.displayedPhotoSize + const.PADDING
         if scrollAreaPhotoWidth > itemWidth:
             # 计算出一行几列；
@@ -207,20 +224,26 @@ class QClickableImage(QWidget):
         LogUtil.d('size: {}'.format(self.size()))
 
     clicked = pyqtSignal(object)
+    leftDoubleClicked = pyqtSignal(object)
     rightClicked = pyqtSignal(object)
 
-    def mousePressEvent(self, ev):
+    def mousePressEvent(self, ev: QMouseEvent):
         LogUtil.d('mousePressEvent')
         if ev.button() == Qt.RightButton:
-            print('RightButton')
             # 鼠标右击
             self.rightClicked.emit(self.photoFp)
         else:
             self.clicked.emit(self.photoFp)
+        # super().mousePressEvent(ev)
+
+    def mouseDoubleClickEvent(self, ev: QMouseEvent):
+        LogUtil.d('mouseDoubleClickEvent')
+        if ev.button() == Qt.LeftButton:
+            self.leftDoubleClicked.emit(self.photoFp)
 
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    windo = PhotoWall()
+    windo = PhotoWallWindow()
     windo.show()
     sys.exit(app.exec_())

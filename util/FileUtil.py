@@ -126,6 +126,21 @@ class FileUtil:
         return None
 
     @staticmethod
+    def getIconFp(fn):
+        """
+        获取项目下指定icons文件的path
+        :param fn: 文件名
+        :return: 项目下指定icon文件的path
+        """
+        path = FileUtil.getProjectPath() + "/icons/"
+        if not os.path.isdir(path):
+            os.mkdir(path)
+        for fileName in os.listdir(path):
+            if fileName.__contains__(fn):
+                return path + fileName
+        return None
+
+    @staticmethod
     def clearPath(fp):
         """
         删除指定目录下所有的文件
@@ -140,7 +155,7 @@ class FileUtil:
 if __name__ == "__main__":
     # print(FileUtil.findFilePathList("/Users/likunlun/PycharmProjects/CarAssist/app/src/main/res", ["ic_launcher.png", "colors.xml", "strings.xml"]))
     # print(FileUtil.findFilePathList("/Users/likunlun/Pictures/生活照/泽林/", [".*.png", ".*.jpg", ".*.JPEG"], False))
-    print(FileUtil.findFilePathList("/Users/likunlun/Pictures/生活照/泽林/", ['.*.((jpg)|(JPG)|(png)|(PNG)|(JPEG)|(jpeg))'], False))
+    # print(FileUtil.findFilePathList("/Users/likunlun/Pictures/生活照/泽林/", ['.*.((jpg)|(JPG)|(png)|(PNG)|(JPEG)|(jpeg))'], False))
 #     FileUtil.modifyFilePath("/Users/likunlun/PycharmProjects/CarAssist/app/src/main/res/values/strings.xml",
 #                             "/Users/likunlun/PycharmProjects/CarAssist/app/src/main/res/values/11/22/strings.xml", False)
 #     FileUtil.modifyFilesPath(["strings.xml", "colors.xml"],
@@ -148,3 +163,5 @@ if __name__ == "__main__":
 #                             "/Users/likunlun/PycharmProjects/CarAssist/app/src/main/bb", True)
     print(FileUtil.getProjectPath())
     print(FileUtil.getConfigFp('BaseConfig.ini'))
+
+    print(FileUtil.getIconFp('zoom_in.jpg'))
