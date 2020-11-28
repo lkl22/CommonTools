@@ -137,10 +137,7 @@ class FileUtil:
         path = FileUtil.getProjectPath() + "/icons/"
         if not os.path.isdir(path):
             os.mkdir(path)
-        for fileName in os.listdir(path):
-            if fileName.__contains__(fn):
-                return path + fileName
-        return None
+        return path + fn
 
     @staticmethod
     def clearPath(fp):

@@ -16,7 +16,7 @@ class PicturePreviewDialog(QtWidgets.QDialog):
     WINDOW_WIDTH = 1000
     WINDOW_HEIGHT = 800
 
-    def __init__(self, filePath=None):
+    def __init__(self, filePathList=None, index=0):
         # 调用父类的构函
         QtWidgets.QDialog.__init__(self)
         LogUtil.d("Init picture preview Dialog")
@@ -25,7 +25,10 @@ class PicturePreviewDialog(QtWidgets.QDialog):
         self.setFixedSize(self.WINDOW_WIDTH, self.WINDOW_HEIGHT)
         self.setWindowTitle(WidgetUtil.translate(text="图片预览"))
 
-        self.filePath = filePath
+        self.filePathList = filePathList
+        self.index = index
+
+        vbox = WidgetUtil.createVBoxLayout()
 
         w = QWidget(self)
         layout = WidgetUtil.createHBoxLayout()
@@ -33,36 +36,60 @@ class PicturePreviewDialog(QtWidgets.QDialog):
         w.setLayout(layout)
         w.setFixedSize(750, 50)
 
-        if not filePath:
+        if not filePathList:
             self.openFile = WidgetUtil.createPushButton(self, text="Open Image", toolTip="Open the image to view.", onClicked=self.openImage)
             self.openFile.setFixedSize(150, 30)
             layout.addWidget(self.openFile)
 
-        self.zoomIn = self.createPushBtn(FileUtil.getIconFp('zoom_in.png'), self.largeClick)
-        # self.zoomIn = self.createPushBtn('../../icons/zoom_in.png', self.largeClick)
+        self.zoomIn = self.createPushBtn(FileUtil.getIconFp('previewImage/zoom_in.png'), self.largeClick)
+        # self.zoomIn = self.createPushBtn('../../icons/previewImage/zoom_in.png', self.largeClick)
         layout.addWidget(self.zoomIn)
 
-        self.zoomOut = self.createPushBtn(FileUtil.getIconFp('zoom_out.png'), self.smallClick)
-        # self.zoomOut = self.createPushBtn('../../icons/zoom_out.png', self.smallClick)
+        self.zoomOut = self.createPushBtn(FileUtil.getIconFp('previewImage/zoom_out.png'), self.smallClick)
+        # self.zoomOut = self.createPushBtn('../../icons/previewImage/zoom_out.png', self.smallClick)
         layout.addWidget(self.zoomOut)
 
-        self.rotateLeft = self.createPushBtn(FileUtil.getIconFp('rotateLeft.png'), self.rotateLeftClick)
-        # self.rotateLeft = self.createPushBtn('../../icons/rotateLeft.png', self.rotateLeftClick)
+        self.rotateLeft = self.createPushBtn(FileUtil.getIconFp('previewImage/rotateLeft.png'), self.rotateLeftClick)
+        # self.rotateLeft = self.createPushBtn('../../icons/previewImage/rotateLeft.png', self.rotateLeftClick)
         layout.addWidget(self.rotateLeft)
 
-        self.rotateRight = self.createPushBtn(FileUtil.getIconFp('rotateRight.png'), self.rotateRightClick)
-        # self.rotateRight = self.createPushBtn('../../icons/rotateRight.png', self.rotateRightClick)
+        self.rotateRight = self.createPushBtn(FileUtil.getIconFp('previewImage/rotateRight.png'), self.rotateRightClick)
+        # self.rotateRight = self.createPushBtn('../../icons/previewImage/rotateRight.png', self.rotateRightClick)
         layout.addWidget(self.rotateRight)
 
-        self.box = ImageBox()
-        self.box.resize(960, 680)
-
-        vbox = WidgetUtil.createVBoxLayout()
         vbox.addWidget(w)
-        vbox.addWidget(self.box)
+
+        w = QWidget(self)
+        layout = WidgetUtil.createHBoxLayout()
+        layout.setAlignment(Qt.AlignCenter)
+        w.setLayout(layout)
+        w.setFixedSize(960, 700)
+
+        self.box = ImageBox()
+        # self.box.setSizePolicy(sizePolicy)
+        self.box.setFixedSize(860, 700)
+
+        self.backBtn = self.createPushBtn(FileUtil.getIconFp('previewImage/back.png'), self.backClick)
+        # self.backBtn = self.createPushBtn('../../icons/previewImage/back.png', self.backClick)
+        layout.addWidget(self.backBtn)
+
+        layout.addWidget(self.box)
+
+        self.nextBtn = self.createPushBtn(FileUtil.getIconFp('previewImage/next.png'), self.nextClick)
+        # self.nextBtn = self.createPushBtn('../../icons/previewImage/next.png', self.nextClick)
+        layout.addWidget(self.nextBtn)
+
+        vbox.addWidget(w)
         self.setLayout(vbox)
-        if filePath:
-            self.box.setImage(filePath)
+
+        if filePathList:
+            if len(filePathList) <= index or index < 0:
+                self.index = 0
+            self.filePath = filePathList[index]
+            self.openNextImage()
+        else:
+            self.backBtn.setEnabled(False)
+            self.nextBtn.setEnabled(False)
 
         self.setWindowModality(Qt.ApplicationModal)
         # 很关键，不加出不来
@@ -107,6 +134,24 @@ class PicturePreviewDialog(QtWidgets.QDialog):
         LogUtil.d('rotateRightClick')
         self.box.rotateRight()
         pass
+
+    def backClick(self):
+        LogUtil.d('backClick')
+        self.index -= 1 + len(self.filePathList)
+        self.index %= len(self.filePathList)
+        self.openNextImage()
+        pass
+
+    def nextClick(self):
+        LogUtil.d('nextClick')
+        self.index += 1
+        self.index %= len(self.filePathList)
+        self.openNextImage()
+        pass
+
+    def openNextImage(self):
+        self.filePath = self.filePathList[self.index]
+        self.box.setImage(self.filePath)
 
 
 class ImageBox(QWidget):

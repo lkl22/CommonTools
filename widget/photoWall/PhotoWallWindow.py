@@ -30,6 +30,7 @@ class PhotoWallWindow(QMainWindow):
         self.photoType = photoType if photoType else self.PHOTO_TYPE
         self.previewFinishedFunc = previewFinishedFunc
         self.isClosed = False
+        self.photoFps = None
 
         layoutWidget = QtWidgets.QWidget(self)
         layoutWidget.setGeometry(
@@ -142,11 +143,11 @@ class PhotoWallWindow(QMainWindow):
             filePath = self.filePath
             LogUtil.d('file path为{}'.format(filePath))
 
-            filePaths = FileUtil.findFilePathList(filePath, [self.photoType])
-            LogUtil.d('预览图片path', filePaths)
+            self.photoFps = FileUtil.findFilePathList(filePath, [self.photoType])
+            LogUtil.d('预览图片path', self.photoFps)
 
-            if len(filePaths) > 0:
-                for fp in filePaths:
+            if len(self.photoFps) > 0:
+                for fp in self.photoFps:
                     if self.isClosed:
                         # 窗口关掉了需要结束循环
                         break
@@ -167,23 +168,23 @@ class PhotoWallWindow(QMainWindow):
 
         LogUtil.d('行数: {} 列数: {} displayedPhotoSize: {}'.format(row, col, self.displayedPhotoSize))
 
-        clickablePhoto = QClickableImage(self.displayedPhotoSize, self.displayedPhotoSize, pixmap, fp)
+        clickablePhoto = QClickableImage(self.showCount, self.displayedPhotoSize, self.displayedPhotoSize, pixmap, fp)
         clickablePhoto.clicked.connect(self.onLeftClicked)
         clickablePhoto.leftDoubleClicked.connect(self.onLeftDoubleClicked)
         clickablePhoto.rightClicked.connect(self.onRightClicked)
         self.gridLayout.addWidget(clickablePhoto, row, col)
 
-    def onLeftClicked(self, photoFp):
-        LogUtil.d('left clicked - photoFp = ' + photoFp)
+    def onLeftClicked(self, index, photoFp):
+        LogUtil.d('left clicked - index {} photoFp {}'.format(index, photoFp))
         self.statusBar().showMessage(photoFp)
 
-    def onLeftDoubleClicked(self, photoFp):
-        LogUtil.d('left double clicked - photoFp = ' + photoFp)
+    def onLeftDoubleClicked(self, index, photoFp):
+        LogUtil.d('left double clicked - index {} photoFp {}'.format(index, photoFp))
         from widget.photoWall.PicturePreviewDialog import PicturePreviewDialog
-        PicturePreviewDialog(os.path.join(self.filePath, photoFp))
+        PicturePreviewDialog(self.photoFps, index)
 
-    def onRightClicked(self, photoFp):
-        LogUtil.d('right clicked - photoFp = ' + photoFp)
+    def onRightClicked(self, index, photoFp):
+        LogUtil.d('right clicked - index {} photoFp {}'.format(index, photoFp))
 
     def getMaxColumns(self):
         # 展示图片的区域
@@ -202,10 +203,11 @@ class PhotoWallWindow(QMainWindow):
 class QClickableImage(QWidget):
     photoFp = ''
 
-    def __init__(self, width=0, height=0, pixmap=None, photoFp=''):
+    def __init__(self, index, width=0, height=0, pixmap=None, photoFp=''):
         QWidget.__init__(self)
 
         self.layout = QVBoxLayout(self)
+        self.index = index
         self.width = width
         self.height = height
         self.pixmap = pixmap
@@ -231,30 +233,30 @@ class QClickableImage(QWidget):
         # self.adjustSize()
         LogUtil.d('size: {}'.format(self.size()))
 
-    clicked = pyqtSignal(object)
-    leftDoubleClicked = pyqtSignal(object)
-    rightClicked = pyqtSignal(object)
+    clicked = pyqtSignal(int, str)
+    leftDoubleClicked = pyqtSignal(int, str)
+    rightClicked = pyqtSignal(int, str)
 
     def mousePressEvent(self, ev: QMouseEvent):
         LogUtil.d('mousePressEvent')
         if ev.button() == Qt.RightButton:
             # 鼠标右击
-            self.rightClicked.emit(self.photoFp)
+            self.rightClicked.emit(self.index, self.photoFp)
         else:
-            self.clicked.emit(self.photoFp)
+            self.clicked.emit(self.index, self.photoFp)
         # super().mousePressEvent(ev)
 
     def mouseDoubleClickEvent(self, ev: QMouseEvent):
         LogUtil.d('mouseDoubleClickEvent')
         if ev.button() == Qt.LeftButton:
-            self.leftDoubleClicked.emit(self.photoFp)
+            self.leftDoubleClicked.emit(self.index, self.photoFp)
 
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    window = PhotoWallWindow()
-    # window = PhotoWallWindow('/Users/likunlun/Pictures/生活照/Macao', 'IMG_20170403_182131.jpg', lambda: {
-    #     LogUtil.d('preview finished')
-    # })
+    # window = PhotoWallWindow()
+    window = PhotoWallWindow('/Users/likunlun/Pictures/生活照/Macao', None, lambda: {
+        LogUtil.d('preview finished')
+    })
     window.show()
     sys.exit(app.exec_())
