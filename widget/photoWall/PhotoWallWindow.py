@@ -252,8 +252,9 @@ class QClickableImage(QWidget):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    windo = PhotoWallWindow('/Users/likunlun/Pictures/生活照/Macao', 'IMG_20170403_182131.jpg', lambda: {
-        LogUtil.d('preview finished')
-    })
-    windo.show()
+    window = PhotoWallWindow()
+    # window = PhotoWallWindow('/Users/likunlun/Pictures/生活照/Macao', 'IMG_20170403_182131.jpg', lambda: {
+    #     LogUtil.d('preview finished')
+    # })
+    window.show()
     sys.exit(app.exec_())

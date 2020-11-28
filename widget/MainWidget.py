@@ -236,22 +236,19 @@ class MainWidget(QMainWindow):
     def jumpAndroidResDialog(self):
         LogUtil.i("jumpAndroidResDialog")
         from widget.AndroidResDialog import AndroidResDialog
-        dialog = AndroidResDialog()
-        # dialog.show()
+        AndroidResDialog()
         pass
 
     def jumpAndroidColorResDialog(self):
-        LogUtil.i("jumpAndroidResDialog")
+        LogUtil.i("jumpAndroidColorResDialog")
         from widget.colorManager.AndroidColorResDialog import AndroidColorResDialog
-        dialog = AndroidColorResDialog()
-        # dialog.show()
+        AndroidColorResDialog()
         pass
 
     def jumpAndroidAdbDialog(self):
-        LogUtil.i("jumpAndroidResDialog")
+        LogUtil.i("jumpAndroidAdbDialog")
         from widget.autoTest.AndroidAdbDialog import AndroidAdbDialog
-        dialog = AndroidAdbDialog()
-        # dialog.show()
+        AndroidAdbDialog()
         pass
 
     def jumpPhotoWall(self, filePath=None, photoType=None, previewFinishedFunc=None):

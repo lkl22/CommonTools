@@ -4,6 +4,8 @@
 # 定义一个FileUtil工具类实现文件相关的功能
 import os
 import shutil
+import zipfile
+
 from util.ReUtil import *
 from util.LogUtil import *
 
@@ -151,17 +153,60 @@ class FileUtil:
         except Exception as e:
             LogUtil.e('FileUtil clearPath 错误信息：', e)
 
+    @staticmethod
+    def zipDir(dirPath, outFullName):
+        """
+        压缩指定文件夹
+        :param dirPath: 目标文件夹路径
+        :param outFullName: 压缩文件保存路径+xxxx.zip
+        :return: 无
+        """
+        zip = zipfile.ZipFile(outFullName, "w", zipfile.ZIP_DEFLATED)
+        for path, dirnames, filenames in os.walk(dirPath):
+            # 去掉目标跟路径，只对目标文件夹下边的文件及文件夹进行压缩
+            fpath = path.replace(dirPath, '')
+
+            for filename in filenames:
+                zip.write(os.path.join(path, filename), os.path.join(fpath, filename))
+        zip.close()
+
+    @staticmethod
+    def unzipFile(zipFileName, unzipToDir):
+        """
+        解压文件到指定目录
+        :param zipFileName: 压缩文件名
+        :param unzipToDir: 解压文件保存路径
+        """
+        if not os.path.exists(unzipToDir):
+            os.mkdir(unzipToDir)
+        zfObj = zipfile.ZipFile(zipFileName)
+        for name in zfObj.namelist():
+            name = name.replace('\\', '/')
+            if name.endswith('/'):
+                os.mkdir(os.path.join(unzipToDir, name))
+            else:
+                extFileName = os.path.join(unzipToDir, name)
+                extDir = os.path.dirname(extFileName)
+                if not os.path.exists(extDir):
+                    os.mkdir(extDir)
+                outfile = open(extFileName, 'wb')
+                outfile.write(zfObj.read(name))
+                outfile.close()
+
 
 if __name__ == "__main__":
     # print(FileUtil.findFilePathList("/Users/likunlun/PycharmProjects/CarAssist/app/src/main/res", ["ic_launcher.png", "colors.xml", "strings.xml"]))
     # print(FileUtil.findFilePathList("/Users/likunlun/Pictures/生活照/泽林/", [".*.png", ".*.jpg", ".*.JPEG"], False))
     # print(FileUtil.findFilePathList("/Users/likunlun/Pictures/生活照/泽林/", ['.*.((jpg)|(JPG)|(png)|(PNG)|(JPEG)|(jpeg))'], False))
-#     FileUtil.modifyFilePath("/Users/likunlun/PycharmProjects/CarAssist/app/src/main/res/values/strings.xml",
-#                             "/Users/likunlun/PycharmProjects/CarAssist/app/src/main/res/values/11/22/strings.xml", False)
-#     FileUtil.modifyFilesPath(["strings.xml", "colors.xml"],
-#                             "/Users/likunlun/PycharmProjects/CarAssist/app/src/main/res",
-#                             "/Users/likunlun/PycharmProjects/CarAssist/app/src/main/bb", True)
+    #     FileUtil.modifyFilePath("/Users/likunlun/PycharmProjects/CarAssist/app/src/main/res/values/strings.xml",
+    #                             "/Users/likunlun/PycharmProjects/CarAssist/app/src/main/res/values/11/22/strings.xml", False)
+    #     FileUtil.modifyFilesPath(["strings.xml", "colors.xml"],
+    #                             "/Users/likunlun/PycharmProjects/CarAssist/app/src/main/res",
+    #                             "/Users/likunlun/PycharmProjects/CarAssist/app/src/main/bb", True)
     print(FileUtil.getProjectPath())
     print(FileUtil.getConfigFp('BaseConfig.ini'))
 
     print(FileUtil.getIconFp('zoom_in.jpg'))
+
+    # FileUtil.zipDir('./testZip', './testZip1.zip')
+    FileUtil.unzipFile('./testZip.zip', './testZip3')
