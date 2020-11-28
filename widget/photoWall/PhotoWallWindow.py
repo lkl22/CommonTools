@@ -21,16 +21,20 @@ class PhotoWallWindow(QMainWindow):
 
     windowList = []
 
-    def __init__(self, filePath=None):
+    def __init__(self, filePath=None, photoType=None, previewFinishedFunc=None):
         QMainWindow.__init__(self)
         self.setObjectName("PhotoWallWindow")
         self.resize(PhotoWallWindow.WINDOW_WIDTH, PhotoWallWindow.WINDOW_HEIGHT)
 
         self.filePath = filePath
+        self.photoType = photoType if photoType else self.PHOTO_TYPE
+        self.previewFinishedFunc = previewFinishedFunc
+        self.isClosed = False
 
         layoutWidget = QtWidgets.QWidget(self)
-        layoutWidget.setGeometry(QRect(const.PADDING, const.PADDING * 2, PhotoWallWindow.WINDOW_WIDTH - const.PADDING * 2,
-                                       PhotoWallWindow.WINDOW_HEIGHT - const.PADDING * 4))
+        layoutWidget.setGeometry(
+            QRect(const.PADDING, const.PADDING * 2, PhotoWallWindow.WINDOW_WIDTH - const.PADDING * 2,
+                  PhotoWallWindow.WINDOW_HEIGHT - const.PADDING * 4))
         layoutWidget.setObjectName("layoutWidget")
 
         self.scrollAres = QScrollArea(self)
@@ -45,7 +49,7 @@ class PhotoWallWindow(QMainWindow):
         self.gridLayout = QGridLayout(self.scrollAreaWidget)
         # 设置间距
         self.gridLayout.setSpacing(const.PADDING)
-        self.gridLayout.setAlignment(Qt.AlignTop|Qt.AlignLeft)
+        self.gridLayout.setAlignment(Qt.AlignTop | Qt.AlignLeft)
         self.scrollAres.setWidget(self.scrollAreaWidget)
 
         self.vBox = WidgetUtil.createVBoxLayout()
@@ -60,12 +64,11 @@ class PhotoWallWindow(QMainWindow):
         # 图像列数
         self.maxColumns = 1
 
-        if filePath:
-            self.startPhotoViewer()
-
         self.setWindowTitle(WidgetUtil.translate("PhotoWall", "照片墙"))
         QtCore.QMetaObject.connectSlotsByName(self)
         self.show()
+        if filePath:
+            self.startPhotoViewer()
 
     def createMenuBar(self):
         # 底部状态栏
@@ -87,11 +90,14 @@ class PhotoWallWindow(QMainWindow):
 
     # 重写关闭事件，回到第一界面
     def closeEvent(self, event):
+        self.isClosed = True
         from widget.MainWidget import MainWidget
         window = MainWidget()
         # 注：没有这句，是不打开另一个主界面的
         self.windowList.append(window)
         window.show()
+        if self.previewFinishedFunc:
+            self.previewFinishedFunc()
         event.accept()
 
     def setSmallSize(self):
@@ -136,12 +142,12 @@ class PhotoWallWindow(QMainWindow):
             filePath = self.filePath
             LogUtil.d('file path为{}'.format(filePath))
 
-            filePaths = FileUtil.findFilePathList(filePath, [self.PHOTO_TYPE])
+            filePaths = FileUtil.findFilePathList(filePath, [self.photoType])
             LogUtil.d('预览图片path', filePaths)
 
             if len(filePaths) > 0:
                 for fp in filePaths:
-                    if not self.isVisible():
+                    if self.isClosed:
                         # 窗口关掉了需要结束循环
                         break
                     LogUtil.d('photo file path: ', fp)
@@ -188,7 +194,8 @@ class PhotoWallWindow(QMainWindow):
             picOfColumns = scrollAreaPhotoWidth // itemWidth
         else:
             picOfColumns = 1
-        LogUtil.e('scrollAreaPhotoWidth: {} itemWidth: {} max col: {}'.format(scrollAreaPhotoWidth, itemWidth, picOfColumns))
+        LogUtil.e('scrollAreaPhotoWidth: {} itemWidth: {} max col: {}'
+                  .format(scrollAreaPhotoWidth, itemWidth, picOfColumns))
         return picOfColumns
 
 
@@ -213,7 +220,8 @@ class QClickableImage(QWidget):
             self.layout.addWidget(self.pixmapLabel)
         if photoFp:
             self.photoFp = photoFp
-            self.descLabel = WidgetUtil.createLabel(self, objectName='descLabel', text=photoFp, alignment=Qt.AlignHCenter | Qt.AlignBottom)
+            self.descLabel = WidgetUtil.createLabel(self, objectName='descLabel', text=photoFp,
+                                                    alignment=Qt.AlignHCenter | Qt.AlignBottom)
             # 让文字自适应大小
             self.descLabel.adjustSize()
             self.descLabel.setMaximumWidth(self.width)
@@ -244,6 +252,8 @@ class QClickableImage(QWidget):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    windo = PhotoWallWindow()
+    windo = PhotoWallWindow('/Users/likunlun/Pictures/生活照/Macao', 'IMG_20170403_182131.jpg', lambda: {
+        LogUtil.d('preview finished')
+    })
     windo.show()
     sys.exit(app.exec_())

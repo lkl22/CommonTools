@@ -14,7 +14,7 @@ from util.FileUtil import *
 
 class PicturePreviewDialog(QtWidgets.QDialog):
     WINDOW_WIDTH = 1000
-    WINDOW_HEIGHT = 600
+    WINDOW_HEIGHT = 800
 
     def __init__(self, filePath=None):
         # 调用父类的构函
@@ -31,7 +31,7 @@ class PicturePreviewDialog(QtWidgets.QDialog):
         layout = WidgetUtil.createHBoxLayout()
         layout.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
         w.setLayout(layout)
-        w.setFixedSize(550, 50)
+        w.setFixedSize(750, 50)
 
         if not filePath:
             self.openFile = WidgetUtil.createPushButton(self, text="Open Image", toolTip="Open the image to view.", onClicked=self.openImage)
@@ -55,7 +55,7 @@ class PicturePreviewDialog(QtWidgets.QDialog):
         layout.addWidget(self.rotateRight)
 
         self.box = ImageBox()
-        self.box.resize(960, 480)
+        self.box.resize(960, 680)
 
         vbox = WidgetUtil.createVBoxLayout()
         vbox.addWidget(w)
@@ -66,7 +66,7 @@ class PicturePreviewDialog(QtWidgets.QDialog):
 
         self.setWindowModality(Qt.ApplicationModal)
         # 很关键，不加出不来
-        self.exec_()
+        self.exec()
 
     def createPushBtn(self, icon, onClicked):
         btn = WidgetUtil.createPushButton(self, text="", onClicked=onClicked)
@@ -179,7 +179,7 @@ class ImageBox(QWidget):
             painter.begin(self)
             painter.translate(self.size().width() / 2, self.size().height() / 2)
             painter.rotate(self.rotateAngle)
-            painter.translate(- self.size().width() / 2, - self.size().height() / 2)
+            painter.translate(-self.size().width() / 2, -self.size().height() / 2)
             painter.scale(self.scale, self.scale)
             painter.drawPixmap(self.point, self.scaledImg)
             painter.end()

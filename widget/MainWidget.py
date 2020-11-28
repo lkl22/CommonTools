@@ -254,10 +254,10 @@ class MainWidget(QMainWindow):
         # dialog.show()
         pass
 
-    def jumpPhotoWall(self):
+    def jumpPhotoWall(self, filePath=None, photoType=None, previewFinishedFunc=None):
         LogUtil.i("jumpPhotoWall")
         from widget.photoWall.PhotoWallWindow import PhotoWallWindow
-        window = PhotoWallWindow()
+        window = PhotoWallWindow(filePath, photoType, previewFinishedFunc)
         # 注：没有这句，是不打开另一个主界面的
         self.windowList.append(window)
         self.close()
