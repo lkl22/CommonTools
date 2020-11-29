@@ -63,6 +63,8 @@ Working directory：$ProjectFileDir$
 
 [使用PYINSTALLER打包多文件和目录的PYTHON项目](https://www.cnblogs.com/shiyongge/p/10582552.html)
 
+[Python 3.6.12 文档](https://docs.python.org/zh-cn/3.6/)
+
 [awesome-adb](https://github.com/BlankLun/awesome-adb)
 
 [uiautomator2](https://github.com/BlankLun/uiautomator2)

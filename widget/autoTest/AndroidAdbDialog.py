@@ -11,7 +11,7 @@ from util.FileUtil import *
 from util.DialogUtil import *
 from util.ShellUtil import *
 from util.LogUtil import *
-from util.Uiautomator import *
+from util.WeditorUtil import *
 from widget.autoTest.EditTestStepDialog import *
 
 
@@ -151,9 +151,7 @@ class AndroidAdbDialog(QtWidgets.QDialog):
         return True
 
     def openWeditor(self):
-        self.execCmd('weditor')
-
-        self.printRes('Another weditor(0.6.1) is already running. 请打开浏览器输入"http://localhost:17310"访问')
+        self.printRes(WeditorUtil.open())
         pass
 
     def updateTableData(self):
