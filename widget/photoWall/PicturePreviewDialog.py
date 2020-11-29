@@ -2,8 +2,8 @@
 # python 3.x
 # Filename: PicturePreviewDialog.py
 # 定义一个PicturePreviewDialog类实现图片预览功能
-from PyQt5.QtCore import QPoint
-from PyQt5.QtGui import QPixmap, QPainter
+from PyQt5.QtCore import QPoint, QEvent
+from PyQt5.QtGui import QPixmap, QPainter, QKeyEvent
 from PyQt5.QtWidgets import QFrame
 import sys
 
@@ -15,6 +15,8 @@ from util.FileUtil import *
 class PicturePreviewDialog(QtWidgets.QDialog):
     WINDOW_WIDTH = 1000
     WINDOW_HEIGHT = 800
+    MAX_SCALE = 2
+    MIN_SCALE = 0.1
 
     def __init__(self, filePathList=None, index=0):
         # 调用父类的构函
@@ -40,7 +42,8 @@ class PicturePreviewDialog(QtWidgets.QDialog):
         w.setFixedSize(750, 30)
 
         if not filePathList:
-            self.openFile = WidgetUtil.createPushButton(self, text="Open Image", toolTip="Open the image to view.", onClicked=self.openImage)
+            self.openFile = WidgetUtil.createPushButton(self, text="Open Image", toolTip="Open the image to view.",
+                                                        onClicked=self.openImage)
             self.openFile.setFixedSize(100, 30)
             layout.addWidget(self.openFile)
 
@@ -177,6 +180,7 @@ class PicturePreviewDialog(QtWidgets.QDialog):
 class ImageBox(QWidget):
     def __init__(self):
         super(ImageBox, self).__init__()
+        self.controlPress = False
         self.img = None
         self.scaledImg = None
         self.point = QPoint(0, 0)
@@ -186,6 +190,8 @@ class ImageBox(QWidget):
         self.scale = 0.5
         self.rotateAngle = 0
         self.setWindowTitle("ImageBox")
+        # 控件开始捕获键盘，只有控件开始捕获键盘，控件的键盘事件才能收到消息
+        self.grabKeyboard()
         LogUtil.d('ImageBox size {}'.format(self.size()))
         # self.setContentsMargins(2, 2, 2, 2)
         # self.setStyleSheet("border:2px solid #f00")
@@ -196,6 +202,7 @@ class ImageBox(QWidget):
         :param imgPath: image file path
         :return:
         """
+        self.controlPress = False
         self.scale = 0.5
         self.rotateAngle = 0
         self.img = QPixmap(imgPath)
@@ -212,7 +219,7 @@ class ImageBox(QWidget):
         self.update()
 
     def zoomIn(self):
-        if self.scale < 2:
+        if self.scale < PicturePreviewDialog.MAX_SCALE:
             self.scale += 0.2
             self.point = self.point * (self.scale - 0.2) / self.scale
             self.adjustSize()
@@ -220,7 +227,7 @@ class ImageBox(QWidget):
             LogUtil.d('zoomIn box size {}', self.size())
 
     def zoomOut(self):
-        if self.scale > 0.1:
+        if self.scale > PicturePreviewDialog.MIN_SCALE:
             self.scale -= 0.1
             self.point = self.point * (self.scale + 0.1) / self.scale
             self.adjustSize()
@@ -282,6 +289,41 @@ class ImageBox(QWidget):
         """
         if e.button() == Qt.LeftButton:
             self.leftClick = False
+
+    def keyPressEvent(self, e: QKeyEvent):
+        LogUtil.d('keyPressEvent', e.key())
+        if e.key() == Qt.Key_Control:
+            LogUtil.d('Control press')
+            self.controlPress = True
+
+    def keyReleaseEvent(self, e: QKeyEvent):
+        LogUtil.d('keyReleaseEvent', e.key())
+        if e.key() == Qt.Key_Control:
+            LogUtil.d('Control release')
+            self.controlPress = False
+
+    def wheelEvent(self, e: QtGui.QWheelEvent):
+        if self.controlPress:
+            # if event.delta() > 0:  # 滚轮上滚,PyQt4
+            # This function has been deprecated, use pixelDelta() or angleDelta() instead.
+            angle = e.angleDelta() / 8  # 返回QPoint对象，为滚轮转过的数值，单位为1/8度
+            LogUtil.d('wheelEvent', e.pos(), e.x(), e.y())
+            angleX = angle.x()  # 水平滚过的距离(此处用不上)
+            angleY = angle.y()  # 竖直滚过的距离
+            step = 0.005
+            if self.scale > 1.5:
+                step = 0.01
+            if angleY > 0:  # 滚轮上滚
+                if self.scale < PicturePreviewDialog.MAX_SCALE:
+                    self.scale += step
+                    self.point = self.point * (self.scale - step) / self.scale
+                    self.update()  # 重绘
+            elif angleY < 0:  # 滚轮下滚
+                if self.scale > PicturePreviewDialog.MIN_SCALE:
+                    self.scale -= step
+                    self.point = self.point * (self.scale + step) / self.scale
+                    self.update()
+        LogUtil.d('wheelEvent', e.pos(), e.x(), e.y())
 
 
 if __name__ == '__main__':
