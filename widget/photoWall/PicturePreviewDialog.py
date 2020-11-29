@@ -206,7 +206,7 @@ class ImageBox(QWidget):
         self.scaledImg = self.img.scaled(boxWidth * 2, boxHeight * 2, Qt.KeepAspectRatio, Qt.SmoothTransformation)
         scaledWidth = self.scaledImg.width()
         scaledHeight = self.scaledImg.height()
-        self.point = QPoint(boxWidth - scaledWidth // 2, boxHeight - scaledHeight // 2)
+        self.point = QPoint(boxWidth, boxHeight)
         LogUtil.d('setImage image size ({}, {}) box size {} scaledImg size ({}, {})'
                   .format(ow, oh, self.size(), scaledWidth, scaledHeight))
         self.update()
@@ -214,6 +214,7 @@ class ImageBox(QWidget):
     def zoomIn(self):
         if self.scale < 2:
             self.scale += 0.2
+            self.point = self.point * (self.scale - 0.2) / self.scale
             self.adjustSize()
             self.update()
             LogUtil.d('zoomIn box size {}', self.size())
@@ -221,6 +222,7 @@ class ImageBox(QWidget):
     def zoomOut(self):
         if self.scale > 0.1:
             self.scale -= 0.1
+            self.point = self.point * (self.scale + 0.1) / self.scale
             self.adjustSize()
             self.update()
             LogUtil.d('zoomOut box size {}', self.size())
@@ -246,6 +248,7 @@ class ImageBox(QWidget):
             painter.rotate(self.rotateAngle)
             painter.translate(-self.size().width() / 2, -self.size().height() / 2)
             painter.scale(self.scale, self.scale)
+            painter.translate(-self.scaledImg.width() / 2, -self.scaledImg.height() / 2)
             painter.drawPixmap(self.point, self.scaledImg)
             painter.end()
 
@@ -283,6 +286,7 @@ class ImageBox(QWidget):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    window = PicturePreviewDialog()
+    # window = PicturePreviewDialog()
+    window = PicturePreviewDialog(['/Users/likunlun/Pictures/生活照/Macao/IMG_20170403_175221.jpg'])
     window.show()
     sys.exit(app.exec_())
