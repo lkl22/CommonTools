@@ -29,12 +29,14 @@ class PicturePreviewDialog(QtWidgets.QDialog):
         self.index = index
 
         vbox = WidgetUtil.createVBoxLayout()
+        vbox.setContentsMargins(5, 0, 5, 0)
 
         w = QWidget(self)
         layout = WidgetUtil.createHBoxLayout()
         layout.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        layout.setContentsMargins(10, 0, 0, 0)
         w.setLayout(layout)
-        w.setFixedSize(750, 50)
+        w.setFixedSize(750, 30)
 
         if not filePathList:
             self.openFile = WidgetUtil.createPushButton(self, text="Open Image", toolTip="Open the image to view.", onClicked=self.openImage)
@@ -62,12 +64,13 @@ class PicturePreviewDialog(QtWidgets.QDialog):
         w = QWidget(self)
         layout = WidgetUtil.createHBoxLayout()
         layout.setAlignment(Qt.AlignCenter)
+        layout.setContentsMargins(10, 0, 10, 0)
         w.setLayout(layout)
-        w.setFixedSize(960, 700)
+        w.setFixedSize(990, 730)
 
         self.box = ImageBox()
         # self.box.setSizePolicy(sizePolicy)
-        self.box.setFixedSize(860, 700)
+        self.box.setFixedSize(890, 730)
 
         self.backBtn = self.createPushBtn(FileUtil.getIconFp('previewImage/back.png'), self.backClick)
         # self.backBtn = self.createPushBtn('../../icons/previewImage/back.png', self.backClick)

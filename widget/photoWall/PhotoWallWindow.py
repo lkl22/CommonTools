@@ -200,17 +200,20 @@ class PhotoWallWindow(QMainWindow):
         return picOfColumns
 
 
-class QClickableImage(QWidget):
+class QClickableImage(QFrame):
     photoFp = ''
 
     def __init__(self, index, width=0, height=0, pixmap=None, photoFp=''):
         QWidget.__init__(self)
 
         self.layout = QVBoxLayout(self)
+        self.layout.setContentsMargins(3, 3, 3, 3)
         self.index = index
         self.width = width
         self.height = height
         self.pixmap = pixmap
+
+        self.setStyleSheet("QWidget{background:#00000000;} QWidget:hover{background:#00ff00;}")
 
         if self.width and self.height:
             self.setFixedWidth(self.width)
@@ -224,13 +227,17 @@ class QClickableImage(QWidget):
             self.photoFp = photoFp
             self.descLabel = WidgetUtil.createLabel(self, objectName='descLabel', text=photoFp,
                                                     alignment=Qt.AlignHCenter | Qt.AlignBottom)
+            self.descLabel.setMaximumWidth(self.width)
             # 让文字自适应大小
             self.descLabel.adjustSize()
-            self.descLabel.setMaximumWidth(self.width)
             self.descLabel.setWordWrap(True)
+            # 设置透明背景
+            self.descLabel.setStyleSheet("QWidget{background:#00000000;}")
             self.layout.addWidget(self.descLabel)
         self.setLayout(self.layout)
         # self.adjustSize()
+        # self.setContentsMargins(1, 1, 1, 1)
+        # self.setStyleSheet("border:1px solid #f00")
         LogUtil.d('size: {}'.format(self.size()))
 
     clicked = pyqtSignal(int, str)
