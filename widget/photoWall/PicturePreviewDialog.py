@@ -29,7 +29,8 @@ class PicturePreviewDialog(QtWidgets.QDialog):
         self.index = index
 
         vbox = WidgetUtil.createVBoxLayout()
-        vbox.setContentsMargins(5, 0, 5, 0)
+        vbox.setContentsMargins(5, 10, 5, 10)
+        vbox.setSpacing(5)
 
         w = QWidget(self)
         layout = WidgetUtil.createHBoxLayout()
@@ -40,7 +41,7 @@ class PicturePreviewDialog(QtWidgets.QDialog):
 
         if not filePathList:
             self.openFile = WidgetUtil.createPushButton(self, text="Open Image", toolTip="Open the image to view.", onClicked=self.openImage)
-            self.openFile.setFixedSize(150, 30)
+            self.openFile.setFixedSize(100, 30)
             layout.addWidget(self.openFile)
 
         self.zoomIn = self.createPushBtn(FileUtil.getIconFp('previewImage/zoom_in.png'), self.largeClick)
@@ -66,11 +67,11 @@ class PicturePreviewDialog(QtWidgets.QDialog):
         layout.setAlignment(Qt.AlignCenter)
         layout.setContentsMargins(10, 0, 10, 0)
         w.setLayout(layout)
-        w.setFixedSize(990, 730)
+        w.setFixedSize(990, 700)
 
         self.box = ImageBox()
         # self.box.setSizePolicy(sizePolicy)
-        self.box.setFixedSize(890, 730)
+        self.box.setFixedSize(890, 700)
 
         self.backBtn = self.createPushBtn(FileUtil.getIconFp('previewImage/back.png'), self.backClick)
         # self.backBtn = self.createPushBtn('../../icons/previewImage/back.png', self.backClick)
@@ -83,6 +84,20 @@ class PicturePreviewDialog(QtWidgets.QDialog):
         layout.addWidget(self.nextBtn)
 
         vbox.addWidget(w)
+
+        w = QWidget(self)
+        layout = WidgetUtil.createHBoxLayout()
+        layout.setAlignment(Qt.AlignCenter)
+        layout.setContentsMargins(0, 0, 0, 0)
+        w.setLayout(layout)
+        w.setFixedHeight(20)
+
+        sizePolicy = WidgetUtil.createSizePolicy()
+        self.titleLabel = WidgetUtil.createLabel(w, alignment=Qt.AlignCenter, sizePolicy=sizePolicy)
+        layout.addWidget(self.titleLabel)
+
+        vbox.addWidget(w)
+
         self.setLayout(vbox)
 
         if filePathList:
@@ -112,6 +127,7 @@ class PicturePreviewDialog(QtWidgets.QDialog):
         :return:
         """
         imgName = WidgetUtil.getOpenFileName(caption="Open Image File", filter="*.jpg;;*.png;;*.jpeg")
+        self.titleLabel.setText(imgName)
         self.box.setImage(imgName)
 
     def largeClick(self):
@@ -154,6 +170,7 @@ class PicturePreviewDialog(QtWidgets.QDialog):
 
     def openNextImage(self):
         self.filePath = self.filePathList[self.index]
+        self.titleLabel.setText(self.filePath)
         self.box.setImage(self.filePath)
 
 
