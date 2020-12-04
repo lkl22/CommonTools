@@ -27,6 +27,8 @@ class WeditorUtil:
                         if res:
                             WidgetUtil.showInformationDialog(text='python安装完成，需要重启应用程序生效。')
                             os._exit(0)
+                        else:
+                            return 'python install failed.'
                     else:
                         info = "请到浏览器输入'https://www.python.org/ftp/python/3.8.6/python-3.8.6-amd64.exe'下载python安装包并安装"
                         LogUtil.d(info)
