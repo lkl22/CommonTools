@@ -6,38 +6,42 @@
 from util.LogUtil import *
 from util.FileUtil import *
 from util.ShellUtil import *
+from util.WidgetUtil import WidgetUtil
 
 
 class WeditorUtil:
     @staticmethod
-    def open(retry=True):
+    def open():
         out, err = ShellUtil.exec('weditor')
         if err:
             if err.__contains__("command not found") or err.__contains__("不是内部或外部命令，也不是可运行的程序"):
                 out, err = ShellUtil.exec('python --version')
                 if err:
-                    if not retry:
-                        return err
                     LogUtil.e(err)
                     LogUtil.d('start install python')
-                    installPackageFp = FileUtil.getProjectPath() + 'software/python-3.8.6-amd64.exe'
+                    installPackageFp = FileUtil.getProjectPath() + '/software/python-3.8.6-amd64.exe'
                     # installPackageFp = 'E:/PythonProjects/CommonTools/software/python-3.8.6-amd64.exe'
                     LogUtil.d('install package file path:' + installPackageFp)
                     if os.path.isfile(installPackageFp):
-                        out, err = ShellUtil.exec(installPackageFp + ' /passive InstallAllUsers=1 PrependPath=1', timeout=None)
-                        if not err:
-                            WeditorUtil.open(False)
+                        res = ShellUtil.system(installPackageFp + ' /passive InstallAllUsers=1 PrependPath=1')
+                        if res:
+                            WidgetUtil.showInformationDialog(text='python安装完成，需要重启应用程序生效。')
+                            os._exit(0)
                     else:
                         info = "请到浏览器输入'https://www.python.org/ftp/python/3.8.6/python-3.8.6-amd64.exe'下载python安装包并安装"
                         LogUtil.d(info)
                         return info
                 else:
                     LogUtil.d('start install weditor')
-                    out, err = ShellUtil.exec('python -m pip install --upgrade pip', timeout=None)
-                    if not err:
-                        out, err = ShellUtil.exec('pip install -U weditor --index-url https://pypi.tuna.tsinghua.edu.cn/simple/', timeout=None)
-                        if not err or err.__contains__("WARNING: You are using pip version"):
+                    res = ShellUtil.system('python -m pip install --upgrade pip --index-url https://pypi.tuna.tsinghua.edu.cn/simple/')
+                    if res:
+                        res = ShellUtil.system('pip install -U weditor --index-url https://pypi.tuna.tsinghua.edu.cn/simple/', timeout=None)
+                        if res:
                             out, err = ShellUtil.exec('weditor')
+                        else:
+                            return 'install weditor failed.'
+                    else:
+                        return 'upgrade pip failed.'
             if err.__contains__("Command 'weditor' timed out after 10 seconds"):
                 out, err = ShellUtil.exec('weditor')
             if err and err.__contains__("is already running"):

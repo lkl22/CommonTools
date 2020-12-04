@@ -85,6 +85,30 @@ class WidgetUtil:
         return dirPath
 
     @staticmethod
+    def showAboutDialog(parent=None, caption="About", text=""):
+        """
+        显示about提示弹框
+        :param parent: 父widget
+        :param caption: 标题
+        :param text: 提示文本
+        """
+        QMessageBox.about(parent, caption, text)
+
+    @staticmethod
+    def showInformationDialog(parent=None, title="Information", text="",
+                              buttons: Union[QMessageBox.StandardButtons, QMessageBox.StandardButton] = QMessageBox.Ok,
+                              defaultButton: QMessageBox.StandardButton = QMessageBox.NoButton) -> QMessageBox.StandardButton:
+        """
+        显示Information提示弹框
+        :param parent: 父widget
+        :param title: 标题
+        :param text: 提示文本
+        :param buttons: buttons
+        :param defaultButton: defaultButton
+        """
+        return QMessageBox.information(parent, title, text, buttons, defaultButton)
+
+    @staticmethod
     def showErrorDialog(parent=None, title="Error", message=""):
         """
         显示错误提示弹框
