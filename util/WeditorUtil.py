@@ -37,7 +37,7 @@ class WeditorUtil:
                     LogUtil.d('start install weditor')
                     res = ShellUtil.system('python -m pip install --upgrade pip --index-url https://pypi.tuna.tsinghua.edu.cn/simple/')
                     if res:
-                        res = ShellUtil.system('pip install -U weditor --index-url https://pypi.tuna.tsinghua.edu.cn/simple/', timeout=None)
+                        res = ShellUtil.system('pip install -U weditor --index-url https://pypi.tuna.tsinghua.edu.cn/simple/')
                         if res:
                             out, err = ShellUtil.exec('weditor')
                         else:
