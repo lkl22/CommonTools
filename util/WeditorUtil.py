@@ -41,9 +41,9 @@ class WeditorUtil:
                         if res:
                             out, err = ShellUtil.exec('weditor')
                         else:
-                            return 'install weditor failed.'
+                            return 'install weditor failed. please exec "pip install -U weditor --index-url https://pypi.tuna.tsinghua.edu.cn/simple/"'
                     else:
-                        return 'upgrade pip failed.'
+                        return 'upgrade pip failed. please exec "python -m pip install --upgrade pip --index-url https://pypi.tuna.tsinghua.edu.cn/simple/"'
             if err.__contains__("Command 'weditor' timed out after 10 seconds"):
                 out, err = ShellUtil.exec('weditor')
             if err and err.__contains__("is already running"):
