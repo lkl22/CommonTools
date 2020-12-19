@@ -173,7 +173,7 @@ class PicturePreviewDialog(QtWidgets.QDialog):
 
     def openNextImage(self):
         self.filePath = self.filePathList[self.index]
-        self.titleLabel.setText(self.filePath)
+        self.titleLabel.setText("[{}/{}]  {}".format(self.index + 1, len(self.filePathList), self.filePath))
         self.box.setImage(self.filePath)
 
 
