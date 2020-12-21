@@ -71,13 +71,15 @@ class AndroidAdbDialog(QtWidgets.QDialog):
         if not self.callback:
             splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
             WidgetUtil.createLabel(splitter, text="输入要执行的shell指令：", minSize=QSize(80, const.HEIGHT))
-            self.cmdLineEdit = WidgetUtil.createLineEdit(splitter, holderText="请输入要执行的指令，多个以\";\"分隔", sizePolicy=sizePolicy)
+            self.cmdLineEdit = WidgetUtil.createLineEdit(splitter, holderText="请输入要执行的指令，多个以\";\"分隔",
+                                                         sizePolicy=sizePolicy)
             WidgetUtil.createPushButton(splitter, text="执行", onClicked=self.execShellCmd)
             yPos += const.HEIGHT_OFFSET * 2
 
         splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
         WidgetUtil.createLabel(splitter, text="输入要连接设备的addr：", minSize=QSize(80, const.HEIGHT))
-        self.devAddrEdit = WidgetUtil.createLineEdit(splitter, holderText="the device serial/device IP", sizePolicy=sizePolicy)
+        self.devAddrEdit = WidgetUtil.createLineEdit(splitter, holderText="the device serial/device IP",
+                                                     sizePolicy=sizePolicy)
         WidgetUtil.createPushButton(splitter, text="connect", onClicked=self.connectDevice)
         WidgetUtil.createPushButton(splitter, text="open weditor", onClicked=self.openWeditor)
 
@@ -178,7 +180,8 @@ class AndroidAdbDialog(QtWidgets.QDialog):
         row = index.row()
         LogUtil.d("双击的单元格：row ", row, ' col', index.column(), ' data ', oldValue)
         self.curEditData = self.execTestSteps[row]
-        EditTestStepDialog(self.editStepCallback, self.curEditData[const.KEY_STEP_TYPE], self.curEditData[const.KEY_STEP_PARAMS], self.u)
+        EditTestStepDialog(self.editStepCallback, self.curEditData[const.KEY_STEP_TYPE],
+                           self.curEditData[const.KEY_STEP_PARAMS], self.u)
         pass
 
     def editStepCallback(self, stepType, params):
@@ -232,7 +235,8 @@ class AndroidAdbDialog(QtWidgets.QDialog):
             self.t = AutoTestUtil(self.u)
         self.printRes('start exec')
         for step in self.execTestSteps:
-            self.t.startTestStep(step[const.KEY_STEP_TYPE], step[const.KEY_STEP_PARAMS], self.printRes)
+            self.t.startTestStep(stepType=step[const.KEY_STEP_TYPE], params=step[const.KEY_STEP_PARAMS],
+                                 logCallback=self.printRes)
         self.printRes('exec finished')
         pass
 
@@ -245,3 +249,15 @@ class AndroidAdbDialog(QtWidgets.QDialog):
         if self.callback:
             self.callback(self.execTestSteps)
         return True
+
+
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
+    # window = AndroidAdbDialog()
+    window = AndroidAdbDialog(execSteps=[{'type': 0, 'params': {'xpath': '', 'x': 0.5, 'y': 0.5, 'desc': ""}},
+                                         {'type': 1, 'params': {'xpath': '', 'x': 0.5, 'y': 0.5, 'desc': ""}}],
+                              callback=lambda aa: {
+                                  LogUtil.d(str(aa))
+                              })
+    window.show()
+    sys.exit(app.exec_())

@@ -330,7 +330,7 @@ class EditTestStepDialog(QtWidgets.QDialog):
         if not self.checkParams():
             LogUtil.i("testStep params check failed.")
             return False
-        res = self.t.startTestStep(self.stepType, params=self.params)
+        res = self.t.startTestStep(stepType=self.stepType, params=self.params)
         LogUtil.d('res:', res)
         return False
 
