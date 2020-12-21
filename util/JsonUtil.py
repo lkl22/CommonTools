@@ -4,6 +4,8 @@
 # 定义一个JsonUtil工具类实现Json相关的功能
 import json
 
+from util.LogUtil import LogUtil
+
 
 class JsonUtil:
     @staticmethod
@@ -25,7 +27,11 @@ class JsonUtil:
         :param jsonData: JSON 格式数据
         :return: Python 数据
         """
-        return json.loads(jsonData)
+        try:
+            return json.loads(jsonData)
+        except Exception as err:
+            LogUtil.e('JsonUtil decode 错误信息：', err)
+            return None
 
 
 # if __name__ == "__main__":
