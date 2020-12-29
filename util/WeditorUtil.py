@@ -16,7 +16,7 @@ class WeditorUtil:
         if err:
             if err.__contains__("command not found") or err.__contains__("不是内部或外部命令，也不是可运行的程序"):
                 out, err = ShellUtil.exec('python --version')
-                if err:
+                if err or not out:
                     LogUtil.e(err)
                     LogUtil.d('start install python')
                     installPackageFp = FileUtil.getProjectPath() + '/software/python-3.8.6-amd64.exe'
