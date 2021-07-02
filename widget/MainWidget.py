@@ -223,6 +223,8 @@ class MainWidget(QMainWindow):
 
         WidgetUtil.createPushButton(splitter, text="照片墙", onClicked=self.jumpPhotoWall)
 
+        WidgetUtil.createPushButton(splitter, text="算法可视化", onClicked=self.jumpAlgorithmVisualizer)
+
         yPos += const.HEIGHT_OFFSET
         return box
 
@@ -259,4 +261,10 @@ class MainWidget(QMainWindow):
         self.windowList.append(window)
         self.close()
         window.show()
+        pass
+
+    def jumpAlgorithmVisualizer(self):
+        LogUtil.i("jumpAlgorithmVisualizer")
+        from widget.algorithm.AlgorithmVisualizerManagerDialog import AlgorithmVisualizerManagerDialog
+        AlgorithmVisualizerManagerDialog()
         pass
