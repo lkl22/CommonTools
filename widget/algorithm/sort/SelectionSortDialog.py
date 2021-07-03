@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # python 3.x
-# Filename: AlgorithmVisualizerDialog.py
-# 定义一个AlgorithmVisualizerDialog类实现算法可视化
+# Filename: SelectionSortDialog.py
+# 定义一个SelectionSortDialog类实现选择排序算法可视化
 from PyQt5.QtCore import QRectF, QPointF
 
 from constant.ColorConst import ColorConst
@@ -11,7 +11,7 @@ from util.RandomUtil import RandomUtil
 from util.Uiautomator import *
 
 
-class AlgorithmVisualizerDialog(QtWidgets.QDialog):
+class SelectionSortDialog(QtWidgets.QDialog):
     WINDOW_WIDTH = 1360
     WINDOW_HEIGHT = 680
     GROUP_BOX_HEIGHT = 560
@@ -21,17 +21,17 @@ class AlgorithmVisualizerDialog(QtWidgets.QDialog):
         QtWidgets.QDialog.__init__(self)
         LogUtil.d("Init Algorithm Visualizer Dialog")
         self.setObjectName("AlgorithmVisualizerDialog")
-        self.resize(AlgorithmVisualizerDialog.WINDOW_WIDTH, AlgorithmVisualizerDialog.WINDOW_HEIGHT)
-        self.setFixedSize(AlgorithmVisualizerDialog.WINDOW_WIDTH, AlgorithmVisualizerDialog.WINDOW_HEIGHT)
+        self.resize(SelectionSortDialog.WINDOW_WIDTH, SelectionSortDialog.WINDOW_HEIGHT)
+        self.setFixedSize(SelectionSortDialog.WINDOW_WIDTH, SelectionSortDialog.WINDOW_HEIGHT)
         self.setWindowTitle(WidgetUtil.translate(text="算法可视化"))
 
-        width = AlgorithmVisualizerDialog.WINDOW_WIDTH - const.PADDING * 2
+        width = SelectionSortDialog.WINDOW_WIDTH - const.PADDING * 2
 
         vbox = WidgetUtil.createVBoxLayout()
 
         layoutWidget = QtWidgets.QWidget(self)
         layoutWidget.setGeometry(QRect(const.PADDING, const.PADDING, width,
-                                       AlgorithmVisualizerDialog.WINDOW_HEIGHT - const.PADDING * 3 / 2))
+                                       SelectionSortDialog.WINDOW_HEIGHT - const.PADDING * 3 / 2))
         layoutWidget.setObjectName("layoutWidget")
         layoutWidget.setLayout(vbox)
 
@@ -100,17 +100,17 @@ class AlgorithmVisualizerDialog(QtWidgets.QDialog):
 
     def resetNumbers(self):
         self.numbers = self.genRandomNumbers()
-        self.genGraphicsItems()
+        self.render()
 
     def createAlgorithmVisualizerGroupBox(self, parent):
-        width = AlgorithmVisualizerDialog.WINDOW_WIDTH - const.PADDING * 6
+        width = SelectionSortDialog.WINDOW_WIDTH - const.PADDING * 6
         box = WidgetUtil.createGroupBox(parent, title="可视化视图",
-                                        minSize=QSize(width, AlgorithmVisualizerDialog.GROUP_BOX_HEIGHT))
+                                        minSize=QSize(width, SelectionSortDialog.GROUP_BOX_HEIGHT))
         sizePolicy = WidgetUtil.createSizePolicy()
         box.setSizePolicy(sizePolicy)
 
         yPos = const.GROUP_BOX_MARGIN_TOP
-        graphicsViewH = AlgorithmVisualizerDialog.GROUP_BOX_HEIGHT - const.PADDING * 2
+        graphicsViewH = SelectionSortDialog.GROUP_BOX_HEIGHT - const.PADDING * 2
         splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, graphicsViewH))
 
         self.scene = GraphicsUtil.createGraphicsScene(ColorConst.White)
@@ -126,7 +126,8 @@ class AlgorithmVisualizerDialog(QtWidgets.QDialog):
             self.scene.addItem(
                 GraphicsUtil.createGraphicsRectItem(QRectF(i * legendColW, 5, 20, 8), brush=QBrush(legendColorList[i])))
             self.scene.addItem(
-                GraphicsUtil.createGraphicsSimpleTextItem(legendTextList[i], legendColorList[i], QPointF(i * legendColW + 25, 0), 12))
+                GraphicsUtil.createGraphicsSimpleTextItem(legendTextList[i], legendColorList[i],
+                                                          QPointF(i * legendColW + 25, 0), 12))
 
         LogUtil.d("scene size", self.scene.width(), self.scene.height())
         return box
@@ -191,27 +192,45 @@ class AlgorithmVisualizerDialog(QtWidgets.QDialog):
         self.currentCompareIndex = currentCompareIndex
         self.currentMinIndex = currentMinIndex
 
-        self.reRender()
+        self.render(False)
         self.pause(self.delay)
 
-    def reRender(self):
+    def render(self, isReset=True):
+        if isReset:
+            # 清空上次的数据
+            # self.scene.clear()
+            if self.graphicsItems:
+                for item in self.graphicsItems:
+                    self.scene.removeItem(item)
+            self.graphicsItems.clear()
+
         # 每条数据占据的总宽度
         w = self.sceneW / self.count
         # 数字的最大偏移量
         maxOffset = self.maxValue - self.minValue
         # 绘制的最大高度，最小值占据一个固定高度
         drawH = self.sceneH - const.PADDING * 5
+        if isReset:
+            LogUtil.e("w -> {} maxOffset -> {} sceneH -> {} drawH -> {}".format(w, maxOffset, self.sceneH, drawH))
+
         for i in range(0, self.count):
             h = (self.numbers[i] - self.minValue) / maxOffset * drawH + const.PADDING
-            brush = ColorConst.Grey
-            if i < self.orderedIndex:
-                brush = ColorConst.Red
-            if i == self.currentCompareIndex:
-                brush = ColorConst.LightBlue
-            if i == self.currentMinIndex:
-                brush = ColorConst.Indigo
-            GraphicsUtil.updateGraphicsRectItem(self.graphicsItems[i], QRectF(i * w, self.sceneH - h, w / 2, h),
-                                                brush=QBrush(brush))
+            if isReset:
+                LogUtil.e("i -> {} number -> {} h -> {}".format(i, self.numbers[i], h))
+                rectItem = GraphicsUtil.createGraphicsRectItem(QRectF(i * w, self.sceneH - h, w / 2, h),
+                                                               brush=QBrush(ColorConst.Grey))
+                self.scene.addItem(rectItem)
+                self.graphicsItems.append(rectItem)
+            else:
+                brush = ColorConst.Grey
+                if i < self.orderedIndex:
+                    brush = ColorConst.Red
+                if i == self.currentCompareIndex:
+                    brush = ColorConst.LightBlue
+                if i == self.currentMinIndex:
+                    brush = ColorConst.Indigo
+                GraphicsUtil.updateGraphicsRectItem(self.graphicsItems[i], QRectF(i * w, self.sceneH - h, w / 2, h),
+                                                    brush=QBrush(brush))
         # 触发实时显示数据
         QApplication.instance().processEvents()
 

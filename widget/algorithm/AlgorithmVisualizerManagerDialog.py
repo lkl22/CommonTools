@@ -4,15 +4,8 @@
 # 定义一个AlgorithmVisualizerManagerDialog类实现算法可视化管理
 import sys
 
-from PyQt5.QtCore import QModelIndex
-from PyQt5.QtWidgets import QAbstractItemView
-
-from constant.TestStepConst import *
 from constant.WidgetConst import *
-from util.FileUtil import *
 from util.DialogUtil import *
-from util.ShellUtil import *
-from util.LogUtil import *
 from util.WeditorUtil import *
 
 
@@ -57,8 +50,8 @@ class AlgorithmVisualizerManagerDialog(QtWidgets.QDialog):
 
     def selectionSortVisualizer(self):
         LogUtil.i("selectionSortVisualizer")
-        from widget.algorithm.AlgorithmVisualizerDialog import AlgorithmVisualizerDialog
-        AlgorithmVisualizerDialog()
+        from widget.algorithm.sort.SelectionSortDialog import SelectionSortDialog
+        SelectionSortDialog()
         pass
 
 
