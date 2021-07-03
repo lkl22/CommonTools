@@ -23,7 +23,7 @@ class SelectionSortDialog(QtWidgets.QDialog):
         self.setObjectName("AlgorithmVisualizerDialog")
         self.resize(SelectionSortDialog.WINDOW_WIDTH, SelectionSortDialog.WINDOW_HEIGHT)
         self.setFixedSize(SelectionSortDialog.WINDOW_WIDTH, SelectionSortDialog.WINDOW_HEIGHT)
-        self.setWindowTitle(WidgetUtil.translate(text="算法可视化"))
+        self.setWindowTitle(WidgetUtil.translate(text="选择算法可视化"))
 
         width = SelectionSortDialog.WINDOW_WIDTH - const.PADDING * 2
 
@@ -80,6 +80,7 @@ class SelectionSortDialog(QtWidgets.QDialog):
         self.resetDataBtn = WidgetUtil.createPushButton(splitter, text="重置数据", onClicked=self.resetNumbers)
         self.startExecBtn = WidgetUtil.createPushButton(splitter, text="开始执行", onClicked=self.execAlgorithm)
         self.stopExecBtn = WidgetUtil.createPushButton(splitter, text="终止执行", onClicked=self.stopExecAlgorithm)
+        WidgetUtil.createPushButton(splitter, text="算法解读", onClicked=self.jumpAlgoDesc)
 
         clickParamGroupBox = self.createAlgorithmVisualizerGroupBox(layoutWidget)
         vbox.addWidget(clickParamGroupBox)
@@ -186,6 +187,12 @@ class SelectionSortDialog(QtWidgets.QDialog):
 
     def stopExecAlgorithm(self):
         self.isStop = True
+
+    def jumpAlgoDesc(self):
+        LogUtil.i("jumpAlgoDesc")
+        from widget.algorithm.sort.SelectionSortDescDialog import SelectionSortDescDialog
+        SelectionSortDescDialog()
+        pass
 
     def setData(self, orderedIndex=-1, currentCompareIndex=-1, currentMinIndex=-1):
         self.orderedIndex = orderedIndex

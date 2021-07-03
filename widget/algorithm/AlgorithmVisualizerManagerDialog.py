@@ -35,7 +35,7 @@ class AlgorithmVisualizerManagerDialog(QtWidgets.QDialog):
 
         self.setWindowModality(Qt.ApplicationModal)
         # 很关键，不加出不来
-        # self.exec_()
+        self.exec_()
 
     def createSortAlgorithmVisualizer(self, parent):
         yPos = const.GROUP_BOX_MARGIN_TOP
