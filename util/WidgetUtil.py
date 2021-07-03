@@ -7,7 +7,8 @@ from typing import Union
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtGui import QIcon, QBrush, QStandardItemModel, QStandardItem, QColor, QKeySequence
 from PyQt5.QtWidgets import QWidget, QMessageBox, QSizePolicy, QTreeWidget, QMenu, QTreeWidgetItem, QDialog, \
-    QRadioButton, QTableView, QHeaderView, QColorDialog, QSpinBox, QTextEdit, QApplication, QDoubleSpinBox, QMenuBar
+    QRadioButton, QTableView, QHeaderView, QColorDialog, QSpinBox, QTextEdit, QApplication, QDoubleSpinBox, QMenuBar, \
+    QTabWidget
 from PyQt5.QtCore import QRect, QMargins, QSize, Qt
 
 from util.LogUtil import *
@@ -801,6 +802,16 @@ class WidgetUtil:
             if model:
                 model.removeRows(0, model.rowCount())
             LogUtil.e("data is empty")
+
+    @staticmethod
+    def createTabWidget(parent: QWidget = None):
+        """
+        创建一个选项卡 QTabWidget
+        :param parent: 父QWidget
+        :return: QTabWidget
+        """
+        widget = QTabWidget(parent)
+        return widget
 
     @classmethod
     def translate(cls, context=contextName, text=""):

@@ -3,6 +3,7 @@
 # Filename: SelectionSortDescDialog.py
 # 定义一个SelectionSortDescDialog类实现选择排序算法描述
 from PyQt5.QtCore import QRectF, QPointF
+from PyQt5.QtGui import QSyntaxHighlighter
 
 from constant.ColorConst import ColorConst
 from util.AutoTestUtil import *
@@ -39,9 +40,13 @@ class SelectionSortDescDialog(QtWidgets.QDialog):
         vbox.addWidget(descGroupBox)
 
         sizePolicy = WidgetUtil.createSizePolicy()
-        splitter = WidgetUtil.createSplitter(self, geometry=QRect(const.PADDING, const.PADDING, width, const.HEIGHT))
-        splitter.setSizePolicy(sizePolicy)
-        vbox.addWidget(splitter)
+        codeGroupBox = self.createCodeGroupBox(layoutWidget)
+        codeGroupBox.setSizePolicy(sizePolicy)
+        vbox.addWidget(codeGroupBox)
+
+        # splitter = WidgetUtil.createSplitter(self, geometry=QRect(const.PADDING, const.PADDING, width, const.HEIGHT))
+        # splitter.setSizePolicy(sizePolicy)
+        # vbox.addWidget(splitter)
 
         self.setWindowModality(Qt.ApplicationModal)
         # 很关键，不加出不来
@@ -63,6 +68,84 @@ class SelectionSortDescDialog(QtWidgets.QDialog):
 再从剩余未排序元素中继续寻找最小（大）元素，然后放到已排序序列的末尾。<br>
 重复第二步，直到所有元素均排序完毕。''')
         return box
+
+    def createCodeGroupBox(self, parent):
+        yPos = const.GROUP_BOX_MARGIN_TOP
+        width = SelectionSortDescDialog.WINDOW_WIDTH - const.PADDING * 4
+
+        box = WidgetUtil.createGroupBox(parent, title="代码实现",
+                                            minSize=QSize(width, SelectionSortDescDialog.DESC_GROUP_BOX_HEIGHT))
+
+        sizePolicy = WidgetUtil.createSizePolicy()
+        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width - const.PADDING * 2, 330))
+
+        tabWidget = WidgetUtil.createTabWidget(splitter)
+        tabWidget.addTab(self.createTabWidget(self.getJavaCode()), "Java")
+        tabWidget.addTab(self.createTabWidget(self.getJavaScriptCode()), "JavaScript")
+
+        return box
+
+    def createTabWidget(self, code):
+        tabWidget = QWidget()
+        # 垂直布局
+        layout = WidgetUtil.createVBoxLayout()
+        # 设置布局方式
+        tabWidget.setLayout(layout)
+
+        desc = WidgetUtil.createTextEdit(tabWidget, text=code, isReadOnly=True)
+        # desc.insertPlainText(code)
+        # 添加控件到布局中
+        layout.addWidget(desc)
+        return tabWidget
+
+    def getJavaCode(self):
+        return r'''public class SelectionSort implements IArraySort {
+
+    @Override
+    public int[] sort(int[] sourceArray) throws Exception {
+        int[] arr = Arrays.copyOf(sourceArray, sourceArray.length);
+
+        // 总共要经过 N-1 轮比较
+        for (int i = 0; i < arr.length - 1; i++) {
+            int min = i;
+
+            // 每轮需要比较的次数 N-i
+            for (int j = i + 1; j < arr.length; j++) {
+                if (arr[j] < arr[min]) {
+                    // 记录目前能找到的最小值元素的下标
+                    min = j;
+                }
+            }
+
+            // 将找到的最小值和i位置所在的值进行交换
+            if (i != min) {
+                int tmp = arr[i];
+                arr[i] = arr[min];
+                arr[min] = tmp;
+            }
+
+        }
+        return arr;
+    }
+}'''
+
+    def getJavaScriptCode(self):
+        return r'''function selectionSort(arr) {
+    var len = arr.length;
+    var minIndex, temp;
+    for (var i = 0; i < len - 1; i++) {
+        minIndex = i;
+        for (var j = i + 1; j < len; j++) {
+            if (arr[j] < arr[minIndex]) {     // 寻找最小的数
+                minIndex = j;                 // 将最小数的索引保存
+            }
+        }
+        temp = arr[i];
+        arr[i] = arr[minIndex];
+        arr[minIndex] = temp;
+    }
+    return arr;
+}'''
 
 
 if __name__ == '__main__':
