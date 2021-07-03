@@ -2,9 +2,10 @@
 # python 3.x
 # Filename: GraphicsUtil.py
 # 定义一个GraphicsUtil工具类实现 Graphics 相关的功能
-from PyQt5.QtGui import QBrush, QColor, QPen
-from PyQt5.QtWidgets import QWidget, QGraphicsView, QGraphicsScene, QGraphicsLineItem, QGraphicsRectItem
-from PyQt5.QtCore import QSize, QRectF, QLineF
+from PyQt5.QtGui import QBrush, QColor, QPen, QFont
+from PyQt5.QtWidgets import QWidget, QGraphicsView, QGraphicsScene, QGraphicsLineItem, QGraphicsRectItem, \
+    QGraphicsSimpleTextItem
+from PyQt5.QtCore import QSize, QRectF, QLineF, QPointF
 
 
 class GraphicsUtil:
@@ -93,3 +94,39 @@ class GraphicsUtil:
             rect.setPen(pen)
         if brush:
             rect.setBrush(brush)
+
+    @staticmethod
+    def createGraphicsSimpleTextItem(text: str = None, color: QColor = None, pos: QPointF = None, fontSize: int = 18):
+        """
+        创建普通文本 QGraphicsSimpleTextItem
+        :param text: 显示文字
+        :param color: 文字颜色
+        :param pos: 文字位置
+        :param fontSize: 字体大小
+        :return: QGraphicsSimpleTextItem
+        """
+        textItem = QGraphicsSimpleTextItem()
+        GraphicsUtil.updateGraphicsSimpleTextItem(textItem, text, color, pos, fontSize)
+        return textItem
+
+    @staticmethod
+    def updateGraphicsSimpleTextItem(textItem: QGraphicsSimpleTextItem, text: str = None, color: QColor = None,
+                                     pos: QPointF = None, fontSize: int = 18):
+        """
+        更新普通文本QGraphicsSimpleTextItem属性
+        :param textItem: QGraphicsSimpleTextItem
+        :param text: 显示文字
+        :param color: 文字颜色
+        :param pos: 文字位置
+        :param fontSize: 字体大小
+        """
+        if text:
+            textItem.setText(text)
+        if fontSize:
+            font = QFont()
+            font.setPointSize(fontSize)
+            textItem.setFont(font)
+        if color:
+            textItem.setBrush(color)
+        if pos:
+            textItem.setPos(pos)

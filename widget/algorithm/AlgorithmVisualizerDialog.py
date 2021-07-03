@@ -2,25 +2,19 @@
 # python 3.x
 # Filename: AlgorithmVisualizerDialog.py
 # 定义一个AlgorithmVisualizerDialog类实现算法可视化
-from PyQt5.QtCore import QRectF, QLineF
-from PyQt5.QtGui import QPen
+from PyQt5.QtCore import QRectF, QPointF
 
 from constant.ColorConst import ColorConst
-from constant.TestStepConst import *
-from constant.WidgetConst import *
-from util.DialogUtil import *
 from util.AutoTestUtil import *
 from util.GraphicsUtil import GraphicsUtil
 from util.RandomUtil import RandomUtil
 from util.Uiautomator import *
 
-import numpy as np
-
 
 class AlgorithmVisualizerDialog(QtWidgets.QDialog):
     WINDOW_WIDTH = 1360
     WINDOW_HEIGHT = 680
-    GROUP_BOX_HEIGHT = 500
+    GROUP_BOX_HEIGHT = 560
 
     def __init__(self):
         # 调用父类的构函
@@ -43,7 +37,7 @@ class AlgorithmVisualizerDialog(QtWidgets.QDialog):
 
         self.minValue = 0
         self.maxValue = 200
-        self.count = 10
+        self.count = 15
         self.delay = 0.1
         self.numbers = []
         # 已经有序的元素下标
@@ -125,12 +119,24 @@ class AlgorithmVisualizerDialog(QtWidgets.QDialog):
         self.sceneW = width - const.PADDING * 2
         self.sceneH = graphicsViewH - const.PADDING * 2
 
+        legendColW = self.sceneW / 4
+        legendTextList = ["未排序的元素", "排完序的元素", "当前比较的元素", "当前最小的元素"]
+        legendColorList = [ColorConst.Grey, ColorConst.Red, ColorConst.LightBlue, ColorConst.Indigo]
+        for i in range(0, 4):
+            self.scene.addItem(
+                GraphicsUtil.createGraphicsRectItem(QRectF(i * legendColW, 5, 20, 8), brush=QBrush(legendColorList[i])))
+            self.scene.addItem(
+                GraphicsUtil.createGraphicsSimpleTextItem(legendTextList[i], legendColorList[i], QPointF(i * legendColW + 25, 0), 12))
+
         LogUtil.d("scene size", self.scene.width(), self.scene.height())
         return box
 
     def genGraphicsItems(self):
         # 清空上次的数据
-        self.scene.clear()
+        # self.scene.clear()
+        if self.graphicsItems:
+            for item in self.graphicsItems:
+                self.scene.removeItem(item)
         self.graphicsItems.clear()
 
         # 每条数据占据的总宽度
@@ -138,10 +144,10 @@ class AlgorithmVisualizerDialog(QtWidgets.QDialog):
         # 数字的最大偏移量
         maxOffset = self.maxValue - self.minValue
         # 绘制的最大高度，最小值占据一个固定高度
-        drawH = self.sceneH - const.PADDING
-        LogUtil.e("w -> {} maxOffset -> {} drawH -> {}".format(w, maxOffset, drawH))
+        drawH = self.sceneH - const.PADDING * 5
+        LogUtil.e("w -> {} maxOffset -> {} sceneH -> {} drawH -> {}".format(w, maxOffset, self.sceneH, drawH))
         for i in range(0, self.count):
-            h = (self.numbers[i] - self.minValue) * drawH / maxOffset + const.PADDING
+            h = (self.numbers[i] - self.minValue) / maxOffset * drawH + const.PADDING
             LogUtil.e("i -> {} number -> {} h -> {}".format(i, self.numbers[i], h))
             rectItem = GraphicsUtil.createGraphicsRectItem(QRectF(i * w, self.sceneH - h, w / 2, h),
                                                            brush=QBrush(ColorConst.Grey))
@@ -194,9 +200,9 @@ class AlgorithmVisualizerDialog(QtWidgets.QDialog):
         # 数字的最大偏移量
         maxOffset = self.maxValue - self.minValue
         # 绘制的最大高度，最小值占据一个固定高度
-        drawH = self.sceneH - const.PADDING
+        drawH = self.sceneH - const.PADDING * 5
         for i in range(0, self.count):
-            h = (self.numbers[i] - self.minValue) * drawH / maxOffset + const.PADDING
+            h = (self.numbers[i] - self.minValue) / maxOffset * drawH + const.PADDING
             brush = ColorConst.Grey
             if i < self.orderedIndex:
                 brush = ColorConst.Red
