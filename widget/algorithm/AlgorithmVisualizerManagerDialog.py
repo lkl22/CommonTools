@@ -2,6 +2,8 @@
 # python 3.x
 # Filename: AlgorithmVisualizerManagerDialog.py
 # 定义一个AlgorithmVisualizerManagerDialog类实现算法可视化管理
+import sys
+
 from PyQt5.QtCore import QModelIndex
 from PyQt5.QtWidgets import QAbstractItemView
 
@@ -12,7 +14,6 @@ from util.DialogUtil import *
 from util.ShellUtil import *
 from util.LogUtil import *
 from util.WeditorUtil import *
-from widget.autoTest.EditTestStepDialog import *
 
 
 class AlgorithmVisualizerManagerDialog(QtWidgets.QDialog):
@@ -41,7 +42,7 @@ class AlgorithmVisualizerManagerDialog(QtWidgets.QDialog):
 
         self.setWindowModality(Qt.ApplicationModal)
         # 很关键，不加出不来
-        self.exec_()
+        # self.exec_()
 
     def createSortAlgorithmVisualizer(self, parent):
         yPos = const.GROUP_BOX_MARGIN_TOP
@@ -49,7 +50,16 @@ class AlgorithmVisualizerManagerDialog(QtWidgets.QDialog):
         box = WidgetUtil.createGroupBox(parent, title="排序算法可视化管理", minSize=QSize(width, 300))
         sizePolicy = WidgetUtil.createSizePolicy()
 
+        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
+        WidgetUtil.createPushButton(splitter, text="选择排序", onClicked=self.selectionSortVisualizer)
+
         return box
+
+    def selectionSortVisualizer(self):
+        LogUtil.i("selectionSortVisualizer")
+        from widget.algorithm.AlgorithmVisualizerDialog import AlgorithmVisualizerDialog
+        AlgorithmVisualizerDialog()
+        pass
 
 
 if __name__ == '__main__':
