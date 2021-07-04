@@ -101,7 +101,7 @@ class SelectionSortDialog(QtWidgets.QDialog):
 
     def resetNumbers(self):
         self.numbers = self.genRandomNumbers()
-        self.render()
+        self.renderData()
 
     def createAlgorithmVisualizerGroupBox(self, parent):
         width = SelectionSortDialog.WINDOW_WIDTH - const.PADDING * 6
@@ -132,30 +132,6 @@ class SelectionSortDialog(QtWidgets.QDialog):
 
         LogUtil.d("scene size", self.scene.width(), self.scene.height())
         return box
-
-    def genGraphicsItems(self):
-        # 清空上次的数据
-        # self.scene.clear()
-        if self.graphicsItems:
-            for item in self.graphicsItems:
-                self.scene.removeItem(item)
-        self.graphicsItems.clear()
-
-        # 每条数据占据的总宽度
-        w = self.sceneW / self.count
-        # 数字的最大偏移量
-        maxOffset = self.maxValue - self.minValue
-        # 绘制的最大高度，最小值占据一个固定高度
-        drawH = self.sceneH - const.PADDING * 5
-        LogUtil.e("w -> {} maxOffset -> {} sceneH -> {} drawH -> {}".format(w, maxOffset, self.sceneH, drawH))
-        for i in range(0, self.count):
-            h = (self.numbers[i] - self.minValue) / maxOffset * drawH + const.PADDING
-            LogUtil.e("i -> {} number -> {} h -> {}".format(i, self.numbers[i], h))
-            rectItem = GraphicsUtil.createGraphicsRectItem(QRectF(i * w, self.sceneH - h, w / 2, h),
-                                                           brush=QBrush(ColorConst.Grey))
-            self.scene.addItem(rectItem)
-            self.graphicsItems.append(rectItem)
-        pass
 
     def execAlgorithm(self):
         self.isStop = False
@@ -193,10 +169,10 @@ class SelectionSortDialog(QtWidgets.QDialog):
         self.currentCompareIndex = currentCompareIndex
         self.currentMinIndex = currentMinIndex
 
-        self.render(False)
+        self.renderData(False)
         self.pause(self.delay)
 
-    def render(self, isReset=True):
+    def renderData(self, isReset=True):
         if isReset:
             # 清空上次的数据
             # self.scene.clear()
