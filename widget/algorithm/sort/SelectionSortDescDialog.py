@@ -2,14 +2,16 @@
 # python 3.x
 # Filename: SelectionSortDescDialog.py
 # 定义一个SelectionSortDescDialog类实现选择排序算法描述
+from PyQt5.Qsci import QsciScintilla, QsciLexerPython, QsciLexer, QsciLexerJavaScript, QsciLexerJava
 from PyQt5.QtCore import QRectF, QPointF
-from PyQt5.QtGui import QSyntaxHighlighter
+from PyQt5.QtGui import QSyntaxHighlighter, QTextDocument
 
 from constant.ColorConst import ColorConst
 from util.AutoTestUtil import *
 from util.GraphicsUtil import GraphicsUtil
 from constant.WidgetConst import *
 from util.Uiautomator import *
+from widget.syntaxHighlighter.PythonHighlighter import PythonHighlighter
 
 
 class SelectionSortDescDialog(QtWidgets.QDialog):
@@ -32,7 +34,7 @@ class SelectionSortDescDialog(QtWidgets.QDialog):
 
         layoutWidget = QtWidgets.QWidget(self)
         layoutWidget.setGeometry(QRect(const.PADDING, const.PADDING, width,
-                                       SelectionSortDescDialog.WINDOW_HEIGHT - const.PADDING * 3 / 2))
+                                       int(SelectionSortDescDialog.WINDOW_HEIGHT - const.PADDING * 3 / 2)))
         layoutWidget.setObjectName("layoutWidget")
         layoutWidget.setLayout(vbox)
 
@@ -59,7 +61,8 @@ class SelectionSortDescDialog(QtWidgets.QDialog):
         box = WidgetUtil.createGroupBox(parent, title="算法描述",
                                         minSize=QSize(width, SelectionSortDescDialog.DESC_GROUP_BOX_HEIGHT))
 
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width - const.PADDING * 2, SelectionSortDescDialog.DESC_GROUP_BOX_HEIGHT - const.PADDING * 4))
+        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width - const.PADDING * 2,
+                                                                 SelectionSortDescDialog.DESC_GROUP_BOX_HEIGHT - const.PADDING * 4))
 
         desc = WidgetUtil.createTextEdit(splitter, isReadOnly=True)
         desc.insertHtml(r'''选择排序是一种简单直观的排序算法，无论什么数据进去都是 O(n²) 的时间复杂度。所以用到它的时候，数据规模越小越好。唯一的好处可能就是不占用额外的内存空间了吧。
@@ -74,32 +77,56 @@ class SelectionSortDescDialog(QtWidgets.QDialog):
         width = SelectionSortDescDialog.WINDOW_WIDTH - const.PADDING * 4
 
         box = WidgetUtil.createGroupBox(parent, title="代码实现",
-                                            minSize=QSize(width, SelectionSortDescDialog.DESC_GROUP_BOX_HEIGHT))
+                                        minSize=QSize(width, SelectionSortDescDialog.DESC_GROUP_BOX_HEIGHT))
 
         sizePolicy = WidgetUtil.createSizePolicy()
         splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width - const.PADDING * 2, 330))
 
         tabWidget = WidgetUtil.createTabWidget(splitter)
-        tabWidget.addTab(self.createTabWidget(self.getJavaCode()), "Java")
-        tabWidget.addTab(self.createTabWidget(self.getJavaScriptCode()), "JavaScript")
+        tabWidget.addTab(self.createTabWidget(self.getJavaCode(), QsciLexerJava()), "Java")
+        tabWidget.addTab(self.createTabWidget(self.getJavaScriptCode(), QsciLexerJavaScript()), "JavaScript")
+        tabWidget.addTab(self.createTabWidget(self.getPythonCode(), QsciLexerPython()), "Python")
 
         return box
 
-    def createTabWidget(self, code):
+    def createTabWidget(self, code, textLexer):
         tabWidget = QWidget()
         # 垂直布局
         layout = WidgetUtil.createVBoxLayout()
         # 设置布局方式
         tabWidget.setLayout(layout)
 
-        desc = WidgetUtil.createTextEdit(tabWidget, text=code, isReadOnly=True)
-        # desc.insertPlainText(code)
+        editor = QsciScintilla(tabWidget)
+        editor.setLexer(textLexer)
+
+        # 行号提示
+        editor.setMarginType(0, QsciScintilla.NumberMargin)  # 设置编号为1的页边显示行号。
+        editor.setMarginLineNumbers(0, True)  # 对该页边启用行号
+        editor.setMarginWidth(0, 30)  # 设置页边宽度
+        editor.setText(code)
+
+        editor.setReadOnly(True)
+
         # 添加控件到布局中
-        layout.addWidget(desc)
+        layout.addWidget(editor)
         return tabWidget
 
+    def getPythonCode(self):
+        return r'''def selectionSort(arr):
+    for i in range(len(arr) - 1):
+        # 记录最小数的索引
+        minIndex = i
+        for j in range(i + 1, len(arr)):
+            if arr[j] < arr[minIndex]:
+                minIndex = j
+        # i 不是最小数时，将 i 和最小数进行交换
+        if i != minIndex:
+            arr[i], arr[minIndex] = arr[minIndex], arr[i]
+    return arr'''
+
     def getJavaCode(self):
-        return r'''public class SelectionSort implements IArraySort {
+        return r'''```Java
+public class SelectionSort implements IArraySort {
 
     @Override
     public int[] sort(int[] sourceArray) throws Exception {
@@ -127,7 +154,8 @@ class SelectionSortDescDialog(QtWidgets.QDialog):
         }
         return arr;
     }
-}'''
+}
+```'''
 
     def getJavaScriptCode(self):
         return r'''function selectionSort(arr) {
