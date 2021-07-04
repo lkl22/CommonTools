@@ -140,6 +140,18 @@ class FileUtil:
         return path + fn
 
     @staticmethod
+    def getAlgorithmFp(fn):
+        """
+        获取项目下指定algorithm文件的path
+        :param fn: 文件名
+        :return: 项目下指定algorithm文件的path
+        """
+        path = FileUtil.getProjectPath() + "/resources/algorithm/"
+        if not os.path.isdir(path):
+            os.mkdir(path)
+        return path + fn
+
+    @staticmethod
     def clearPath(fp):
         """
         删除指定目录下所有的文件
@@ -190,6 +202,15 @@ class FileUtil:
                 outfile.write(zfObj.read(name))
                 outfile.close()
 
+    @staticmethod
+    def readFile(fp, encoding='utf8'):
+        try:
+            file = open(fp, encoding=encoding)
+            return file.read()
+        except Exception as e:
+            LogUtil.e('FileUtil readFile 错误信息：', e)
+            return None
+
 
 if __name__ == "__main__":
     # print(FileUtil.findFilePathList("/Users/likunlun/PycharmProjects/CarAssist/app/src/main/res", ["ic_launcher.png", "colors.xml", "strings.xml"]))
@@ -201,9 +222,11 @@ if __name__ == "__main__":
     #                             "/Users/likunlun/PycharmProjects/CarAssist/app/src/main/res",
     #                             "/Users/likunlun/PycharmProjects/CarAssist/app/src/main/bb", True)
     print(FileUtil.getProjectPath())
-    print(FileUtil.getConfigFp('BaseConfig.ini'))
-
-    print(FileUtil.getIconFp('zoom_in.jpg'))
+    # print(FileUtil.getConfigFp('BaseConfig.ini'))
+    #
+    # print(FileUtil.getIconFp('zoom_in.jpg'))
 
     # FileUtil.zipDir('./testZip', './testZip1.zip')
-    FileUtil.unzipFile('./testZip.zip', './testZip3')
+    # FileUtil.unzipFile('./testZip.zip', './testZip3')
+
+    print(FileUtil.readFile('../resources/algorithm/SelectionSort/SelectionSort.java'))

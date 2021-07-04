@@ -188,12 +188,6 @@ class SelectionSortDialog(QtWidgets.QDialog):
     def stopExecAlgorithm(self):
         self.isStop = True
 
-    def jumpAlgoDesc(self):
-        LogUtil.i("jumpAlgoDesc")
-        from widget.algorithm.sort.SelectionSortDescDialog import SelectionSortDescDialog
-        SelectionSortDescDialog()
-        pass
-
     def setData(self, orderedIndex=-1, currentCompareIndex=-1, currentMinIndex=-1):
         self.orderedIndex = orderedIndex
         self.currentCompareIndex = currentCompareIndex
@@ -252,3 +246,14 @@ class SelectionSortDialog(QtWidgets.QDialog):
 
     def pause(self, delay=0.1):
         time.sleep(delay)
+
+    def jumpAlgoDesc(self):
+        LogUtil.i("jumpAlgoDesc")
+        from widget.algorithm.AlgorithmDescDialog import AlgorithmDescDialog
+        basePath = FileUtil.getAlgorithmFp("SelectionSort/")
+        LogUtil.e("basePath:", basePath)
+        AlgorithmDescDialog("选择排序算法描述", FileUtil.readFile(basePath + "SelectionSort.html"),
+                            FileUtil.readFile(basePath + "SelectionSort.java"),
+                            FileUtil.readFile(basePath + "SelectionSort.js"),
+                            FileUtil.readFile(basePath + "SelectionSort.py"))
+        pass
