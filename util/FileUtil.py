@@ -119,7 +119,7 @@ class FileUtil:
         :param fn: 文件名
         :return: 项目下指定配置文件的path
         """
-        path = FileUtil.getProjectPath() + "/config/"
+        path = FileUtil.getProjectPath() + "/resources/config/"
         if not os.path.isdir(path):
             os.mkdir(path)
         for fileName in os.listdir(path):
@@ -134,7 +134,7 @@ class FileUtil:
         :param fn: 文件名
         :return: 项目下指定icon文件的path
         """
-        path = FileUtil.getProjectPath() + "/icons/"
+        path = FileUtil.getProjectPath() + "/resources/icons/"
         if not os.path.isdir(path):
             os.mkdir(path)
         return path + fn

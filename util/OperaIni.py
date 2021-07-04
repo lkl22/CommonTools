@@ -91,7 +91,7 @@ class OperaIni:
 
 
 if __name__ == '__main__':
-    operaIni = OperaIni("../config/BaseConfig.ini")
+    operaIni = OperaIni("../resources/config/BaseConfig.ini")
     # print(operaIni.getValue("password_et", "main_element"))
     # operaIni.clearIni()
     operaIni.addSection('android')

@@ -19,8 +19,8 @@ class WeditorUtil:
                 if err or not out:
                     LogUtil.e(err)
                     LogUtil.d('start install python')
-                    installPackageFp = FileUtil.getProjectPath() + '/software/python-3.8.6-amd64.exe'
-                    # installPackageFp = 'E:/PythonProjects/CommonTools/software/python-3.8.6-amd64.exe'
+                    installPackageFp = FileUtil.getProjectPath() + '/resources/software/python-3.8.6-amd64.exe'
+                    # installPackageFp = 'E:/PythonProjects/CommonTools/resources/software/python-3.8.6-amd64.exe'
                     LogUtil.d('install package file path:' + installPackageFp)
                     if os.path.isfile(installPackageFp):
                         res = ShellUtil.system(installPackageFp + ' /passive InstallAllUsers=1 PrependPath=1')
