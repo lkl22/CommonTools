@@ -255,5 +255,8 @@ class SelectionSortDialog(QtWidgets.QDialog):
         AlgorithmDescDialog("选择排序算法描述", FileUtil.readFile(basePath + "SelectionSort.html"),
                             FileUtil.readFile(basePath + "SelectionSort.java"),
                             FileUtil.readFile(basePath + "SelectionSort.js"),
-                            FileUtil.readFile(basePath + "SelectionSort.py"))
+                            FileUtil.readFile(basePath + "SelectionSort.py"),
+                            FileUtil.readFile(basePath + "SelectionSort.c"),
+                            FileUtil.readFile(basePath + "SelectionSort.cpp"),
+                            FileUtil.readFile(basePath + "SelectionSort.swift"))
         pass

@@ -2,7 +2,8 @@
 # python 3.x
 # Filename: AlgorithmDescDialog.py
 # 定义一个AlgorithmDescDialog类实现算法描述和代码实现功能
-from PyQt5.Qsci import QsciScintilla, QsciLexerPython, QsciLexer, QsciLexerJavaScript, QsciLexerJava
+from PyQt5.Qsci import QsciScintilla, QsciLexerPython, QsciLexer, QsciLexerJavaScript, QsciLexerJava, QsciLexerCPP, \
+    QsciLexerCustom
 from constant.WidgetConst import *
 from util.Uiautomator import *
 
@@ -12,7 +13,7 @@ class AlgorithmDescDialog(QtWidgets.QDialog):
     WINDOW_HEIGHT = 600
     DESC_GROUP_BOX_HEIGHT = 200
 
-    def __init__(self, title, descText, javaCode=None, javaScriptCode=None, pythonCode=None):
+    def __init__(self, title, descText, javaCode=None, javaScriptCode=None, pythonCode=None, cCode=None, cppCode=None, swiftCode=None):
         # 调用父类的构函
         QtWidgets.QDialog.__init__(self)
         LogUtil.d("Init Algorithm Visualizer Dialog")
@@ -35,6 +36,9 @@ class AlgorithmDescDialog(QtWidgets.QDialog):
         self.javaCode = javaCode
         self.javaScriptCode = javaScriptCode
         self.pythonCode = pythonCode
+        self.cCode = cCode
+        self.cppCode = cppCode
+        self.swiftCode = swiftCode
 
         descGroupBox = self.createDescGroupBox(layoutWidget)
         vbox.addWidget(descGroupBox)
@@ -79,6 +83,12 @@ class AlgorithmDescDialog(QtWidgets.QDialog):
             tabWidget.addTab(self.createTabWidget(self.javaScriptCode, QsciLexerJavaScript()), "JavaScript")
         if self.pythonCode:
             tabWidget.addTab(self.createTabWidget(self.pythonCode, QsciLexerPython()), "Python")
+        if self.cCode:
+            tabWidget.addTab(self.createTabWidget(self.cCode, QsciLexerCPP()), "C")
+        if self.cppCode:
+            tabWidget.addTab(self.createTabWidget(self.cppCode, QsciLexerCPP()), "C++")
+        if self.swiftCode:
+            tabWidget.addTab(self.createTabWidget(self.swiftCode, QsciLexerCPP()), "Swift")
 
         return box
 
