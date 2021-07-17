@@ -4,6 +4,8 @@
 # 定义一个OperaIni工具类实现ini相关的功能
 import sys
 import configparser
+
+from util.JsonUtil import JsonUtil
 from util.LogUtil import *
 from util.FileUtil import *
 
@@ -97,6 +99,12 @@ if __name__ == '__main__':
     operaIni.addSection('android')
     operaIni.addItem('android', 'color_normal_res', 'ss')
     operaIni.addItem('android', 'color_dark_res', 'fff')
+
+    operaIni.addSection('tinify')
+    # operaIni.addItem('tinify', 'keys', JsonUtil.encode(['29FpBDsSRJnSMpL5bwbnqFWMpgWFdcb8']))
+
     operaIni.saveIni()
+
+    print(JsonUtil.decode(operaIni.getValue('keys', 'tinify')))
 
     print(FileUtil.getProjectPath())
