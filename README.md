@@ -72,3 +72,5 @@ Working directory：$ProjectFileDir$
 [python中的subprocess.Popen()使用](https://www.cnblogs.com/zhoug2020/p/5079407.html)
 
 [https://tinypng.com/developers/reference/python](https://tinypng.com/developers/reference/python)
+
+[https://www.iconfont.cn/](https://www.iconfont.cn/)

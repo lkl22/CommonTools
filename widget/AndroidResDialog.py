@@ -47,17 +47,38 @@ class AndroidResDialog(QtWidgets.QDialog):
         box = WidgetUtil.createGroupBox(parent, title="xml resource")
         yPos = const.GROUP_BOX_MARGIN_TOP
         width = AndroidResDialog.WINDOW_WIDTH - const.PADDING * 4
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
+        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT * 2.5))
+        sizePolicy = WidgetUtil.createSizePolicy()
+        layoutWidget = QtWidgets.QWidget(splitter)
+        layoutWidget.setObjectName("layoutWidget")
+        vLayout = WidgetUtil.createVBoxLayout(margins=QMargins(0, 0, 0, 0))
+        layoutWidget.setLayout(vLayout)
+        layoutWidget.setSizePolicy(sizePolicy)
 
+        layoutWidget1 = QtWidgets.QWidget(splitter)
+        layoutWidget1.setObjectName("layoutWidget")
+        vLayout1 = WidgetUtil.createVBoxLayout(margins=QMargins(0, 0, 0, 0))
+        layoutWidget1.setLayout(vLayout1)
+        btn = WidgetUtil.createPushButton(layoutWidget1, text="", onClicked=self.exchangeDirs)
+        btn.setFixedSize(40, 40)
+        btn.setStyleSheet("background-color: white")
+        btn.setContentsMargins(0, 20, 0, 20)
+        btn.setIconSize(QSize(40, 40))
+        btn.setIcon(QIcon(FileUtil.getIconFp('androidRes/exchange.png')))
+        vLayout1.addWidget(btn)
+
+        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width - const.HEIGHT, const.HEIGHT))
         WidgetUtil.createPushButton(splitter, text="源文件路径", minSize=QSize(120, const.HEIGHT),
                                     onClicked=self.getSrcFilePath)
         sizePolicy = WidgetUtil.createSizePolicy()
         self.srcFilePathLineEdit = WidgetUtil.createLineEdit(splitter, isEnable=False, sizePolicy=sizePolicy)
+        vLayout.addWidget(splitter)
 
         yPos += const.HEIGHT_OFFSET
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
+        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width - const.HEIGHT, const.HEIGHT))
         WidgetUtil.createPushButton(splitter, text="目标文件路径", onClicked=self.getDstFilePath)
         self.dstFilePathLineEdit = WidgetUtil.createLineEdit(splitter, sizePolicy=sizePolicy)
+        vLayout.addWidget(splitter)
 
         yPos += const.HEIGHT_OFFSET
         splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
@@ -123,6 +144,13 @@ class AndroidResDialog(QtWidgets.QDialog):
         fp = WidgetUtil.getExistingDirectory()
         if fp:
             self.dstFilePathLineEdit.setText(fp)
+        pass
+
+    def exchangeDirs(self):
+        srcFileDirPath = self.srcFilePathLineEdit.text().strip()
+        dstFileDirPath = self.dstFilePathLineEdit.text().strip()
+        self.srcFilePathLineEdit.setText(dstFileDirPath)
+        self.dstFilePathLineEdit.setText(srcFileDirPath)
         pass
 
     def resTypeToggled(self, radioButton):
