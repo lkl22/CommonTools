@@ -48,19 +48,19 @@ class PicturePreviewDialog(QtWidgets.QDialog):
             layout.addWidget(self.openFile)
 
         self.zoomIn = self.createPushBtn(FileUtil.getIconFp('previewImage/zoom_in.png'), self.largeClick)
-        # self.zoomIn = self.createPushBtn('../../icons/previewImage/zoom_in.png', self.largeClick)
+        # self.zoomIn = self.createPushBtn('../../resources/icons/previewImage/zoom_in.png', self.largeClick)
         layout.addWidget(self.zoomIn)
 
         self.zoomOut = self.createPushBtn(FileUtil.getIconFp('previewImage/zoom_out.png'), self.smallClick)
-        # self.zoomOut = self.createPushBtn('../../icons/previewImage/zoom_out.png', self.smallClick)
+        # self.zoomOut = self.createPushBtn('../../resources/icons/previewImage/zoom_out.png', self.smallClick)
         layout.addWidget(self.zoomOut)
 
         self.rotateLeft = self.createPushBtn(FileUtil.getIconFp('previewImage/rotateLeft.png'), self.rotateLeftClick)
-        # self.rotateLeft = self.createPushBtn('../../icons/previewImage/rotateLeft.png', self.rotateLeftClick)
+        # self.rotateLeft = self.createPushBtn('../../resources/icons/previewImage/rotateLeft.png', self.rotateLeftClick)
         layout.addWidget(self.rotateLeft)
 
         self.rotateRight = self.createPushBtn(FileUtil.getIconFp('previewImage/rotateRight.png'), self.rotateRightClick)
-        # self.rotateRight = self.createPushBtn('../../icons/previewImage/rotateRight.png', self.rotateRightClick)
+        # self.rotateRight = self.createPushBtn('../../resources/icons/previewImage/rotateRight.png', self.rotateRightClick)
         layout.addWidget(self.rotateRight)
 
         vbox.addWidget(w)

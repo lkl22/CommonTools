@@ -8,7 +8,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtGui import QIcon, QBrush, QStandardItemModel, QStandardItem, QColor, QKeySequence
 from PyQt5.QtWidgets import QWidget, QMessageBox, QSizePolicy, QTreeWidget, QMenu, QTreeWidgetItem, QDialog, \
     QRadioButton, QTableView, QHeaderView, QColorDialog, QSpinBox, QTextEdit, QApplication, QDoubleSpinBox, QMenuBar, \
-    QTabWidget
+    QTabWidget, QCheckBox
 from PyQt5.QtCore import QRect, QMargins, QSize, Qt
 
 from util.LogUtil import *
@@ -420,6 +420,33 @@ class WidgetUtil:
         widget.setChecked(isChecked)
         if onToggled:
             widget.toggled.connect(onToggled)
+        return widget
+
+    @staticmethod
+    def createCheckBox(parent: QWidget, objectName="RadioButton", text="RadioButton", toolTip=None, isEnable=True,
+                          autoExclusive=False, isChecked=False, geometry: QRect = None, sizePolicy: QSizePolicy = None,
+                          stateChanged=None):
+        """
+        创建一个复选框
+        :param parent: 父QWidget
+        :param objectName: objectName
+        :param text: text
+        :param toolTip: toolTip
+        :param isEnable: enable
+        :param autoExclusive: autoExclusive False 独立到，True 同一个父widget到为一组
+        :param isChecked: isChecked 默认是否选中，true选中
+        :param geometry: geometry
+        :param sizePolicy: 缩放策略
+        :param stateChanged: toggled checked状态切换回调
+        :return: 复选框
+        """
+        widget = QCheckBox(parent)
+        widgetSetAttrs(widget, objectName, toolTip=toolTip, geometry=geometry, isEnable=isEnable, sizePolicy=sizePolicy)
+        widget.setText(_translate(contextName, text))
+        widget.setAutoExclusive(autoExclusive)
+        widget.setChecked(isChecked)
+        if stateChanged:
+            widget.stateChanged.connect(stateChanged)
         return widget
 
     @staticmethod
