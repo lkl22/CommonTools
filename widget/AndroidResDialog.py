@@ -49,17 +49,10 @@ class AndroidResDialog(QtWidgets.QDialog):
         width = AndroidResDialog.WINDOW_WIDTH - const.PADDING * 4
         splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT * 2.5))
         sizePolicy = WidgetUtil.createSizePolicy()
-        layoutWidget = QtWidgets.QWidget(splitter)
-        layoutWidget.setObjectName("layoutWidget")
-        vLayout = WidgetUtil.createVBoxLayout(margins=QMargins(0, 0, 0, 0))
-        layoutWidget.setLayout(vLayout)
-        layoutWidget.setSizePolicy(sizePolicy)
+        vLayout = WidgetUtil.createVBoxWidget(splitter, margins=QMargins(0, 0, 0, 0), sizePolicy=sizePolicy)
 
-        layoutWidget1 = QtWidgets.QWidget(splitter)
-        layoutWidget1.setObjectName("layoutWidget")
-        vLayout1 = WidgetUtil.createVBoxLayout(margins=QMargins(20, 0, 10, 0))
-        layoutWidget1.setLayout(vLayout1)
-        btn = WidgetUtil.createPushButton(layoutWidget1, text="", fixedSize=QSize(30, 40), styleSheet="background-color: white",
+        vLayout1 = WidgetUtil.createVBoxWidget(splitter, margins=QMargins(20, 0, 10, 0))
+        btn = WidgetUtil.createPushButton(splitter, text="", fixedSize=QSize(30, 40), styleSheet="background-color: white",
                                           iconSize=QSize(30, 40), icon=QIcon(FileUtil.getIconFp('androidRes/exchange.png')),
                                           onClicked=self.exchangeDirs)
         vLayout1.addWidget(btn)

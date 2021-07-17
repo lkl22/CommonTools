@@ -186,6 +186,23 @@ class WidgetUtil:
         return layout
 
     @staticmethod
+    def createVBoxWidget(parent: QWidget, margins: QMargins = None, sizePolicy: QSizePolicy = None):
+        """
+        创建一个Widget使用垂直布局容器
+        :param parent: 父QWidget
+        :param margins: margin值
+        :param sizePolicy: 缩放策略
+        :return: QVBoxLayout
+        """
+        layoutWidget = QtWidgets.QWidget(parent)
+        layoutWidget.setObjectName("layoutWidget")
+        layout = WidgetUtil.createVBoxLayout(margins=margins)
+        layoutWidget.setLayout(layout)
+        if sizePolicy:
+            layoutWidget.setSizePolicy(sizePolicy)
+        return layout
+
+    @staticmethod
     def createSplitter(parent: QWidget = None, isVertical=False, objectName="Splitter", toolTip=None,
                        geometry: QRect = None, minSize: QSize = None, sizePolicy: QSizePolicy = None):
         """
