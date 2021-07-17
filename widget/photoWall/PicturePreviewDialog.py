@@ -117,12 +117,8 @@ class PicturePreviewDialog(QtWidgets.QDialog):
         self.exec()
 
     def createPushBtn(self, icon, onClicked):
-        btn = WidgetUtil.createPushButton(self, text="", onClicked=onClicked)
-        btn.setFixedSize(30, 30)
-        btn.setStyleSheet("background-color: white")
-        btn.setIconSize(QSize(20, 20))
-        btn.setIcon(QIcon(icon))
-        return btn
+        return WidgetUtil.createPushButton(self, text="", fixedSize=QSize(30, 30), styleSheet="background-color: white",
+                                           iconSize=QSize(20, 20), icon=QIcon(icon), onClicked=onClicked)
 
     def openImage(self):
         """

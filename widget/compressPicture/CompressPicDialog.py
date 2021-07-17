@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # python 3.x
-# Filename: AndroidResDialog.py
-# 定义一个AndroidResDialog类实现android xml资源文件移动合并的功能
+# Filename: CompressPicDialog.py
+# 定义一个CompressPicDialog类实现图片压缩的功能
 from constant.WidgetConst import *
 from util.FileUtil import *
 from util.DialogUtil import *
@@ -12,24 +12,24 @@ RES_TYPE_LIST = ['无', 'string', 'color', 'style', 'dimen', 'plurals', 'declare
                  'integer-array', 'attr']
 
 
-class AndroidResDialog(QtWidgets.QDialog):
+class CompressPicDialog(QtWidgets.QDialog):
     WINDOW_WIDTH = 800
     WINDOW_HEIGHT = 600
 
     def __init__(self):
         # 调用父类的构函
         QtWidgets.QDialog.__init__(self)
-        LogUtil.d("Init Android Res Dialog")
-        self.setObjectName("AndroidResDialog")
-        self.resize(AndroidResDialog.WINDOW_WIDTH, AndroidResDialog.WINDOW_HEIGHT)
-        self.setFixedSize(AndroidResDialog.WINDOW_WIDTH, AndroidResDialog.WINDOW_HEIGHT)
-        self.setWindowTitle(WidgetUtil.translate(text="Android xml资源文件处理"))
+        LogUtil.d("Init Compress Pic Dialog")
+        self.setObjectName("CompressPicDialog")
+        self.resize(CompressPicDialog.WINDOW_WIDTH, CompressPicDialog.WINDOW_HEIGHT)
+        self.setFixedSize(CompressPicDialog.WINDOW_WIDTH, CompressPicDialog.WINDOW_HEIGHT)
+        self.setWindowTitle(WidgetUtil.translate(text="图片压缩工具"))
 
         self.resType = RES_TYPE_LIST[0]
 
         layoutWidget = QtWidgets.QWidget(self)
-        layoutWidget.setGeometry(QRect(const.PADDING, const.PADDING, AndroidResDialog.WINDOW_WIDTH - const.PADDING * 2,
-                                       AndroidResDialog.WINDOW_HEIGHT - const.PADDING * 2))
+        layoutWidget.setGeometry(QRect(const.PADDING, const.PADDING, CompressPicDialog.WINDOW_WIDTH - const.PADDING * 2,
+                                       CompressPicDialog.WINDOW_HEIGHT - const.PADDING * 2))
         layoutWidget.setObjectName("layoutWidget")
 
         vLayout = WidgetUtil.createVBoxLayout(margins=QMargins(0, 0, 0, 0))
@@ -44,9 +44,9 @@ class AndroidResDialog(QtWidgets.QDialog):
         self.exec_()
 
     def createXmlResGroupBox(self, parent):
-        box = WidgetUtil.createGroupBox(parent, title="xml resource")
+        box = WidgetUtil.createGroupBox(parent, title="图片压缩")
         yPos = const.GROUP_BOX_MARGIN_TOP
-        width = AndroidResDialog.WINDOW_WIDTH - const.PADDING * 4
+        width = CompressPicDialog.WINDOW_WIDTH - const.PADDING * 4
         splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT * 2.5))
         sizePolicy = WidgetUtil.createSizePolicy()
         layoutWidget = QtWidgets.QWidget(splitter)
@@ -59,9 +59,12 @@ class AndroidResDialog(QtWidgets.QDialog):
         layoutWidget1.setObjectName("layoutWidget")
         vLayout1 = WidgetUtil.createVBoxLayout(margins=QMargins(20, 0, 10, 0))
         layoutWidget1.setLayout(vLayout1)
-        btn = WidgetUtil.createPushButton(layoutWidget1, text="", fixedSize=QSize(30, 40), styleSheet="background-color: white",
-                                          iconSize=QSize(30, 40), icon=QIcon(FileUtil.getIconFp('androidRes/exchange.png')),
-                                          onClicked=self.exchangeDirs)
+        btn = WidgetUtil.createPushButton(layoutWidget1, text="", onClicked=self.exchangeDirs)
+        btn.setFixedSize(30, 40)
+        btn.setStyleSheet("background-color: white")
+        btn.setContentsMargins(0, 20, 0, 20)
+        btn.setIconSize(QSize(30, 40))
+        btn.setIcon(QIcon(FileUtil.getIconFp('androidRes/exchange.png')))
         vLayout1.addWidget(btn)
 
         splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width - const.HEIGHT, const.HEIGHT))

@@ -215,6 +215,8 @@ class MainWidget(QMainWindow):
         splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, 1000, const.HEIGHT))
         WidgetUtil.createPushButton(splitter, text="Json格式化工具", onClicked=self.jumpJsonDialog)
 
+        WidgetUtil.createPushButton(splitter, text="图片压缩", onClicked=self.jumpCompressPicDialog)
+
         WidgetUtil.createPushButton(splitter, text="Android资源移动工具", onClicked=self.jumpAndroidResDialog)
 
         WidgetUtil.createPushButton(splitter, text="Android color资源管理工具", onClicked=self.jumpAndroidColorResDialog)
@@ -239,6 +241,12 @@ class MainWidget(QMainWindow):
         LogUtil.i("jumpAndroidResDialog")
         from widget.AndroidResDialog import AndroidResDialog
         AndroidResDialog()
+        pass
+
+    def jumpCompressPicDialog(self):
+        LogUtil.i("jumpCompressPicDialog")
+        from widget.compressPicture.CompressPicDialog import CompressPicDialog
+        CompressPicDialog()
         pass
 
     def jumpAndroidColorResDialog(self):

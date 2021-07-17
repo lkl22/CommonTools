@@ -406,18 +406,22 @@ class WidgetUtil:
         return widget
 
     @staticmethod
-    def createPushButton(parent: QWidget, objectName="PushButton", text="PushButton", toolTip=None,
-                         geometry: QRect = None, minSize: QSize = None, isEnable=True,
-                         sizePolicy: QSizePolicy = None, onClicked=None):
+    def createPushButton(parent: QWidget, objectName="PushButton", text="PushButton", toolTip=None, fixedSize: QSize = None,
+                         geometry: QRect = None, minSize: QSize = None, isEnable=True, styleSheet: str = None,
+                         iconSize: QSize = None, icon: QIcon = None, sizePolicy: QSizePolicy = None, onClicked=None):
         """
         创建一个Button
         :param parent: 父QWidget
         :param objectName: objectName
         :param text: text
         :param toolTip: toolTip
+        :param fixedSize: 固定大小
         :param geometry: geometry
         :param minSize: minSize
         :param isEnable: isEnable
+        :param styleSheet: 样式表 设置按钮样式
+        :param iconSize: 图标大小
+        :param icon: 图标
         :param sizePolicy: 缩放策略
         :param onClicked: clicked回调函数
         :return: QPushButton
@@ -426,6 +430,14 @@ class WidgetUtil:
         widgetSetAttrs(widget, objectName, toolTip=toolTip, geometry=geometry, minSize=minSize, isEnable=isEnable,
                        sizePolicy=sizePolicy)
         widget.setText(_translate(contextName, text))
+        if fixedSize:
+            widget.setFixedSize(fixedSize)
+        if styleSheet:
+            widget.setStyleSheet(styleSheet)
+        if iconSize:
+            widget.setIconSize(iconSize)
+        if icon:
+            widget.setIcon(icon)
         if onClicked:
             widget.clicked.connect(onClicked)
         return widget
