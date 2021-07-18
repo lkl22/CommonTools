@@ -204,12 +204,33 @@ class FileUtil:
 
     @staticmethod
     def readFile(fp, encoding='utf8'):
+        """
+        读取文件内容
+        :param fp: 文件path
+        :param encoding: 文件编码
+        :return: 文件内容
+        """
         try:
             file = open(fp, encoding=encoding)
             return file.read()
         except Exception as e:
             LogUtil.e('FileUtil readFile 错误信息：', e)
             return None
+
+    @staticmethod
+    def readFileSize(fn: str):
+        """
+        读取文件大小
+        :param fn: 文件名
+        :return: 大小
+        """
+        try:
+            size = os.path.getsize(fn)
+            LogUtil.d("readFileSize", fn, size)
+            return size
+        except Exception as e:
+            LogUtil.e('FileUtil readFileSize 错误信息：', e)
+            return -1
 
 
 if __name__ == "__main__":
@@ -229,4 +250,5 @@ if __name__ == "__main__":
     # FileUtil.zipDir('./testZip', './testZip1.zip')
     # FileUtil.unzipFile('./testZip.zip', './testZip3')
 
-    print(FileUtil.readFile('../resources/algorithm/SelectionSort/SelectionSort.java'))
+    # print(FileUtil.readFile('../resources/algorithm/SelectionSort/SelectionSort.java'))
+    print(FileUtil.readFileSize('0C1A8658.JPG'))

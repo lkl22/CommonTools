@@ -52,6 +52,7 @@ class CompressPicDialog(QtWidgets.QDialog):
 
         self.metaDataList = []
         self.metaDataBtns = []
+        self.compressRes = []
 
         vLayout = WidgetUtil.createVBoxWidget(self, margins=QMargins(0, 0, 0, 0),
                                               geometry=QRect(const.PADDING, const.PADDING,
@@ -292,9 +293,9 @@ class CompressPicDialog(QtWidgets.QDialog):
 
         # 查找需要修改的图片列表
         srcFiles = FileUtil.findFilePathList(srcFileDirPath, srcFnPs)
-        threads = []
         if srcFiles:
             self.setCompressPicProgress(0, len(srcFiles))
+            self.compressRes.clear()
             self.compressPicByThread(srcFiles, srcFileDirPath, dstFileDirPath, dstFnPs)
         else:
             WidgetUtil.showErrorDialog(message="指定目录下未查找到指定的图片文件")
@@ -310,8 +311,10 @@ class CompressPicDialog(QtWidgets.QDialog):
                     fp, fn = os.path.split(dstFile)  # 分离文件名和路径
                     dstFile = os.path.join(fp, dstFnPs)
 
+                argRes = {"srcFile": srcFile, "dstFile": dstFile, "srcFileSize": FileUtil.readFileSize(srcFile)}
+                self.compressRes.append(argRes)
                 future = t.submit(self.picCompress,
-                                  (srcFile, dstFile, self.metaDataList if self.metaDataList else None,))
+                                  (argRes, self.metaDataList if self.metaDataList else None,))
                 futureList.append(future)
 
             compressFinishedCount = 0
@@ -321,10 +324,12 @@ class CompressPicDialog(QtWidgets.QDialog):
                 data = future.result()
                 LogUtil.e(f"main: {data}")
 
-            LogUtil.d("all pic compress finished")
+            LogUtil.d("all pic compress finished", self.compressRes)
 
     def picCompress(self, args: ()):
-        (srcFp, dstFp, preserves) = args
+        (argRes, preserves) = args
+        srcFp = argRes.get("srcFile")
+        dstFp = argRes.get("dstFile")
         LogUtil.d("picCompress start.", srcFp, dstFp, preserves)
         if not self.apiKeys:
             WidgetUtil.showErrorDialog(message="请添加tinypng API key。（https://tinypng.com/developers 可以注册）")
@@ -343,7 +348,10 @@ class CompressPicDialog(QtWidgets.QDialog):
         # 释放锁
         threadLock.release()
 
-        return srcFp, dstFp, TinifyUtil.compressing(apiKey, srcFp, dstFp, preserves)
+        argRes["msg"] = TinifyUtil.compressing(apiKey, srcFp, dstFp, preserves)
+        argRes["dstFileSize"] = FileUtil.readFileSize(dstFp)
+        argRes["compressRatio"] = round((argRes["srcFileSize"] - argRes["dstFileSize"]) / float(argRes["srcFileSize"]) * 100, 2)
+        return argRes
         pass
 
 
