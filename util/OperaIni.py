@@ -61,8 +61,11 @@ class OperaIni:
         :param option: option
         :param value: value
         """
-        self.addSection(section)
-        self.configParser.set(section, option, value)
+        try:
+            self.addSection(section)
+            self.configParser.set(section, option, value)
+        except Exception as err:
+            LogUtil.e('OperaIni addItem 错误信息：', err)
 
     def removeItem(self, section, option):
         """

@@ -22,6 +22,7 @@ META_DATA_LIST = ['copyright', 'creation', 'location']
 CONFIG_SECTION = 'PictureCompress'
 KEY_SRC_FILE_DIR_PATH = 'srcFileDirPath'
 KEY_DST_FILE_DIR_PATH = 'dstFileDirPath'
+KEY_MAX_WORKER_THREAD_COUNT = 'maxWorkerThreadCount'
 
 threadLock = threading.Lock()
 
@@ -41,9 +42,12 @@ class CompressPicDialog(QtWidgets.QDialog):
 
         # self.operaIni = OperaIni(FileUtil.getProjectPath() + "/resources/config/BaseConfig.ini")
         self.operaIni = OperaIni("../../resources/config/BaseConfig.ini")
-
+        self.maxWorkerThreadCount = int(self.getConfig(KEY_MAX_WORKER_THREAD_COUNT))
+        if not self.maxWorkerThreadCount:
+            self.maxWorkerThreadCount = 5
         self.apiKeys = self.getTinifyApiKeys()
         self.apiKeyIndex = 0
+
         self.metaDataList = []
         self.metaDataBtns = []
 
@@ -131,6 +135,18 @@ class CompressPicDialog(QtWidgets.QDialog):
         WidgetUtil.createLabel(splitter, text="", sizePolicy=WidgetUtil.createSizePolicy())
 
         yPos += const.HEIGHT_OFFSET
+        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, 300, const.HEIGHT))
+        WidgetUtil.createLabel(splitter, text="同时压缩文件数量：", alignment=Qt.AlignVCenter | Qt.AlignRight,
+                               minSize=QSize(140, const.HEIGHT))
+        self.maxWorkerThreadCountSpinBox = WidgetUtil.createSpinBox(splitter,
+                                                                    value=self.maxWorkerThreadCount,
+                                                                    minValue=3,
+                                                                    maxValue=25,
+                                                                    step=1,
+                                                                    sizePolicy=sizePolicy,
+                                                                    valueChanged=self.maxWorkerThreadCountChanged)
+
+        yPos += const.HEIGHT_OFFSET
         splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, 150, const.HEIGHT))
         WidgetUtil.createPushButton(splitter, text="启动压缩", onClicked=self.startPicCompress)
         return box
@@ -195,6 +211,12 @@ class CompressPicDialog(QtWidgets.QDialog):
         else:
             self.dstFnPatternsLineEdit.setEnabled(False)
 
+    def maxWorkerThreadCountChanged(self):
+        maxWorkerThreadCount = self.maxWorkerThreadCountSpinBox.value()
+        self.setConfig(KEY_MAX_WORKER_THREAD_COUNT, str(maxWorkerThreadCount))
+        LogUtil.d("maxWorkerThreadCountChanged", maxWorkerThreadCount)
+        pass
+
     def startPicCompress(self):
         srcFileDirPath = self.srcFilePathLineEdit.text().strip()
         if not srcFileDirPath:
@@ -226,7 +248,7 @@ class CompressPicDialog(QtWidgets.QDialog):
 
     def compressPicByThread(self, srcFiles, srcFileDirPath, dstFileDirPath, dstFnPs):
         LogUtil.d("compressPicByThread")
-        with ThreadPoolExecutor(max_workers=5) as t:
+        with ThreadPoolExecutor(max_workers=self.maxWorkerThreadCount) as t:
             futureList = []
             for srcFile in srcFiles:
                 dstFile = srcFile.replace(srcFileDirPath, dstFileDirPath, 1)
