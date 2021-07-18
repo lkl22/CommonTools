@@ -343,7 +343,8 @@ class AndroidColorResDialog(QtWidgets.QDialog):
                 res = self.findColorRes
         LogUtil.e("查找到的资源：", res)
         self.findColorResResult = res
-        WidgetUtil.addTableViewData(self.findResTableView, res, [AndroidColorResDialog.KEY_ROW], self.tableItemChanged)
+        WidgetUtil.addTableViewData(self.findResTableView, data=res, ignoreCol=[AndroidColorResDialog.KEY_ROW],
+                                    itemChanged=self.tableItemChanged)
         pass
 
     def addColorRes(self):

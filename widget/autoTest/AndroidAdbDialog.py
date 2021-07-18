@@ -159,7 +159,7 @@ class AndroidAdbDialog(QtWidgets.QDialog):
     def updateTableData(self):
         LogUtil.i("updateTableData")
         self.src2TableDatas()
-        WidgetUtil.addTableViewData(self.stepsTableView, self.execTestStepTableDatas)
+        WidgetUtil.addTableViewData(self.stepsTableView, data=self.execTestStepTableDatas)
         WidgetUtil.tableViewSetColumnWidth(self.stepsTableView)
         pass
 

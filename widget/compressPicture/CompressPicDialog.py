@@ -29,7 +29,7 @@ threadLock = threading.Lock()
 
 class CompressPicDialog(QtWidgets.QDialog):
     WINDOW_WIDTH = 1000
-    WINDOW_HEIGHT = 600
+    WINDOW_HEIGHT = 670
 
     def __init__(self, isDebug=False):
         # 调用父类的构函
@@ -195,6 +195,10 @@ class CompressPicDialog(QtWidgets.QDialog):
                                                                 sizePolicy=sizePolicy)
         self.progressTextLabel = WidgetUtil.createLabel(splitter, text="", alignment=Qt.AlignVCenter | Qt.AlignHCenter,
                                                         minSize=QSize(100, const.HEIGHT))
+
+        yPos += const.HEIGHT_OFFSET
+        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, 230))
+        self.compressResTableView = WidgetUtil.createTableView(splitter, minSize=QSize(width, 200), sizePolicy=sizePolicy)
         return box
 
     def getTinifyApiKeys(self):
@@ -311,7 +315,9 @@ class CompressPicDialog(QtWidgets.QDialog):
                     fp, fn = os.path.split(dstFile)  # 分离文件名和路径
                     dstFile = os.path.join(fp, dstFnPs)
 
-                argRes = {"srcFile": srcFile, "dstFile": dstFile, "srcFileSize": FileUtil.readFileSize(srcFile)}
+                argRes = {"srcFile": srcFile, "srcFileName": FileUtil.getFileName(srcFile),
+                          "srcFileSize": FileUtil.readFileSize(srcFile),
+                          "dstFile": dstFile, "dstFileName": FileUtil.getFileName(dstFile)}
                 self.compressRes.append(argRes)
                 future = t.submit(self.picCompress,
                                   (argRes, self.metaDataList if self.metaDataList else None,))
@@ -325,6 +331,9 @@ class CompressPicDialog(QtWidgets.QDialog):
                 LogUtil.e(f"main: {data}")
 
             LogUtil.d("all pic compress finished", self.compressRes)
+            WidgetUtil.addTableViewData(self.compressResTableView, data=self.compressRes,
+                                        ignoreCol=["srcFile", "dstFile", "msg"],
+                                        headerLabels=["源文件", "源文件大小", "压缩文件", "压缩文件大小", "压缩比"])
 
     def picCompress(self, args: ()):
         (argRes, preserves) = args
@@ -350,7 +359,7 @@ class CompressPicDialog(QtWidgets.QDialog):
 
         argRes["msg"] = TinifyUtil.compressing(apiKey, srcFp, dstFp, preserves)
         argRes["dstFileSize"] = FileUtil.readFileSize(dstFp)
-        argRes["compressRatio"] = round((argRes["srcFileSize"] - argRes["dstFileSize"]) / float(argRes["srcFileSize"]) * 100, 2)
+        argRes["compressRatio"] = f'{round((argRes["srcFileSize"] - argRes["dstFileSize"]) / float(argRes["srcFileSize"]) * 100, 2)}%'
         return argRes
         pass
 

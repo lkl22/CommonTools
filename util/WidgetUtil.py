@@ -821,12 +821,13 @@ class WidgetUtil:
         tableView.setColumnWidth(column, width)
 
     @staticmethod
-    def addTableViewData(tableView: QTableView, data=[{}], ignoreCol=[], itemChanged=None):
+    def addTableViewData(tableView: QTableView, data=[{}], ignoreCol=[], headerLabels: [] = None, itemChanged=None):
         """
         TableView设置数据
         :param tableView: QTableView
         :param data: 数据源
         :param ignoreCol: 需要忽略的数据列列表
+        :param headerLabels: 列表头部标题
         :param itemChanged: 单元格内容变化监听函数
         """
         if data:
@@ -840,10 +841,11 @@ class WidgetUtil:
             cols = cols - ignoreColCount
             # 设置数据层次结构，rows行cols列
             model = QStandardItemModel(rows, cols)
-            headerLabels = []
-            for key in data[0]:
-                if not (key in ignoreCol):
-                    headerLabels.append(key)
+            if not headerLabels:
+                headerLabels = []
+                for key in data[0]:
+                    if not (key in ignoreCol):
+                        headerLabels.append(key)
             # 设置水平方向头标签文本内容
             model.setHorizontalHeaderLabels(headerLabels)
 

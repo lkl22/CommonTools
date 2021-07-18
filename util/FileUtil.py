@@ -232,6 +232,20 @@ class FileUtil:
             LogUtil.e('FileUtil readFileSize 错误信息：', e)
             return -1
 
+    @staticmethod
+    def getFileName(fp: str):
+        """
+        获取文件名
+        :param fp: 文件路径
+        :return: 文件名
+        """
+        try:
+            name = os.path.basename(fp)
+            return name
+        except Exception as e:
+            LogUtil.e('FileUtil getFileName 错误信息：', e)
+            return ''
+
 
 if __name__ == "__main__":
     # print(FileUtil.findFilePathList("/Users/likunlun/PycharmProjects/CarAssist/app/src/main/res", ["ic_launcher.png", "colors.xml", "strings.xml"]))
@@ -252,3 +266,4 @@ if __name__ == "__main__":
 
     # print(FileUtil.readFile('../resources/algorithm/SelectionSort/SelectionSort.java'))
     print(FileUtil.readFileSize('0C1A8658.JPG'))
+    print(FileUtil.getFileName('/aa/ad/../d/0C1A8658.JPG'))
