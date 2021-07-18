@@ -878,9 +878,9 @@ class WidgetUtil:
     @staticmethod
     def createProgressBar(parent: QWidget = None, value: int = 0, minValue: int = 0, maxValue: int = 100,
                           orientation: Qt.Orientation = Qt.Horizontal, format: str = None,
-                          alignment: Qt.Alignment = None, textVisible: bool = False,
+                          alignment: Qt.Alignment = Qt.AlignHCenter, textVisible: bool = True,
                           textDirection: QProgressBar.Direction = None, invertedAppearance: bool = False,
-                          valueChanged=None):
+                          sizePolicy: QSizePolicy = None, valueChanged=None):
         """
         创建一个进度条 QProgressBar
         :param parent: 父QWidget
@@ -893,6 +893,7 @@ class WidgetUtil:
         :param textVisible: 文本标签 Visible
         :param textDirection: 文本方向 仅仅对垂直进度条有效 Visible QProgressBar.TopToBottom | QProgressBar.BottomToTop
         :param invertedAppearance: True 倒立外观
+        :param sizePolicy: 缩放策略
         :param valueChanged: 数值改变监听函数
         :return: QProgressBar
         """
@@ -914,6 +915,8 @@ class WidgetUtil:
         if textDirection:
             widget.setTextDirection(textDirection)
         widget.setInvertedAppearance(invertedAppearance)
+        if sizePolicy:
+            widget.setSizePolicy(sizePolicy)
         if valueChanged:
             widget.valueChanged.connect(valueChanged)
         return widget

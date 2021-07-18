@@ -81,8 +81,8 @@ class CompressPicDialog(QtWidgets.QDialog):
         WidgetUtil.createLabel(splitter, text="请输入要添加的API key：", alignment=Qt.AlignVCenter | Qt.AlignRight,
                                minSize=QSize(140, const.HEIGHT))
         self.apiKeysLineEdit = WidgetUtil.createLineEdit(splitter, sizePolicy=sizePolicy,
-                                                               holderText="请输入要添加的API key，多个以\";\"分隔。（https://tinypng.com/developers 可以注册）",
-                                                               textChanged=self.srcFnTextChanged)
+                                                         holderText="请输入要添加的API key，多个以\";\"分隔。（https://tinypng.com/developers 可以注册）",
+                                                         textChanged=self.srcFnTextChanged)
 
         yPos += const.HEIGHT_OFFSET
         splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, 150, const.HEIGHT))
@@ -185,6 +185,15 @@ class CompressPicDialog(QtWidgets.QDialog):
         yPos += const.HEIGHT_OFFSET
         splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, 150, const.HEIGHT))
         WidgetUtil.createPushButton(splitter, text="启动压缩", onClicked=self.startPicCompress)
+
+        yPos += const.HEIGHT_OFFSET
+        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, 600, const.HEIGHT))
+        WidgetUtil.createLabel(splitter, text="压缩进度：", alignment=Qt.AlignVCenter | Qt.AlignLeft,
+                               minSize=QSize(50, const.HEIGHT))
+        self.compressProgressBar = WidgetUtil.createProgressBar(splitter, value=0, format="%p%", textVisible=True,
+                                                                sizePolicy=sizePolicy)
+        self.progressTextLabel = WidgetUtil.createLabel(splitter, text="", alignment=Qt.AlignVCenter | Qt.AlignHCenter,
+                                                        minSize=QSize(100, const.HEIGHT))
         return box
 
     def getTinifyApiKeys(self):
@@ -254,6 +263,13 @@ class CompressPicDialog(QtWidgets.QDialog):
         LogUtil.d("maxWorkerThreadCountChanged", maxWorkerThreadCount)
         pass
 
+    def setCompressPicProgress(self, cur, totalCount):
+        self.compressProgressBar.setMaximum(totalCount)
+        self.compressProgressBar.setValue(cur)
+        self.progressTextLabel.setText(f"{cur}/{totalCount}")
+        # 触发实时显示数据
+        QApplication.instance().processEvents()
+
     def startPicCompress(self):
         srcFileDirPath = self.srcFilePathLineEdit.text().strip()
         if not srcFileDirPath:
@@ -278,6 +294,7 @@ class CompressPicDialog(QtWidgets.QDialog):
         srcFiles = FileUtil.findFilePathList(srcFileDirPath, srcFnPs)
         threads = []
         if srcFiles:
+            self.setCompressPicProgress(0, len(srcFiles))
             self.compressPicByThread(srcFiles, srcFileDirPath, dstFileDirPath, dstFnPs)
         else:
             WidgetUtil.showErrorDialog(message="指定目录下未查找到指定的图片文件")
@@ -297,7 +314,10 @@ class CompressPicDialog(QtWidgets.QDialog):
                                   (srcFile, dstFile, self.metaDataList if self.metaDataList else None,))
                 futureList.append(future)
 
+            compressFinishedCount = 0
             for future in as_completed(futureList):
+                compressFinishedCount += 1
+                self.setCompressPicProgress(compressFinishedCount, len(srcFiles))
                 data = future.result()
                 LogUtil.e(f"main: {data}")
 
