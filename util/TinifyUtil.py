@@ -5,6 +5,7 @@
 
 from util.LogUtil import LogUtil
 import tinify
+import threading
 
 
 class TinifyUtil:
@@ -69,10 +70,22 @@ class TinifyUtil:
             return "Something else went wrong, unrelated to the Tinify API. msg: {}".format(e)
             pass
 
+def compressingPic(pic: str):
+    key = "N2Nm578kdlJfXbQqwCk9pHL9gmzHdJMv"
+    print(TinifyUtil.compressing(key, pic, pic))
+    print("compressingPic", pic)
 
 if __name__ == "__main__":
     key = "N2Nm578kdlJfXbQqwCk9pHL9gmzHdJMv"
     # print(TinifyUtil.validate(key))
     # print(TinifyUtil.compressing(key, "0C1A8658.JPG", "2.jpg"))
     # print(TinifyUtil.compressing(key, "2.jpg", "3.jpg", ["copyright", "location"]))
-    print(TinifyUtil.compressing(key, "3.jpg", "4.jpg", resizeParams={"method": "fit", "width": 150, "height": 100}))
+    thread1 = threading.Thread(target=compressingPic, args=("0C1A8656.JPG",), kwargs={})
+    thread2 = threading.Thread(target=compressingPic, args=('0C1A8658.JPG',))
+    thread1.start()
+    thread2.start()
+    print("thread start.")
+    thread1.join()
+    thread2.join()
+    print("exit")
+    # print(TinifyUtil.compressing(key, "3.jpg", "4.jpg", resizeParams={"method": "fit", "width": 150, "height": 100}))
