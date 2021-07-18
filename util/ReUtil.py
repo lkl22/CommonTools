@@ -15,11 +15,15 @@ class ReUtil:
         :param patternStr: 正则表达式
         :return: True match
         """
-        pattern = re.compile("^%s$" % patternStr)
-        m = pattern.match(string)
-        if m:
-            return True
-        else:
+        try:
+            pattern = re.compile("^%s$" % patternStr)
+            m = pattern.match(string)
+            if m:
+                return True
+            else:
+                return False
+        except Exception as err:
+            LogUtil.e('match 错误信息：', err)
             return False
 
     @staticmethod

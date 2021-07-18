@@ -47,6 +47,7 @@ class TinifyUtil:
                 source = source.preserve(preserves)
             if resizeParams:
                 source = source.resize(**resizeParams)
+            LogUtil.d("compressing", "sourceFp {} toFp {} preserves {} resizeParams {}".format(sourceFp, toFp, preserves, resizeParams))
             source.to_file(toFp)
             return "Success"
             pass

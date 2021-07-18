@@ -5,13 +5,14 @@
 import sys
 import threading
 
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
 from constant.WidgetConst import *
 from util.FileUtil import *
 from util.DialogUtil import *
 from util.DomXmlUtil import *
 from util.JsonUtil import JsonUtil
 from util.LogUtil import *
-from util.MyThread import MyThread
 from util.OperaIni import OperaIni
 from util.TinifyUtil import TinifyUtil
 
@@ -218,24 +219,33 @@ class CompressPicDialog(QtWidgets.QDialog):
         srcFiles = FileUtil.findFilePathList(srcFileDirPath, srcFnPs)
         threads = []
         if srcFiles:
+            self.compressPicByThread(srcFiles, srcFileDirPath, dstFileDirPath, dstFnPs)
+        else:
+            WidgetUtil.showErrorDialog(message="指定目录下未查找到指定的图片文件")
+        pass
+
+    def compressPicByThread(self, srcFiles, srcFileDirPath, dstFileDirPath, dstFnPs):
+        LogUtil.d("compressPicByThread")
+        with ThreadPoolExecutor(max_workers=5) as t:
+            futureList = []
             for srcFile in srcFiles:
                 dstFile = srcFile.replace(srcFileDirPath, dstFileDirPath, 1)
                 if len(srcFiles) == 1 and dstFnPs:
                     fp, fn = os.path.split(dstFile)  # 分离文件名和路径
                     dstFile = os.path.join(fp, dstFnPs)
-                threads.append(MyThread(self.picCompress, (srcFile, dstFile, self.metaDataList if self.metaDataList else None,)))
 
-            for thread in threads:
-                thread.start()
+                future = t.submit(self.picCompress, (srcFile, dstFile, self.metaDataList if self.metaDataList else None,))
+                futureList.append(future)
 
-            for thread in threads:
-                thread.join()
-                LogUtil.d(thread.getResult())
-        else:
-            WidgetUtil.showErrorDialog(message="指定目录下未查找到指定的图片文件")
-        pass
+            for future in as_completed(futureList):
+                data = future.result()
+                LogUtil.e(f"main: {data}")
 
-    def picCompress(self, srcFp, dstFp, preserves: [] = None):
+            LogUtil.d("all pic compress finished")
+
+    def picCompress(self, args: ()):
+        (srcFp, dstFp, preserves) = args
+        LogUtil.d("picCompress start.", srcFp, dstFp, preserves)
         if not self.apiKeys:
             WidgetUtil.showErrorDialog(message="请添加tinypng API key。（https://tinypng.com/developers 可以注册）")
             return "api keys is empty. Please config."
