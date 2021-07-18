@@ -8,7 +8,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtGui import QIcon, QBrush, QStandardItemModel, QStandardItem, QColor, QKeySequence
 from PyQt5.QtWidgets import QWidget, QMessageBox, QSizePolicy, QTreeWidget, QMenu, QTreeWidgetItem, QDialog, \
     QRadioButton, QTableView, QHeaderView, QColorDialog, QSpinBox, QTextEdit, QApplication, QDoubleSpinBox, QMenuBar, \
-    QTabWidget, QCheckBox
+    QTabWidget, QCheckBox, QProgressBar
 from PyQt5.QtCore import QRect, QMargins, QSize, Qt
 
 from util.LogUtil import *
@@ -186,7 +186,8 @@ class WidgetUtil:
         return layout
 
     @staticmethod
-    def createVBoxWidget(parent: QWidget, margins: QMargins = None, geometry: QRect = None, sizePolicy: QSizePolicy = None):
+    def createVBoxWidget(parent: QWidget, margins: QMargins = None, geometry: QRect = None,
+                         sizePolicy: QSizePolicy = None):
         """
         创建一个Widget使用垂直布局容器
         :param parent: 父QWidget
@@ -230,8 +231,8 @@ class WidgetUtil:
         return widget
 
     @staticmethod
-    def createWidget(parent: QWidget = None, objectName='Widget', toolTip=None, geometry: QRect = None, minSize: QSize = None,
-                     margins: QMargins = None, isEnable=True, sizePolicy: QSizePolicy = None):
+    def createWidget(parent: QWidget = None, objectName='Widget', toolTip=None, geometry: QRect = None,
+                     minSize: QSize = None, margins: QMargins = None, isEnable=True, sizePolicy: QSizePolicy = None):
         """
         创建一个QWidget对象
         :param parent: 父QWidget
@@ -427,8 +428,8 @@ class WidgetUtil:
 
     @staticmethod
     def createCheckBox(parent: QWidget, objectName="RadioButton", text="RadioButton", toolTip=None, isEnable=True,
-                          autoExclusive=False, isChecked=False, geometry: QRect = None, sizePolicy: QSizePolicy = None,
-                          stateChanged=None):
+                       autoExclusive=False, isChecked=False, geometry: QRect = None, sizePolicy: QSizePolicy = None,
+                       stateChanged=None):
         """
         创建一个复选框
         :param parent: 父QWidget
@@ -453,9 +454,10 @@ class WidgetUtil:
         return widget
 
     @staticmethod
-    def createPushButton(parent: QWidget, objectName="PushButton", text="PushButton", toolTip=None, fixedSize: QSize = None,
-                         geometry: QRect = None, minSize: QSize = None, isEnable=True, styleSheet: str = None,
-                         iconSize: QSize = None, icon: QIcon = None, sizePolicy: QSizePolicy = None, onClicked=None):
+    def createPushButton(parent: QWidget, objectName="PushButton", text="PushButton", toolTip=None,
+                         fixedSize: QSize = None, geometry: QRect = None, minSize: QSize = None, isEnable=True,
+                         styleSheet: str = None, iconSize: QSize = None, icon: QIcon = None,
+                         sizePolicy: QSizePolicy = None, onClicked=None):
         """
         创建一个Button
         :param parent: 父QWidget
@@ -730,7 +732,8 @@ class WidgetUtil:
             return jsonData
 
     @staticmethod
-    def createAction(parent: Union[QMenu, QMenuBar], text="添加", func=None, shortcut: Union[QKeySequence, QKeySequence.StandardKey, str, int] = None,
+    def createAction(parent: Union[QMenu, QMenuBar], text="添加", func=None,
+                     shortcut: Union[QKeySequence, QKeySequence.StandardKey, str, int] = None,
                      statusTip: str = None):
         """
         创建一个菜单action
@@ -870,6 +873,49 @@ class WidgetUtil:
         :return: QTabWidget
         """
         widget = QTabWidget(parent)
+        return widget
+
+    @staticmethod
+    def createProgressBar(parent: QWidget = None, value: int = 0, minValue: int = 0, maxValue: int = 100,
+                          orientation: Qt.Orientation = Qt.Horizontal, format: str = None,
+                          alignment: Qt.Alignment = None, textVisible: bool = False,
+                          textDirection: QProgressBar.Direction = None, invertedAppearance: bool = False,
+                          valueChanged=None):
+        """
+        创建一个进度条 QProgressBar
+        :param parent: 父QWidget
+        :param value: 设置当前值——显示进度
+        :param minValue: 最小值
+        :param maxValue: 最大值
+        :param orientation: 进度条方向 Qt.Horizontal | Qt.Vertical
+        :param format: %p 百分比 %v 当前值 %m 总值 eg: 当前人数/总人数%p% 当前人数%v/总人数%m
+        :param alignment: 设置标识在进度条的位置
+        :param textVisible: 文本标签 Visible
+        :param textDirection: 文本方向 仅仅对垂直进度条有效 Visible QProgressBar.TopToBottom | QProgressBar.BottomToTop
+        :param invertedAppearance: True 倒立外观
+        :param valueChanged: 数值改变监听函数
+        :return: QProgressBar
+        """
+        widget = QProgressBar(parent)
+        widget.setOrientation(orientation)
+        if value:
+            widget.setValue(value)
+        if minValue:
+            widget.setMinimum(minValue)
+        if maxValue:
+            widget.setMaximum(maxValue)
+        # 格式设置
+        if format:
+            widget.setFormat(format)
+        if alignment:
+            widget.setAlignment(alignment)
+        # 文本操作+方向
+        widget.setTextVisible(textVisible)
+        if textDirection:
+            widget.setTextDirection(textDirection)
+        widget.setInvertedAppearance(invertedAppearance)
+        if valueChanged:
+            widget.valueChanged.connect(valueChanged)
         return widget
 
     @classmethod

@@ -323,7 +323,7 @@ class CompressPicDialog(QtWidgets.QDialog):
         # 释放锁
         threadLock.release()
 
-        return TinifyUtil.compressing(apiKey, srcFp, dstFp, preserves)
+        return srcFp, dstFp, TinifyUtil.compressing(apiKey, srcFp, dstFp, preserves)
         pass
 
 
