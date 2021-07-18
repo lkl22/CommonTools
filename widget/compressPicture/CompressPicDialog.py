@@ -9,8 +9,9 @@ from util.FileUtil import *
 from util.DialogUtil import *
 from util.DomXmlUtil import *
 from util.LogUtil import *
+from util.OperaIni import OperaIni
 
-RES_TYPE_LIST = ['版权信息', '创建日期时间', '位置信息']
+META_DATA_NICKNAME_LIST = ['版权信息', '创建日期时间', '位置信息']
 META_DATA_LIST = ['copyright', 'creation', 'location']
 
 
@@ -27,7 +28,11 @@ class CompressPicDialog(QtWidgets.QDialog):
         self.setFixedSize(CompressPicDialog.WINDOW_WIDTH, CompressPicDialog.WINDOW_HEIGHT)
         self.setWindowTitle(WidgetUtil.translate(text="图片压缩工具"))
 
-        self.resType = RES_TYPE_LIST[0]
+        # self.operaIni = OperaIni(FileUtil.getProjectPath() + "/resources/config/BaseConfig.ini")
+        self.operaIni = OperaIni("../../resources/config/BaseConfig.ini")
+
+        self.metaDataList = []
+        self.metaDataBtns = []
 
         layoutWidget = QtWidgets.QWidget(self)
         layoutWidget.setGeometry(QRect(const.PADDING, const.PADDING, CompressPicDialog.WINDOW_WIDTH - const.PADDING * 2,
@@ -74,7 +79,7 @@ class CompressPicDialog(QtWidgets.QDialog):
         splitter = WidgetUtil.createSplitter(box,
                                              geometry=QRect(const.PADDING, yPos, width - const.HEIGHT, const.HEIGHT))
         WidgetUtil.createPushButton(splitter, text="目标文件路径", onClicked=self.getDstFilePath)
-        self.dstFilePathLineEdit = WidgetUtil.createLineEdit(splitter, sizePolicy=sizePolicy)
+        self.dstFilePathLineEdit = WidgetUtil.createLineEdit(splitter, holderText="不填跟源路径一样", sizePolicy=sizePolicy)
         vLayout.addWidget(splitter)
 
         yPos += const.HEIGHT_OFFSET
@@ -96,23 +101,15 @@ class CompressPicDialog(QtWidgets.QDialog):
         splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
         WidgetUtil.createLabel(splitter, text="选择保留的元数据：", alignment=Qt.AlignVCenter | Qt.AlignRight,
                                minSize=QSize(120, const.HEIGHT))
-        self.metaDataBtns = []
-        for i in range(len(RES_TYPE_LIST)):
-            self.metaDataBtns.append(WidgetUtil.createCheckBox(splitter, text=RES_TYPE_LIST[i] + "  ", stateChanged=self.metaDataCheckChanged))
+
+        for i in range(len(META_DATA_NICKNAME_LIST)):
+            self.metaDataBtns.append(WidgetUtil.createCheckBox(splitter, text=META_DATA_NICKNAME_LIST[i] + "  ", stateChanged=self.metaDataCheckChanged))
 
         WidgetUtil.createLabel(splitter, text="", sizePolicy=WidgetUtil.createSizePolicy())
 
         yPos += const.HEIGHT_OFFSET
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
-        WidgetUtil.createLabel(splitter, text="输入资源名称：", alignment=Qt.AlignVCenter | Qt.AlignRight,
-                               minSize=QSize(120, const.HEIGHT))
-        self.resNamesLineEdit = WidgetUtil.createLineEdit(splitter, holderText="请输入要复制/移动的资源名称，多个以\";\"分隔",
-                                                          isEnable=False, sizePolicy=sizePolicy)
-
-        yPos += const.HEIGHT_OFFSET
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, 300, const.HEIGHT))
-        WidgetUtil.createPushButton(splitter, text="复制", onClicked=self.copyElements)
-        WidgetUtil.createPushButton(splitter, text="移动", onClicked=self.moveElements)
+        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, 150, const.HEIGHT))
+        WidgetUtil.createPushButton(splitter, text="启动压缩", onClicked=self.copyElements)
         return box
 
     def getSrcFilePath(self):
@@ -135,12 +132,11 @@ class CompressPicDialog(QtWidgets.QDialog):
         pass
 
     def metaDataCheckChanged(self):
-        # self.resType = RES_TYPE_LIST[self.resTypeBg.checkedId()]
-        # LogUtil.i("选择的资源类型：", self.resType)
-        # if self.resTypeBg.checkedId() == 0:
-        #     self.resNamesLineEdit.setEnabled(False)
-        # else:
-        #     self.resNamesLineEdit.setEnabled(True)
+        self.metaDataList.clear()
+        for i in range(0, len(META_DATA_LIST)):
+            if self.metaDataBtns[i].isChecked():
+                self.metaDataList.append(META_DATA_LIST[i])
+        LogUtil.d("metaDataCheckChanged", self.metaDataList)
         pass
 
     def srcFnTextChanged(self, data):
@@ -189,8 +185,8 @@ class CompressPicDialog(QtWidgets.QDialog):
             attrValues = resNamesStr.split(';')
             LogUtil.d('资源attr名称：', attrValues)
         attrName = 'name'
-        if self.resType == RES_TYPE_LIST[0]:
-            self.resType = ''
+        if self.metaDataList == META_DATA_NICKNAME_LIST[0]:
+            self.metaDataList = ''
             attrName = ''
             attrValues = ''
 
@@ -202,7 +198,7 @@ class CompressPicDialog(QtWidgets.QDialog):
                 if len(srcFnPs) == 1 and dstFnPs:
                     fp, fn = os.path.split(dstFile)  # 分离文件名和路径
                     dstFile = os.path.join(fp, dstFnPs)
-                DomXmlUtil.modifyDomElements(srcFile, dstFile, self.resType, attrName, attrValues, isCopy)
+                DomXmlUtil.modifyDomElements(srcFile, dstFile, self.metaDataList, attrName, attrValues, isCopy)
         else:
             WidgetUtil.showErrorDialog(message="指定目录下未查找到指定的资源文件")
         pass

@@ -48,7 +48,7 @@ class DialogUtil:
         pass
 
     @staticmethod
-    def showLineEditDialog(label="请在输入框输入内容：", title="", text="", dataType=DataTypeUtil.INT, acceptFunc=None):
+    def showLineEditDialog(label="请在输入框输入内容：", title="", text="", acceptFunc=None):
         dialog = QtWidgets.QDialog()
         dialog.resize(300, 50)
         dialog.setObjectName("LineEditDialog")
