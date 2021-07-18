@@ -186,16 +186,19 @@ class WidgetUtil:
         return layout
 
     @staticmethod
-    def createVBoxWidget(parent: QWidget, margins: QMargins = None, sizePolicy: QSizePolicy = None):
+    def createVBoxWidget(parent: QWidget, margins: QMargins = None, geometry: QRect = None, sizePolicy: QSizePolicy = None):
         """
         创建一个Widget使用垂直布局容器
         :param parent: 父QWidget
-        :param margins: margin值
+        :param margins: VBoxLayout margin值
+        :param geometry: QWidget geometry
         :param sizePolicy: 缩放策略
         :return: QVBoxLayout
         """
         layoutWidget = QtWidgets.QWidget(parent)
         layoutWidget.setObjectName("layoutWidget")
+        if geometry:
+            layoutWidget.setGeometry(geometry)
         layout = WidgetUtil.createVBoxLayout(margins=margins)
         layoutWidget.setLayout(layout)
         if sizePolicy:

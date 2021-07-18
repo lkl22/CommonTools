@@ -28,10 +28,10 @@ threadLock = threading.Lock()
 
 
 class CompressPicDialog(QtWidgets.QDialog):
-    WINDOW_WIDTH = 800
+    WINDOW_WIDTH = 1000
     WINDOW_HEIGHT = 600
 
-    def __init__(self):
+    def __init__(self, isDebug=False):
         # 调用父类的构函
         QtWidgets.QDialog.__init__(self)
         LogUtil.d("Init Compress Pic Dialog")
@@ -40,8 +40,10 @@ class CompressPicDialog(QtWidgets.QDialog):
         self.setFixedSize(CompressPicDialog.WINDOW_WIDTH, CompressPicDialog.WINDOW_HEIGHT)
         self.setWindowTitle(WidgetUtil.translate(text="图片压缩工具"))
 
-        # self.operaIni = OperaIni(FileUtil.getProjectPath() + "/resources/config/BaseConfig.ini")
-        self.operaIni = OperaIni("../../resources/config/BaseConfig.ini")
+        if isDebug:
+            self.operaIni = OperaIni("../../resources/config/BaseConfig.ini")
+        else:
+            self.operaIni = OperaIni(FileUtil.getProjectPath() + "/resources/config/BaseConfig.ini")
         self.maxWorkerThreadCount = int(self.getConfig(KEY_MAX_WORKER_THREAD_COUNT))
         if not self.maxWorkerThreadCount:
             self.maxWorkerThreadCount = 5
@@ -51,28 +53,62 @@ class CompressPicDialog(QtWidgets.QDialog):
         self.metaDataList = []
         self.metaDataBtns = []
 
-        layoutWidget = QtWidgets.QWidget(self)
-        layoutWidget.setGeometry(QRect(const.PADDING, const.PADDING, CompressPicDialog.WINDOW_WIDTH - const.PADDING * 2,
-                                       CompressPicDialog.WINDOW_HEIGHT - const.PADDING * 2))
-        layoutWidget.setObjectName("layoutWidget")
+        vLayout = WidgetUtil.createVBoxWidget(self, margins=QMargins(0, 0, 0, 0),
+                                              geometry=QRect(const.PADDING, const.PADDING,
+                                                             CompressPicDialog.WINDOW_WIDTH - const.PADDING * 2,
+                                                             CompressPicDialog.WINDOW_HEIGHT - const.PADDING * 2))
 
-        vLayout = WidgetUtil.createVBoxLayout(margins=QMargins(0, 0, 0, 0))
-        layoutWidget.setLayout(vLayout)
+        apiKeyConfigGroupBox = self.createApiKeyConfigGroupBox(self)
+        picCompressGroupBox = self.createPicCompressGroupBox(self)
 
-        androidResGroupBox = self.createXmlResGroupBox(layoutWidget)
-
-        vLayout.addWidget(androidResGroupBox)
+        vLayout.addWidget(apiKeyConfigGroupBox)
+        vLayout.addWidget(picCompressGroupBox)
 
         self.setWindowModality(Qt.ApplicationModal)
         # 很关键，不加出不来
-        # self.exec_()
+        if not isDebug:
+            self.exec_()
 
-    def createXmlResGroupBox(self, parent):
-        box = WidgetUtil.createGroupBox(parent, title="xml resource")
+    def createApiKeyConfigGroupBox(self, parent):
+        width = CompressPicDialog.WINDOW_WIDTH - const.PADDING * 4
+        box = WidgetUtil.createGroupBox(parent, title="TinyPng API Key Config", minSize=QSize(width, 100))
+        yPos = const.GROUP_BOX_MARGIN_TOP
+        width = CompressPicDialog.WINDOW_WIDTH - const.PADDING * 4
+
+        sizePolicy = WidgetUtil.createSizePolicy()
+        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
+
+        WidgetUtil.createLabel(splitter, text="请输入要添加的API key：", alignment=Qt.AlignVCenter | Qt.AlignRight,
+                               minSize=QSize(140, const.HEIGHT))
+        self.apiKeysLineEdit = WidgetUtil.createLineEdit(splitter, sizePolicy=sizePolicy,
+                                                               holderText="请输入要添加的API key，多个以\";\"分隔。（https://tinypng.com/developers 可以注册）",
+                                                               textChanged=self.srcFnTextChanged)
+
+        yPos += const.HEIGHT_OFFSET
+        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, 150, const.HEIGHT))
+        WidgetUtil.createPushButton(splitter, text="添加key", onClicked=self.addApiKeys)
+        return box
+
+    def addApiKeys(self):
+        apiKeyStr = self.apiKeysLineEdit.text().strip()
+        if not apiKeyStr:
+            WidgetUtil.showErrorDialog(message="请输入要添加的API keys")
+            return
+        apiKeys = apiKeyStr.split(";")
+        for apiKey in apiKeys:
+            if apiKey not in self.apiKeys:
+                self.apiKeys.append(apiKey)
+
+        self.setTinifyApiKeys(self.apiKeys)
+        LogUtil.d("addApiKeys", self.apiKeys)
+
+    def createPicCompressGroupBox(self, parent):
+        sizePolicy = WidgetUtil.createSizePolicy()
+        box = WidgetUtil.createGroupBox(parent, title="图片压缩", sizePolicy=sizePolicy)
+
         yPos = const.GROUP_BOX_MARGIN_TOP
         width = CompressPicDialog.WINDOW_WIDTH - const.PADDING * 4
         splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, int(const.HEIGHT * 2.5)))
-        sizePolicy = WidgetUtil.createSizePolicy()
         vLayout = WidgetUtil.createVBoxWidget(splitter, margins=QMargins(0, 0, 0, 0), sizePolicy=sizePolicy)
 
         vLayout1 = WidgetUtil.createVBoxWidget(splitter, margins=QMargins(20, 0, 10, 0))
@@ -156,6 +192,7 @@ class CompressPicDialog(QtWidgets.QDialog):
 
     def setTinifyApiKeys(self, keys: []):
         self.operaIni.addItem("tinify", "keys", JsonUtil.encode(keys))
+        self.operaIni.saveIni()
 
     def getConfig(self, key: str):
         return self.operaIni.getValue(key, CONFIG_SECTION)
@@ -256,7 +293,8 @@ class CompressPicDialog(QtWidgets.QDialog):
                     fp, fn = os.path.split(dstFile)  # 分离文件名和路径
                     dstFile = os.path.join(fp, dstFnPs)
 
-                future = t.submit(self.picCompress, (srcFile, dstFile, self.metaDataList if self.metaDataList else None,))
+                future = t.submit(self.picCompress,
+                                  (srcFile, dstFile, self.metaDataList if self.metaDataList else None,))
                 futureList.append(future)
 
             for future in as_completed(futureList):
@@ -291,6 +329,6 @@ class CompressPicDialog(QtWidgets.QDialog):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    window = CompressPicDialog()
+    window = CompressPicDialog(isDebug=True)
     window.show()
     sys.exit(app.exec_())
