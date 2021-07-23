@@ -40,6 +40,7 @@ class CompressPicDialog(QtWidgets.QDialog):
         self.setFixedSize(CompressPicDialog.WINDOW_WIDTH, CompressPicDialog.WINDOW_HEIGHT)
         self.setWindowTitle(WidgetUtil.translate(text="图片压缩工具"))
 
+        self.isDebug = isDebug
         if isDebug:
             self.operaIni = OperaIni("../../resources/config/BaseConfig.ini")
         else:
@@ -116,8 +117,8 @@ class CompressPicDialog(QtWidgets.QDialog):
         btn = WidgetUtil.createPushButton(splitter, text="", fixedSize=QSize(30, 40),
                                           styleSheet="background-color: white",
                                           iconSize=QSize(30, 40),
-                                          icon=QIcon(FileUtil.getIconFp('androidRes/exchange.png')),
-                                          # icon=QIcon("../../resources/icons/androidRes/exchange.png"),
+                                          icon=QIcon("../../resources/icons/androidRes/exchange.png") if self.isDebug
+                                          else QIcon(FileUtil.getIconFp('androidRes/exchange.png')),
                                           onClicked=self.exchangeDirs)
         vLayout1.addWidget(btn)
 
