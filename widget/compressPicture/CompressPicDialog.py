@@ -116,8 +116,8 @@ class CompressPicDialog(QtWidgets.QDialog):
         btn = WidgetUtil.createPushButton(splitter, text="", fixedSize=QSize(30, 40),
                                           styleSheet="background-color: white",
                                           iconSize=QSize(30, 40),
-                                          # icon=QIcon(FileUtil.getIconFp('androidRes/exchange.png')),
-                                          icon=QIcon("../../resources/icons/androidRes/exchange.png"),
+                                          icon=QIcon(FileUtil.getIconFp('androidRes/exchange.png')),
+                                          # icon=QIcon("../../resources/icons/androidRes/exchange.png"),
                                           onClicked=self.exchangeDirs)
         vLayout1.addWidget(btn)
 
