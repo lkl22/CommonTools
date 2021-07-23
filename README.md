@@ -2,14 +2,30 @@
 
 ![](doc/img/developTools.png)
 
+
+图片压缩工具
+
+![](doc/img/compressPic.png)
+
 Android资源文件复制/移动工具：
+
 ![](doc/img/androidResTool.png)
 
 Android color资源管理工具：
+
 ![](doc/img/androidColorResTool.png)
 
 [Android 自动化测试预研：](doc/autoTest.md)
+
 ![](doc/img/autoTest/adbDialog.png)
+
+[图片预览](doc/picturePreview.md)
+
+![](doc/img/photoWall/picWall.png)
+
+[算法学习](doc/algorithm.md)
+
+![](doc/img/algorithm/AlgorithmVisualizerManager.png)
 
 # 开发指南
 

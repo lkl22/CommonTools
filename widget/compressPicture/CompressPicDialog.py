@@ -2,11 +2,10 @@
 # python 3.x
 # Filename: CompressPicDialog.py
 # 定义一个CompressPicDialog类实现图片压缩的功能
+import os
 import sys
 import threading
-
 from concurrent.futures import ThreadPoolExecutor, as_completed
-
 from constant.WidgetConst import *
 from util.FileUtil import *
 from util.DialogUtil import *
@@ -15,6 +14,7 @@ from util.JsonUtil import JsonUtil
 from util.LogUtil import *
 from util.OperaIni import OperaIni
 from util.TinifyUtil import TinifyUtil
+os.environ['REQUESTS_CA_BUNDLE'] = os.path.join(os.path.dirname(sys.argv[0]), 'resources/certifi/cacert.pem')
 
 META_DATA_NICKNAME_LIST = ['版权信息', '创建日期时间', '位置信息']
 META_DATA_LIST = ['copyright', 'creation', 'location']
@@ -198,7 +198,8 @@ class CompressPicDialog(QtWidgets.QDialog):
 
         yPos += const.HEIGHT_OFFSET
         splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, 230))
-        self.compressResTableView = WidgetUtil.createTableView(splitter, minSize=QSize(width, 200), sizePolicy=sizePolicy)
+        self.compressResTableView = WidgetUtil.createTableView(splitter, minSize=QSize(width, 200),
+                                                               sizePolicy=sizePolicy)
         return box
 
     def getTinifyApiKeys(self):
@@ -349,6 +350,7 @@ class CompressPicDialog(QtWidgets.QDialog):
         while not TinifyUtil.validate(apiKey):
             if self.apiKeyIndex == len(self.apiKeys) - 1:
                 WidgetUtil.showErrorDialog(message="请检查网络或是否API key有效。")
+                LogUtil.d("api keys all invalid or network invalid.")
                 threadLock.release()
                 return "api keys all invalid or network invalid. "
             else:
