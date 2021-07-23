@@ -2,8 +2,8 @@
 # python 3.x
 # Filename: AlgorithmDescDialog.py
 # 定义一个AlgorithmDescDialog类实现算法描述和代码实现功能
-from PyQt5.Qsci import QsciScintilla, QsciLexerPython, QsciLexer, QsciLexerJavaScript, QsciLexerJava, QsciLexerCPP, \
-    QsciLexerCustom
+from PyQt5 import QtPrintSupport
+from PyQt5.Qsci import QsciScintilla, QsciLexerPython, QsciLexer, QsciLexerJavaScript, QsciLexerJava, QsciLexerCPP
 from constant.WidgetConst import *
 from util.Uiautomator import *
 
