@@ -80,6 +80,8 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
         yPos += const.HEIGHT_OFFSET
         splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
         WidgetUtil.createPushButton(splitter, text="清除应用数据与缓存", onClicked=self.clearApkData)
+        WidgetUtil.createPushButton(splitter, text="启动应用/调起Activity", onClicked=self.startActivity)
+        WidgetUtil.createPushButton(splitter, text="清缓存并重启应用", onClicked=self.clearDataAndRestartApp)
 
         yPos += 185
         splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
@@ -121,6 +123,17 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
     def clearApkData(self):
         packageName = self.getPackageName()
         self.printRes('{} 清除数据结果：{}'.format(packageName, AdbUtil.clearApkData(packageName)))
+        pass
+
+    def startActivity(self):
+        packageName = self.getPackageName()
+        self.printRes('{} 启动结果：{}'.format(packageName, AdbUtil.startActivity(packageName, self.getActivityName())))
+        pass
+
+    def clearDataAndRestartApp(self):
+        packageName = self.getPackageName()
+        self.printRes('{} 清除数据结果：{}'.format(packageName, AdbUtil.clearApkData(packageName)))
+        self.printRes('{} 启动结果：{}'.format(packageName, AdbUtil.startActivity(packageName)))
         pass
 
     def execCmd(self, cmd: str):

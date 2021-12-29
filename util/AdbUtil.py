@@ -112,6 +112,15 @@ class AdbUtil:
         out, err = ShellUtil.exec("adb shell pm clear {}".format(packageName))
         return out
 
+    @staticmethod
+    def startActivity(packageName: str, activityName: str = None):
+        if activityName:
+            out, err = ShellUtil.exec("adb shell am start -n {}/{}".format(packageName, activityName))
+        else:
+            out, err = ShellUtil.exec(
+                "adb shell monkey -p {} -c android.intent.category.LAUNCHER 1".format(packageName))
+        return out
+
 
 if __name__ == "__main__":
     androidTestAssistTool = 'com.lkl.androidtestassisttool'
@@ -129,5 +138,9 @@ if __name__ == "__main__":
 
     # print(AdbUtil.clearApkData(androidTestAssistTool))
 
-    print(AdbUtil.uninstallApk(androidTestAssistTool))
-    print(AdbUtil.uninstallApk(androidTestAssistTool1))
+    # print(AdbUtil.uninstallApk(androidTestAssistTool))
+    # print(AdbUtil.uninstallApk(androidTestAssistTool1))
+
+    # print(AdbUtil.startActivity(androidTestAssistTool, ""))
+    # print(AdbUtil.startActivity(androidTestAssistTool, ".MainActivity"))
+    # print(AdbUtil.startActivity(androidTestAssistTool1))
