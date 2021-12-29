@@ -12,7 +12,7 @@ from util.DialogUtil import *
 from util.ShellUtil import *
 from util.LogUtil import *
 from util.WeditorUtil import *
-from widget.autoTest.EditTestStepDialog import *
+from widget.test.EditTestStepDialog import *
 
 
 class AndroidAdbDialog(QtWidgets.QDialog):
