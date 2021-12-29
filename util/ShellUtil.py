@@ -31,6 +31,18 @@ class ShellUtil:
             return '', '{}'.format(err)
 
     @staticmethod
+    def run(cmd: str, logfile):
+        """
+        运行指定的指令，将结果输出到指定的文件里
+        :param cmd: 指令字符串
+        :param logfile: 输出结果存储的文件
+        :return: Popen对象
+        """
+        LogUtil.d("Running cmd: %s" % cmd)
+        p = subprocess.Popen(cmd, shell=True, universal_newlines=True, stderr=subprocess.STDOUT, stdout=logfile)
+        return p
+
+    @staticmethod
     def cmdOutput(cmd, *args, **kwargs):
         """
         Run command use subprocess and get its content
@@ -68,7 +80,17 @@ if __name__ == "__main__":
     # ShellUtil.exec("ls -l ")
     # print(ShellUtil.cmdOutput('python', '-m', 'pip', 'install', '--upgrade', 'pip', '--index-url', 'https://pypi.tuna.tsinghua.edu.cn/simple/'))
     # print(ShellUtil.cmdOutput("ls", '-a'))
-    print(ShellUtil.system('python1 -V'))
+
+    # print(ShellUtil.system('python1 -V'))
     # ShellUtil.system('python -m pip install --upgrade pip --index-url https://pypi.tuna.tsinghua.edu.cn/simple/')
-    print(ShellUtil.system('pip install -U weditor --index-url https://pypi.tuna.tsinghua.edu.cn/simple/'))
+    # print(ShellUtil.system('pip install -U weditor --index-url https://pypi.tuna.tsinghua.edu.cn/simple/'))
+
+    log = open("test", 'w')
+    p = ShellUtil.run("adb logcat -c && adb logcat -v threadtime", log)
+
+    inputStr = input()
+    while not inputStr.startswith("quit"):
+        inputStr = input()
+
+    ShellUtil.exec("adb kill-server")
     print('finished')
