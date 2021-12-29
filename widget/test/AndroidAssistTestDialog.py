@@ -69,13 +69,17 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
         self.activityNameLineEdit = WidgetUtil.createLineEdit(splitter, text=self.defaultActivityName,
                                                               holderText="请输入要启动页面的activity",
                                                               sizePolicy=sizePolicy)
-        yPos += const.HEIGHT_OFFSET
 
+        yPos += const.HEIGHT_OFFSET
         splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
         WidgetUtil.createPushButton(splitter, text="是否安装", onClicked=self.isInstalled)
         WidgetUtil.createPushButton(splitter, text="获取apk版本信息", onClicked=self.getVersionInfo)
         WidgetUtil.createPushButton(splitter, text="查看应用安装路径", onClicked=self.getApkPath)
         WidgetUtil.createPushButton(splitter, text="查看运行的Activities", onClicked=self.getRunningActivities)
+
+        yPos += const.HEIGHT_OFFSET
+        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
+        WidgetUtil.createPushButton(splitter, text="清除应用数据与缓存", onClicked=self.clearApkData)
 
         yPos += 185
         splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
@@ -112,6 +116,11 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
 
     def getRunningActivities(self):
         self.printRes('正在运行的Activities：\n{}'.format(AdbUtil.getRunningActivities()))
+        pass
+
+    def clearApkData(self):
+        packageName = self.getPackageName()
+        self.printRes('{} 清除数据结果：{}'.format(packageName, AdbUtil.clearApkData(packageName)))
         pass
 
     def execCmd(self, cmd: str):

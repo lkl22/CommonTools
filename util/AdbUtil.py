@@ -27,6 +27,16 @@ class AdbUtil:
         return False
 
     @staticmethod
+    def uninstallApk(packageName: str):
+        """
+        卸载指定包名的apk
+        :param packageName: apk包名
+        :return: 输出结果
+        """
+        out, err = ShellUtil.exec("adb uninstall {}".format(packageName))
+        return out
+
+    @staticmethod
     def getVersionCode(packageName: str, defaultCode: int = -1):
         """
         获取指定包名apk的version code
@@ -92,6 +102,16 @@ class AdbUtil:
             return ""
         return out
 
+    @staticmethod
+    def clearApkData(packageName: str):
+        """
+        清除apk的数据
+        :param packageName: apk的包名
+        :return: 正在运行的activities
+        """
+        out, err = ShellUtil.exec("adb shell pm clear {}".format(packageName))
+        return out
+
 
 if __name__ == "__main__":
     androidTestAssistTool = 'com.lkl.androidtestassisttool'
@@ -105,4 +125,9 @@ if __name__ == "__main__":
     # print(AdbUtil.getApkPath(androidTestAssistTool))
     # print(AdbUtil.getApkPath(androidTestAssistTool1))
 
-    print(AdbUtil.getRunningActivities())
+    # print(AdbUtil.getRunningActivities())
+
+    # print(AdbUtil.clearApkData(androidTestAssistTool))
+
+    print(AdbUtil.uninstallApk(androidTestAssistTool))
+    print(AdbUtil.uninstallApk(androidTestAssistTool1))
