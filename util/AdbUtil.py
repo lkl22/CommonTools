@@ -67,12 +67,42 @@ class AdbUtil:
                     return item.split("=")[1].strip()
         return defaultValue
 
+    @staticmethod
+    def getApkPath(packageName: str):
+        """
+        获取apk安装的path
+        :param packageName: apk的包名
+        :return: apk安装的path
+        """
+        if not AdbUtil.isInstalled(packageName):
+            return ""
+        out, err = ShellUtil.exec("adb shell pm path {}".format(packageName))
+        if err or not out:
+            return ""
+        return out
+
+    @staticmethod
+    def getRunningActivities():
+        """
+        查看正在运行的activities
+        :return: 正在运行的activities
+        """
+        out, err = ShellUtil.exec("adb shell dumpsys activity activities | {} Run".format(findCmd))
+        if err or not out:
+            return ""
+        return out
+
 
 if __name__ == "__main__":
     androidTestAssistTool = 'com.lkl.androidtestassisttool'
     androidTestAssistTool1 = 'com.lkl.androidtestassisttool1'
-    print(AdbUtil.getVersionCode(androidTestAssistTool))
-    print(AdbUtil.getVersionCode(androidTestAssistTool1))
+    # print(AdbUtil.getVersionCode(androidTestAssistTool))
+    # print(AdbUtil.getVersionCode(androidTestAssistTool1))
 
-    print(AdbUtil.getVersionName(androidTestAssistTool))
-    print(AdbUtil.getVersionName(androidTestAssistTool1))
+    # print(AdbUtil.getVersionName(androidTestAssistTool))
+    # print(AdbUtil.getVersionName(androidTestAssistTool1))
+
+    # print(AdbUtil.getApkPath(androidTestAssistTool))
+    # print(AdbUtil.getApkPath(androidTestAssistTool1))
+
+    print(AdbUtil.getRunningActivities())

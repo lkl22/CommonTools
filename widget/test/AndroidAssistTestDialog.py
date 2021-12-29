@@ -52,7 +52,7 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
 
         self.setWindowModality(Qt.ApplicationModal)
         # 很关键，不加出不来
-        self.exec_()
+        # self.exec_()
 
     def createGroupBox(self, parent):
         yPos = const.GROUP_BOX_MARGIN_TOP
@@ -74,6 +74,8 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
         splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
         WidgetUtil.createPushButton(splitter, text="是否安装", onClicked=self.isInstalled)
         WidgetUtil.createPushButton(splitter, text="获取apk版本信息", onClicked=self.getVersionInfo)
+        WidgetUtil.createPushButton(splitter, text="查看应用安装路径", onClicked=self.getApkPath)
+        WidgetUtil.createPushButton(splitter, text="查看运行的Activities", onClicked=self.getRunningActivities)
 
         yPos += 185
         splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
@@ -101,6 +103,15 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
         packageName = self.getPackageName()
         self.printRes('{} 的版本号：{} 版本名：{}'.format(packageName, AdbUtil.getVersionCode(packageName, -1),
                                                  AdbUtil.getVersionName(packageName, "not installed")))
+        pass
+
+    def getApkPath(self):
+        packageName = self.getPackageName()
+        self.printRes('{} 的安装路径：{}'.format(packageName, AdbUtil.getApkPath(packageName)))
+        pass
+
+    def getRunningActivities(self):
+        self.printRes('正在运行的Activities：\n{}'.format(AdbUtil.getRunningActivities()))
         pass
 
     def execCmd(self, cmd: str):
