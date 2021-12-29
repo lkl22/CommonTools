@@ -26,7 +26,53 @@ class AdbUtil:
             return True
         return False
 
+    @staticmethod
+    def getVersionCode(packageName: str, defaultCode: int = -1):
+        """
+        获取指定包名apk的version code
+        :param packageName: apk的包名
+        :param defaultCode: 默认返回值
+        :return: version code
+        """
+        return AdbUtil.getVersionInfo(packageName, "versionCode", defaultCode)
+
+    @staticmethod
+    def getVersionName(packageName: str, defaultName: str = ""):
+        """
+        获取指定包名apk的version name
+        :param packageName: apk的包名
+        :param defaultName: 默认返回值
+        :return: version name
+        """
+        return AdbUtil.getVersionInfo(packageName, "versionName", defaultName)
+
+    @staticmethod
+    def getVersionInfo(packageName: str, key: str, defaultValue: any):
+        """
+        获取指定包名apk的version信息
+        :param packageName: apk的包名
+        :param key: version信息的查找关键字
+        :param defaultValue: 查找失败的默认返回值
+        :return: 指定查询的版本信息
+        """
+        if not AdbUtil.isInstalled(packageName):
+            return defaultValue
+        out, err = ShellUtil.exec("adb shell dumpsys package {} | {} {}".format(packageName, findCmd, key))
+        if err or not out:
+            return defaultValue
+        if key in out:
+            datas = out.strip().split(" ")
+            for item in datas:
+                if key in item:
+                    return item.split("=")[1].strip()
+        return defaultValue
+
 
 if __name__ == "__main__":
     androidTestAssistTool = 'com.lkl.androidtestassisttool'
-    print(AdbUtil.isInstalled(androidTestAssistTool))
+    androidTestAssistTool1 = 'com.lkl.androidtestassisttool1'
+    print(AdbUtil.getVersionCode(androidTestAssistTool))
+    print(AdbUtil.getVersionCode(androidTestAssistTool1))
+
+    print(AdbUtil.getVersionName(androidTestAssistTool))
+    print(AdbUtil.getVersionName(androidTestAssistTool1))
