@@ -228,6 +228,8 @@ class MainWidget(QMainWindow):
         WidgetUtil.createPushButton(splitter, text="算法可视化", onClicked=self.jumpAlgorithmVisualizer)
 
         yPos += const.HEIGHT_OFFSET
+        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, 200, const.HEIGHT))
+        WidgetUtil.createPushButton(splitter, text="Android测试辅助工具", onClicked=self.jumpAndroidAssistTestDialog)
         return box
 
     def jumpJsonDialog(self):
@@ -259,6 +261,12 @@ class MainWidget(QMainWindow):
         LogUtil.i("jumpAndroidAdbDialog")
         from widget.test.AndroidAdbDialog import AndroidAdbDialog
         AndroidAdbDialog()
+        pass
+
+    def jumpAndroidAssistTestDialog(self):
+        LogUtil.i("jumpAndroidAdbDialog")
+        from widget.test.AndroidAssistTestDialog import AndroidAssistTestDialog
+        AndroidAssistTestDialog()
         pass
 
     def jumpPhotoWall(self, filePath=None, photoType=None, previewFinishedFunc=None):
