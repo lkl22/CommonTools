@@ -65,8 +65,6 @@ class AdbUtil:
         :param defaultValue: 查找失败的默认返回值
         :return: 指定查询的版本信息
         """
-        if not AdbUtil.isInstalled(packageName):
-            return defaultValue
         out, err = ShellUtil.exec("adb shell dumpsys package {} | {} {}".format(packageName, findCmd, key))
         if err or not out:
             return defaultValue
@@ -84,8 +82,6 @@ class AdbUtil:
         :param packageName: apk的包名
         :return: apk安装的path
         """
-        if not AdbUtil.isInstalled(packageName):
-            return ""
         out, err = ShellUtil.exec("adb shell pm path {}".format(packageName))
         if err or not out:
             return ""
@@ -114,11 +110,35 @@ class AdbUtil:
 
     @staticmethod
     def startActivity(packageName: str, activityName: str = None):
+        """
+        启动app/指定activity
+        :param packageName: apk的包名
+        :param activityName: 要启动的activity
+        :return: 执行结果
+        """
         if activityName:
             out, err = ShellUtil.exec("adb shell am start -n {}/{}".format(packageName, activityName))
         else:
             out, err = ShellUtil.exec(
                 "adb shell monkey -p {} -c android.intent.category.LAUNCHER 1".format(packageName))
+        return out
+
+    @staticmethod
+    def startAdbServer():
+        """
+        启动 adb server 命令
+        :return: 执行结果
+        """
+        out, err = ShellUtil.exec("adb start-server")
+        return out
+
+    @staticmethod
+    def killAdbServer():
+        """
+        停止 adb server 命令
+        :return: 执行结果
+        """
+        out, err = ShellUtil.exec("adb kill-server")
         return out
 
 
@@ -131,8 +151,8 @@ if __name__ == "__main__":
     # print(AdbUtil.getVersionName(androidTestAssistTool))
     # print(AdbUtil.getVersionName(androidTestAssistTool1))
 
-    # print(AdbUtil.getApkPath(androidTestAssistTool))
-    # print(AdbUtil.getApkPath(androidTestAssistTool1))
+    print(AdbUtil.getApkPath(androidTestAssistTool))
+    print(AdbUtil.getApkPath(androidTestAssistTool1))
 
     # print(AdbUtil.getRunningActivities())
 
