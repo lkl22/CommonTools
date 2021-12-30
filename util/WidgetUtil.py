@@ -8,7 +8,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtGui import QIcon, QBrush, QStandardItemModel, QStandardItem, QColor, QKeySequence
 from PyQt5.QtWidgets import QWidget, QMessageBox, QSizePolicy, QTreeWidget, QMenu, QTreeWidgetItem, QDialog, \
     QRadioButton, QTableView, QHeaderView, QColorDialog, QSpinBox, QTextEdit, QApplication, QDoubleSpinBox, QMenuBar, \
-    QTabWidget, QCheckBox, QProgressBar
+    QTabWidget, QCheckBox, QProgressBar, QComboBox
 from PyQt5.QtCore import QRect, QMargins, QSize, Qt
 
 from util.LogUtil import *
@@ -451,6 +451,25 @@ class WidgetUtil:
         widget.setChecked(isChecked)
         if stateChanged:
             widget.stateChanged.connect(stateChanged)
+        return widget
+
+    @staticmethod
+    def createComboBox(parent: QWidget, objectName="ComboBox", toolTip=None, isEnable=True,
+                       geometry: QRect = None, sizePolicy: QSizePolicy = None, currentIndexChanged=None):
+        """
+        创建一个下拉选择框
+        :param parent: 父QWidget
+        :param objectName: objectName
+        :param toolTip: toolTip
+        :param isEnable: enable
+        :param geometry: geometry
+        :param sizePolicy: 缩放策略
+        :param currentIndexChanged: 当前选择改变
+        :return: 下拉选择框
+        """
+        widget = QComboBox(parent)
+        widgetSetAttrs(widget, objectName, toolTip=toolTip, geometry=geometry, isEnable=isEnable, sizePolicy=sizePolicy)
+        widget.currentIndexChanged[int].connect(currentIndexChanged)
         return widget
 
     @staticmethod

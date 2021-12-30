@@ -27,6 +27,14 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
         QtWidgets.QDialog.__init__(self)
         LogUtil.d("Init Android Assist Test Dialog")
         self.setObjectName("AndroidAssistTestDialog")
+
+        self.notOftenUsedCmds = [
+            {"text": '查看运行的Activities', "func": self.getRunningActivities},
+            {"text": '是否安装', "func": self.isInstalled},
+            {"text": '获取apk版本信息', "func": self.getVersionInfo},
+            {"text": '查看应用安装路径', "func": self.getApkPath}
+        ]
+
         self.resize(AndroidAssistTestDialog.WINDOW_WIDTH, AndroidAssistTestDialog.WINDOW_HEIGHT)
         self.setFixedSize(AndroidAssistTestDialog.WINDOW_WIDTH, AndroidAssistTestDialog.WINDOW_HEIGHT)
         self.setWindowTitle(WidgetUtil.translate(text="Android测试辅助工具"))
@@ -71,13 +79,13 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
                                                               sizePolicy=sizePolicy)
 
         yPos += const.HEIGHT_OFFSET
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
-        WidgetUtil.createPushButton(splitter, text="是否安装", onClicked=self.isInstalled)
-        WidgetUtil.createPushButton(splitter, text="获取apk版本信息", onClicked=self.getVersionInfo)
-        WidgetUtil.createPushButton(splitter, text="查看应用安装路径", onClicked=self.getApkPath)
-        WidgetUtil.createPushButton(splitter, text="查看运行的Activities", onClicked=self.getRunningActivities)
+        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT * 1.2))
+        self.cmdComboBox = WidgetUtil.createComboBox(splitter, sizePolicy=sizePolicy, currentIndexChanged=self.cmdComboBoxIndexChanged)
+        for item in self.notOftenUsedCmds:
+            self.cmdComboBox.addItem(item.get("text"))
+        WidgetUtil.createPushButton(splitter, text="执行", fixedSize=QSize(100, const.HEIGHT), onClicked=self.execComboBoxCmd)
 
-        yPos += const.HEIGHT_OFFSET
+        yPos += const.HEIGHT_OFFSET * 1.2
         splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
         WidgetUtil.createPushButton(splitter, text="清除应用数据与缓存", onClicked=self.clearApkData)
         WidgetUtil.createPushButton(splitter, text="启动应用/调起Activity", onClicked=self.startActivity)
@@ -96,6 +104,15 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
 
     def getActivityName(self):
         return self.activityNameLineEdit.text().strip()
+
+    def cmdComboBoxIndexChanged(self, index: int):
+        LogUtil.e("cmdComboBoxIndexChanged %d" % index)
+        pass
+
+    def execComboBoxCmd(self):
+        index = self.cmdComboBox.currentIndex()
+        self.notOftenUsedCmds[index].get("func")()
+        pass
 
     def isInstalled(self):
         packageName = self.getPackageName()
