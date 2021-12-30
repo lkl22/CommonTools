@@ -37,7 +37,7 @@ class MainWidget(QMainWindow):
         vLayout.addWidget(fileGroupBox)
         vLayout.addWidget(otherGroupBox)
 
-        self.setWindowTitle(WidgetUtil.translate("MainWidget", "开发工具"))
+        self.setWindowTitle(WidgetUtil.translate("MainWidget", "开发测试辅助工具"))
         QtCore.QMetaObject.connectSlotsByName(self)
         pass
 

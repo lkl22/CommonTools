@@ -79,17 +79,23 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
                                                               sizePolicy=sizePolicy)
 
         yPos += const.HEIGHT_OFFSET
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT * 1.2))
+        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, int(const.HEIGHT * 1.2)))
         self.cmdComboBox = WidgetUtil.createComboBox(splitter, sizePolicy=sizePolicy, currentIndexChanged=self.cmdComboBoxIndexChanged)
         for item in self.notOftenUsedCmds:
             self.cmdComboBox.addItem(item.get("text"))
         WidgetUtil.createPushButton(splitter, text="执行", fixedSize=QSize(100, const.HEIGHT), onClicked=self.execComboBoxCmd)
 
-        yPos += const.HEIGHT_OFFSET * 1.2
+        yPos += int(const.HEIGHT_OFFSET * 1.2)
         splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
         WidgetUtil.createPushButton(splitter, text="清除应用数据与缓存", onClicked=self.clearApkData)
         WidgetUtil.createPushButton(splitter, text="启动应用/调起Activity", onClicked=self.startActivity)
         WidgetUtil.createPushButton(splitter, text="清缓存并重启应用", onClicked=self.clearDataAndRestartApp)
+
+        yPos += int(const.HEIGHT_OFFSET * 1.5)
+        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
+        WidgetUtil.createLabel(splitter, text="请输入要传输的文字：", minSize=QSize(80, const.HEIGHT))
+        self.inputTextLineEdit = WidgetUtil.createLineEdit(splitter, holderText="请输入要传输的文字", sizePolicy=sizePolicy)
+        WidgetUtil.createPushButton(splitter, text="传输", minSize=QSize(100, const.HEIGHT), onClicked=self.inputText)
 
         yPos += 185
         splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
@@ -151,6 +157,10 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
         packageName = self.getPackageName()
         self.printRes('{} 清除数据结果：{}'.format(packageName, AdbUtil.clearApkData(packageName)))
         self.printRes('{} 启动结果：{}'.format(packageName, AdbUtil.startActivity(packageName)))
+        pass
+
+    def inputText(self):
+        AdbUtil.inputText(self.inputTextLineEdit.text().strip())
         pass
 
     def execCmd(self, cmd: str):

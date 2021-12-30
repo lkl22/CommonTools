@@ -141,6 +141,15 @@ class AdbUtil:
         out, err = ShellUtil.exec("adb kill-server")
         return out
 
+    @staticmethod
+    def inputText(text: str):
+        """
+        向输入框输入文本
+        :return: 执行结果
+        """
+        out, err = ShellUtil.exec('adb shell input text {}'.format(text))
+        return out
+
 
 if __name__ == "__main__":
     androidTestAssistTool = 'com.lkl.androidtestassisttool'
@@ -151,8 +160,8 @@ if __name__ == "__main__":
     # print(AdbUtil.getVersionName(androidTestAssistTool))
     # print(AdbUtil.getVersionName(androidTestAssistTool1))
 
-    print(AdbUtil.getApkPath(androidTestAssistTool))
-    print(AdbUtil.getApkPath(androidTestAssistTool1))
+    # print(AdbUtil.getApkPath(androidTestAssistTool))
+    # print(AdbUtil.getApkPath(androidTestAssistTool1))
 
     # print(AdbUtil.getRunningActivities())
 
@@ -164,3 +173,5 @@ if __name__ == "__main__":
     # print(AdbUtil.startActivity(androidTestAssistTool, ""))
     # print(AdbUtil.startActivity(androidTestAssistTool, ".MainActivity"))
     # print(AdbUtil.startActivity(androidTestAssistTool1))
+
+    print(AdbUtil.inputText('http://host/path?a=0 & b=2'))
