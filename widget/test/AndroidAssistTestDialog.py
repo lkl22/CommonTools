@@ -15,6 +15,11 @@ from util.LogUtil import *
 from util.WeditorUtil import *
 from widget.test.EditTestStepDialog import *
 
+ANDROID_TEST_ASSIST_TOOL_PACKAGE_NAME = 'com.lkl.androidtestassisttool'
+ANDROID_TEST_ASSIST_TOOL_MAIN_ACTIVITY = '.MainActivity'
+ANDROID_TEST_ASSIST_TOOL_LOWEST_VERSION = 10001
+ANDROID_TEST_ASSIST_TOOL_LOWEST_VERSION_NAME = "1.0.1"
+
 
 class AndroidAssistTestDialog(QtWidgets.QDialog):
     WINDOW_WIDTH = 800
@@ -97,7 +102,11 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
         self.inputTextLineEdit = WidgetUtil.createLineEdit(splitter, holderText="请输入要传输的文字", sizePolicy=sizePolicy)
         WidgetUtil.createPushButton(splitter, text="传输", minSize=QSize(100, const.HEIGHT), onClicked=self.inputText)
 
-        yPos += 185
+        yPos += int(const.HEIGHT_OFFSET * 1.5)
+        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
+        WidgetUtil.createPushButton(splitter, text="测试环境准备", minSize=QSize(100, const.HEIGHT), onClicked=self.prepareEvn)
+
+        yPos += 100
         splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
         WidgetUtil.createLabel(splitter, text="操作信息：", minSize=QSize(80, const.HEIGHT))
         yPos += const.HEIGHT_OFFSET
@@ -162,6 +171,15 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
     def inputText(self):
         if AdbUtil.inputBase64Text(self.inputTextLineEdit.text().strip()):
             self.printRes("已经传输完成。")
+        pass
+
+    def prepareEvn(self):
+        if int(AdbUtil.getVersionCode(ANDROID_TEST_ASSIST_TOOL_PACKAGE_NAME)) < ANDROID_TEST_ASSIST_TOOL_LOWEST_VERSION:
+            self.printRes("{} 支持的最低版本 {} ，请升级到高版本。".format(
+                ANDROID_TEST_ASSIST_TOOL_PACKAGE_NAME, ANDROID_TEST_ASSIST_TOOL_LOWEST_VERSION_NAME), "#f00")
+            return
+        AdbUtil.startActivity(ANDROID_TEST_ASSIST_TOOL_PACKAGE_NAME, ANDROID_TEST_ASSIST_TOOL_MAIN_ACTIVITY)
+
         pass
 
     def execCmd(self, cmd: str):
