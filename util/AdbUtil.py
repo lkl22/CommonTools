@@ -2,6 +2,8 @@
 # python 3.x
 # Filename: AdbUtil.py
 # 定义一个AdbUtil工具类实现adb指令操作相关的功能
+import base64
+
 from util.PlatformUtil import PlatformUtil
 from util.ShellUtil import ShellUtil
 
@@ -169,6 +171,15 @@ class AdbUtil:
                 return item.strip()
         return None
 
+    @staticmethod
+    def inputBase64Text(text):
+        charsBase64 = str(base64.b64encode(text.encode('utf-8')))[1:]
+        curKeyboardId = AdbUtil.getCurKeyboardId()
+        ShellUtil.exec("adb shell ime set com.lkl.androidtestassisttool/.adbkeyboard.AdbIME")
+        ShellUtil.exec("adb shell am broadcast -a ADB_INPUT_B64 --es msg %s" % charsBase64)
+        ShellUtil.exec("adb shell ime set {}".format(curKeyboardId))
+        return True
+
 
 if __name__ == "__main__":
     androidTestAssistTool = 'com.lkl.androidtestassisttool'
@@ -194,3 +205,4 @@ if __name__ == "__main__":
     # print(AdbUtil.startActivity(androidTestAssistTool1))
 
     print(AdbUtil.getCurKeyboardId())
+    print(AdbUtil.inputBase64Text("hello && 你好！"))

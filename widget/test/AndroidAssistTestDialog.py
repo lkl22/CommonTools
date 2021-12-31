@@ -160,7 +160,8 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
         pass
 
     def inputText(self):
-        AdbUtil.inputText(self.inputTextLineEdit.text().strip())
+        if AdbUtil.inputBase64Text(self.inputTextLineEdit.text().strip()):
+            self.printRes("已经传输完成。")
         pass
 
     def execCmd(self, cmd: str):
