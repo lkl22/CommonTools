@@ -10,6 +10,7 @@ if PlatformUtil.isMac():
 else:
     findCmd = "findstr"
 
+ANDROID_TEST_ASSIST_TOOL_PACKAGE_NAME = 'com.lkl.androidtestassisttool'
 
 class AdbUtil:
     @staticmethod
@@ -150,6 +151,24 @@ class AdbUtil:
         out, err = ShellUtil.exec('adb shell input text {}'.format(text))
         return out
 
+    @staticmethod
+    def getCurKeyboardId():
+        """
+        获取当前使用的软键盘的ID
+        :return: 当前使用的软键盘的ID
+        """
+        out, err = ShellUtil.exec('adb shell settings get secure default_input_method')
+        if out:
+            return out
+        out, err = ShellUtil.exec('adb shell ime list -s')
+        if err or not out:
+            return None
+        items = out.split("\n")
+        for item in items:
+            if ANDROID_TEST_ASSIST_TOOL_PACKAGE_NAME not in item:
+                return item.strip()
+        return None
+
 
 if __name__ == "__main__":
     androidTestAssistTool = 'com.lkl.androidtestassisttool'
@@ -174,4 +193,4 @@ if __name__ == "__main__":
     # print(AdbUtil.startActivity(androidTestAssistTool, ".MainActivity"))
     # print(AdbUtil.startActivity(androidTestAssistTool1))
 
-    print(AdbUtil.inputText('http://host/path?a=0 & b=2'))
+    print(AdbUtil.getCurKeyboardId())
