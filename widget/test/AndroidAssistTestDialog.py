@@ -22,8 +22,8 @@ ANDROID_TEST_ASSIST_TOOL_LOWEST_VERSION_NAME = "1.0.1"
 
 
 class AndroidAssistTestDialog(QtWidgets.QDialog):
-    WINDOW_WIDTH = 800
-    WINDOW_HEIGHT = 600
+    WINDOW_WIDTH = 900
+    WINDOW_HEIGHT = 680
     TABLE_KEY_TYPE = '操作类型'
     TABLE_KEY_DESC = '操作描述信息'
 
@@ -104,9 +104,28 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
 
         yPos += int(const.HEIGHT_OFFSET * 1.5)
         splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
+        WidgetUtil.createLabel(splitter, text="文件传输：", minSize=QSize(80, const.HEIGHT))
+        yPos += const.HEIGHT_OFFSET
+        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
+        WidgetUtil.createPushButton(splitter, text="电脑上的文件路径", onClicked=self.getPcFilePath)
+        self.pcPathLineEdit = WidgetUtil.createLineEdit(splitter, sizePolicy=sizePolicy)
+        WidgetUtil.createLabel(splitter, text="设备里的文件路径", minSize=QSize(80, const.HEIGHT))
+        self.phonePathLineEdit = WidgetUtil.createLineEdit(splitter, sizePolicy=sizePolicy)
+        yPos += const.HEIGHT_OFFSET
+        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width / 2, const.HEIGHT))
+        WidgetUtil.createPushButton(splitter, text="复制设备里的文件到电脑", minSize=QSize(100, const.HEIGHT),
+                                    onClicked=self.pullFile)
+        WidgetUtil.createPushButton(splitter, text="复制电脑里的文件到设备", minSize=QSize(100, const.HEIGHT),
+                                    onClicked=self.pushFile)
+
+        yPos += int(const.HEIGHT_OFFSET * 1.5)
+        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
+        WidgetUtil.createLabel(splitter, text="抓取视频、log：", minSize=QSize(80, const.HEIGHT))
+        yPos += const.HEIGHT_OFFSET
+        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
         WidgetUtil.createPushButton(splitter, text="测试环境准备", minSize=QSize(100, const.HEIGHT), onClicked=self.prepareEvn)
 
-        yPos += 100
+        yPos += const.HEIGHT_OFFSET
         splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
         WidgetUtil.createLabel(splitter, text="操作信息：", minSize=QSize(80, const.HEIGHT))
         yPos += const.HEIGHT_OFFSET
@@ -173,6 +192,26 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
             self.printRes("已经传输完成。")
         pass
 
+    def getPcFilePath(self):
+        fp = WidgetUtil.getExistingDirectory()
+        if fp:
+            self.pcPathLineEdit.setText(fp)
+        pass
+
+    def pullFile(self):
+        pcPath = self.pcPathLineEdit.text().strip()
+        phonePath = self.phonePathLineEdit.text().strip()
+        self.printRes("复制设备里的文件到电脑: ")
+        self.printCmdRes(*AdbUtil.pullFile(phonePath, pcPath))
+        pass
+
+    def pushFile(self):
+        pcPath = self.pcPathLineEdit.text().strip()
+        phonePath = self.phonePathLineEdit.text().strip()
+        self.printRes("复制电脑里的文件到设备: ")
+        self.printCmdRes(*AdbUtil.pushFile(pcPath, phonePath))
+        pass
+
     def prepareEvn(self):
         if int(AdbUtil.getVersionCode(ANDROID_TEST_ASSIST_TOOL_PACKAGE_NAME)) < ANDROID_TEST_ASSIST_TOOL_LOWEST_VERSION:
             self.printRes("{} 支持的最低版本 {} ，请升级到高版本。".format(
@@ -196,6 +235,15 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
                 self.printRes(err, '#f00')
                 return False
         return True
+
+    def printCmdRes(self, out, err):
+        if out:
+            if 'error:' in out:
+                self.printRes(out, '#f00')
+            else:
+                self.printRes(out)
+        if err:
+            self.printRes(err, '#f00')
 
     def printRes(self, res: str = '', color='#00f'):
         WidgetUtil.appendTextEdit(self.execResTE, res, color)

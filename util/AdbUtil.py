@@ -173,12 +173,37 @@ class AdbUtil:
 
     @staticmethod
     def inputBase64Text(text):
+        """
+        向手机输入框输入中文、特殊字符等
+        :param text: 要输入等文本
+        :return: 执行完
+        """
         charsBase64 = str(base64.b64encode(text.encode('utf-8')))[1:]
         curKeyboardId = AdbUtil.getCurKeyboardId()
         ShellUtil.exec("adb shell ime set com.lkl.androidtestassisttool/.adbkeyboard.AdbIME")
         ShellUtil.exec("adb shell am broadcast -a ADB_INPUT_B64 --es msg %s" % charsBase64)
         ShellUtil.exec("adb shell ime set {}".format(curKeyboardId))
         return True
+
+    @staticmethod
+    def pullFile(src: str, dst: str = ''):
+        """
+        复制设备里的文件到电脑
+        :param src: 设备里的文件路径
+        :param dst: 电脑上的目录
+        :return: 操作结果
+        """
+        return ShellUtil.exec("adb pull {} {}".format(src, dst))
+
+    @staticmethod
+    def pushFile(src: str, dst: str):
+        """
+        复制电脑里的文件到设备
+        :param src: 电脑上的文件路径
+        :param dst: 设备里的目录
+        :return: 操作结果
+        """
+        return ShellUtil.exec("adb push {} {}".format(src, dst))
 
 
 if __name__ == "__main__":
@@ -204,5 +229,8 @@ if __name__ == "__main__":
     # print(AdbUtil.startActivity(androidTestAssistTool, ".MainActivity"))
     # print(AdbUtil.startActivity(androidTestAssistTool1))
 
-    print(AdbUtil.getCurKeyboardId())
-    print(AdbUtil.inputBase64Text("hello && 你好！"))
+    # print(AdbUtil.getCurKeyboardId())
+    # print(AdbUtil.inputBase64Text("hello && 你好！"))
+
+    print(AdbUtil.pullFile('/sdcard/backup.xml'))
+    print(AdbUtil.pushFile('/Users/likunlun/PycharmProjects/CommonTools/util/backup.xml', '/sdcard/backup1.xml'))
