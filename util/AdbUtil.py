@@ -13,6 +13,9 @@ else:
     findCmd = "findstr"
 
 ANDROID_TEST_ASSIST_TOOL_PACKAGE_NAME = 'com.lkl.androidtestassisttool'
+ANDROID_TEST_ASSIST_TOOL_OPERATION_RECEIVER_NAME = '.receiver.OperationReceiver'
+ANDROID_TEST_ASSIST_TOOL_OPERATION_RECEIVER_ACTION = 'OperationReceiver'
+
 
 class AdbUtil:
     @staticmethod
@@ -180,10 +183,30 @@ class AdbUtil:
         """
         charsBase64 = str(base64.b64encode(text.encode('utf-8')))[1:]
         curKeyboardId = AdbUtil.getCurKeyboardId()
-        ShellUtil.exec("adb shell ime set com.lkl.androidtestassisttool/.adbkeyboard.AdbIME")
+        ShellUtil.exec("adb shell ime set {}/.adbkeyboard.AdbIME".format(ANDROID_TEST_ASSIST_TOOL_PACKAGE_NAME))
         ShellUtil.exec("adb shell am broadcast -a ADB_INPUT_B64 --es msg %s" % charsBase64)
         ShellUtil.exec("adb shell ime set {}".format(curKeyboardId))
         return True
+
+    @staticmethod
+    def sendOperationRequest(type: str = "isEvnReady"):
+        """
+        向手机测试apk发送操作指令
+        :param type: 操作类型
+        :return: 操作结果
+        """
+        out, err = ShellUtil.exec("adb shell am broadcast -a {} -n {}/{} -e type {}"
+                                  .format(ANDROID_TEST_ASSIST_TOOL_OPERATION_RECEIVER_ACTION,
+                                          ANDROID_TEST_ASSIST_TOOL_PACKAGE_NAME,
+                                          ANDROID_TEST_ASSIST_TOOL_OPERATION_RECEIVER_NAME,
+                                          type))
+        if err or not out:
+            return ""
+        items = out.strip().split(" ")
+        for item in items:
+            if "data=" in item:
+                return item.split("=")[1].replace("\"", "").strip()
+        return ""
 
     @staticmethod
     def pullFile(src: str, dst: str = ''):
@@ -231,6 +254,7 @@ if __name__ == "__main__":
 
     # print(AdbUtil.getCurKeyboardId())
     # print(AdbUtil.inputBase64Text("hello && 你好！"))
+    print(AdbUtil.sendOperationRequest())
 
-    print(AdbUtil.pullFile('/sdcard/backup.xml'))
-    print(AdbUtil.pushFile('/Users/likunlun/PycharmProjects/CommonTools/util/backup.xml', '/sdcard/backup1.xml'))
+    # print(AdbUtil.pullFile('/sdcard/backup.xml'))
+    # print(AdbUtil.pushFile('/Users/likunlun/PycharmProjects/CommonTools/util/backup.xml', '/sdcard/backup1.xml'))
