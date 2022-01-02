@@ -65,7 +65,7 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
 
         self.setWindowModality(Qt.ApplicationModal)
         # 很关键，不加出不来
-        # self.exec_()
+        self.exec_()
 
     def createGroupBox(self, parent):
         yPos = const.GROUP_BOX_MARGIN_TOP
@@ -112,7 +112,7 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
         WidgetUtil.createLabel(splitter, text="设备里的文件路径", minSize=QSize(80, const.HEIGHT))
         self.phonePathLineEdit = WidgetUtil.createLineEdit(splitter, sizePolicy=sizePolicy)
         yPos += const.HEIGHT_OFFSET
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width / 2, const.HEIGHT))
+        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, int(width / 2), const.HEIGHT))
         WidgetUtil.createPushButton(splitter, text="复制设备里的文件到电脑", minSize=QSize(100, const.HEIGHT),
                                     onClicked=self.pullFile)
         WidgetUtil.createPushButton(splitter, text="复制电脑里的文件到设备", minSize=QSize(100, const.HEIGHT),

@@ -70,3 +70,13 @@ class DialogUtil:
         dialog.setWindowModality(Qt.ApplicationModal)
         # dialog.exec_()
         dialog.show()
+
+    @staticmethod
+    def showLoadingDialog(showText: str = '正在加载中。。。'):
+        """
+        显示加载等待框
+        :param showText: 显示的文字
+        :return: 加载框
+        """
+        from widget.LoadingDialog import LoadingDialog
+        return LoadingDialog(showText)
