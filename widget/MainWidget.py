@@ -10,8 +10,8 @@ from constant.WidgetConst import *
 
 
 class MainWidget(QMainWindow):
-    WINDOW_WIDTH = 1180
-    WINDOW_HEIGHT = 620
+    WINDOW_WIDTH = 880
+    WINDOW_HEIGHT = 500
 
     windowList = []
 
@@ -30,11 +30,9 @@ class MainWidget(QMainWindow):
         layoutWidget.setLayout(vLayout)
 
         commonGroupBox = self.createCommonGroupBox(layoutWidget)
-        fileGroupBox = self.createFileUtilGroupBox(layoutWidget)
         otherGroupBox = self.createOtherUtilGroupBox(layoutWidget)
 
         vLayout.addWidget(commonGroupBox)
-        vLayout.addWidget(fileGroupBox)
         vLayout.addWidget(otherGroupBox)
 
         self.setWindowTitle(WidgetUtil.translate("MainWidget", "开发测试辅助工具"))
@@ -55,13 +53,13 @@ class MainWidget(QMainWindow):
         self.timestampLineEdit1 = WidgetUtil.createLineEdit(splitter, text=str(DateUtil.nowTimestamp()),
                                                             holderText="1578623033", sizePolicy=sizePolicy)
         WidgetUtil.createPushButton(splitter, text="转化", onClicked=self.timestamp2Time)
-        self.timeLineEdit1 = WidgetUtil.createLineEdit(splitter, isEnable=False, sizePolicy=sizePolicy1)
+        self.timeLineEdit1 = WidgetUtil.createLineEdit(splitter, isEnable=False, sizePolicy=sizePolicy)
 
-        # splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, const.HEIGHT_OFFSET * 3, 1000, const.HEIGHT))
-        WidgetUtil.createLabel(splitter, text="时间转化时间戳：", alignment=Qt.AlignRight | Qt.AlignVCenter,
-                               minSize=QSize(150, const.HEIGHT))
+        yPos += int(const.HEIGHT_OFFSET * 1.2)
+        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
+        WidgetUtil.createLabel(splitter, text="时间转化时间戳：")
         self.timeLineEdit2 = WidgetUtil.createLineEdit(splitter, text=str(DateUtil.nowTime()),
-                                                       holderText="2020-01-11 10:28:28", sizePolicy=sizePolicy1)
+                                                       holderText="2020-01-11 10:28:28", sizePolicy=sizePolicy)
         WidgetUtil.createPushButton(splitter, text="转化", onClicked=self.time2Timestamp)
         self.timestampLineEdit2 = WidgetUtil.createLineEdit(splitter, isEnable=False, sizePolicy=sizePolicy)
         return box
@@ -87,156 +85,35 @@ class MainWidget(QMainWindow):
             WidgetUtil.showErrorDialog(message="请输入正确格式的时间(YYYY-MM-dd HH:mm:ss)")
         pass
 
-    def createFileUtilGroupBox(self, parent):
-        yPos = const.GROUP_BOX_MARGIN_TOP
-        width = MainWidget.WINDOW_WIDTH - const.PADDING * 4
-        box = WidgetUtil.createGroupBox(parent, title="文件工具", minSize=QSize(width, 300))
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
-        WidgetUtil.createLabel(splitter, text="文件批量复制/移动：")
-
-        yPos += const.HEIGHT_OFFSET
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
-        WidgetUtil.createPushButton(splitter, text="源文件路径", onClicked=self.getSrcFilePath)
-        sizePolicy = WidgetUtil.createSizePolicy()
-        self.srcFilePathLineEdit = WidgetUtil.createLineEdit(splitter, isEnable=False, sizePolicy=sizePolicy)
-
-        WidgetUtil.createPushButton(splitter, text="目标文件路径", onClicked=self.getDstFilePath)
-        self.dstFilePathLineEdit = WidgetUtil.createLineEdit(splitter, sizePolicy=sizePolicy)
-
-        yPos += const.HEIGHT_OFFSET
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
-        WidgetUtil.createLabel(splitter, text="复制/移动文件的名称：")
-        self.srcFnPatternsLineEdit = WidgetUtil.createLineEdit(splitter, holderText="请输入要复制/移动的文件名的正则表达式，多个以\";\"分隔",
-                                                               sizePolicy=sizePolicy)
-
-        yPos += const.HEIGHT_OFFSET
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, 300, const.HEIGHT))
-        WidgetUtil.createPushButton(splitter, text="复制", onClicked=self.copyFiles)
-        WidgetUtil.createPushButton(splitter, text="移动", onClicked=self.moveFiles)
-
-        yPos += const.HEIGHT_OFFSET
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
-        WidgetUtil.createLabel(splitter, text="批量修改文件名：")
-
-        yPos += const.HEIGHT_OFFSET
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
-        WidgetUtil.createPushButton(splitter, text="文件路径", onClicked=self.getChangeFilePath)
-        sizePolicy = WidgetUtil.createSizePolicy()
-        self.changeFpLineEdit = WidgetUtil.createLineEdit(splitter, isEnable=False, sizePolicy=sizePolicy)
-
-
-        yPos += const.HEIGHT_OFFSET
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
-        WidgetUtil.createLabel(splitter, text="修改前文件名称：")
-        self.fnChangeBeforeLineEdit = WidgetUtil.createLineEdit(splitter, sizePolicy=sizePolicy)
-        WidgetUtil.createLabel(splitter, text="修改后文件名称：")
-        self.fnChangeAfterLineEdit = WidgetUtil.createLineEdit(splitter, sizePolicy=sizePolicy)
-        yPos += const.HEIGHT_OFFSET
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, 150, const.HEIGHT))
-        WidgetUtil.createPushButton(splitter, text="修改", onClicked=self.modifyFilesName)
-        return box
-
-    def getSrcFilePath(self):
-        fp = WidgetUtil.getExistingDirectory()
-        if fp:
-            self.srcFilePathLineEdit.setText(fp)
-        pass
-
-    def getDstFilePath(self):
-        fp = WidgetUtil.getExistingDirectory()
-        if fp:
-            self.dstFilePathLineEdit.setText(fp)
-        pass
-
-    def copyFiles(self):
-        self.modifyFiles()
-        pass
-
-    def moveFiles(self):
-        self.modifyFiles(False)
-        pass
-
-    def modifyFiles(self, isCopy=True):
-        srcFileDirPath = self.srcFilePathLineEdit.text().strip()
-        if not srcFileDirPath:
-            WidgetUtil.showErrorDialog(message="请选择源文件目录")
-            return
-        dstFileDirPath = self.dstFilePathLineEdit.text().strip()
-        if not dstFileDirPath:
-            WidgetUtil.showErrorDialog(message="请选择目标文件目录")
-            return
-        while dstFileDirPath.endswith("/") or dstFileDirPath.endswith("\\"):
-            dstFileDirPath = dstFileDirPath[:len(dstFileDirPath) - 1]
-        LogUtil.d("目标目录：", dstFileDirPath)
-        srcFnPatterns = self.srcFnPatternsLineEdit.text().strip()
-        if not srcFnPatterns:
-            WidgetUtil.showErrorDialog(message="请输入文件名匹配正则表达式")
-            return
-        srcFnPs = srcFnPatterns.split(";")
-        LogUtil.d("源文件名匹配正则表达式：", srcFnPs)
-        # ic_launch.*png;strings.xml
-        WidgetUtil.showQuestionDialog(message="你确认需要复制/移动文件吗？",
-                                      acceptFunc=lambda: FileUtil.modifyFilesPath(srcFnPs, srcFileDirPath,
-                                                                                  dstFileDirPath, isCopy))
-        pass
-
-    def getChangeFilePath(self):
-        fp = WidgetUtil.getExistingDirectory()
-        if fp:
-            self.changeFpLineEdit.setText(fp)
-        pass
-
-    def modifyFilesName(self):
-        changeFileDirPath = self.changeFpLineEdit.text().strip()
-        if not changeFileDirPath:
-            WidgetUtil.showErrorDialog(message="请选择要修改文件所在的目录")
-            return
-        beforeFn = self.fnChangeBeforeLineEdit.text().strip()
-        if not beforeFn:
-            WidgetUtil.showErrorDialog(message="请输入修改前文件名称")
-            return
-        afterFn = self.fnChangeAfterLineEdit.text().strip()
-        if not afterFn:
-            WidgetUtil.showErrorDialog(message="请输入修改后文件名称")
-            return
-        LogUtil.d("将指定目录：", changeFileDirPath, " 下的所有文件 ", beforeFn, " 修改为 ", afterFn)
-        # 查找需要修改名称的文件列表
-        srcFiles = FileUtil.findFilePathList(changeFileDirPath, [beforeFn])
-        if srcFiles:
-            if FileUtil.modifyFilesName(srcFiles, afterFn):
-                WidgetUtil.showErrorDialog(message="修改成功")
-        else:
-            WidgetUtil.showErrorDialog(message="指定目录下未查找到指定的文件")
-
-
     def createOtherUtilGroupBox(self, parent):
         box = WidgetUtil.createGroupBox(parent, title="其他工具")
         yPos = const.GROUP_BOX_MARGIN_TOP
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, 1000, const.HEIGHT))
-        WidgetUtil.createPushButton(splitter, text="Json格式化工具", onClicked=self.jumpJsonDialog)
-
-        WidgetUtil.createPushButton(splitter, text="图片压缩", onClicked=self.jumpCompressPicDialog)
-
+        width = MainWidget.WINDOW_WIDTH - const.PADDING * 4
+        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
+        WidgetUtil.createPushButton(splitter, text="Android测试辅助工具", onClicked=self.jumpAndroidAssistTestDialog)
+        WidgetUtil.createPushButton(splitter, text="文件操作工具", onClicked=self.jumpFileOperationDialog)
         WidgetUtil.createPushButton(splitter, text="Android资源移动工具", onClicked=self.jumpAndroidResDialog)
-
         WidgetUtil.createPushButton(splitter, text="Android color资源管理工具", onClicked=self.jumpAndroidColorResDialog)
-
-        WidgetUtil.createPushButton(splitter, text="Android adb指令工具", onClicked=self.jumpAndroidAdbDialog)
-
         WidgetUtil.createPushButton(splitter, text="照片墙", onClicked=self.jumpPhotoWall)
 
-        WidgetUtil.createPushButton(splitter, text="算法可视化", onClicked=self.jumpAlgorithmVisualizer)
-
         yPos += const.HEIGHT_OFFSET
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, 200, const.HEIGHT))
-        WidgetUtil.createPushButton(splitter, text="Android测试辅助工具", onClicked=self.jumpAndroidAssistTestDialog)
+        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
+        WidgetUtil.createPushButton(splitter, text="图片压缩", onClicked=self.jumpCompressPicDialog)
+        WidgetUtil.createPushButton(splitter, text="Json格式化工具", onClicked=self.jumpJsonDialog)
+        WidgetUtil.createPushButton(splitter, text="Android adb指令工具", onClicked=self.jumpAndroidAdbDialog)
+        WidgetUtil.createPushButton(splitter, text="算法可视化", onClicked=self.jumpAlgorithmVisualizer)
         return box
 
-    def jumpJsonDialog(self):
-        LogUtil.i("jumpJsonDialog")
-        from widget.JsonDialog import JsonDialog
-        dialog = JsonDialog()
-        # dialog.show()
+    def jumpAndroidAssistTestDialog(self):
+        LogUtil.i("jumpAndroidAdbDialog")
+        from widget.test.AndroidAssistTestDialog import AndroidAssistTestDialog
+        AndroidAssistTestDialog()
+        pass
+
+    def jumpFileOperationDialog(self):
+        LogUtil.i("jumpAndroidAdbDialog")
+        from widget.fileOperation.FileOperationDialog import FileOperationDialog
+        FileOperationDialog()
         pass
 
     def jumpAndroidResDialog(self):
@@ -245,28 +122,10 @@ class MainWidget(QMainWindow):
         AndroidResDialog()
         pass
 
-    def jumpCompressPicDialog(self):
-        LogUtil.i("jumpCompressPicDialog")
-        from widget.compressPicture.CompressPicDialog import CompressPicDialog
-        CompressPicDialog()
-        pass
-
     def jumpAndroidColorResDialog(self):
         LogUtil.i("jumpAndroidColorResDialog")
         from widget.colorManager.AndroidColorResDialog import AndroidColorResDialog
         AndroidColorResDialog()
-        pass
-
-    def jumpAndroidAdbDialog(self):
-        LogUtil.i("jumpAndroidAdbDialog")
-        from widget.test.AndroidAdbDialog import AndroidAdbDialog
-        AndroidAdbDialog()
-        pass
-
-    def jumpAndroidAssistTestDialog(self):
-        LogUtil.i("jumpAndroidAdbDialog")
-        from widget.test.AndroidAssistTestDialog import AndroidAssistTestDialog
-        AndroidAssistTestDialog()
         pass
 
     def jumpPhotoWall(self, filePath=None, photoType=None, previewFinishedFunc=None):
@@ -277,6 +136,24 @@ class MainWidget(QMainWindow):
         self.windowList.append(window)
         self.close()
         window.show()
+        pass
+
+    def jumpCompressPicDialog(self):
+        LogUtil.i("jumpCompressPicDialog")
+        from widget.compressPicture.CompressPicDialog import CompressPicDialog
+        CompressPicDialog()
+        pass
+
+    def jumpJsonDialog(self):
+        LogUtil.i("jumpJsonDialog")
+        from widget.JsonDialog import JsonDialog
+        JsonDialog()
+        pass
+
+    def jumpAndroidAdbDialog(self):
+        LogUtil.i("jumpAndroidAdbDialog")
+        from widget.test.AndroidAdbDialog import AndroidAdbDialog
+        AndroidAdbDialog()
         pass
 
     def jumpAlgorithmVisualizer(self):
