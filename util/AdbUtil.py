@@ -4,6 +4,7 @@
 # 定义一个AdbUtil工具类实现adb指令操作相关的功能
 import base64
 
+from util.DateUtil import DateUtil
 from util.PlatformUtil import PlatformUtil
 from util.ShellUtil import ShellUtil
 
@@ -189,17 +190,17 @@ class AdbUtil:
         return True
 
     @staticmethod
-    def sendOperationRequest(type: str = "isEvnReady"):
+    def sendOperationRequest(intent=["-e", "type", "isEvnReady"]):
         """
         向手机测试apk发送操作指令
-        :param type: 操作类型
+        :param intent: 传递的参数
         :return: 操作结果
         """
-        out, err = ShellUtil.exec("adb shell am broadcast -a {} -n {}/{} -e type {}"
+        out, err = ShellUtil.exec("adb shell am broadcast -a {} -n {}/{} {}"
                                   .format(ANDROID_TEST_ASSIST_TOOL_OPERATION_RECEIVER_ACTION,
                                           ANDROID_TEST_ASSIST_TOOL_PACKAGE_NAME,
                                           ANDROID_TEST_ASSIST_TOOL_OPERATION_RECEIVER_NAME,
-                                          type))
+                                          " ".join(intent)))
         if err or not out:
             return ""
         items = out.strip().split(" ")
@@ -254,7 +255,9 @@ if __name__ == "__main__":
 
     # print(AdbUtil.getCurKeyboardId())
     # print(AdbUtil.inputBase64Text("hello && 你好！"))
-    print(AdbUtil.sendOperationRequest())
+    print(AdbUtil.sendOperationRequest(["-e", "type", "startMuxer",
+                                        "--el", "timestamp", str(DateUtil.nowTimestamp(True)),
+                                        "--ei", "totalTime", "60"]))
 
     # print(AdbUtil.pullFile('/sdcard/backup.xml'))
     # print(AdbUtil.pushFile('/Users/likunlun/PycharmProjects/CommonTools/util/backup.xml', '/sdcard/backup1.xml'))

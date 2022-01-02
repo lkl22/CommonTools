@@ -33,6 +33,7 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
         LogUtil.d("Init Android Assist Test Dialog")
         self.setObjectName("AndroidAssistTestDialog")
 
+        self.hasCheckInstallFinish = False
         self.notOftenUsedCmds = [
             {"text": '查看运行的Activities', "func": self.getRunningActivities},
             {"text": '是否安装', "func": self.isInstalled},
@@ -65,7 +66,7 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
 
         self.setWindowModality(Qt.ApplicationModal)
         # 很关键，不加出不来
-        self.exec_()
+        # self.exec_()
 
     def createGroupBox(self, parent):
         yPos = const.GROUP_BOX_MARGIN_TOP
@@ -213,12 +214,16 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
         pass
 
     def prepareEvn(self):
-        if int(AdbUtil.getVersionCode(ANDROID_TEST_ASSIST_TOOL_PACKAGE_NAME)) < ANDROID_TEST_ASSIST_TOOL_LOWEST_VERSION:
-            self.printRes("{} 支持的最低版本 {} ，请升级到高版本。".format(
-                ANDROID_TEST_ASSIST_TOOL_PACKAGE_NAME, ANDROID_TEST_ASSIST_TOOL_LOWEST_VERSION_NAME), "#f00")
+        if not self.hasCheckInstallFinish and int(AdbUtil.getVersionCode(ANDROID_TEST_ASSIST_TOOL_PACKAGE_NAME)) < ANDROID_TEST_ASSIST_TOOL_LOWEST_VERSION:
+            WidgetUtil.showErrorDialog(message="{} 支持的最低版本 {} ，请升级到高版本。".format(
+                ANDROID_TEST_ASSIST_TOOL_PACKAGE_NAME, ANDROID_TEST_ASSIST_TOOL_LOWEST_VERSION_NAME))
             return
+        self.hasCheckInstallFinish = True
         AdbUtil.startActivity(ANDROID_TEST_ASSIST_TOOL_PACKAGE_NAME, ANDROID_TEST_ASSIST_TOOL_MAIN_ACTIVITY)
-
+        if AdbUtil.sendOperationRequest() == "false":
+            WidgetUtil.showErrorDialog(message='1、请检查权限是否都已开启\n2、点击"立即开启"同意截屏')
+            return
+        self.printRes("测试环境已经准备完成。")
         pass
 
     def execCmd(self, cmd: str):
