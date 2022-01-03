@@ -49,7 +49,7 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
         if isDebug:
             self.operaIni = OperaIni("../../resources/config/BaseConfig.ini")
         else:
-            self.operaIni = OperaIni(FileUtil.getConfigFp('BaseConfig.ini'))
+            self.operaIni = OperaIni()
 
         self.autoClickButtonTxt = "|".join(JsonUtil.decode(self.operaIni.getValue("autoClickButtonText", "test")))
 

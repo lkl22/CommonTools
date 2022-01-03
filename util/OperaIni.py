@@ -17,7 +17,7 @@ class OperaIni:
         if filePath:
             self.filePath = filePath
         else:
-            self.filePath = FileUtil.getProjectPath() + '/config/BaseConfig.ini'
+            self.filePath = FileUtil.getConfigFp('BaseConfig.ini')
         self.configParser = configparser.ConfigParser()
         self.data = self.readIni()
 
@@ -26,7 +26,7 @@ class OperaIni:
         读取ini配置文件
         :return: configparser
         """
-        self.configParser.read(self.filePath)
+        self.configParser.read(self.filePath, encoding="utf-8")
         return self.configParser
 
     # 通过key获取对应的value

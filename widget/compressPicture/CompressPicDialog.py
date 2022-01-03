@@ -44,7 +44,7 @@ class CompressPicDialog(QtWidgets.QDialog):
         if isDebug:
             self.operaIni = OperaIni("../../resources/config/BaseConfig.ini")
         else:
-            self.operaIni = OperaIni(FileUtil.getProjectPath() + "/resources/config/BaseConfig.ini")
+            self.operaIni = OperaIni()
         self.maxWorkerThreadCount = int(self.getConfig(KEY_MAX_WORKER_THREAD_COUNT))
         if not self.maxWorkerThreadCount:
             self.maxWorkerThreadCount = 5
