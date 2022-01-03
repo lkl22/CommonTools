@@ -190,17 +190,20 @@ class AdbUtil:
         return True
 
     @staticmethod
-    def sendOperationRequest(intent=["-e", "type", "isEvnReady"]):
+    def sendOperationRequest(*intentExtras):
         """
         向手机测试apk发送操作指令
-        :param intent: 传递的参数
+        :param intentExtras: 传递的参数
         :return: 操作结果
         """
+        extraParams = []
+        for extra in intentExtras:
+            extraParams += extra
         out, err = ShellUtil.exec("adb shell am broadcast -a {} -n {}/{} {}"
                                   .format(ANDROID_TEST_ASSIST_TOOL_OPERATION_RECEIVER_ACTION,
                                           ANDROID_TEST_ASSIST_TOOL_PACKAGE_NAME,
                                           ANDROID_TEST_ASSIST_TOOL_OPERATION_RECEIVER_NAME,
-                                          " ".join(intent)))
+                                          " ".join(extraParams)))
         if err or not out:
             return ""
         items = out.strip().split(" ")
@@ -208,6 +211,62 @@ class AdbUtil:
             if "data=" in item:
                 return item.split("=")[1].replace("\"", "").strip()
         return ""
+
+    @staticmethod
+    def putStringExtra(key: str, value: str = None):
+        """
+        传递 string 类型的参数
+        :param key: key值
+        :param value: value值
+        :return: 组装好的列表数据
+        """
+        if value:
+            return ["--es", key, value]
+        else:
+            return ["--esn", key]
+
+    @staticmethod
+    def putBooleanExtra(key: str, value: bool = False):
+        """
+        传递 boolean 类型的参数
+        :param key: key值
+        :param value: value值
+        :return: 组装好的列表数据
+        """
+        if value:
+            return ["--ez", key, 'true']
+        else:
+            return ["--ez", key, 'false']
+
+    @staticmethod
+    def putIntExtra(key: str, value: int):
+        """
+        传递 int 类型的参数
+        :param key: key值
+        :param value: value值
+        :return: 组装好的列表数据
+        """
+        return ["--ei", key, str(value)]
+
+    @staticmethod
+    def putLongExtra(key: str, value: int):
+        """
+        传递 long 类型的参数
+        :param key: key值
+        :param value: value值
+        :return: 组装好的列表数据
+        """
+        return ["--el", key, str(value)]
+
+    @staticmethod
+    def putFloatExtra(key: str, value: float):
+        """
+        传递 float 类型的参数
+        :param key: key值
+        :param value: value值
+        :return: 组装好的列表数据
+        """
+        return ["--ef", key, str(value)]
 
     @staticmethod
     def pullFile(src: str, dst: str = ''):
@@ -228,6 +287,15 @@ class AdbUtil:
         :return: 操作结果
         """
         return ShellUtil.exec("adb push {} {}".format(src, dst))
+
+    @staticmethod
+    def forceStopApp(packageName):
+        """
+        强制停止应用
+        :param packageName: 应用包名
+        :return: 执行结果
+        """
+        return ShellUtil.exec("adb shell am force-stop {}".format(packageName))
 
 
 if __name__ == "__main__":
@@ -255,9 +323,9 @@ if __name__ == "__main__":
 
     # print(AdbUtil.getCurKeyboardId())
     # print(AdbUtil.inputBase64Text("hello && 你好！"))
-    print(AdbUtil.sendOperationRequest(["-e", "type", "startMuxer",
-                                        "--el", "timestamp", str(DateUtil.nowTimestamp(True)),
-                                        "--ei", "totalTime", "60"]))
+    print(AdbUtil.sendOperationRequest(AdbUtil.putStringExtra("type", "startMuxer"),
+                                       AdbUtil.putLongExtra('timestamp', DateUtil.nowTimestamp(True)),
+                                       AdbUtil.putIntExtra('totalTime', 60)))
 
     # print(AdbUtil.pullFile('/sdcard/backup.xml'))
     # print(AdbUtil.pushFile('/Users/likunlun/PycharmProjects/CommonTools/util/backup.xml', '/sdcard/backup1.xml'))
