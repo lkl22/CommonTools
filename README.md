@@ -90,3 +90,5 @@ Working directory：$ProjectFileDir$
 [https://tinypng.com/developers/reference/python](https://tinypng.com/developers/reference/python)
 
 [https://www.iconfont.cn/](https://www.iconfont.cn/)
+
+[使用Python 3从网上下载文件](https://blog.csdn.net/xfxf996/article/details/107784224)
