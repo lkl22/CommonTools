@@ -86,10 +86,12 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
 
         yPos += const.HEIGHT_OFFSET
         splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, int(const.HEIGHT * 1.2)))
-        self.cmdComboBox = WidgetUtil.createComboBox(splitter, sizePolicy=sizePolicy, currentIndexChanged=self.cmdComboBoxIndexChanged)
+        self.cmdComboBox = WidgetUtil.createComboBox(splitter, sizePolicy=sizePolicy,
+                                                     currentIndexChanged=self.cmdComboBoxIndexChanged)
         for item in self.notOftenUsedCmds:
             self.cmdComboBox.addItem(item.get("text"))
-        WidgetUtil.createPushButton(splitter, text="执行", fixedSize=QSize(100, const.HEIGHT), onClicked=self.execComboBoxCmd)
+        WidgetUtil.createPushButton(splitter, text="执行", fixedSize=QSize(100, const.HEIGHT),
+                                    onClicked=self.execComboBoxCmd)
 
         yPos += int(const.HEIGHT_OFFSET * 1.2)
         splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
@@ -124,7 +126,17 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
         WidgetUtil.createLabel(splitter, text="抓取视频、log：", minSize=QSize(80, const.HEIGHT))
         yPos += const.HEIGHT_OFFSET
         splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
-        WidgetUtil.createPushButton(splitter, text="测试环境准备", minSize=QSize(100, const.HEIGHT), onClicked=self.prepareEvn)
+        WidgetUtil.createLabel(splitter, text="请输入缓存空间大小：", minSize=QSize(80, const.HEIGHT))
+        self.cacheSizeSpinBox = WidgetUtil.createSpinBox(splitter, value=30, minValue=10, maxValue=100, step=5,
+                                                         suffix="M", sizePolicy=sizePolicy)
+        WidgetUtil.createLabel(splitter, text="请输入录屏总时长：", alignment=Qt.AlignRight | Qt.AlignVCenter,
+                               minSize=QSize(200, const.HEIGHT))
+        self.totalTimeSpinBox = WidgetUtil.createSpinBox(splitter, value=30, minValue=10, maxValue=300, step=5,
+                                                         suffix="s", sizePolicy=sizePolicy)
+        yPos += const.HEIGHT_OFFSET
+        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
+        WidgetUtil.createPushButton(splitter, text="测试环境准备", minSize=QSize(100, const.HEIGHT),
+                                    onClicked=self.prepareEvn)
 
         yPos += const.HEIGHT_OFFSET
         splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
@@ -214,14 +226,16 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
         pass
 
     def prepareEvn(self):
-        if not self.hasCheckInstallFinish and int(AdbUtil.getVersionCode(ANDROID_TEST_ASSIST_TOOL_PACKAGE_NAME)) < ANDROID_TEST_ASSIST_TOOL_LOWEST_VERSION:
+        if not self.hasCheckInstallFinish and int(AdbUtil.getVersionCode(
+                ANDROID_TEST_ASSIST_TOOL_PACKAGE_NAME)) < ANDROID_TEST_ASSIST_TOOL_LOWEST_VERSION:
             WidgetUtil.showErrorDialog(message="{} 支持的最低版本 {} ，请升级到高版本。".format(
                 ANDROID_TEST_ASSIST_TOOL_PACKAGE_NAME, ANDROID_TEST_ASSIST_TOOL_LOWEST_VERSION_NAME))
             return
         self.hasCheckInstallFinish = True
         while AdbUtil.sendOperationRequest(AdbUtil.putStringExtra("type", "isEvnReady")) == "false":
             AdbUtil.forceStopApp(ANDROID_TEST_ASSIST_TOOL_PACKAGE_NAME)
-            AdbUtil.startActivity(ANDROID_TEST_ASSIST_TOOL_PACKAGE_NAME, ANDROID_TEST_ASSIST_TOOL_MAIN_ACTIVITY)
+            AdbUtil.startActivity(ANDROID_TEST_ASSIST_TOOL_PACKAGE_NAME, ANDROID_TEST_ASSIST_TOOL_MAIN_ACTIVITY,
+                                  " ".join(AdbUtil.putIntExtra("cacheSize", int(self.cacheSizeSpinBox.value()))))
             (x, y) = AdbUtil.findUiElementCenter("允许|立即开始|Allow|Start now")
             while x and y:
                 AdbUtil.click(x, y)

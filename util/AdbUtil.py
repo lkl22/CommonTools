@@ -119,15 +119,16 @@ class AdbUtil:
         return out
 
     @staticmethod
-    def startActivity(packageName: str, activityName: str = None):
+    def startActivity(packageName: str, activityName: str = None, extraParams: str = ""):
         """
         启动app/指定activity
         :param packageName: apk的包名
         :param activityName: 要启动的activity
+        :param extraParams: 传给activity的参数
         :return: 执行结果
         """
         if activityName:
-            out, err = ShellUtil.exec("adb shell am start -n {}/{}".format(packageName, activityName))
+            out, err = ShellUtil.exec("adb shell am start -n {}/{} {}".format(packageName, activityName, extraParams))
         else:
             out, err = ShellUtil.exec(
                 "adb shell monkey -p {} -c android.intent.category.LAUNCHER 1".format(packageName))
@@ -352,7 +353,7 @@ if __name__ == "__main__":
     # print(AdbUtil.uninstallApk(androidTestAssistTool1))
 
     # print(AdbUtil.startActivity(androidTestAssistTool, ""))
-    # print(AdbUtil.startActivity(androidTestAssistTool, ".MainActivity"))
+    print(AdbUtil.startActivity(androidTestAssistTool, ".MainActivity", " ".join(AdbUtil.putIntExtra('cacheSize', 60))))
     # print(AdbUtil.startActivity(androidTestAssistTool1))
 
     # print(AdbUtil.getCurKeyboardId())
@@ -364,5 +365,5 @@ if __name__ == "__main__":
     # print(AdbUtil.pullFile('/sdcard/backup.xml'))
     # print(AdbUtil.pushFile('/Users/likunlun/PycharmProjects/CommonTools/util/backup.xml', '/sdcard/backup1.xml'))
 
-    print(AdbUtil.findUiElementCenter("允许|立即开始|Allow|Start now"))
+    # print(AdbUtil.findUiElementCenter("允许|立即开始|Allow|Start now"))
     # print(AdbUtil.click(786.0, 1800.0))
