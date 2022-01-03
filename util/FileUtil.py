@@ -163,6 +163,17 @@ class FileUtil:
             LogUtil.e('FileUtil clearPath 错误信息：', e)
 
     @staticmethod
+    def removeFile(fp):
+        """
+        删除指定的文件
+        :param fp: 文件path
+        """
+        try:
+            os.remove(fp)
+        except Exception as e:
+            LogUtil.e('FileUtil removeFile 错误信息：', e)
+
+    @staticmethod
     def zipDir(dirPath, outFullName):
         """
         压缩指定文件夹

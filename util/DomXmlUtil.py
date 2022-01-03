@@ -173,13 +173,14 @@ class DomXmlUtil:
         return document
 
     @staticmethod
-    def findElements(document: Document, tagName, attrName='', attrValue=''):
+    def findElements(document: Document, tagName, attrName='', attrValue='', isBlurMatch=False):
         """
         查找document下的Elements
         :param document: document
         :param tagName: tagName
         :param attrName: attrName
         :param attrValue: attrValue
+        :param isBlurMatch: 是否模糊匹配attrValue
         :return: 查找到到元素列表
         """
         elements: [Element] = document.getElementsByTagName(tagName)
@@ -190,7 +191,10 @@ class DomXmlUtil:
                     attribute = element.getAttribute(attrName)
                     if attribute:
                         if attrValue:
-                            if attribute == attrValue:
+                            if isBlurMatch:
+                                if attribute.lower() in attrValue.lower():
+                                    res.append(element)
+                            elif attribute == attrValue:
                                 res.append(element)
                         else:
                             res.append(element)

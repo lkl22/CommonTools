@@ -3,8 +3,11 @@
 # Filename: AdbUtil.py
 # 定义一个AdbUtil工具类实现adb指令操作相关的功能
 import base64
+from xml.dom.minidom import Element
 
-from util.DateUtil import DateUtil
+from util.DateUtil import DateUtil, LogUtil
+from util.DomXmlUtil import DomXmlUtil
+from util.FileUtil import FileUtil
 from util.PlatformUtil import PlatformUtil
 from util.ShellUtil import ShellUtil
 
@@ -297,6 +300,37 @@ class AdbUtil:
         """
         return ShellUtil.exec("adb shell am force-stop {}".format(packageName))
 
+    @staticmethod
+    def findUiElementCenter(text: str):
+        """
+        查找指定文本的界面元素的中心位置
+        :param text: 要查找的文字
+        :return: 元素中心点
+        """
+        phoneTempDumpFile = '/data/local/tmp/uidump.xml'
+        tempDumpFile = 'uidump.xml'
+        ShellUtil.exec("adb shell uiautomator dump {} && adb pull {} {}"
+                       .format(phoneTempDumpFile, phoneTempDumpFile, tempDumpFile))
+        srcXml = DomXmlUtil.readXml(tempDumpFile)
+        elements: [Element] = DomXmlUtil.findElements(srcXml, 'node', 'text', text, isBlurMatch=True)
+        for element in elements:
+            bounds = element.getAttribute("bounds").replace("[", ",").replace("]", "")[1:].split(",")
+            x = int(bounds[2]) / 2 + int(bounds[0]) / 2
+            y = int(bounds[3]) / 2 + int(bounds[1]) / 2
+            LogUtil.e("find element bounds {}".format(bounds))
+            return x, y
+        FileUtil.removeFile(tempDumpFile)
+        return None, None
+
+    @staticmethod
+    def click(x: float, y: float):
+        """
+        点击屏幕
+        :param x: x坐标
+        :param y: y坐标
+        """
+        ShellUtil.exec("adb shell input tap {} {}".format(x, y))
+
 
 if __name__ == "__main__":
     androidTestAssistTool = 'com.lkl.androidtestassisttool'
@@ -323,9 +357,12 @@ if __name__ == "__main__":
 
     # print(AdbUtil.getCurKeyboardId())
     # print(AdbUtil.inputBase64Text("hello && 你好！"))
-    print(AdbUtil.sendOperationRequest(AdbUtil.putStringExtra("type", "startMuxer"),
-                                       AdbUtil.putLongExtra('timestamp', DateUtil.nowTimestamp(True)),
-                                       AdbUtil.putIntExtra('totalTime', 60)))
+    # print(AdbUtil.sendOperationRequest(AdbUtil.putStringExtra("type", "startMuxer"),
+    #                                    AdbUtil.putLongExtra('timestamp', DateUtil.nowTimestamp(True)),
+    #                                    AdbUtil.putIntExtra('totalTime', 60)))
 
     # print(AdbUtil.pullFile('/sdcard/backup.xml'))
     # print(AdbUtil.pushFile('/Users/likunlun/PycharmProjects/CommonTools/util/backup.xml', '/sdcard/backup1.xml'))
+
+    print(AdbUtil.findUiElementCenter("允许|立即开始|Allow|Start now"))
+    # print(AdbUtil.click(786.0, 1800.0))

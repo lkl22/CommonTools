@@ -219,11 +219,14 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
                 ANDROID_TEST_ASSIST_TOOL_PACKAGE_NAME, ANDROID_TEST_ASSIST_TOOL_LOWEST_VERSION_NAME))
             return
         self.hasCheckInstallFinish = True
-        if AdbUtil.sendOperationRequest(AdbUtil.putStringExtra("type", "isEvnReady")) == "false":
+        while AdbUtil.sendOperationRequest(AdbUtil.putStringExtra("type", "isEvnReady")) == "false":
             AdbUtil.forceStopApp(ANDROID_TEST_ASSIST_TOOL_PACKAGE_NAME)
             AdbUtil.startActivity(ANDROID_TEST_ASSIST_TOOL_PACKAGE_NAME, ANDROID_TEST_ASSIST_TOOL_MAIN_ACTIVITY)
-            WidgetUtil.showErrorDialog(message='1、请检查权限是否都已开启\n2、点击"立即开启"同意截屏')
-            return
+            (x, y) = AdbUtil.findUiElementCenter("允许|立即开始|Allow|Start now")
+            while x and y:
+                AdbUtil.click(x, y)
+                time.sleep(0.2)
+                (x, y) = AdbUtil.findUiElementCenter("允许|立即开始|Allow|Start now")
         self.printRes("测试环境已经准备完成。")
         pass
 
