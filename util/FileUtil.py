@@ -49,6 +49,18 @@ class FileUtil:
             LogUtil.e('mkFilePath 错误信息：', err)
 
     @staticmethod
+    def mkDirs(dirPath):
+        """
+        创建文件夹
+        :param dirPath: 文件夹路径
+        """
+        try:
+            if not os.path.exists(dirPath):
+                os.makedirs(dirPath)  # 创建路径
+        except Exception as err:
+            LogUtil.e('mkDirs 错误信息：', err)
+
+    @staticmethod
     def modifyFilePath(srcFile, dstFile, isCopy=True):
         """
         复制/移动文件到目标位置

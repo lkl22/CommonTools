@@ -8,6 +8,7 @@ from PyQt5.QtWidgets import QAbstractItemView
 from constant.TestStepConst import *
 from constant.WidgetConst import *
 from util.AdbUtil import AdbUtil
+from util.DateUtil import DateUtil
 from util.FileUtil import *
 from util.DialogUtil import *
 from util.ShellUtil import *
@@ -23,7 +24,7 @@ ANDROID_TEST_ASSIST_TOOL_LOWEST_VERSION_NAME = "1.0.1"
 
 class AndroidAssistTestDialog(QtWidgets.QDialog):
     WINDOW_WIDTH = 900
-    WINDOW_HEIGHT = 680
+    WINDOW_HEIGHT = 690
     TABLE_KEY_TYPE = '操作类型'
     TABLE_KEY_DESC = '操作描述信息'
 
@@ -126,17 +127,22 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
         WidgetUtil.createLabel(splitter, text="抓取视频、log：", minSize=QSize(80, const.HEIGHT))
         yPos += const.HEIGHT_OFFSET
         splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
-        WidgetUtil.createLabel(splitter, text="请输入缓存空间大小：", minSize=QSize(80, const.HEIGHT))
+        WidgetUtil.createPushButton(splitter, text="视频、Log存储路径", onClicked=self.getVideoLogFilePath)
+        self.videoLogPathLineEdit = WidgetUtil.createLineEdit(splitter, sizePolicy=sizePolicy)
+        WidgetUtil.createLabel(splitter, text="请输入缓存空间大小：", alignment=Qt.AlignRight | Qt.AlignVCenter,
+                               minSize=QSize(150, const.HEIGHT))
         self.cacheSizeSpinBox = WidgetUtil.createSpinBox(splitter, value=30, minValue=10, maxValue=100, step=5,
                                                          suffix="M", sizePolicy=sizePolicy)
         WidgetUtil.createLabel(splitter, text="请输入录屏总时长：", alignment=Qt.AlignRight | Qt.AlignVCenter,
-                               minSize=QSize(200, const.HEIGHT))
+                               minSize=QSize(150, const.HEIGHT))
         self.totalTimeSpinBox = WidgetUtil.createSpinBox(splitter, value=30, minValue=10, maxValue=300, step=5,
                                                          suffix="s", sizePolicy=sizePolicy)
         yPos += const.HEIGHT_OFFSET
         splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
         WidgetUtil.createPushButton(splitter, text="测试环境准备", minSize=QSize(100, const.HEIGHT),
                                     onClicked=self.prepareEvn)
+        self.extractBtn = WidgetUtil.createPushButton(splitter, text="抓取视频、log", minSize=QSize(100, const.HEIGHT),
+                                                      isEnable=False, onClicked=self.extractVideoAndLog)
 
         yPos += const.HEIGHT_OFFSET
         splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
@@ -225,7 +231,18 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
         self.printCmdRes(*AdbUtil.pushFile(pcPath, phonePath))
         pass
 
+    def getVideoLogFilePath(self):
+        fp = WidgetUtil.getExistingDirectory()
+        if fp:
+            self.videoLogPathLineEdit.setText(fp)
+        pass
+
     def prepareEvn(self):
+        videoLogPath = self.videoLogPathLineEdit.text().strip()
+        if not videoLogPath:
+            WidgetUtil.showErrorDialog(message="请设置视频、log文件保存目录")
+            return
+        FileUtil.mkDirs(videoLogPath)
         if not self.hasCheckInstallFinish and int(AdbUtil.getVersionCode(
                 ANDROID_TEST_ASSIST_TOOL_PACKAGE_NAME)) < ANDROID_TEST_ASSIST_TOOL_LOWEST_VERSION:
             WidgetUtil.showErrorDialog(message="{} 支持的最低版本 {} ，请升级到高版本。".format(
@@ -235,13 +252,36 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
         while AdbUtil.sendOperationRequest(AdbUtil.putStringExtra("type", "isEvnReady")) == "false":
             AdbUtil.forceStopApp(ANDROID_TEST_ASSIST_TOOL_PACKAGE_NAME)
             AdbUtil.startActivity(ANDROID_TEST_ASSIST_TOOL_PACKAGE_NAME, ANDROID_TEST_ASSIST_TOOL_MAIN_ACTIVITY,
-                                  " ".join(AdbUtil.putIntExtra("cacheSize", int(self.cacheSizeSpinBox.value()))))
+                                  " ".join(AdbUtil.putIntExtra("cacheSize", self.cacheSizeSpinBox.value())))
             (x, y) = AdbUtil.findUiElementCenter("允许|立即开始|Allow|Start now")
             while x and y:
                 AdbUtil.click(x, y)
                 time.sleep(0.2)
                 (x, y) = AdbUtil.findUiElementCenter("允许|立即开始|Allow|Start now")
+
+        self.tempLog = open(os.path.join(videoLogPath, "tempLog"), 'w')
+        self.logPopen = ShellUtil.run("adb logcat -c && adb logcat -v threadtime", self.tempLog)
         self.printRes("测试环境已经准备完成。")
+        self.extractBtn.setEnabled(True)
+        pass
+
+    def extractVideoAndLog(self):
+        nowTimestamp = DateUtil.nowTimestamp(True)
+        videoPhoneFp = AdbUtil.sendOperationRequest(AdbUtil.putStringExtra("type", "startMuxer"),
+                                                    AdbUtil.putLongExtra("timestamp", nowTimestamp),
+                                                    AdbUtil.putIntExtra("totalTime", self.totalTimeSpinBox.value()))
+        AdbUtil.killAdbServer()
+        AdbUtil.startAdbServer()
+        while AdbUtil.sendOperationRequest(AdbUtil.putStringExtra("type", 'isFinishedMuxer'),
+                                           AdbUtil.putLongExtra("timestamp", nowTimestamp)) == 'false':
+            time.sleep(0.2)
+        AdbUtil.sendOperationRequest(AdbUtil.putStringExtra("type", 'rmFinishedMuxer'),
+                                     AdbUtil.putLongExtra("timestamp", nowTimestamp))
+        videoLogPath = self.videoLogPathLineEdit.text().strip()
+        AdbUtil.pullFile(videoPhoneFp, os.path.join(videoLogPath, DateUtil.timestamp2Time(int(nowTimestamp / 1000), "%Y%m%d_%H%M%S") + '.mp4'))
+        # 重新准备测试环境
+        self.extractBtn.setEnabled(False)
+        self.prepareEvn()
         pass
 
     def execCmd(self, cmd: str):
