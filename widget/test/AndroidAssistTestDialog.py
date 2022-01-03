@@ -11,6 +11,8 @@ from util.AdbUtil import AdbUtil
 from util.DateUtil import DateUtil
 from util.FileUtil import *
 from util.DialogUtil import *
+from util.JsonUtil import JsonUtil
+from util.OperaIni import OperaIni
 from util.ShellUtil import *
 from util.LogUtil import *
 from util.WeditorUtil import *
@@ -28,7 +30,7 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
     TABLE_KEY_TYPE = '操作类型'
     TABLE_KEY_DESC = '操作描述信息'
 
-    def __init__(self, defaultPackageName="", defaultActivityName=""):
+    def __init__(self, defaultPackageName="", defaultActivityName="", isDebug=False):
         # 调用父类的构函
         QtWidgets.QDialog.__init__(self)
         LogUtil.d("Init Android Assist Test Dialog")
@@ -41,6 +43,13 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
             {"text": '获取apk版本信息', "func": self.getVersionInfo},
             {"text": '查看应用安装路径', "func": self.getApkPath}
         ]
+        self.isDebug = isDebug
+        if isDebug:
+            self.operaIni = OperaIni("../../resources/config/BaseConfig.ini")
+        else:
+            self.operaIni = OperaIni(FileUtil.getConfigFp('BaseConfig.ini'))
+
+        self.autoClickButtonTxt = "|".join(JsonUtil.decode(self.operaIni.getValue("autoClickButtonText", "test")))
 
         self.resize(AndroidAssistTestDialog.WINDOW_WIDTH, AndroidAssistTestDialog.WINDOW_HEIGHT)
         self.setFixedSize(AndroidAssistTestDialog.WINDOW_WIDTH, AndroidAssistTestDialog.WINDOW_HEIGHT)
@@ -67,7 +76,7 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
 
         self.setWindowModality(Qt.ApplicationModal)
         # 很关键，不加出不来
-        # self.exec_()
+        self.exec_()
 
     def createGroupBox(self, parent):
         yPos = const.GROUP_BOX_MARGIN_TOP
@@ -192,16 +201,25 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
 
     def clearApkData(self):
         packageName = self.getPackageName()
+        if not packageName:
+            WidgetUtil.showErrorDialog(message="请先输入应用的包名！")
+            return
         self.printRes('{} 清除数据结果：{}'.format(packageName, AdbUtil.clearApkData(packageName)))
         pass
 
     def startActivity(self):
         packageName = self.getPackageName()
+        if not packageName:
+            WidgetUtil.showErrorDialog(message="请先输入应用的包名！")
+            return
         self.printRes('{} 启动结果：{}'.format(packageName, AdbUtil.startActivity(packageName, self.getActivityName())))
         pass
 
     def clearDataAndRestartApp(self):
         packageName = self.getPackageName()
+        if not packageName:
+            WidgetUtil.showErrorDialog(message="请先输入应用的包名！")
+            return
         self.printRes('{} 清除数据结果：{}'.format(packageName, AdbUtil.clearApkData(packageName)))
         self.printRes('{} 启动结果：{}'.format(packageName, AdbUtil.startActivity(packageName)))
         pass
@@ -253,7 +271,7 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
             AdbUtil.forceStopApp(ANDROID_TEST_ASSIST_TOOL_PACKAGE_NAME)
             AdbUtil.startActivity(ANDROID_TEST_ASSIST_TOOL_PACKAGE_NAME, ANDROID_TEST_ASSIST_TOOL_MAIN_ACTIVITY,
                                   " ".join(AdbUtil.putIntExtra("cacheSize", self.cacheSizeSpinBox.value())))
-            (x, y) = AdbUtil.findUiElementCenter("允许|立即开始|Allow|Start now")
+            (x, y) = AdbUtil.findUiElementCenter(self.autoClickButtonTxt)
             while x and y:
                 AdbUtil.click(x, y)
                 time.sleep(0.2)
@@ -280,7 +298,10 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
             time.sleep(0.2)
         AdbUtil.sendOperationRequest(AdbUtil.putStringExtra("type", 'rmFinishedMuxer'),
                                      AdbUtil.putLongExtra("timestamp", nowTimestamp))
-        AdbUtil.pullFile(videoPhoneFp, os.path.join(videoLogPath, DateUtil.timestamp2Time(int(nowTimestamp / 1000), "%Y%m%d_%H%M%S") + '.mp4'))
+        finalVideoFp = os.path.join(videoLogPath, DateUtil.timestamp2Time(int(nowTimestamp / 1000), "%Y%m%d_%H%M%S") + '.mp4')
+        AdbUtil.pullFile(videoPhoneFp, finalVideoFp)
+        self.printRes("视频录制成功: {}".format(finalVideoFp))
+
         # 重新准备测试环境
         self.extractBtn.setEnabled(False)
         self.prepareEvn()
@@ -288,11 +309,11 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
 
     def extractLog(self, nowTimestamp: int, videoLogPath: str):
         timeFormat: str = "%m-%d %H:%M:%S"
-        AdbUtil.extractLog(os.path.join(videoLogPath, 'tempLog'),
-                           os.path.join(videoLogPath, DateUtil.timestamp2Time(int(nowTimestamp / 1000), "%Y%m%d_%H%M%S") + '.log'),
+        dstFile = os.path.join(videoLogPath, DateUtil.timestamp2Time(int(nowTimestamp / 1000), "%Y%m%d_%H%M%S") + '.log')
+        AdbUtil.extractLog(os.path.join(videoLogPath, 'tempLog'), dstFile,
                            DateUtil.timestamp2Time(nowTimestamp / 1000 - self.totalTimeSpinBox.value(), timeFormat),
                            DateUtil.timestamp2Time(nowTimestamp / 1000, timeFormat))
-        pass
+        self.printRes("log抓取成功: {}".format(dstFile))
 
     def execCmd(self, cmd: str):
         LogUtil.d("exec cmd:", cmd)
@@ -326,6 +347,7 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     window = AndroidAssistTestDialog(defaultPackageName='com.lkl.androidtestassisttool',
-                                     defaultActivityName='.MainActivity')
+                                     defaultActivityName='.MainActivity',
+                                     isDebug=True)
     window.show()
     sys.exit(app.exec_())
