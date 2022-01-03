@@ -91,7 +91,7 @@ class OperaIni:
         将配置写入文件
         """
         # Writing our configuration file to 'example.cfg'
-        with open(self.filePath, 'w') as configfile:
+        with open(self.filePath, 'w', encoding="utf-8") as configfile:
             self.configParser.write(configfile)
 
 
