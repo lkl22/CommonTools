@@ -3,6 +3,7 @@
 # Filename: AdbUtil.py
 # 定义一个AdbUtil工具类实现adb指令操作相关的功能
 import base64
+import time
 from xml.dom.minidom import Element
 
 from util.DateUtil import DateUtil, LogUtil
@@ -35,6 +36,15 @@ class AdbUtil:
         if packageName in out:
             return True
         return False
+
+    @staticmethod
+    def installApk(apkFp: str):
+        """
+        安装apk
+        :param apkFp: apk文件路径
+        :return: 输出结果
+        """
+        return ShellUtil.exec("adb install -r -d -t {}".format(apkFp))
 
     @staticmethod
     def uninstallApk(packageName: str):
@@ -331,6 +341,18 @@ class AdbUtil:
         :param y: y坐标
         """
         ShellUtil.exec("adb shell input tap {} {}".format(x, y))
+
+    @staticmethod
+    def autoClickBtn(btnTxt):
+        """
+        自动点击指定文本的按钮
+        :param btnTxt: 按钮上的文本
+        """
+        (x, y) = AdbUtil.findUiElementCenter(btnTxt)
+        while x and y:
+            AdbUtil.click(x, y)
+            time.sleep(0.2)
+            (x, y) = AdbUtil.findUiElementCenter(btnTxt)
 
     @staticmethod
     def extractLog(srcFp: str, dstFp: str, startTime, endTime, timeFormat: str = "%m-%d %H:%M:%S"):

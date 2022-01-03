@@ -12,6 +12,7 @@ from util.DateUtil import DateUtil
 from util.FileUtil import *
 from util.DialogUtil import *
 from util.JsonUtil import JsonUtil
+from util.NetworkUtil import NetworkUtil
 from util.OperaIni import OperaIni
 from util.ShellUtil import *
 from util.LogUtil import *
@@ -37,6 +38,7 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
         self.setObjectName("AndroidAssistTestDialog")
 
         self.hasCheckInstallFinish = False
+        self.hasDownloadFinish = False
         self.notOftenUsedCmds = [
             {"text": '查看运行的Activities', "func": self.getRunningActivities},
             {"text": '是否安装', "func": self.isInstalled},
@@ -261,21 +263,29 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
             WidgetUtil.showErrorDialog(message="请设置视频、log文件保存目录")
             return
         FileUtil.mkDirs(videoLogPath)
+        downloadFile = "v{}.apk".format(ANDROID_TEST_ASSIST_TOOL_LOWEST_VERSION_NAME)
+
         if not self.hasCheckInstallFinish and int(AdbUtil.getVersionCode(
                 ANDROID_TEST_ASSIST_TOOL_PACKAGE_NAME)) < ANDROID_TEST_ASSIST_TOOL_LOWEST_VERSION:
-            WidgetUtil.showErrorDialog(message="{} 支持的最低版本 {} ，请升级到高版本。".format(
-                ANDROID_TEST_ASSIST_TOOL_PACKAGE_NAME, ANDROID_TEST_ASSIST_TOOL_LOWEST_VERSION_NAME))
-            return
+            if not self.hasDownloadFinish:
+                url = "https://github.com/lkl22/AndroidTestAssistTool/releases/download/v{}/app-release.apk" \
+                    .format(ANDROID_TEST_ASSIST_TOOL_LOWEST_VERSION_NAME)
+                while not NetworkUtil.downloadFile(url, downloadFile):
+                    self.printRes("下载apk失败，重新尝试！", '#f00')
+                self.hasDownloadFinish = True
+            out, err = AdbUtil.installApk(downloadFile)
+            self.printCmdRes(out, err)
+            while int(AdbUtil.getVersionCode(ANDROID_TEST_ASSIST_TOOL_PACKAGE_NAME)) < \
+                    ANDROID_TEST_ASSIST_TOOL_LOWEST_VERSION:
+                AdbUtil.autoClickBtn(self.autoClickButtonTxt)
+
         self.hasCheckInstallFinish = True
+        FileUtil.removeFile(downloadFile)
         while AdbUtil.sendOperationRequest(AdbUtil.putStringExtra("type", "isEvnReady")) == "false":
             AdbUtil.forceStopApp(ANDROID_TEST_ASSIST_TOOL_PACKAGE_NAME)
             AdbUtil.startActivity(ANDROID_TEST_ASSIST_TOOL_PACKAGE_NAME, ANDROID_TEST_ASSIST_TOOL_MAIN_ACTIVITY,
                                   " ".join(AdbUtil.putIntExtra("cacheSize", self.cacheSizeSpinBox.value())))
-            (x, y) = AdbUtil.findUiElementCenter(self.autoClickButtonTxt)
-            while x and y:
-                AdbUtil.click(x, y)
-                time.sleep(0.2)
-                (x, y) = AdbUtil.findUiElementCenter("允许|立即开始|Allow|Start now")
+            AdbUtil.autoClickBtn(self.autoClickButtonTxt)
 
         tempLog = open(os.path.join(videoLogPath, "tempLog"), 'w')
         ShellUtil.run("adb logcat -c && adb logcat -v threadtime", tempLog)
@@ -298,7 +308,8 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
             time.sleep(0.2)
         AdbUtil.sendOperationRequest(AdbUtil.putStringExtra("type", 'rmFinishedMuxer'),
                                      AdbUtil.putLongExtra("timestamp", nowTimestamp))
-        finalVideoFp = os.path.join(videoLogPath, DateUtil.timestamp2Time(int(nowTimestamp / 1000), "%Y%m%d_%H%M%S") + '.mp4')
+        finalVideoFp = os.path.join(videoLogPath,
+                                    DateUtil.timestamp2Time(int(nowTimestamp / 1000), "%Y%m%d_%H%M%S") + '.mp4')
         AdbUtil.pullFile(videoPhoneFp, finalVideoFp)
         self.printRes("视频录制成功: {}".format(finalVideoFp))
 
@@ -309,7 +320,8 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
 
     def extractLog(self, nowTimestamp: int, videoLogPath: str):
         timeFormat: str = "%m-%d %H:%M:%S"
-        dstFile = os.path.join(videoLogPath, DateUtil.timestamp2Time(int(nowTimestamp / 1000), "%Y%m%d_%H%M%S") + '.log')
+        dstFile = os.path.join(videoLogPath,
+                               DateUtil.timestamp2Time(int(nowTimestamp / 1000), "%Y%m%d_%H%M%S") + '.log')
         AdbUtil.extractLog(os.path.join(videoLogPath, 'tempLog'), dstFile,
                            DateUtil.timestamp2Time(nowTimestamp / 1000 - self.totalTimeSpinBox.value(), timeFormat),
                            DateUtil.timestamp2Time(nowTimestamp / 1000, timeFormat))
