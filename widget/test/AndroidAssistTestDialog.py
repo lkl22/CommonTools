@@ -259,8 +259,8 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
                 time.sleep(0.2)
                 (x, y) = AdbUtil.findUiElementCenter("允许|立即开始|Allow|Start now")
 
-        self.tempLog = open(os.path.join(videoLogPath, "tempLog"), 'w')
-        self.logPopen = ShellUtil.run("adb logcat -c && adb logcat -v threadtime", self.tempLog)
+        tempLog = open(os.path.join(videoLogPath, "tempLog"), 'w')
+        ShellUtil.run("adb logcat -c && adb logcat -v threadtime", tempLog)
         self.printRes("测试环境已经准备完成。")
         self.extractBtn.setEnabled(True)
         pass
@@ -272,16 +272,26 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
                                                     AdbUtil.putIntExtra("totalTime", self.totalTimeSpinBox.value()))
         AdbUtil.killAdbServer()
         AdbUtil.startAdbServer()
+        videoLogPath = self.videoLogPathLineEdit.text().strip()
+        # 提取log
+        self.extractLog(nowTimestamp, videoLogPath)
         while AdbUtil.sendOperationRequest(AdbUtil.putStringExtra("type", 'isFinishedMuxer'),
                                            AdbUtil.putLongExtra("timestamp", nowTimestamp)) == 'false':
             time.sleep(0.2)
         AdbUtil.sendOperationRequest(AdbUtil.putStringExtra("type", 'rmFinishedMuxer'),
                                      AdbUtil.putLongExtra("timestamp", nowTimestamp))
-        videoLogPath = self.videoLogPathLineEdit.text().strip()
         AdbUtil.pullFile(videoPhoneFp, os.path.join(videoLogPath, DateUtil.timestamp2Time(int(nowTimestamp / 1000), "%Y%m%d_%H%M%S") + '.mp4'))
         # 重新准备测试环境
         self.extractBtn.setEnabled(False)
         self.prepareEvn()
+        pass
+
+    def extractLog(self, nowTimestamp: int, videoLogPath: str):
+        timeFormat: str = "%m-%d %H:%M:%S"
+        AdbUtil.extractLog(os.path.join(videoLogPath, 'tempLog'),
+                           os.path.join(videoLogPath, DateUtil.timestamp2Time(int(nowTimestamp / 1000), "%Y%m%d_%H%M%S") + '.log'),
+                           DateUtil.timestamp2Time(nowTimestamp / 1000 - self.totalTimeSpinBox.value(), timeFormat),
+                           DateUtil.timestamp2Time(nowTimestamp / 1000, timeFormat))
         pass
 
     def execCmd(self, cmd: str):

@@ -37,8 +37,24 @@ class DateUtil:
             timestamp = time.mktime(timeArray)
             return int(timestamp)
         except ValueError as err:
-            print(err)
+            LogUtil.e("time2Timestamp", err)
             return None
+
+    @staticmethod
+    def isValidDate(timeStr, timeFormat=DATE_TIME):
+        """
+        判断str是不是有效的时间格式
+        :param timeStr: 要判断的字符串
+        :param timeFormat: 时间格式
+        :return: True 正确的时间格式
+        """
+        try:
+            # 转换成时间数组
+            time.strptime(timeStr, timeFormat)
+            return True
+        except Exception as err:
+            LogUtil.e("isValidDate", err)
+            return False
 
     @staticmethod
     def reFormat(timeStr, oldFormat=DATE_TIME, newFormat=DATE_TIME):
@@ -98,9 +114,11 @@ class DateUtil:
             return None
 
 
-# if __name__ == "__main__":
-#     print(DateUtil.nowTimestamp(True))
-#     print(DateUtil.nowTime())
-#     print(DateUtil.time2Timestamp("2020-01-10 10:23:53"))
-#
-#     print(DateUtil.timestampStr2Seconds("1578740129"))
+if __name__ == "__main__":
+    # print(DateUtil.nowTimestamp(True))
+    # print(DateUtil.nowTime())
+    # print(DateUtil.time2Timestamp("2020-01-10 10:23:53"))
+
+    # print(DateUtil.timestampStr2Seconds("1578740129"))
+
+    print(DateUtil.isValidDate("12-12 12:23:12", '%m-%d %H:%M:%S'))

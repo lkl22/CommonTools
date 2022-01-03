@@ -332,6 +332,32 @@ class AdbUtil:
         """
         ShellUtil.exec("adb shell input tap {} {}".format(x, y))
 
+    @staticmethod
+    def extractLog(srcFp: str, dstFp: str, startTime, endTime, timeFormat: str = "%m-%d %H:%M:%S"):
+        """
+        从log中提取指定时间段的日志
+        :param srcFp: 源文件
+        :param dstFp: 目标文件
+        :param startTime: 开始时间
+        :param endTime: 结束时间
+        :param timeFormat: 时间格式
+        """
+        srcFile = open(srcFp, 'r')
+        dstFile = open(dstFp, 'w')
+        line = srcFile.readline()
+        while line:
+            timeStr = line[:14]
+            if not DateUtil.isValidDate(timeStr, timeFormat):
+                dstFile.write(line)
+            else:
+                if timeStr >= startTime:
+                    dstFile.write(line)
+                if timeStr > endTime:
+                    break
+            line = srcFile.readline()
+        srcFile.close()
+        dstFile.close()
+
 
 if __name__ == "__main__":
     androidTestAssistTool = 'com.lkl.androidtestassisttool'
@@ -353,7 +379,7 @@ if __name__ == "__main__":
     # print(AdbUtil.uninstallApk(androidTestAssistTool1))
 
     # print(AdbUtil.startActivity(androidTestAssistTool, ""))
-    print(AdbUtil.startActivity(androidTestAssistTool, ".MainActivity", " ".join(AdbUtil.putIntExtra('cacheSize', 60))))
+    # print(AdbUtil.startActivity(androidTestAssistTool, ".MainActivity", " ".join(AdbUtil.putIntExtra('cacheSize', 60))))
     # print(AdbUtil.startActivity(androidTestAssistTool1))
 
     # print(AdbUtil.getCurKeyboardId())
@@ -367,3 +393,5 @@ if __name__ == "__main__":
 
     # print(AdbUtil.findUiElementCenter("允许|立即开始|Allow|Start now"))
     # print(AdbUtil.click(786.0, 1800.0))
+
+    print(AdbUtil.extractLog("tempLog", 'tempLog1', '01-03 16:17:41', '01-03 16:17:46'))
