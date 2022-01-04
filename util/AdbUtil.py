@@ -9,6 +9,7 @@ from xml.dom.minidom import Element
 from util.DateUtil import DateUtil, LogUtil
 from util.DomXmlUtil import DomXmlUtil
 from util.FileUtil import FileUtil
+from util.NetworkUtil import NetworkUtil
 from util.PlatformUtil import PlatformUtil
 from util.ShellUtil import ShellUtil
 
@@ -23,6 +24,29 @@ ANDROID_TEST_ASSIST_TOOL_OPERATION_RECEIVER_ACTION = 'OperationReceiver'
 
 
 class AdbUtil:
+    @staticmethod
+    def checkAdbEvn():
+        """
+        检查adb指令是否安装
+        :return: True 已经安装
+        """
+        out, err = ShellUtil.exec("adb --version")
+        if err or not out:
+            return False
+        if "Version " in out:
+            return True
+        return False
+
+    @staticmethod
+    def installAdbCmd():
+        # url = "https://dl.google.com/android/repository/platform-tools-latest-darwin.zip"
+        url = "https://dl.google.com/android/repository/platform-tools-latest-windows.zip"
+        downloadFile = 'platform-tools-latest-windows'
+        if not NetworkUtil.downloadPackage(url, downloadFile + '.zip'):
+            return False, "download failed."
+        FileUtil.unzipFile(downloadFile + '.zip', "./%s" % downloadFile)
+        return True, "download success."
+
     @staticmethod
     def isInstalled(packageName: str):
         """
@@ -416,4 +440,7 @@ if __name__ == "__main__":
     # print(AdbUtil.findUiElementCenter("允许|立即开始|Allow|Start now"))
     # print(AdbUtil.click(786.0, 1800.0))
 
-    print(AdbUtil.extractLog("tempLog", 'tempLog1', '01-03 16:17:41', '01-03 16:17:46'))
+    # print(AdbUtil.extractLog("tempLog", 'tempLog1', '01-03 16:17:41', '01-03 16:17:46'))
+
+    # print(AdbUtil.checkAdbEvn())
+    print(AdbUtil.installAdbCmd())
