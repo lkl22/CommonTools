@@ -348,8 +348,7 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
                                                     AdbUtil.putLongExtra("timestamp", nowTimestamp))
         AdbUtil.sendOperationRequest(AdbUtil.putStringExtra("type", 'rmFinishedMuxer'),
                                      AdbUtil.putLongExtra("timestamp", nowTimestamp))
-        finalVideoFp = os.path.join(videoLogPath,
-                                    DateUtil.timestamp2Time(int(nowTimestamp / 1000), "%Y%m%d_%H%M%S") + '.mp4')
+        finalVideoFp = os.path.join(videoLogPath, FileUtil.getFileName(videoPhoneFp))
         AdbUtil.pullFile(videoPhoneFp, finalVideoFp)
         self.printRes("视频录制成功: {}".format(finalVideoFp))
 
