@@ -289,31 +289,37 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
             WidgetUtil.showErrorDialog(message="请设置视频、log文件保存目录")
             return
         FileUtil.mkDirs(videoLogPath)
-        downloadFile = "v{}.apk".format(ANDROID_TEST_ASSIST_TOOL_LOWEST_VERSION_NAME)
-
         if not self.hasCheckInstallFinish and int(AdbUtil.getVersionCode(
                 ANDROID_TEST_ASSIST_TOOL_PACKAGE_NAME)) < ANDROID_TEST_ASSIST_TOOL_LOWEST_VERSION:
+            self.printRes("准备下载测试apk。。。")
+            downloadFile = "v{}.apk".format(ANDROID_TEST_ASSIST_TOOL_LOWEST_VERSION_NAME)
+            if os.path.isfile(downloadFile):
+                self.printRes("apk已经存在。。。")
+                self.hasDownloadFinish = True
             if not self.hasDownloadFinish:
                 url = "https://github.com/lkl22/AndroidTestAssistTool/releases/download/v{}/app-release.apk" \
                     .format(ANDROID_TEST_ASSIST_TOOL_LOWEST_VERSION_NAME)
                 if not NetworkUtil.downloadPackage(url, downloadFile):
                     WidgetUtil.showErrorDialog(message="下载apk失败，请检查网络后，重新尝试！")
+                    FileUtil.removeFile(downloadFile)
                     return
                 self.hasDownloadFinish = True
+            self.printRes("apk下载完成，准备安装。。。")
             out, err = AdbUtil.installApk(downloadFile)
             self.printCmdRes(out, err)
             while int(AdbUtil.getVersionCode(ANDROID_TEST_ASSIST_TOOL_PACKAGE_NAME)) < \
                     ANDROID_TEST_ASSIST_TOOL_LOWEST_VERSION:
                 AdbUtil.autoClickBtn(self.autoClickButtonTxt)
 
+
         self.hasCheckInstallFinish = True
-        FileUtil.removeFile(downloadFile)
+        self.printRes("准备启动apk，并准备环境。。。")
         while AdbUtil.sendOperationRequest(AdbUtil.putStringExtra("type", "isEvnReady")) == "false":
             AdbUtil.forceStopApp(ANDROID_TEST_ASSIST_TOOL_PACKAGE_NAME)
             AdbUtil.startActivity(ANDROID_TEST_ASSIST_TOOL_PACKAGE_NAME, ANDROID_TEST_ASSIST_TOOL_MAIN_ACTIVITY,
                                   " ".join(AdbUtil.putIntExtra("cacheSize", self.cacheSizeSpinBox.value())))
             AdbUtil.autoClickBtn(self.autoClickButtonTxt)
-
+        self.printRes("准备捕获日志。。。")
         tempLog = open(os.path.join(videoLogPath, "tempLog"), 'w')
         ShellUtil.run("adb logcat -c && adb logcat -v threadtime", tempLog)
         self.printRes("测试环境已经准备完成。")
@@ -379,6 +385,7 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
             self.printRes(err, '#f00')
 
     def printRes(self, res: str = '', color='#00f'):
+        LogUtil.i("printRes", res)
         WidgetUtil.appendTextEdit(self.execResTE, res, color)
         pass
 

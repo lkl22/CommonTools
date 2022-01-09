@@ -47,6 +47,7 @@ class NetworkUtil:
         :param retryTimes: 重试次数
         :return: True 下载成功
         """
+        LogUtil.d("downloadPackage", "start download {} to {}".format(url, downloadFile))
         while not NetworkUtil.downloadFile(url, downloadFile):
             retryTimes -= 1
             LogUtil.e("downloadPackage", "download failed retry.")
