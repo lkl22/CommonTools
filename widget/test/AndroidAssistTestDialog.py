@@ -163,6 +163,16 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
         self.execResTE = WidgetUtil.createTextEdit(splitter, isReadOnly=True)
         return box
 
+    def checkAdbEnv(self):
+        if not AdbUtil.isInstalledAdbEvn():
+            WidgetUtil.showErrorDialog(message="adb指令未安装，请在 http://adbdownload.com/ 下载安装包，并配置好环境变量后重启！！！")
+            return False
+        res = AdbUtil.isDeviceConnect()
+        if not res:
+            WidgetUtil.showErrorDialog(message="Android设备未连接，请连接设备后重试！！！")
+            return False
+        return True
+
     def getPackageName(self):
         return self.packageNameLineEdit.text().strip()
 
@@ -174,6 +184,8 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
         pass
 
     def execComboBoxCmd(self):
+        if not self.checkAdbEnv():
+            return
         index = self.cmdComboBox.currentIndex()
         self.notOftenUsedCmds[index].get("func")()
         pass
@@ -202,6 +214,8 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
         pass
 
     def clearApkData(self):
+        if not self.checkAdbEnv():
+            return
         packageName = self.getPackageName()
         if not packageName:
             WidgetUtil.showErrorDialog(message="请先输入应用的包名！")
@@ -210,6 +224,8 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
         pass
 
     def startActivity(self):
+        if not self.checkAdbEnv():
+            return
         packageName = self.getPackageName()
         if not packageName:
             WidgetUtil.showErrorDialog(message="请先输入应用的包名！")
@@ -218,6 +234,8 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
         pass
 
     def clearDataAndRestartApp(self):
+        if not self.checkAdbEnv():
+            return
         packageName = self.getPackageName()
         if not packageName:
             WidgetUtil.showErrorDialog(message="请先输入应用的包名！")
@@ -227,6 +245,8 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
         pass
 
     def inputText(self):
+        if not self.checkAdbEnv():
+            return
         if AdbUtil.inputBase64Text(self.inputTextLineEdit.text().strip()):
             self.printRes("已经传输完成。")
         pass
@@ -238,6 +258,8 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
         pass
 
     def pullFile(self):
+        if not self.checkAdbEnv():
+            return
         pcPath = self.pcPathLineEdit.text().strip()
         phonePath = self.phonePathLineEdit.text().strip()
         self.printRes("复制设备里的文件到电脑: ")
@@ -245,6 +267,8 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
         pass
 
     def pushFile(self):
+        if not self.checkAdbEnv():
+            return
         pcPath = self.pcPathLineEdit.text().strip()
         phonePath = self.phonePathLineEdit.text().strip()
         self.printRes("复制电脑里的文件到设备: ")
@@ -258,6 +282,8 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
         pass
 
     def prepareEvn(self):
+        if not self.checkAdbEnv():
+            return
         videoLogPath = self.videoLogPathLineEdit.text().strip()
         if not videoLogPath:
             WidgetUtil.showErrorDialog(message="请设置视频、log文件保存目录")
@@ -270,8 +296,9 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
             if not self.hasDownloadFinish:
                 url = "https://github.com/lkl22/AndroidTestAssistTool/releases/download/v{}/app-release.apk" \
                     .format(ANDROID_TEST_ASSIST_TOOL_LOWEST_VERSION_NAME)
-                while not NetworkUtil.downloadFile(url, downloadFile):
-                    self.printRes("下载apk失败，重新尝试！", '#f00')
+                if not NetworkUtil.downloadPackage(url, downloadFile):
+                    WidgetUtil.showErrorDialog(message="下载apk失败，请检查网络后，重新尝试！")
+                    return
                 self.hasDownloadFinish = True
             out, err = AdbUtil.installApk(downloadFile)
             self.printCmdRes(out, err)

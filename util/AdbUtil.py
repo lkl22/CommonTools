@@ -25,7 +25,7 @@ ANDROID_TEST_ASSIST_TOOL_OPERATION_RECEIVER_ACTION = 'OperationReceiver'
 
 class AdbUtil:
     @staticmethod
-    def checkAdbEvn():
+    def isInstalledAdbEvn():
         """
         检查adb指令是否安装
         :return: True 已经安装
@@ -35,6 +35,21 @@ class AdbUtil:
             return False
         if "Version " in out:
             return True
+        return False
+
+    @staticmethod
+    def isDeviceConnect():
+        """
+        检查device是否连接成功
+        :return: True 已经连接成功
+        """
+        out, err = ShellUtil.exec("adb devices")
+        if err or not out:
+            return False
+        deviceInfos = out.split("attached")[1].split("\n")
+        for deviceInfo in deviceInfos:
+            if "no device" not in deviceInfo and "device" in deviceInfo:
+                return True
         return False
 
     @staticmethod
@@ -443,4 +458,4 @@ if __name__ == "__main__":
     # print(AdbUtil.extractLog("tempLog", 'tempLog1', '01-03 16:17:41', '01-03 16:17:46'))
 
     # print(AdbUtil.checkAdbEvn())
-    print(AdbUtil.installAdbCmd())
+    print(AdbUtil.isDeviceConnect())
