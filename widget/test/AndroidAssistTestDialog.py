@@ -289,6 +289,23 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
             WidgetUtil.showErrorDialog(message="请设置视频、log文件保存目录")
             return
         FileUtil.mkDirs(videoLogPath)
+        if not self.checkTestApkInstall():
+            return
+
+        self.printRes("准备启动apk，并准备环境。。。")
+        while AdbUtil.sendOperationRequest(AdbUtil.putStringExtra("type", "isEvnReady")) == "false":
+            AdbUtil.forceStopApp(ANDROID_TEST_ASSIST_TOOL_PACKAGE_NAME)
+            AdbUtil.startActivity(ANDROID_TEST_ASSIST_TOOL_PACKAGE_NAME, ANDROID_TEST_ASSIST_TOOL_MAIN_ACTIVITY,
+                                  " ".join(AdbUtil.putIntExtra("cacheSize", self.cacheSizeSpinBox.value())))
+            AdbUtil.autoClickBtn(self.autoClickButtonTxt)
+        self.printRes("准备捕获日志。。。")
+        tempLog = open(os.path.join(videoLogPath, "tempLog"), 'w')
+        ShellUtil.run("adb logcat -c && adb logcat -v threadtime", tempLog)
+        self.printRes("测试环境已经准备完成。")
+        self.extractBtn.setEnabled(True)
+        pass
+
+    def checkTestApkInstall(self):
         if not self.hasCheckInstallFinish and int(AdbUtil.getVersionCode(
                 ANDROID_TEST_ASSIST_TOOL_PACKAGE_NAME)) < ANDROID_TEST_ASSIST_TOOL_LOWEST_VERSION:
             self.printRes("准备下载测试apk。。。")
@@ -302,7 +319,7 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
                 if not NetworkUtil.downloadPackage(url, downloadFile):
                     WidgetUtil.showErrorDialog(message="下载apk失败，请检查网络后，重新尝试！")
                     FileUtil.removeFile(downloadFile)
-                    return
+                    return False
                 self.hasDownloadFinish = True
             self.printRes("apk下载完成，准备安装。。。")
             out, err = AdbUtil.installApk(downloadFile)
@@ -311,20 +328,8 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
                     ANDROID_TEST_ASSIST_TOOL_LOWEST_VERSION:
                 AdbUtil.autoClickBtn(self.autoClickButtonTxt)
 
-
         self.hasCheckInstallFinish = True
-        self.printRes("准备启动apk，并准备环境。。。")
-        while AdbUtil.sendOperationRequest(AdbUtil.putStringExtra("type", "isEvnReady")) == "false":
-            AdbUtil.forceStopApp(ANDROID_TEST_ASSIST_TOOL_PACKAGE_NAME)
-            AdbUtil.startActivity(ANDROID_TEST_ASSIST_TOOL_PACKAGE_NAME, ANDROID_TEST_ASSIST_TOOL_MAIN_ACTIVITY,
-                                  " ".join(AdbUtil.putIntExtra("cacheSize", self.cacheSizeSpinBox.value())))
-            AdbUtil.autoClickBtn(self.autoClickButtonTxt)
-        self.printRes("准备捕获日志。。。")
-        tempLog = open(os.path.join(videoLogPath, "tempLog"), 'w')
-        ShellUtil.run("adb logcat -c && adb logcat -v threadtime", tempLog)
-        self.printRes("测试环境已经准备完成。")
-        self.extractBtn.setEnabled(True)
-        pass
+        return True
 
     def extractVideoAndLog(self):
         nowTimestamp = DateUtil.nowTimestamp(True)
