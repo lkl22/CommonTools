@@ -357,10 +357,13 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
         pass
 
     def extractLog(self, nowTimestamp: int, videoLogPath: str):
+        self.printRes("开始提取日志。。。")
         timeFormat: str = "%m-%d %H:%M:%S"
+        srcFileName = DateUtil.timestamp2Time(int(nowTimestamp / 1000), "%Y%m%d_%H%M%S") + '_backup.log'
+        FileUtil.modifyFilesName([os.path.join(videoLogPath, 'tempLog')], srcFileName)
         dstFile = os.path.join(videoLogPath,
                                DateUtil.timestamp2Time(int(nowTimestamp / 1000), "%Y%m%d_%H%M%S") + '.log')
-        AdbUtil.extractLog(os.path.join(videoLogPath, 'tempLog'), dstFile,
+        AdbUtil.extractLog(os.path.join(videoLogPath, srcFileName), dstFile,
                            DateUtil.timestamp2Time(nowTimestamp / 1000 - self.totalTimeSpinBox.value(), timeFormat),
                            DateUtil.timestamp2Time(nowTimestamp / 1000, timeFormat))
         self.printRes("log抓取成功: {}".format(dstFile))

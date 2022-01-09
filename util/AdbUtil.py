@@ -415,7 +415,12 @@ class AdbUtil:
                     dstFile.write(line)
                 if timeStr > endTime:
                     break
-            line = srcFile.readline()
+            try:
+                line = srcFile.readline()
+            except Exception as ex:
+                dstFile.write(line)
+                LogUtil.e("invalid line：{} \nex: {}".format(line, ex))
+
         srcFile.close()
         dstFile.close()
 
@@ -455,7 +460,7 @@ if __name__ == "__main__":
     # print(AdbUtil.findUiElementCenter("允许|立即开始|Allow|Start now"))
     # print(AdbUtil.click(786.0, 1800.0))
 
-    # print(AdbUtil.extractLog("tempLog", 'tempLog1', '01-03 16:17:41', '01-03 16:17:46'))
+    print(AdbUtil.extractLog("20220109_155953_backup.log", '20220109_155953.log', '01-09 15:59:43', '01-09 15:59:53'))
 
     # print(AdbUtil.checkAdbEvn())
-    print(AdbUtil.isDeviceConnect())
+    # print(AdbUtil.isDeviceConnect())
