@@ -333,7 +333,7 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
 
     def extractVideoAndLog(self):
         nowTimestamp = DateUtil.nowTimestamp(True)
-        videoPhoneFp = AdbUtil.sendOperationRequest(AdbUtil.putStringExtra("type", "startMuxer"),
+        AdbUtil.sendOperationRequest(AdbUtil.putStringExtra("type", "startMuxer"),
                                                     AdbUtil.putLongExtra("timestamp", nowTimestamp),
                                                     AdbUtil.putIntExtra("totalTime", self.totalTimeSpinBox.value()))
         AdbUtil.killAdbServer()
@@ -344,6 +344,8 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
         while AdbUtil.sendOperationRequest(AdbUtil.putStringExtra("type", 'isFinishedMuxer'),
                                            AdbUtil.putLongExtra("timestamp", nowTimestamp)) == 'false':
             time.sleep(0.2)
+        videoPhoneFp = AdbUtil.sendOperationRequest(AdbUtil.putStringExtra("type", 'getMuxerVideo'),
+                                                    AdbUtil.putLongExtra("timestamp", nowTimestamp))
         AdbUtil.sendOperationRequest(AdbUtil.putStringExtra("type", 'rmFinishedMuxer'),
                                      AdbUtil.putLongExtra("timestamp", nowTimestamp))
         finalVideoFp = os.path.join(videoLogPath,
