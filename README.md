@@ -92,3 +92,5 @@ Working directory：$ProjectFileDir$
 [https://www.iconfont.cn/](https://www.iconfont.cn/)
 
 [使用Python 3从网上下载文件](https://blog.csdn.net/xfxf996/article/details/107784224)
+
+[subprocess --- 子进程管理](https://docs.python.org/zh-cn/3.7/library/subprocess.html)
