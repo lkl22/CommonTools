@@ -102,6 +102,7 @@ class MainWidget(QMainWindow):
         WidgetUtil.createPushButton(splitter, text="Json格式化工具", onClicked=self.jumpJsonDialog)
         WidgetUtil.createPushButton(splitter, text="Android adb指令工具", onClicked=self.jumpAndroidAdbDialog)
         WidgetUtil.createPushButton(splitter, text="算法可视化", onClicked=self.jumpAlgorithmVisualizer)
+        WidgetUtil.createPushButton(splitter, text="模拟考试", onClicked=self.jumpMockExamDialog)
         return box
 
     def jumpAndroidAssistTestDialog(self):
@@ -160,4 +161,10 @@ class MainWidget(QMainWindow):
         LogUtil.i("jumpAlgorithmVisualizer")
         from widget.algorithm.AlgorithmVisualizerManagerDialog import AlgorithmVisualizerManagerDialog
         AlgorithmVisualizerManagerDialog()
+        pass
+
+    def jumpMockExamDialog(self):
+        LogUtil.i("jumpAlgorithmVisualizer")
+        from widget.mockExam.MockExamDialog import MockExamDialog
+        MockExamDialog()
         pass
