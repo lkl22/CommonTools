@@ -61,6 +61,18 @@ class FileUtil:
             LogUtil.e('mkDirs 错误信息：', err)
 
     @staticmethod
+    def existsFile(fp):
+        """
+        判断是否存在指定文件
+        :param fp: 文件路径
+        :return: true 存在
+        """
+        if os.path.exists(fp) and os.path.isfile(fp):
+            return True
+        else:
+            return False
+
+    @staticmethod
     def modifyFilePath(srcFile, dstFile, isCopy=True):
         """
         复制/移动文件到目标位置
@@ -288,5 +300,8 @@ if __name__ == "__main__":
     # FileUtil.unzipFile('./testZip.zip', './testZip3')
 
     # print(FileUtil.readFile('../resources/algorithm/SelectionSort/SelectionSort.java'))
-    print(FileUtil.readFileSize('0C1A8658.JPG'))
-    print(FileUtil.getFileName('/aa/ad/../d/0C1A8658.JPG'))
+    # print(FileUtil.readFileSize('0C1A8658.JPG'))
+    # print(FileUtil.getFileName('/aa/ad/../d/0C1A8658.JPG'))
+
+    print(FileUtil.existsFile('/aa/ad/../d/0C1A8658.JPG'))
+    print(FileUtil.existsFile('../resources/mockExam/题库模版.xlsx'))

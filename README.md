@@ -40,7 +40,7 @@ Android color资源管理工具：
 
 3、pip安装需要的库
 
-`pip install PyQt5 PyQt5-tools Pyinstaller xlrd xlutils uiautomator2 weditor numpy QScintilla tinify --index-url https://pypi.tuna.tsinghua.edu.cn/simple/`
+`pip install PyQt5 PyQt5-tools Pyinstaller xlrd xlutils uiautomator2 weditor numpy QScintilla tinify openpyxl --index-url https://pypi.tuna.tsinghua.edu.cn/simple/`
 
 4、PyCharm配置
 
