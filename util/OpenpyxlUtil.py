@@ -84,7 +84,7 @@ class OpenpyxlUtil:
         return Workbook()
 
     @staticmethod
-    def addSheet(book: Workbook, sheetName, index):
+    def addSheet(book: Workbook, sheetName, index=0):
         """
         添加Excel工作表
         :param book: Workbook
