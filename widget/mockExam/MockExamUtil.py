@@ -2,7 +2,6 @@
 # python 3.x
 # Filename: MockExamUtil.py
 # 定义一个MockExamUtil工具类处理模拟考试相关逻辑
-import random
 
 from openpyxl.worksheet.worksheet import Worksheet
 
@@ -10,28 +9,38 @@ from util.LogUtil import LogUtil
 from util.OpenpyxlUtil import OpenpyxlUtil
 from util.RandomUtil import RandomUtil
 
+QUESTION_TYPE_JUDGMENT = "judgment"
+QUESTION_TYPE_ONE_CHOICE = "oneChoice"
+QUESTION_TYPE_MULTI_CHOICE = "multiChoice"
 
-def getRequest(st: Worksheet, index=2):
-    return {
-        'index': index,
-        'request': OpenpyxlUtil.getCell(st, index, 1),
-        'answer': OpenpyxlUtil.getCell(st, index, 2),
-        'remark': OpenpyxlUtil.getCell(st, index, 3),
-        'solution': OpenpyxlUtil.getCell(st, index, 4),
-        'A': OpenpyxlUtil.getCell(st, index, 5),
-        'B': OpenpyxlUtil.getCell(st, index, 6),
-        'C': OpenpyxlUtil.getCell(st, index, 7),
-        'D': OpenpyxlUtil.getCell(st, index, 8),
-        'E': OpenpyxlUtil.getCell(st, index, 9),
-        'F': OpenpyxlUtil.getCell(st, index, 10),
-        'G': OpenpyxlUtil.getCell(st, index, 11),
-        'H': OpenpyxlUtil.getCell(st, index, 12),
+KEY_ROW = "row"
+KEY_REAL_QUESTION_NO = "realQuestionNo"
+KEY_QUESTION_TYPE = "questionType"
+KEY_QUESTION = "question"
+KEY_ANSWER = "answer"
+KEY_REMARK = "remark"
+KEY_SOLUTION = "solution"
+
+
+def getRequest(st: Worksheet, row=2, colNum=12, realQuestionNo=1, questionType=QUESTION_TYPE_JUDGMENT):
+    request = {
+        KEY_ROW: row,
+        KEY_REAL_QUESTION_NO: realQuestionNo,
+        KEY_QUESTION_TYPE: questionType,
+        KEY_QUESTION: OpenpyxlUtil.getCell(st, row, 1),
+        KEY_ANSWER: OpenpyxlUtil.getCell(st, row, 2),
+        KEY_REMARK: OpenpyxlUtil.getCell(st, row, 3),
+        KEY_SOLUTION: OpenpyxlUtil.getCell(st, row, 4)
     }
+    for col in range(5, colNum + 1):
+        request[chr(65 + col - 5)] = OpenpyxlUtil.getCell(st, row, col)
+    return request
 
 
 class MockExamUtil:
     def __init__(self, fp='../resources/mockExam/题库模版.xlsx'):
         # 考试题目文件路径
+        self.index = -1
         self.examFile = fp
         self.bk = OpenpyxlUtil.getBook(fp)
         self.infoSheet = OpenpyxlUtil.getSheet(self.bk, '考试信息')
@@ -60,22 +69,29 @@ class MockExamUtil:
                   "\n单选题个数", self.oneChoiceNums, "\t单选题分值", self.oneChoiceScore, "\t单选题题库",
                   self.oneChoiceRequestBankNums, "\n多选题个数", self.multipleChoiceNums, "\t多选题分值",
                   self.multipleChoiceScore, "\t多选题题库", self.multipleChoiceRequestBankNums)
+
+    def genExamPaperByReal(self):
+        self.genExamPaper(self.judgmentNums, self.oneChoiceNums, self.multipleChoiceNums)
         pass
 
-    def genExamPaper(self):
+    def genExamPaperByAll(self):
+        self.genExamPaper(self.judgmentRequestBankNums, self.oneChoiceRequestBankNums, self.multipleChoiceRequestBankNums)
+        pass
+
+    def genExamPaper(self, judgmentNums, oneChoiceNums, multipleChoiceNums):
         self.judgmentRequestRows = []
-        if self.judgmentRequestBankNums > 1 and self.judgmentNums > 0:
-            self.judgmentRequestRows = RandomUtil.sample(self.judgmentNums, 2, self.judgmentRequestBankNums)
+        if self.judgmentRequestBankNums > 1 and judgmentNums > 0:
+            self.judgmentRequestRows = RandomUtil.sample(judgmentNums, 2, self.judgmentRequestBankNums)
         self.realJudgmentRequestNum = len(self.judgmentRequestRows)
 
         self.oneChoiceRequestRows = []
-        if self.oneChoiceRequestBankNums > 1 and self.oneChoiceNums > 0:
-            self.oneChoiceRequestRows = RandomUtil.sample(self.oneChoiceNums, 2, self.oneChoiceRequestBankNums)
+        if self.oneChoiceRequestBankNums > 1 and oneChoiceNums > 0:
+            self.oneChoiceRequestRows = RandomUtil.sample(oneChoiceNums, 2, self.oneChoiceRequestBankNums)
         self.realOneChoiceRequestNum = len(self.oneChoiceRequestRows)
 
         self.multipleChoiceRequestRows = []
-        if self.multipleChoiceRequestBankNums > 1 and self.multipleChoiceNums > 0:
-            self.multipleChoiceRequestRows = RandomUtil.sample(self.multipleChoiceNums, 2,
+        if self.multipleChoiceRequestBankNums > 1 and multipleChoiceNums > 0:
+            self.multipleChoiceRequestRows = RandomUtil.sample(multipleChoiceNums, 2,
                                                                self.multipleChoiceRequestBankNums)
         self.realMultipleChoiceRequestNum = len(self.multipleChoiceRequestRows)
 
@@ -83,26 +99,49 @@ class MockExamUtil:
         LogUtil.w("MockExamUtil genExamPaper:", "\n判断题题号：", self.judgmentRequestRows, self.realJudgmentRequestNum,
                   "\n单选题题号：", self.oneChoiceRequestRows, self.realOneChoiceRequestNum, "\n多选题题号：",
                   self.multipleChoiceRequestRows, self.realMultipleChoiceRequestNum, "\n总题数：", self.totalRequestNums)
-        self.index = 0
+        self.index = -1
         pass
 
     def nextRequest(self):
-        if self.index >= self.totalRequestNums:
+        if self.index >= self.totalRequestNums - 1:
             return None
-        if self.index < self.realJudgmentRequestNum:
-            result = getRequest(self.judgmentSheet, self.judgmentRequestRows[self.index])
-        elif self.index < self.realJudgmentRequestNum + self.realOneChoiceRequestNum:
-            result = getRequest(self.oneChoiceSheet, self.oneChoiceRequestRows[self.index - self.realJudgmentRequestNum])
-        else:
-            result = getRequest(self.multipleChoiceSheet, self.multipleChoiceRequestRows[self.totalRequestNums - self.index - 1])
         self.index += 1
+        return self.getRequest()
+
+    def preRequest(self):
+        if self.index < 1:
+            return None
+        self.index -= 1
+        return self.getRequest()
+
+    def getRequest(self):
+        if self.index < self.realJudgmentRequestNum:
+            result = getRequest(self.judgmentSheet, self.judgmentRequestRows[self.index], self.maxCol, self.index + 1)
+        elif self.index < self.realJudgmentRequestNum + self.realOneChoiceRequestNum:
+            result = getRequest(self.oneChoiceSheet, self.oneChoiceRequestRows[self.index - self.realJudgmentRequestNum],
+                                self.maxCol, self.index + 1, QUESTION_TYPE_ONE_CHOICE)
+        else:
+            result = getRequest(self.multipleChoiceSheet, self.multipleChoiceRequestRows[self.index-self.totalRequestNums],
+                                self.maxCol, self.index + 1, QUESTION_TYPE_MULTI_CHOICE)
         return result
+
+    def hasNext(self):
+        return self.index < self.totalRequestNums - 1
+
+    def hasPre(self):
+        return self.index > 0
+
+    def maxOptionNum(self):
+        return self.maxCol - 4
 
 
 if __name__ == "__main__":
     mockExamUtil = MockExamUtil()
-
-    mockExamUtil.genExamPaper()
-
+    mockExamUtil.genExamPaperByAll()
+    mockExamUtil.genExamPaperByReal()
     for i in range(mockExamUtil.totalRequestNums):
         print(mockExamUtil.nextRequest())
+
+    print("\n\n")
+    for i in range(mockExamUtil.totalRequestNums):
+        print(mockExamUtil.preRequest())

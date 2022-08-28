@@ -44,7 +44,7 @@ class AddColorResDialog(QtWidgets.QDialog):
         self.darkColorLineEdit = WidgetUtil.createLineEdit(splitter, sizePolicy=sizePolicy)
         vbox.addWidget(splitter)
 
-        splitter = DialogUtil.createBottomBtn(self, okCallback=self.acceptFunc, cancelBtnText="Cancel")
+        splitter, _, _, _ = DialogUtil.createBottomBtn(self, okCallback=self.acceptFunc, cancelBtnText="Cancel")
         vbox.addLayout(splitter)
 
         layoutWidget = QtWidgets.QWidget(self)

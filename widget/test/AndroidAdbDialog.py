@@ -52,7 +52,7 @@ class AndroidAdbDialog(QtWidgets.QDialog):
         vLayout.addWidget(adbGroupBox)
 
         if self.callback:
-            splitter = DialogUtil.createBottomBtn(self, okCallback=self.acceptFunc, cancelBtnText="Cancel")
+            splitter, _, _, _ = DialogUtil.createBottomBtn(self, okCallback=self.acceptFunc, cancelBtnText="Cancel")
             vLayout.addLayout(splitter)
 
         if self.execTestSteps:

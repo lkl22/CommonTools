@@ -7,7 +7,8 @@ from util.WidgetUtil import *
 
 class DialogUtil:
     @staticmethod
-    def createBottomBtn(dialog: QDialog, okBtnText="Ok", okCallback=None, cancelBtnText=None, cancelCallback=None, ignoreBtnText=None, ignoreCallback=None):
+    def createBottomBtn(dialog: QDialog, okBtnText="Ok", okCallback=None, cancelBtnText=None, cancelCallback=None,
+                        ignoreBtnText=None, ignoreCallback=None):
         def okFunc():
             if okCallback:
                 if okCallback():
@@ -36,15 +37,17 @@ class DialogUtil:
         hbox = WidgetUtil.createHBoxLayout()
         label = WidgetUtil.createLabel(dialog, sizePolicy=sizePolicy)
         hbox.addWidget(label)
+        ignoreBtn = None
         if ignoreBtnText:
             ignoreBtn = WidgetUtil.createPushButton(dialog, text=ignoreBtnText, onClicked=ignoreFunc)
             hbox.addWidget(ignoreBtn)
+        cancelBtn = None
         if cancelBtnText:
             cancelBtn = WidgetUtil.createPushButton(dialog, text=cancelBtnText, onClicked=cancelFunc)
             hbox.addWidget(cancelBtn)
         okBtn = WidgetUtil.createPushButton(dialog, text=okBtnText, onClicked=okFunc)
         hbox.addWidget(okBtn)
-        return hbox
+        return hbox, okBtn, cancelBtn, ignoreBtn
         pass
 
     @staticmethod
@@ -60,7 +63,7 @@ class DialogUtil:
         label = WidgetUtil.createLabel(dialog, text=label)
         lineEdit = WidgetUtil.createLineEdit(dialog, text=text)
 
-        splitter = DialogUtil.createBottomBtn(dialog, okCallback=acceptFunc, cancelBtnText="Cancel")
+        (splitter, _, _, _) = DialogUtil.createBottomBtn(dialog, okCallback=acceptFunc, cancelBtnText="Cancel")
         vbox.addWidget(label)
         vbox.addWidget(lineEdit)
         vbox.addLayout(splitter)

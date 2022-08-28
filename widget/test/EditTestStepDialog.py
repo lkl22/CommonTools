@@ -89,8 +89,8 @@ class EditTestStepDialog(QtWidgets.QDialog):
         self.setSwipeParam(self.params)
         self.setFindParam(self.params)
 
-        splitter = DialogUtil.createBottomBtn(self, okCallback=self.acceptFunc, cancelBtnText="Cancel",
-                                              ignoreBtnText='Test', ignoreCallback=self.testStep)
+        splitter, _, _, _ = DialogUtil.createBottomBtn(self, okCallback=self.acceptFunc, cancelBtnText="Cancel",
+                                                       ignoreBtnText='Test', ignoreCallback=self.testStep)
         vbox.addLayout(splitter)
 
         self.setWindowModality(Qt.ApplicationModal)
