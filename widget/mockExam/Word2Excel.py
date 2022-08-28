@@ -81,9 +81,17 @@ class Word2Excel:
             elif txtType == 'option':
                 questionObj[curOption] += "\n" + text
             elif txtType == 'solution':
-                questionObj['solution'] += "\n" + text
+                # print("solution", questionObj['solution'], text)
+                if len(questionObj['solution']) > 0:
+                    questionObj['solution'] += "\n" + text
+                else:
+                    questionObj['solution'] = text
 
-        print(questionDataDict)
+        if questionObj:
+            questionDataDict[questionNo] = questionObj
+
+        # for no, questionObj in questionDataDict.items():
+        #     print(no, questionObj)
         return questionDataDict
 
     @staticmethod
@@ -127,5 +135,5 @@ class Word2Excel:
 if __name__ == '__main__':
     Word2Excel()
     # print(answerRule.match('类Test1定义如下：\npublic class Test1{\npublic float aMethod（float a，float b）{ return 0;}\n}\n将以下哪种方法插入行3 是不合法的。 (B )  '))
-    print(re.sub("[(（][ABCDEFGHIJK ]+[)）]", "()", '网络安全是在分布网络环境中对（ D ）'))
+    # print(re.sub("[(（][ABCDEFGHIJK ]+[)）]", "()", '网络安全是在分布网络环境中对（ D ）'))
     pass
