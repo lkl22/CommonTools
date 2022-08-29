@@ -9,14 +9,17 @@ from collections import OrderedDict
 
 from openpyxl.styles import Alignment, PatternFill
 
+from util.LogUtil import LogUtil
 from util.OpenpyxlUtil import OpenpyxlUtil
 
 questionDescRule = re.compile("(\d+[．.])(.*)")
 answerRule = re.compile("[\S\s]*([(（][ABCDEFGHIJK ]+[)）])[\S\s]*")
 
-optionRule = re.compile("([ABCDEFGHIJK ]{1,2}[.、])")
+optionRule = re.compile("([ABCDEFGHIJK ]{1,2}[.、．])")
 
 solutionRule = re.compile("(解析[：:])(.*)")
+
+KEY_ANSWER = 'answer'
 
 
 class Word2Excel:
@@ -59,9 +62,12 @@ class Word2Excel:
                 txtType = 'option'
                 matchObj = optionRule.split(text)
                 if not answer:
-                    answer = answerRule.match(questionObj['question']).group(1)[1:-1].strip()
-                    questionObj['answer'] = answer
-                    questionObj['question'] = re.sub("[(（][ABCDEFGHIJK ]+[)）]", "()", questionObj['question'])
+                    try:
+                        answer = answerRule.match(questionObj['question']).group(1)[1:-1].strip()
+                        questionObj[KEY_ANSWER] = answer
+                        questionObj['question'] = re.sub("[(（][ABCDEFGHIJK ]+[)）]", "()", questionObj['question'])
+                    except Exception as err:
+                        LogUtil.e('Find answer error：', err, "\n", matchObj, questionObj)
                 # print(matchObj)
                 for txt in matchObj:
                     txt = txt.strip()
@@ -82,7 +88,10 @@ class Word2Excel:
             if txtType == 'questionDesc':
                 questionObj['question'] += "\n" + text
             elif txtType == 'option':
-                questionObj[curOption] += "\n" + text
+                if curOption in questionObj.keys():
+                    questionObj[curOption] += "\n" + text
+                else:
+                    questionObj[curOption] = text
             elif txtType == 'solution':
                 # print("solution", questionObj['solution'], text)
                 if len(questionObj['solution']) > 0:
@@ -139,7 +148,10 @@ class Word2Excel:
         oneChoiceRow = 1
         multiChoiceRow = 1
         for no, questionObj in self.questionDataDict.items():
-            if len(questionObj['answer']) > 1:
+            if KEY_ANSWER not in questionObj:
+                LogUtil.e("questionObj have not answer. No: ", no, questionObj)
+                continue
+            if len(questionObj[KEY_ANSWER]) > 1:
                 st = multiChoiceSheet
                 multiChoiceRow += 1
                 row = multiChoiceRow
@@ -156,6 +168,7 @@ class Word2Excel:
 
         bk.save("题库.xlsx")
         bk.close()
+
 
 if __name__ == '__main__':
     Word2Excel()
