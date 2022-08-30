@@ -410,7 +410,7 @@ class WidgetUtil:
         :param text: text
         :param toolTip: toolTip
         :param isEnable: enable
-        :param autoExclusive: autoExclusive False 独立到，True 同一个父widget到为一组
+        :param autoExclusive: autoExclusive False 独立，True 同一个父widget为一组
         :param isChecked: isChecked 默认是否选中，true选中
         :param geometry: geometry
         :param sizePolicy: 缩放策略
@@ -437,7 +437,7 @@ class WidgetUtil:
         :param text: text
         :param toolTip: toolTip
         :param isEnable: enable
-        :param autoExclusive: autoExclusive False 独立到，True 同一个父widget到为一组
+        :param autoExclusive: autoExclusive False 独立，True 同一个父widget为一组
         :param isChecked: isChecked 默认是否选中，true选中
         :param geometry: geometry
         :param sizePolicy: 缩放策略
