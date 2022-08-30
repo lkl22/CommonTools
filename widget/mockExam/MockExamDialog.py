@@ -60,6 +60,8 @@ class MockExamDialog(QtWidgets.QDialog):
         self.yourAnswers = {}
         self.errAnswers = {}
         self.isShowErrQuestion = False
+        self.curErrQuestionIndex = 0
+        self.reviewErrQuestionNoList = None
         self.isLayout = False
 
         self.setObjectName("MockExamDialog")
@@ -273,8 +275,12 @@ class MockExamDialog(QtWidgets.QDialog):
         pass
 
     def updateChangeQuestionBtn(self):
-        self.preBtn.setEnabled(self.mockExamUtil.hasPre())
-        self.nextBtn.setEnabled(self.mockExamUtil.hasNext())
+        if self.isShowErrQuestion:
+            self.preBtn.setEnabled(self.curErrQuestionIndex > 0)
+            self.nextBtn.setEnabled(self.curErrQuestionIndex < len(self.reviewErrQuestionNoList) - 1)
+        else:
+            self.preBtn.setEnabled(self.mockExamUtil.hasPre())
+            self.nextBtn.setEnabled(self.mockExamUtil.hasNext())
 
     def renderQuestion(self, questionObj, yourAnswer):
         self.questionDescLabel.setText(f"{questionObj[KEY_REAL_QUESTION_NO]}. " + questionObj[KEY_QUESTION])
@@ -284,6 +290,16 @@ class MockExamDialog(QtWidgets.QDialog):
         else:
             self.updateChoiceOptionBtn(questionObj, yourAnswer, self.oneChoiceOptionBtnList)
 
+        if self.isShowErrQuestion:
+            self.answerLabel.setText(f"本题正确答案：{questionObj[KEY_ANSWER]}，但是您的选择是：{yourAnswer}")
+            if questionObj[KEY_SOLUTION]:
+                self.solutionLabel.setText(f"解析：\n{questionObj[KEY_SOLUTION]}")
+            else:
+                self.solutionLabel.setText("")
+            if questionObj[KEY_REMARK]:
+                self.remarkLabel.setText(f"备注：\n{questionObj[KEY_REMARK]}")
+            else:
+                self.remarkLabel.setText("")
         self.updateChangeQuestionBtn()
         pass
 
@@ -348,6 +364,7 @@ class MockExamDialog(QtWidgets.QDialog):
             if optionDesc:
                 choiceOptionBtnList[optionIndex].setText(f"{optionX}. {optionDesc}")
                 choiceOptionBtnList[optionIndex].setVisible(True)
+                choiceOptionBtnList[optionIndex].setEnabled(not self.isShowErrQuestion)
             else:
                 break
         if yourAnswer:
@@ -357,16 +374,26 @@ class MockExamDialog(QtWidgets.QDialog):
 
     def preQuestionFunc(self):
         LogUtil.d("preQuestionFunc")
-        self.curQuestionNo -= 1
-        self.curQuestionObj = self.mockExamUtil.preQuestion()
-        self.renderQuestion(self.curQuestionObj, getDictData(self.curQuestionNo, self.yourAnswers))
+        if self.isShowErrQuestion:
+            self.preErrQuestion()
+            yourAnswer = getDictData(self.curQuestionNo, self.errAnswers)
+        else:
+            self.curQuestionNo -= 1
+            self.curQuestionObj = self.mockExamUtil.preQuestion()
+            yourAnswer = getDictData(self.curQuestionNo, self.yourAnswers)
+        self.renderQuestion(self.curQuestionObj, yourAnswer)
         return False
 
     def nextQuestionFunc(self):
         LogUtil.d("nextQuestionFunc")
-        self.curQuestionNo += 1
-        self.curQuestionObj = self.mockExamUtil.nextQuestion()
-        self.renderQuestion(self.curQuestionObj, getDictData(self.curQuestionNo, self.yourAnswers))
+        if self.isShowErrQuestion:
+            self.nextErrQuestion()
+            yourAnswer = getDictData(self.curQuestionNo, self.errAnswers)
+        else:
+            self.curQuestionNo += 1
+            self.curQuestionObj = self.mockExamUtil.nextQuestion()
+            yourAnswer = getDictData(self.curQuestionNo, self.yourAnswers)
+        self.renderQuestion(self.curQuestionObj, yourAnswer)
         return False
 
     def submitFunc(self):
@@ -406,7 +433,31 @@ class MockExamDialog(QtWidgets.QDialog):
 
     def seeErrQuestions(self):
         LogUtil.d("seeErrQuestions")
+        self.isShowErrQuestion = True
+        # 按照字典的键进行排序
+        self.reviewErrQuestionNoList = sorted(self.errAnswers.keys())
+        self.curErrQuestionIndex = 0
+        self.getErrQuestionObj()
+        self.renderQuestion(self.curQuestionObj, self.errAnswers[self.curQuestionNo])
+        LogUtil.d("seeErrQuestions", self.reviewErrQuestionNoList, self.curQuestionNo, self.curQuestionObj)
         pass
+
+    def getErrQuestionObj(self):
+        self.curQuestionNo = self.reviewErrQuestionNoList[self.curErrQuestionIndex]
+        self.curQuestionObj = self.mockExamUtil.getQuestion(self.curQuestionNo - 1)
+        pass
+
+    def preErrQuestion(self):
+        if self.curErrQuestionIndex < 1:
+            return None
+        self.curErrQuestionIndex -= 1
+        self.getErrQuestionObj()
+
+    def nextErrQuestion(self):
+        if self.curErrQuestionIndex >= len(self.reviewErrQuestionNoList) - 1:
+            return None
+        self.curErrQuestionIndex += 1
+        self.getErrQuestionObj()
 
 
 if __name__ == '__main__':
