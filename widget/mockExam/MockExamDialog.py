@@ -35,20 +35,33 @@ class MockExamDialog(QtWidgets.QDialog):
     def __init__(self):
         # 调用父类的构函
         QtWidgets.QDialog.__init__(self)
+        LogUtil.d("Mock Exam Dialog")
 
-        self.curQuestionObj = None
-        self.curQuestionNo = 1
-        self.yourAnswers = {}
-        self.errAnswers = {}
-        self.label = None
-        self.multiOptionBtnList = None
-        self.questionDesc = None
-        self.oneChoiceGroup = None
-        self.oneChoiceOptionBtnList = None
         self.examFilePath = None
         self.mockExamUtil = None
 
-        LogUtil.d("Mock Exam Dialog")
+        self.genExamPaperByRealBtn = None
+        self.genExamPaperByAllBtn = None
+        self.startMockExamBtn = None
+        self.restartMockExamBtn = None
+
+        self.questionDescLabel = None
+        self.oneChoiceGroup = None
+        self.oneChoiceOptionBtnList = None
+        self.multiChoiceOptionBtnList = None
+        self.answerLabel = None
+        self.solutionLabel = None
+        self.remarkLabel = None
+        self.label = None
+
+        self.curQuestionObj = None
+        self.curQuestionNo = 1
+
+        self.yourAnswers = {}
+        self.errAnswers = {}
+        self.isShowErrQuestion = False
+        self.isLayout = False
+
         self.setObjectName("MockExamDialog")
         self.resize(MockExamDialog.WINDOW_WIDTH, MockExamDialog.WINDOW_HEIGHT)
         self.setFixedSize(MockExamDialog.WINDOW_WIDTH, MockExamDialog.WINDOW_HEIGHT)
@@ -75,6 +88,7 @@ class MockExamDialog(QtWidgets.QDialog):
                                        ignoreBtnText="上一题", ignoreCallback=self.preQuestionFunc)
         vLayout.addLayout(splitter)
 
+        self.prepareMockExam()
         self.setWindowModality(Qt.ApplicationModal)
         # 很关键，不加出不来
         # self.exec_()
@@ -102,6 +116,7 @@ class MockExamDialog(QtWidgets.QDialog):
         self.genExamPaperByAllBtn = WidgetUtil.createPushButton(splitter, text="全量模拟", onClicked=self.genExamPaperByAll)
         self.startMockExamBtn = WidgetUtil.createPushButton(splitter, text="开始", isEnable=False,
                                                             onClicked=self.startMockExam)
+        self.restartMockExamBtn = WidgetUtil.createPushButton(splitter, text="重新开始", onClicked=self.restartMockExam)
         return box
 
     def createQuestionArea(self):
@@ -113,6 +128,38 @@ class MockExamDialog(QtWidgets.QDialog):
         self.questionVBox = QtWidgets.QVBoxLayout(self.scrollAreaWidget)
         self.scrollAres.setWidget(self.scrollAreaWidget)
         return self.scrollAres
+
+    def prepareMockExam(self):
+        self.genExamPaperByRealBtn.setVisible(True)
+        self.genExamPaperByRealBtn.setEnabled(True)
+        self.genExamPaperByAllBtn.setVisible(True)
+        self.genExamPaperByAllBtn.setEnabled(True)
+        self.startMockExamBtn.setVisible(True)
+        self.startMockExamBtn.setEnabled(False)
+        self.restartMockExamBtn.setVisible(False)
+
+        self.hideQuestionArea()
+
+        self.preBtn.setVisible(True)
+        self.preBtn.setEnabled(False)
+        self.nextBtn.setVisible(True)
+        self.nextBtn.setEnabled(False)
+        self.submitBtn.setVisible(True)
+        self.submitBtn.setEnabled(False)
+
+        self.errAnswers = {}
+        self.yourAnswers = {}
+        self.isShowErrQuestion = False
+        pass
+
+    def hideQuestionArea(self):
+        if self.isLayout:
+            self.questionDescLabel.setText("")
+            self.hideOptionBtn()
+            self.answerLabel.setText("")
+            self.solutionLabel.setText("")
+            self.remarkLabel.setText("")
+        pass
 
     def getExamFilePath(self):
         fn = WidgetUtil.getOpenFileName(caption='选择模拟考试题库Excel文件', filter='*.xlsx', initialFilter='*.xlsx')
@@ -133,6 +180,7 @@ class MockExamDialog(QtWidgets.QDialog):
             self.mockExamUtil.genExamPaperByAll()
         else:
             self.mockExamUtil.genExamPaperByReal()
+        self.startMockExamBtn.setEnabled(True)
         pass
 
     def genExamPaper(self, isAll):
@@ -147,7 +195,6 @@ class MockExamDialog(QtWidgets.QDialog):
             self.mockExamUtil = MockExamUtil(self.examFilePathLineEdit.text())
             self.examFilePath = self.examFilePathLineEdit.text()
             self.genExamPaperMethod(isAll)
-            self.startMockExamBtn.setEnabled(True)
         except Exception as err:
             LogUtil.e('mkDirs 错误信息：', err)
             self.examFilePath = None
@@ -156,10 +203,10 @@ class MockExamDialog(QtWidgets.QDialog):
         pass
 
     def prepareLayout(self):
-        if not self.questionDesc:
-            self.questionDesc = WidgetUtil.createTextEdit(self.scrollAreaWidget, isReadOnly=True)
-            self.questionDesc.setMinimumHeight(160)
-            self.questionVBox.addWidget(self.questionDesc)
+        if not self.questionDescLabel:
+            self.questionDescLabel = WidgetUtil.createTextEdit(self.scrollAreaWidget, isReadOnly=True)
+            self.questionDescLabel.setMinimumHeight(160)
+            self.questionVBox.addWidget(self.questionDescLabel)
 
         if not self.oneChoiceGroup:
             self.oneChoiceOptionBtnList = []
@@ -171,22 +218,35 @@ class MockExamDialog(QtWidgets.QDialog):
                 self.oneChoiceGroup.addButton(radioButton, option)
                 self.questionVBox.addWidget(radioButton)
 
-        if not self.multiOptionBtnList:
-            self.multiOptionBtnList = []
+        if not self.multiChoiceOptionBtnList:
+            self.multiChoiceOptionBtnList = []
             # 必须是成员变量，本地变量不行，很奇怪
             self.multiChoiceGroup = WidgetUtil.createButtonGroup(onToggled=self.multiChoiceToggled)
             self.multiChoiceGroup.setExclusive(False)
             for option in range(self.maxOptionNum + 1):
                 checkBox = WidgetUtil.createCheckBox(self.scrollAreaWidget)
                 checkBox.setMinimumHeight(30)
-                self.multiOptionBtnList.append(checkBox)
+                self.multiChoiceOptionBtnList.append(checkBox)
                 self.multiChoiceGroup.addButton(checkBox, option)
                 self.questionVBox.addWidget(checkBox)
+
+        if not self.answerLabel:
+            self.answerLabel = WidgetUtil.createLabel(self.scrollAreaWidget)
+            self.questionVBox.addWidget(self.answerLabel)
+
+        if not self.solutionLabel:
+            self.solutionLabel = WidgetUtil.createLabel(self.scrollAreaWidget)
+            self.questionVBox.addWidget(self.solutionLabel)
+
+        if not self.remarkLabel:
+            self.remarkLabel = WidgetUtil.createLabel(self.scrollAreaWidget)
+            self.questionVBox.addWidget(self.remarkLabel)
 
         if not self.label:
             self.label = WidgetUtil.createLabel(self.scrollAreaWidget)
             self.label.setSizePolicy(WidgetUtil.createSizePolicy())
             self.questionVBox.addWidget(self.label)
+        self.isLayout = True
         pass
 
     def startMockExam(self):
@@ -198,11 +258,18 @@ class MockExamDialog(QtWidgets.QDialog):
         for no in range(1, self.mockExamUtil.totalQuestionNums + 1):
             self.errAnswers[no] = None
 
+        # 准备考题布局
         self.prepareLayout()
 
         self.curQuestionNo = 1
         self.curQuestionObj = self.mockExamUtil.nextQuestion()
         self.renderQuestion(self.curQuestionObj, None)
+
+        self.submitBtn.setEnabled(True)
+        pass
+
+    def restartMockExam(self):
+        self.prepareMockExam()
         pass
 
     def updateChangeQuestionBtn(self):
@@ -210,10 +277,10 @@ class MockExamDialog(QtWidgets.QDialog):
         self.nextBtn.setEnabled(self.mockExamUtil.hasNext())
 
     def renderQuestion(self, questionObj, yourAnswer):
-        self.questionDesc.setText(f"{questionObj[KEY_REAL_QUESTION_NO]}. " + questionObj[KEY_QUESTION])
+        self.questionDescLabel.setText(f"{questionObj[KEY_REAL_QUESTION_NO]}. " + questionObj[KEY_QUESTION])
 
         if questionObj[KEY_QUESTION_TYPE] == QUESTION_TYPE_MULTI_CHOICE:
-            self.updateChoiceOptionBtn(questionObj, yourAnswer, self.multiOptionBtnList)
+            self.updateChoiceOptionBtn(questionObj, yourAnswer, self.multiChoiceOptionBtnList)
         else:
             self.updateChoiceOptionBtn(questionObj, yourAnswer, self.oneChoiceOptionBtnList)
 
@@ -233,7 +300,7 @@ class MockExamDialog(QtWidgets.QDialog):
     def multiChoiceToggled(self):
         LogUtil.e("multiChoiceToggled")
         checkedOptions = []
-        for index, checkBox in enumerate(self.multiOptionBtnList):
+        for index, checkBox in enumerate(self.multiChoiceOptionBtnList):
             if checkBox.isChecked():
                 checkedOptions.append(OPTION_CHAR[index])
 
@@ -255,7 +322,10 @@ class MockExamDialog(QtWidgets.QDialog):
         LogUtil.e("multiChoiceToggled", self.yourAnswers, self.errAnswers)
         pass
 
-    def updateChoiceOptionBtn(self, questionObj, yourAnswer, choiceOptionBtnList):
+    def hideOptionBtn(self):
+        """
+        隐藏所有的选项按钮
+        """
         # 为了消除按钮选中状态
         self.oneChoiceGroup.setExclusive(False)
         for radioButton in self.oneChoiceOptionBtnList:
@@ -263,9 +333,14 @@ class MockExamDialog(QtWidgets.QDialog):
             radioButton.setChecked(False)
         self.oneChoiceGroup.setExclusive(True)
 
-        for checkBox in self.multiOptionBtnList:
+        for checkBox in self.multiChoiceOptionBtnList:
             checkBox.setVisible(False)
             checkBox.setChecked(False)
+        pass
+
+    def updateChoiceOptionBtn(self, questionObj, yourAnswer, choiceOptionBtnList):
+        # 清除选项卡的状态
+        self.hideOptionBtn()
 
         for optionIndex in range(self.maxOptionNum):
             optionX = chr(65 + optionIndex)
@@ -303,7 +378,20 @@ class MockExamDialog(QtWidgets.QDialog):
             self.submitExam()
         return False
 
+    def showExamOverLayout(self):
+        self.genExamPaperByRealBtn.setVisible(False)
+        self.genExamPaperByAllBtn.setVisible(False)
+        self.startMockExamBtn.setVisible(False)
+        self.restartMockExamBtn.setVisible(True)
+
+        self.hideQuestionArea()
+
+        self.submitBtn.setVisible(False)
+        pass
+
     def submitExam(self):
+        self.showExamOverLayout()
+
         errNo, score = self.mockExamUtil.calculateResults(self.errAnswers)
         isPassExam = self.mockExamUtil.isPassExam(score)
         LogUtil.d("submitExam", "做错：", errNo, "分数：", score, "通过：", isPassExam)
