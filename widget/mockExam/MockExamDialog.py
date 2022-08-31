@@ -291,7 +291,7 @@ class MockExamDialog(QtWidgets.QDialog):
             self.updateChoiceOptionBtn(questionObj, yourAnswer, self.oneChoiceOptionBtnList)
 
         if self.isShowErrQuestion:
-            self.answerLabel.setText(f"本题正确答案：{questionObj[KEY_ANSWER]}，但是您的选择是：{yourAnswer}")
+            self.answerLabel.setText(f'''<p style="color:#80ff00ff">正确答案：{questionObj[KEY_ANSWER]}</p><p style="color:#800000ff">您的选择：{yourAnswer}</p>''')
             if questionObj[KEY_SOLUTION]:
                 self.solutionLabel.setText(f"解析：\n{questionObj[KEY_SOLUTION]}")
             else:

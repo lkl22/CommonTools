@@ -88,6 +88,8 @@ class Word2Excel:
             if txtType == 'questionDesc':
                 questionObj['question'] += "\n" + text
             elif txtType == 'option':
+                if len(text.strip()) == 0:
+                    continue
                 if curOption in questionObj.keys():
                     questionObj[curOption] += "\n" + text
                 else:
@@ -113,9 +115,31 @@ class Word2Excel:
 
     def genExcel(self):
         bk = OpenpyxlUtil.createBook()
-        oneChoiceSheet = OpenpyxlUtil.addSheet(bk, "单选题")
-        multiChoiceSheet = OpenpyxlUtil.addSheet(bk, "多选题", 1)
-        for st in [oneChoiceSheet, multiChoiceSheet]:
+        examInfoSheet = OpenpyxlUtil.addSheet(bk, "考试信息")
+        judgmentSheet = OpenpyxlUtil.addSheet(bk, "判断题", 1)
+        oneChoiceSheet = OpenpyxlUtil.addSheet(bk, "单选题", 2)
+        multiChoiceSheet = OpenpyxlUtil.addSheet(bk, "多选题", 3)
+
+        alignment = Alignment(
+            horizontal='center',  # 水平对齐，可选general、left、center、right、fill、justify、centerContinuous、distributed
+            vertical='center',  # 垂直对齐， 可选top、center、bottom、justify、distributed
+            text_rotation=0,  # 字体旋转，0~180整数
+            wrap_text=False,  # 是否自动换行
+            shrink_to_fit=False,  # 是否缩小字体填充
+            indent=0,  # 缩进值
+        )
+
+        examInfo = [{"科目名称": ""}, {"分数线": 80}, {"判断题个数": 0}, {"判断题分值": 2}, {"单选题个数": 0}, {"单选题分值": 3}, {"多选题个数": 0},
+                    {"多选题分值": 5}]
+        for index in range(len(examInfo)):
+            for key, value in examInfo[index].items():
+                OpenpyxlUtil.writeSheet(examInfoSheet, 1, index + 1, key)
+                OpenpyxlUtil.writeSheet(examInfoSheet, 2, index + 1, value)
+            examInfoSheet["ABCDEFGHI"[index] + "1"].alignment = alignment
+            examInfoSheet["ABCDEFGHI"[index] + "2"].alignment = alignment
+            examInfoSheet.column_dimensions["ABCDEFGHI"[index]].width = 16
+
+        for st in [judgmentSheet, oneChoiceSheet, multiChoiceSheet]:
             OpenpyxlUtil.writeSheet(st, 1, 1, "题干")
             st.column_dimensions["A"].width = 48
             st.column_dimensions["B"].width = 8
@@ -127,14 +151,7 @@ class Word2Excel:
             for index, ch in enumerate("ABCDEFGHIJK"):
                 OpenpyxlUtil.writeSheet(st, 1, 5 + index, "选项" + ch)
             for ch in "ABCDEFGHIJKLMNO":
-                st[ch + "1"].alignment = Alignment(
-                    horizontal='center',  # 水平对齐，可选general、left、center、right、fill、justify、centerContinuous、distributed
-                    vertical='center',  # 垂直对齐， 可选top、center、bottom、justify、distributed
-                    text_rotation=0,  # 字体旋转，0~180整数
-                    wrap_text=False,  # 是否自动换行
-                    shrink_to_fit=False,  # 是否缩小字体填充
-                    indent=0,  # 缩进值
-                )
+                st[ch + "1"].alignment = alignment
                 st[ch + "1"].fill = PatternFill(
                     patternType="solid",
                     # 填充类型，可选none、solid、darkGray、mediumGray、lightGray、lightDown、lightGray、lightGrid
