@@ -2,8 +2,9 @@
 # python 3.x
 # Filename: MockExamDialog.py
 # 定义一个MockExamDialog类实现考试刷题
-from PyQt5.QtCore import QModelIndex
-from PyQt5.QtWidgets import QScrollArea, QGridLayout
+from PyQt5.QtCore import QModelIndex, pyqtSignal
+from PyQt5.QtGui import QMouseEvent
+from PyQt5.QtWidgets import QScrollArea, QGridLayout, QPushButton
 
 from constant.WidgetConst import *
 from util.ExcelUtil import *
@@ -14,6 +15,8 @@ from util.OperaIni import *
 from widget.mockExam.MockExamUtil import *
 
 OPTION_CHAR = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+ANSWER_CARD_MAX_COL = 20
 
 
 def delDictData(key, dicts):
@@ -81,6 +84,9 @@ class MockExamDialog(QtWidgets.QDialog):
         genMockExamGroupBox = self.createGenMockExamGroupBox(layoutWidget)
         vLayout.addWidget(genMockExamGroupBox)
 
+        answerCardArea = self.createAnswerCardArea()
+        vLayout.addWidget(answerCardArea)
+
         questionArea = self.createQuestionArea()
         vLayout.addWidget(questionArea)
 
@@ -121,15 +127,28 @@ class MockExamDialog(QtWidgets.QDialog):
         self.restartMockExamBtn = WidgetUtil.createPushButton(splitter, text="重新开始", onClicked=self.restartMockExam)
         return box
 
-    def createQuestionArea(self):
-        self.scrollAres = QScrollArea(self)
-        self.scrollAres.setWidgetResizable(True)
+    def createAnswerCardArea(self):
+        self.answerCardScrollAres = QScrollArea(self)
+        self.answerCardScrollAres.setWidgetResizable(True)
 
-        self.scrollAreaWidget = WidgetUtil.createWidget(self, 'scrollAreaWidget')
-        self.scrollAres.setSizePolicy(WidgetUtil.createSizePolicy())
-        self.questionVBox = QtWidgets.QVBoxLayout(self.scrollAreaWidget)
-        self.scrollAres.setWidget(self.scrollAreaWidget)
-        return self.scrollAres
+        self.answerCardScrollAreaWidget = WidgetUtil.createWidget(self, 'scrollAreaWidget')
+        self.answerCardScrollAres.setMaximumHeight(60)
+        self.answerCardGrid = QtWidgets.QGridLayout(self.answerCardScrollAreaWidget)
+        # 设置间距
+        self.answerCardGrid.setSpacing(const.PADDING)
+        self.answerCardGrid.setAlignment(Qt.AlignTop | Qt.AlignLeft)
+        self.answerCardScrollAres.setWidget(self.answerCardScrollAreaWidget)
+        return self.answerCardScrollAres
+
+    def createQuestionArea(self):
+        self.questionScrollAres = QScrollArea(self)
+        self.questionScrollAres.setWidgetResizable(True)
+
+        self.questionScrollAreaWidget = WidgetUtil.createWidget(self, 'scrollAreaWidget')
+        self.questionScrollAres.setSizePolicy(WidgetUtil.createSizePolicy())
+        self.questionVBox = QtWidgets.QVBoxLayout(self.questionScrollAreaWidget)
+        self.questionScrollAres.setWidget(self.questionScrollAreaWidget)
+        return self.questionScrollAres
 
     def prepareMockExam(self):
         self.genExamPaperByRealBtn.setVisible(True)
@@ -204,9 +223,27 @@ class MockExamDialog(QtWidgets.QDialog):
             return
         pass
 
+    def prepareAnswerCard(self):
+        totalQuestionNums = self.mockExamUtil.totalQuestionNums
+        while self.answerCardGrid.count() > totalQuestionNums:
+            layoutItem = self.answerCardGrid.itemAt(totalQuestionNums)
+            widget = layoutItem.widget()
+            self.answerCardGrid.removeWidget(widget)
+            widget.setParent(None)
+            widget.deleteLater()
+
+        answerCardNum = self.answerCardGrid.count()
+        if answerCardNum < totalQuestionNums:
+            for no in range(answerCardNum + 1, totalQuestionNums + 1):
+                btn = CustomPushButton(no)
+                btn.setFixedSize(QSize(40, 25))
+                btn.clicked.connect(self.answerCardClicked)
+                self.answerCardGrid.addWidget(btn, (no - 1) // ANSWER_CARD_MAX_COL, (no - 1) % ANSWER_CARD_MAX_COL)
+        pass
+
     def prepareLayout(self):
         if not self.questionDescLabel:
-            self.questionDescLabel = WidgetUtil.createTextEdit(self.scrollAreaWidget, isReadOnly=True)
+            self.questionDescLabel = WidgetUtil.createTextEdit(self.questionScrollAreaWidget, isReadOnly=True)
             self.questionDescLabel.setMinimumHeight(160)
             self.questionVBox.addWidget(self.questionDescLabel)
 
@@ -214,7 +251,7 @@ class MockExamDialog(QtWidgets.QDialog):
             self.oneChoiceOptionBtnList = []
             self.oneChoiceGroup = WidgetUtil.createButtonGroup(onToggled=self.oneChoiceToggled)
             for option in range(self.maxOptionNum + 1):
-                radioButton = WidgetUtil.createRadioButton(self.scrollAreaWidget, isEnable=True)
+                radioButton = WidgetUtil.createRadioButton(self.questionScrollAreaWidget, isEnable=True)
                 radioButton.setMinimumHeight(30)
                 self.oneChoiceOptionBtnList.append(radioButton)
                 self.oneChoiceGroup.addButton(radioButton, option)
@@ -226,26 +263,26 @@ class MockExamDialog(QtWidgets.QDialog):
             self.multiChoiceGroup = WidgetUtil.createButtonGroup(onToggled=self.multiChoiceToggled)
             self.multiChoiceGroup.setExclusive(False)
             for option in range(self.maxOptionNum + 1):
-                checkBox = WidgetUtil.createCheckBox(self.scrollAreaWidget)
+                checkBox = WidgetUtil.createCheckBox(self.questionScrollAreaWidget)
                 checkBox.setMinimumHeight(30)
                 self.multiChoiceOptionBtnList.append(checkBox)
                 self.multiChoiceGroup.addButton(checkBox, option)
                 self.questionVBox.addWidget(checkBox)
 
         if not self.answerLabel:
-            self.answerLabel = WidgetUtil.createLabel(self.scrollAreaWidget)
+            self.answerLabel = WidgetUtil.createLabel(self.questionScrollAreaWidget)
             self.questionVBox.addWidget(self.answerLabel)
 
         if not self.solutionLabel:
-            self.solutionLabel = WidgetUtil.createLabel(self.scrollAreaWidget)
+            self.solutionLabel = WidgetUtil.createLabel(self.questionScrollAreaWidget)
             self.questionVBox.addWidget(self.solutionLabel)
 
         if not self.remarkLabel:
-            self.remarkLabel = WidgetUtil.createLabel(self.scrollAreaWidget)
+            self.remarkLabel = WidgetUtil.createLabel(self.questionScrollAreaWidget)
             self.questionVBox.addWidget(self.remarkLabel)
 
         if not self.label:
-            self.label = WidgetUtil.createLabel(self.scrollAreaWidget)
+            self.label = WidgetUtil.createLabel(self.questionScrollAreaWidget)
             self.label.setSizePolicy(WidgetUtil.createSizePolicy())
             self.questionVBox.addWidget(self.label)
         self.isLayout = True
@@ -255,11 +292,13 @@ class MockExamDialog(QtWidgets.QDialog):
         LogUtil.e("startMockExam")
         self.genExamPaperByRealBtn.setEnabled(False)
         self.genExamPaperByAllBtn.setEnabled(False)
+        self.startMockExamBtn.setEnabled(False)
 
         self.maxOptionNum = self.mockExamUtil.maxOptionNum()
         for no in range(1, self.mockExamUtil.totalQuestionNums + 1):
             self.errAnswers[no] = None
-
+        # 准备答题卡
+        self.prepareAnswerCard()
         # 准备考题布局
         self.prepareLayout()
 
@@ -291,7 +330,8 @@ class MockExamDialog(QtWidgets.QDialog):
             self.updateChoiceOptionBtn(questionObj, yourAnswer, self.oneChoiceOptionBtnList)
 
         if self.isShowErrQuestion:
-            self.answerLabel.setText(f'''<p style="color:#80ff00ff">正确答案：{questionObj[KEY_ANSWER]}</p><p style="color:#800000ff">您的选择：{yourAnswer}</p>''')
+            self.answerLabel.setText(
+                f'''<p style="color:#80ff00ff">正确答案：{questionObj[KEY_ANSWER]}</p><p style="color:#800000ff">您的选择：{yourAnswer if yourAnswer else ""}</p>''')
             if questionObj[KEY_SOLUTION]:
                 self.solutionLabel.setText(f"解析：\n{questionObj[KEY_SOLUTION]}")
             else:
@@ -396,11 +436,16 @@ class MockExamDialog(QtWidgets.QDialog):
         self.renderQuestion(self.curQuestionObj, yourAnswer)
         return False
 
+    def answerCardClicked(self, no):
+        LogUtil.d("answerCardClicked", no)
+        pass
+
     def submitFunc(self):
         LogUtil.d("submitFunc")
         if len(self.yourAnswers) < self.mockExamUtil.totalQuestionNums:
-            WidgetUtil.showQuestionDialog(message=f"您还有{self.mockExamUtil.totalQuestionNums - len(self.yourAnswers)}道题未做，确认提交？",
-                                          acceptFunc=self.submitExam)
+            WidgetUtil.showQuestionDialog(
+                message=f"您还有{self.mockExamUtil.totalQuestionNums - len(self.yourAnswers)}道题未做，确认提交？",
+                acceptFunc=self.submitExam)
         else:
             self.submitExam()
         return False
@@ -424,9 +469,11 @@ class MockExamDialog(QtWidgets.QDialog):
         LogUtil.d("submitExam", "做错：", errNo, "分数：", score, "通过：", isPassExam)
         if errNo > 0:
             if isPassExam:
-                WidgetUtil.showQuestionDialog(message=f"恭喜您通过本轮考试，获得 {score} 分的好成绩，是否需要查看错误的题目？", acceptFunc=self.seeErrQuestions)
+                WidgetUtil.showQuestionDialog(message=f"恭喜您通过本轮考试，获得 {score} 分的好成绩，是否查看结果分析？",
+                                              acceptFunc=self.seeErrQuestions)
             else:
-                WidgetUtil.showQuestionDialog(message=f"很遗憾您未能通过本轮考试，获得 {score} 分，是否需要查看错误的题目？", acceptFunc=self.seeErrQuestions)
+                WidgetUtil.showQuestionDialog(message=f"很遗憾您未能通过本轮考试，获得 {score} 分，是否查看结果分析？",
+                                              acceptFunc=self.seeErrQuestions)
 
         else:
             WidgetUtil.showAboutDialog(text="恭喜您获得满分的成绩，下次再接再厉！！！")
@@ -458,6 +505,21 @@ class MockExamDialog(QtWidgets.QDialog):
             return None
         self.curErrQuestionIndex += 1
         self.getErrQuestionObj()
+
+
+class CustomPushButton(QPushButton):
+    def __init__(self, no):
+        QWidget.__init__(self)
+        self.no = no
+        self.setText(str(no))
+
+    clicked = pyqtSignal(int)
+
+    def mousePressEvent(self, ev: QMouseEvent):
+        LogUtil.d('mousePressEvent')
+        if ev.button() == Qt.LeftButton:
+            # 鼠标左击
+            self.clicked.emit(self.no)
 
 
 if __name__ == '__main__':
