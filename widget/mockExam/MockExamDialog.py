@@ -63,8 +63,6 @@ class MockExamDialog(QtWidgets.QDialog):
         self.yourAnswers = {}
         self.errAnswers = {}
         self.isShowErrQuestion = False
-        self.curErrQuestionIndex = 0
-        self.reviewErrQuestionNoList = None
         self.isLayout = False
 
         self.setObjectName("MockExamDialog")
@@ -135,7 +133,7 @@ class MockExamDialog(QtWidgets.QDialog):
         self.answerCardScrollAres.setMaximumHeight(60)
         self.answerCardGrid = QtWidgets.QGridLayout(self.answerCardScrollAreaWidget)
         # 设置间距
-        self.answerCardGrid.setSpacing(const.PADDING)
+        self.answerCardGrid.setSpacing(const.PADDING * 2)
         self.answerCardGrid.setAlignment(Qt.AlignTop | Qt.AlignLeft)
         self.answerCardScrollAres.setWidget(self.answerCardScrollAreaWidget)
         return self.answerCardScrollAres
@@ -159,6 +157,7 @@ class MockExamDialog(QtWidgets.QDialog):
         self.startMockExamBtn.setEnabled(False)
         self.restartMockExamBtn.setVisible(False)
 
+        self.hideAnswerCard()
         self.hideQuestionArea()
 
         self.preBtn.setVisible(True)
@@ -223,6 +222,25 @@ class MockExamDialog(QtWidgets.QDialog):
             return
         pass
 
+    def updateAnswerCardColor(self, index, color="grey"):
+        if 0 <= index < self.answerCardGrid.count():
+            self.answerCardGrid.itemAt(index).widget().setStyleSheet(f"background: {color};")  # 设置背景色
+        pass
+
+    def resetAnswerCardStatus(self):
+        for index in range(self.answerCardGrid.count()):
+            widget = self.answerCardGrid.itemAt(index).widget()
+            widget.setStyleSheet(f"background: grey;")  # 设置背景色
+            widget.setEnabled(True)
+            widget.setVisible(True)
+        pass
+
+    def hideAnswerCard(self):
+        for index in range(self.answerCardGrid.count()):
+            widget = self.answerCardGrid.itemAt(index).widget()
+            widget.setVisible(False)
+        pass
+
     def prepareAnswerCard(self):
         totalQuestionNums = self.mockExamUtil.totalQuestionNums
         while self.answerCardGrid.count() > totalQuestionNums:
@@ -236,9 +254,11 @@ class MockExamDialog(QtWidgets.QDialog):
         if answerCardNum < totalQuestionNums:
             for no in range(answerCardNum + 1, totalQuestionNums + 1):
                 btn = CustomPushButton(no)
-                btn.setFixedSize(QSize(40, 25))
+                btn.setFixedSize(QSize(36, 20))
                 btn.clicked.connect(self.answerCardClicked)
                 self.answerCardGrid.addWidget(btn, (no - 1) // ANSWER_CARD_MAX_COL, (no - 1) % ANSWER_CARD_MAX_COL)
+
+        self.resetAnswerCardStatus()
         pass
 
     def prepareLayout(self):
@@ -346,6 +366,7 @@ class MockExamDialog(QtWidgets.QDialog):
             delDictData(self.curQuestionNo, self.errAnswers)
         else:
             self.errAnswers[self.curQuestionNo] = option
+        self.updateAnswerCardColor(self.curQuestionNo - 1, "green")
         LogUtil.e("oneChoiceToggled", self.yourAnswers, self.errAnswers)
         pass
 
@@ -367,10 +388,12 @@ class MockExamDialog(QtWidgets.QDialog):
                         break
                 if isCorrect:
                     delDictData(self.curQuestionNo, self.errAnswers)
+            self.updateAnswerCardColor(self.curQuestionNo - 1, "green")
         else:
             # 多选没有选择
             self.errAnswers[self.curQuestionNo] = None
             delDictData(self.curQuestionNo, self.yourAnswers)
+            self.updateAnswerCardColor(self.curQuestionNo - 1)
         LogUtil.e("multiChoiceToggled", self.yourAnswers, self.errAnswers)
         pass
 
@@ -414,8 +437,7 @@ class MockExamDialog(QtWidgets.QDialog):
             return False
         self.curQuestionNo -= 1
         self.curQuestionObj = self.mockExamUtil.getQuestion(self.curQuestionNo - 1)
-        yourAnswer = getDictData(self.curQuestionNo, self.yourAnswers)
-        self.renderQuestion(self.curQuestionObj, yourAnswer)
+        self.renderQuestion(self.curQuestionObj, getDictData(self.curQuestionNo, self.yourAnswers))
         return False
 
     def nextQuestionFunc(self):
@@ -424,12 +446,14 @@ class MockExamDialog(QtWidgets.QDialog):
             return False
         self.curQuestionNo += 1
         self.curQuestionObj = self.mockExamUtil.getQuestion(self.curQuestionNo - 1)
-        yourAnswer = getDictData(self.curQuestionNo, self.yourAnswers)
-        self.renderQuestion(self.curQuestionObj, yourAnswer)
+        self.renderQuestion(self.curQuestionObj, getDictData(self.curQuestionNo, self.yourAnswers))
         return False
 
     def answerCardClicked(self, no):
         LogUtil.d("answerCardClicked", no)
+        self.curQuestionNo = no
+        self.curQuestionObj = self.mockExamUtil.getQuestion(no - 1)
+        self.renderQuestion(self.curQuestionObj, getDictData(self.curQuestionNo, self.yourAnswers))
         pass
 
     def submitFunc(self):
@@ -476,6 +500,16 @@ class MockExamDialog(QtWidgets.QDialog):
         self.curQuestionNo = 1
         self.curQuestionObj = self.mockExamUtil.getQuestion(0)
         self.renderQuestion(self.curQuestionObj, getDictData(self.curQuestionNo, self.yourAnswers))
+        self.reviewAnswerCardUpdate()
+        pass
+
+    def reviewAnswerCardUpdate(self):
+        for index in range(self.answerCardGrid.count()):
+            widget = self.answerCardGrid.itemAt(index).widget()
+            if index + 1 in self.errAnswers:
+                widget.setStyleSheet(f"background: red;")
+            else:
+                widget.setStyleSheet(f"background: green;")
         pass
 
 
