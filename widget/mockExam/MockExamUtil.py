@@ -40,7 +40,6 @@ def getRequest(st: Worksheet, row=2, colNum=12, realQuestionNo=1, questionType=Q
 class MockExamUtil:
     def __init__(self, fp='../resources/mockExam/题库模版.xlsx'):
         # 考试题目文件路径
-        self.index = -1
         self.examFile = fp
         self.bk = OpenpyxlUtil.getBook(fp)
         self.infoSheet = OpenpyxlUtil.getSheet(self.bk, '考试信息')
@@ -103,20 +102,7 @@ class MockExamUtil:
                   "\n单选题题号：", self.oneChoiceRequestRows, self.realOneChoiceRequestNum, "\n多选题题号：",
                   self.multipleChoiceRequestRows, self.realMultipleChoiceRequestNum, "\n总题数：", self.totalQuestionNums,
                   "总分数：", self.totalScore)
-        self.index = -1
         pass
-
-    def nextQuestion(self):
-        if self.index >= self.totalQuestionNums - 1:
-            return None
-        self.index += 1
-        return self.getQuestion(self.index)
-
-    def preQuestion(self):
-        if self.index < 1:
-            return None
-        self.index -= 1
-        return self.getQuestion(self.index)
 
     def getQuestion(self, index):
         """
@@ -134,12 +120,6 @@ class MockExamUtil:
                                 self.multipleChoiceRequestRows[index - self.totalQuestionNums],
                                 self.maxCol, index + 1, QUESTION_TYPE_MULTI_CHOICE)
         return result
-
-    def hasNext(self):
-        return self.index < self.totalQuestionNums - 1
-
-    def hasPre(self):
-        return self.index > 0
 
     def maxOptionNum(self):
         return self.maxCol - 4
@@ -165,8 +145,5 @@ if __name__ == "__main__":
     mockExamUtil.genExamPaperByAll()
     mockExamUtil.genExamPaperByReal()
     for i in range(mockExamUtil.totalQuestionNums):
-        print(mockExamUtil.nextQuestion())
+        print(mockExamUtil.getQuestion(i))
 
-    print("\n\n")
-    for i in range(mockExamUtil.totalQuestionNums):
-        print(mockExamUtil.preQuestion())
