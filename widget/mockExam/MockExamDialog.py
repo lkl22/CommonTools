@@ -2,6 +2,8 @@
 # python 3.x
 # Filename: MockExamDialog.py
 # 定义一个MockExamDialog类实现考试刷题
+import random
+
 from PyQt5.QtCore import QModelIndex, pyqtSignal
 from PyQt5.QtGui import QMouseEvent
 from PyQt5.QtWidgets import QScrollArea, QGridLayout, QPushButton
@@ -63,6 +65,8 @@ class MockExamDialog(QtWidgets.QDialog):
 
         self.yourAnswers = {}
         self.errAnswers = {}
+        self.realOptionsDict = {}
+        self.realAnswerDict = {}
         self.isShowErrQuestion = False
         self.isLayout = False
 
@@ -129,7 +133,9 @@ class MockExamDialog(QtWidgets.QDialog):
         splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
         WidgetUtil.createPushButton(splitter, text="选择Excal文件保存路径", minSize=QSize(120, const.HEIGHT),
                                     onClicked=self.getExcelExamFilePath)
-        self.excelExamFilePathLineEdit = WidgetUtil.createLineEdit(splitter, holderText="请输入要保存的文件路径，默认应用程序当前目录下的(题库.xlsx)文件", sizePolicy=sizePolicy)
+        self.excelExamFilePathLineEdit = WidgetUtil.createLineEdit(splitter,
+                                                                   holderText="请输入要保存的文件路径，默认应用程序当前目录下的(题库.xlsx)文件",
+                                                                   sizePolicy=sizePolicy)
 
         yPos += const.HEIGHT_OFFSET
         splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
@@ -138,34 +144,42 @@ class MockExamDialog(QtWidgets.QDialog):
         self.examNameLineEdit = WidgetUtil.createLineEdit(splitter, sizePolicy=sizePolicy)
         WidgetUtil.createLabel(splitter, text="设置通过分数线：", alignment=Qt.AlignVCenter | Qt.AlignRight,
                                minSize=QSize(120, const.HEIGHT))
-        self.scoreLineSpinBox = WidgetUtil.createSpinBox(splitter, value=80, minValue=50, maxValue=100, step=5, suffix="%", sizePolicy=sizePolicy)
+        self.scoreLineSpinBox = WidgetUtil.createSpinBox(splitter, value=80, minValue=50, maxValue=100, step=5,
+                                                         suffix="%", sizePolicy=sizePolicy)
         WidgetUtil.createLabel(splitter, text="设置考试时长：", alignment=Qt.AlignVCenter | Qt.AlignRight,
                                minSize=QSize(120, const.HEIGHT))
-        self.examTimeSpinBox = WidgetUtil.createSpinBox(splitter, value=90, minValue=50, maxValue=180, step=10, suffix="分钟", sizePolicy=sizePolicy)
+        self.examTimeSpinBox = WidgetUtil.createSpinBox(splitter, value=90, minValue=50, maxValue=180, step=10,
+                                                        suffix="分钟", sizePolicy=sizePolicy)
 
         yPos += const.HEIGHT_OFFSET
         splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
         WidgetUtil.createLabel(splitter, text="判断题分值：", alignment=Qt.AlignVCenter | Qt.AlignRight,
                                minSize=QSize(120, const.HEIGHT))
-        self.judgmentScoreSpinBox = WidgetUtil.createSpinBox(splitter, value=2, minValue=1, maxValue=20, step=1, suffix="分", sizePolicy=sizePolicy)
+        self.judgmentScoreSpinBox = WidgetUtil.createSpinBox(splitter, value=2, minValue=1, maxValue=20, step=1,
+                                                             suffix="分", sizePolicy=sizePolicy)
         WidgetUtil.createLabel(splitter, text="单选题分值：", alignment=Qt.AlignVCenter | Qt.AlignRight,
                                minSize=QSize(120, const.HEIGHT))
-        self.oneChoiceScoreSpinBox = WidgetUtil.createSpinBox(splitter, value=3, minValue=1, maxValue=20, step=1, suffix="分", sizePolicy=sizePolicy)
+        self.oneChoiceScoreSpinBox = WidgetUtil.createSpinBox(splitter, value=3, minValue=1, maxValue=20, step=1,
+                                                              suffix="分", sizePolicy=sizePolicy)
         WidgetUtil.createLabel(splitter, text="多选题分值：", alignment=Qt.AlignVCenter | Qt.AlignRight,
                                minSize=QSize(120, const.HEIGHT))
-        self.multiChoiceScoreSpinBox = WidgetUtil.createSpinBox(splitter, value=5, minValue=1, maxValue=20, step=1, suffix="分", sizePolicy=sizePolicy)
+        self.multiChoiceScoreSpinBox = WidgetUtil.createSpinBox(splitter, value=5, minValue=1, maxValue=20, step=1,
+                                                                suffix="分", sizePolicy=sizePolicy)
 
         yPos += const.HEIGHT_OFFSET
         splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
         WidgetUtil.createLabel(splitter, text="判断题个数：", alignment=Qt.AlignVCenter | Qt.AlignRight,
                                minSize=QSize(120, const.HEIGHT))
-        self.judgmentNumsSpinBox = WidgetUtil.createSpinBox(splitter, value=10, minValue=1, maxValue=50, step=5, suffix="道题", sizePolicy=sizePolicy)
+        self.judgmentNumsSpinBox = WidgetUtil.createSpinBox(splitter, value=10, minValue=1, maxValue=50, step=5,
+                                                            suffix="道题", sizePolicy=sizePolicy)
         WidgetUtil.createLabel(splitter, text="单选题个数：", alignment=Qt.AlignVCenter | Qt.AlignRight,
                                minSize=QSize(120, const.HEIGHT))
-        self.oneChoiceNumsSpinBox = WidgetUtil.createSpinBox(splitter, value=10, minValue=1, maxValue=50, step=5, suffix="道题", sizePolicy=sizePolicy)
+        self.oneChoiceNumsSpinBox = WidgetUtil.createSpinBox(splitter, value=10, minValue=1, maxValue=50, step=5,
+                                                             suffix="道题", sizePolicy=sizePolicy)
         WidgetUtil.createLabel(splitter, text="多选题个数：", alignment=Qt.AlignVCenter | Qt.AlignRight,
                                minSize=QSize(120, const.HEIGHT))
-        self.multiChoiceNumsSpinBox = WidgetUtil.createSpinBox(splitter, value=5, minValue=1, maxValue=50, step=5, suffix="道题", sizePolicy=sizePolicy)
+        self.multiChoiceNumsSpinBox = WidgetUtil.createSpinBox(splitter, value=5, minValue=1, maxValue=50, step=5,
+                                                               suffix="道题", sizePolicy=sizePolicy)
 
         yPos += const.HEIGHT_OFFSET
         splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, 120, const.HEIGHT))
@@ -209,9 +223,11 @@ class MockExamDialog(QtWidgets.QDialog):
                   "单选题个数", oneChoiceNums, "\n多选题分值", multiChoiceScore, "多选题个数", multiChoiceNums)
 
         Word2Excel(wordFp, excelExamFp, {
-                "examNam": examName, "scoreLine": scoreLine, "examTime": examTime, "judgmentNums": judgmentNums, "judgmentScore": judgmentScore,
-                "oneChoiceNums": oneChoiceNums, "oneChoiceScore": oneChoiceScore, "multiChoiceNums": multiChoiceNums, "multiChoiceScore": multiChoiceScore
-            })
+            "examNam": examName, "scoreLine": scoreLine, "examTime": examTime, "judgmentNums": judgmentNums,
+            "judgmentScore": judgmentScore,
+            "oneChoiceNums": oneChoiceNums, "oneChoiceScore": oneChoiceScore, "multiChoiceNums": multiChoiceNums,
+            "multiChoiceScore": multiChoiceScore
+        })
         self.startWord2ExcelBtn.setEnabled(True)
         LogUtil.d("Word2Excel finished.")
         pass
@@ -286,6 +302,8 @@ class MockExamDialog(QtWidgets.QDialog):
 
         self.errAnswers = {}
         self.yourAnswers = {}
+        self.realOptionsDict = {}
+        self.realAnswerDict = {}
         self.isShowErrQuestion = False
         pass
 
@@ -476,7 +494,7 @@ class MockExamDialog(QtWidgets.QDialog):
 
         if self.isShowErrQuestion:
             self.answerLabel.setText(
-                f'''<p style="color:#80ff00ff">正确答案：{questionObj[KEY_ANSWER]}</p><p style="color:#800000ff">您的选择：{yourAnswer if yourAnswer else ""}</p>''')
+                f'''<p style="color:#80ff00ff">正确答案：{self.realAnswerDict[questionObj[KEY_REAL_QUESTION_NO]]}</p><p style="color:#800000ff">您的选择：{yourAnswer if yourAnswer else ""}</p>''')
             if questionObj[KEY_SOLUTION]:
                 self.solutionLabel.setText(f"解析：\n{questionObj[KEY_SOLUTION]}")
             else:
@@ -491,7 +509,7 @@ class MockExamDialog(QtWidgets.QDialog):
     def oneChoiceToggled(self):
         option = OPTION_CHAR[self.oneChoiceGroup.checkedId()]
         self.yourAnswers[self.curQuestionNo] = option
-        if self.curQuestionObj[KEY_ANSWER] == option:
+        if option in self.realAnswerDict[self.curQuestionNo]:
             delDictData(self.curQuestionNo, self.errAnswers)
         else:
             self.errAnswers[self.curQuestionNo] = option
@@ -509,9 +527,9 @@ class MockExamDialog(QtWidgets.QDialog):
         if len(checkedOptions) > 0:
             self.yourAnswers[self.curQuestionNo] = checkedOptions
             self.errAnswers[self.curQuestionNo] = checkedOptions
-            if len(checkedOptions) == len(self.curQuestionObj[KEY_ANSWER]):
+            if len(checkedOptions) == len(self.realAnswerDict[self.curQuestionNo]):
                 isCorrect = True
-                for correctAnswer in self.curQuestionObj[KEY_ANSWER]:
+                for correctAnswer in self.realAnswerDict[self.curQuestionNo]:
                     if correctAnswer not in checkedOptions:
                         isCorrect = False
                         break
@@ -545,16 +563,31 @@ class MockExamDialog(QtWidgets.QDialog):
     def updateChoiceOptionBtn(self, questionObj, yourAnswer, choiceOptionBtnList):
         # 清除选项卡的状态
         self.hideOptionBtn()
+        realAnswer = getDictData(questionObj[KEY_REAL_QUESTION_NO], self.realAnswerDict)
+        realOptions = getDictData(questionObj[KEY_REAL_QUESTION_NO], self.realOptionsDict)
+        if not realOptions:
+            realAnswer = []
+            realOptions = []
+            for optionIndex in range(self.maxOptionNum):
+                optionX = chr(65 + optionIndex)
+                optionDesc = questionObj[optionX]
+                if optionDesc:
+                    realOptions.append(optionX)
+                else:
+                    break
+            realOptions = random.sample(realOptions, len(realOptions))
+            for index, option in enumerate(realOptions):
+                if option in questionObj[KEY_ANSWER]:
+                    realAnswer.append(OPTION_CHAR[index])
+            self.realOptionsDict[questionObj[KEY_REAL_QUESTION_NO]] = realOptions
+            self.realAnswerDict[questionObj[KEY_REAL_QUESTION_NO]] = realAnswer
+        for index, option in enumerate(realOptions):
+            optionX = chr(65 + index)
+            optionDesc = questionObj[option]
+            choiceOptionBtnList[index].setText(f"{optionX}. {optionDesc}")
+            choiceOptionBtnList[index].setVisible(True)
+            choiceOptionBtnList[index].setEnabled(not self.isShowErrQuestion)
 
-        for optionIndex in range(self.maxOptionNum):
-            optionX = chr(65 + optionIndex)
-            optionDesc = questionObj[optionX]
-            if optionDesc:
-                choiceOptionBtnList[optionIndex].setText(f"{optionX}. {optionDesc}")
-                choiceOptionBtnList[optionIndex].setVisible(True)
-                choiceOptionBtnList[optionIndex].setEnabled(not self.isShowErrQuestion)
-            else:
-                break
         if yourAnswer:
             for optionX in yourAnswer:
                 choiceOptionBtnList[ord(optionX) - 65].setChecked(True)
@@ -621,7 +654,8 @@ class MockExamDialog(QtWidgets.QDialog):
                                               acceptFunc=self.seeErrQuestions)
 
         else:
-            WidgetUtil.showAboutDialog(text="恭喜您获得满分的成绩，下次再接再厉！！！")
+            WidgetUtil.showQuestionDialog(message="恭喜您获得满分的成绩，下次再接再厉！！！是否查看结果分析？",
+                                          acceptFunc=self.seeErrQuestions)
 
     def seeErrQuestions(self):
         LogUtil.d("seeErrQuestions")
