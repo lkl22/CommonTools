@@ -4,7 +4,7 @@
 # 定义一个MockExamDialog类实现考试刷题
 import random
 
-from PyQt5.QtCore import QModelIndex, pyqtSignal
+from PyQt5.QtCore import QModelIndex, pyqtSignal, QTimer
 from PyQt5.QtGui import QMouseEvent
 from PyQt5.QtWidgets import QScrollArea, QGridLayout, QPushButton
 
@@ -51,6 +51,9 @@ class MockExamDialog(QtWidgets.QDialog):
         self.startMockExamBtn = None
         self.restartMockExamBtn = None
         self.examInfoLabel = None
+        self.examTime = None
+        self.timerLabel = None
+        self.timer = None
 
         self.questionDescLabel = None
         self.oneChoiceGroup = None
@@ -262,8 +265,7 @@ class MockExamDialog(QtWidgets.QDialog):
         yPos += const.HEIGHT_OFFSET
         splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
         self.examInfoLabel = WidgetUtil.createLabel(splitter, text="")
-
-
+        self.timerLabel = WidgetUtil.createLabel(splitter, text="", alignment=Qt.AlignVCenter | Qt.AlignRight, sizePolicy=sizePolicy)
         return box
 
     def createAnswerCardArea(self):
@@ -298,6 +300,8 @@ class MockExamDialog(QtWidgets.QDialog):
         self.startMockExamBtn.setEnabled(False)
         self.restartMockExamBtn.setVisible(False)
         self.examInfoLabel.setText("")
+        self.timerLabel.setText("")
+        self.stopTimer()
 
         self.hideAnswerCard()
         self.hideQuestionArea()
@@ -483,6 +487,7 @@ class MockExamDialog(QtWidgets.QDialog):
         self.curQuestionNo = 1
         self.curQuestionObj = self.mockExamUtil.getQuestion(0)
         self.renderQuestion(self.curQuestionObj, None)
+        self.examTime = self.mockExamUtil.examTime * 60
         judgmentNum = self.mockExamUtil.realJudgmentRequestNum
         oneChoiceNum = self.mockExamUtil.realOneChoiceRequestNum
         multiChoiceNum = self.mockExamUtil.realMultiChoiceRequestNum
@@ -493,6 +498,11 @@ class MockExamDialog(QtWidgets.QDialog):
                 f"<span style='color:red;'>{oneChoiceNum}</span> 道单选题" if oneChoiceNum > 0 else ''} {
                 f"<span style='color:red;'>{multiChoiceNum}</span> 道多选题" if multiChoiceNum > 0 else ''}）''')
         self.submitBtn.setEnabled(True)
+        if not self.isAllMock:
+            self.timer = QTimer()
+            self.timer.setInterval(1000)
+            self.timer.timeout.connect(self.refreshTimer)
+            self.timer.start()
         pass
 
     def restartMockExam(self):
@@ -659,6 +669,7 @@ class MockExamDialog(QtWidgets.QDialog):
         pass
 
     def submitExam(self):
+        self.stopTimer()
         self.showExamOverLayout()
 
         errNo, score = self.mockExamUtil.calculateResults(self.errAnswers)
@@ -692,6 +703,26 @@ class MockExamDialog(QtWidgets.QDialog):
                 widget.setStyleSheet(f"background: red;")
             else:
                 widget.setStyleSheet(f"background: green;")
+        pass
+
+    def refreshTimer(self):
+        if self.examTime > 0:
+            minute = self.examTime // 60
+            second = self.examTime % 60
+            if self.examTime < 600:
+                self.timerLabel.setText(f'''还有最后 <span style="color:red;">{f"{minute} 分钟" if minute > 0 else ''} {f"{second} 秒" if second > 0 else ''}</span>''')
+            else:
+                self.timerLabel.setText(f'''<span style="color:red;">{f"{minute} 分钟" if minute > 0 else ''} {f"{second} 秒" if second > 0 else ''}</span> 后考试结束''')
+            self.examTime -= 1
+        else:
+            self.timerLabel.setText("")
+            self.submitExam()
+        pass
+
+    def stopTimer(self):
+        if self.timer:
+            self.timer.stop()
+            self.timer = None
         pass
 
 
