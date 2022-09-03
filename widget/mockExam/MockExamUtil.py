@@ -79,7 +79,7 @@ class MockExamUtil:
                           self.multiChoiceRequestBankNums)
         pass
 
-    def genExamPaper(self, judgmentNums, oneChoiceNums, multipleChoiceNums):
+    def genExamPaper(self, judgmentNums, oneChoiceNums, multiChoiceNums):
         self.judgmentRequestRows = []
         if self.judgmentRequestBankNums > 1 and judgmentNums > 0:
             self.judgmentRequestRows = RandomUtil.sample(judgmentNums, 2, self.judgmentRequestBankNums)
@@ -90,18 +90,18 @@ class MockExamUtil:
             self.oneChoiceRequestRows = RandomUtil.sample(oneChoiceNums, 2, self.oneChoiceRequestBankNums)
         self.realOneChoiceRequestNum = len(self.oneChoiceRequestRows)
 
-        self.multipleChoiceRequestRows = []
-        if self.multiChoiceRequestBankNums > 1 and multipleChoiceNums > 0:
-            self.multipleChoiceRequestRows = RandomUtil.sample(multipleChoiceNums, 2,
-                                                               self.multiChoiceRequestBankNums)
-        self.realMultipleChoiceRequestNum = len(self.multipleChoiceRequestRows)
+        self.multiChoiceRequestRows = []
+        if self.multiChoiceRequestBankNums > 1 and multiChoiceNums > 0:
+            self.multiChoiceRequestRows = RandomUtil.sample(multiChoiceNums, 2,
+                                                            self.multiChoiceRequestBankNums)
+        self.realMultiChoiceRequestNum = len(self.multiChoiceRequestRows)
 
-        self.totalQuestionNums = self.realJudgmentRequestNum + self.realOneChoiceRequestNum + self.realMultipleChoiceRequestNum
+        self.totalQuestionNums = self.realJudgmentRequestNum + self.realOneChoiceRequestNum + self.realMultiChoiceRequestNum
         self.totalScore = self.judgmentScore * self.realJudgmentRequestNum + self.oneChoiceScore * self.realOneChoiceRequestNum + \
-                          self.multiChoiceScore * self.realMultipleChoiceRequestNum
+                          self.multiChoiceScore * self.realMultiChoiceRequestNum
         LogUtil.w("MockExamUtil genExamPaper:", "\n判断题题号：", self.judgmentRequestRows, self.realJudgmentRequestNum,
                   "\n单选题题号：", self.oneChoiceRequestRows, self.realOneChoiceRequestNum, "\n多选题题号：",
-                  self.multipleChoiceRequestRows, self.realMultipleChoiceRequestNum, "\n总题数：", self.totalQuestionNums,
+                  self.multiChoiceRequestRows, self.realMultiChoiceRequestNum, "\n总题数：", self.totalQuestionNums,
                   "总分数：", self.totalScore)
         pass
 
@@ -118,7 +118,7 @@ class MockExamUtil:
                                 self.maxCol, index + 1, QUESTION_TYPE_ONE_CHOICE)
         else:
             result = getRequest(self.multipleChoiceSheet,
-                                self.multipleChoiceRequestRows[index - self.totalQuestionNums],
+                                self.multiChoiceRequestRows[index - self.totalQuestionNums],
                                 self.maxCol, index + 1, QUESTION_TYPE_MULTI_CHOICE)
         return result
 

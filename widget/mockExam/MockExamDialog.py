@@ -50,6 +50,7 @@ class MockExamDialog(QtWidgets.QDialog):
         self.genExamPaperByAllBtn = None
         self.startMockExamBtn = None
         self.restartMockExamBtn = None
+        self.examInfoLabel = None
 
         self.questionDescLabel = None
         self.oneChoiceGroup = None
@@ -62,6 +63,7 @@ class MockExamDialog(QtWidgets.QDialog):
 
         self.curQuestionObj = None
         self.curQuestionNo = 1
+        self.isAllMock = False
 
         self.yourAnswers = {}
         self.errAnswers = {}
@@ -256,6 +258,12 @@ class MockExamDialog(QtWidgets.QDialog):
         self.startMockExamBtn = WidgetUtil.createPushButton(splitter, text="开始", isEnable=False,
                                                             onClicked=self.startMockExam)
         self.restartMockExamBtn = WidgetUtil.createPushButton(splitter, text="重新开始", onClicked=self.restartMockExam)
+
+        yPos += const.HEIGHT_OFFSET
+        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
+        self.examInfoLabel = WidgetUtil.createLabel(splitter, text="")
+
+
         return box
 
     def createAnswerCardArea(self):
@@ -289,6 +297,7 @@ class MockExamDialog(QtWidgets.QDialog):
         self.startMockExamBtn.setVisible(True)
         self.startMockExamBtn.setEnabled(False)
         self.restartMockExamBtn.setVisible(False)
+        self.examInfoLabel.setText("")
 
         self.hideAnswerCard()
         self.hideQuestionArea()
@@ -304,6 +313,7 @@ class MockExamDialog(QtWidgets.QDialog):
         self.yourAnswers = {}
         self.realOptionsDict = {}
         self.realAnswerDict = {}
+        self.isAllMock = False
         self.isShowErrQuestion = False
         pass
 
@@ -342,8 +352,9 @@ class MockExamDialog(QtWidgets.QDialog):
         self.genExamPaper(True)
         pass
 
-    def genExamPaperMethod(self, isAll):
-        if isAll:
+    def genExamPaperMethod(self, isAllMock):
+        self.isAllMock = isAllMock
+        if isAllMock:
             self.mockExamUtil.genExamPaperByAll()
         else:
             self.mockExamUtil.genExamPaperByReal()
@@ -472,7 +483,15 @@ class MockExamDialog(QtWidgets.QDialog):
         self.curQuestionNo = 1
         self.curQuestionObj = self.mockExamUtil.getQuestion(0)
         self.renderQuestion(self.curQuestionObj, None)
+        judgmentNum = self.mockExamUtil.realJudgmentRequestNum
+        oneChoiceNum = self.mockExamUtil.realOneChoiceRequestNum
+        multiChoiceNum = self.mockExamUtil.realMultiChoiceRequestNum
 
+        self.examInfoLabel.setText(f'''本轮考试<span style='color:red;'>{"" if self.isAllMock else f"时长{self.mockExamUtil.examTime}分钟，"
+                }</span>总共有 <span style='color:red;'>{self.mockExamUtil.totalQuestionNums}</span> 道题（{
+                f"<span style='color:red;'>{judgmentNum}</span> 道判断题" if judgmentNum > 0 else ''} {
+                f"<span style='color:red;'>{oneChoiceNum}</span> 道单选题" if oneChoiceNum > 0 else ''} {
+                f"<span style='color:red;'>{multiChoiceNum}</span> 道多选题" if multiChoiceNum > 0 else ''}）''')
         self.submitBtn.setEnabled(True)
         pass
 
