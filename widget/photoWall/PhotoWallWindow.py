@@ -120,9 +120,9 @@ class PhotoWallWindow(QMainWindow):
         pass
 
     def openDir(self):
-        filePath = WidgetUtil.getExistingDirectory('选择文文件夹', './')
+        filePath = WidgetUtil.getExistingDirectory('选择文件夹', './')
         if not filePath:
-            QMessageBox.information(self, '提示', '文件为空，请重新操作')
+            QMessageBox.information(self, '提示', '文件夹为空，请重新操作')
             return
         self.filePath = filePath
         self.startPhotoViewer()

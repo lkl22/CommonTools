@@ -23,10 +23,10 @@ KEY_ANSWER = 'answer'
 
 
 class Word2Excel:
-    def __init__(self, filePath='../../resources/mockExam/题库.docx', isDebug=True):
-        self.doc = Document(filePath)
+    def __init__(self, wordFilePath='../../resources/mockExam/题库.docx', saveFn="题库.xlsx", examInfo=None):
+        self.doc = Document(wordFilePath)
         self.questionDataDict = self.getWordTxt()
-        self.genExcel()
+        self.genExcel(saveFn, examInfo)
 
     def getWordTxt(self):
         # 保存最终的结构化数据
@@ -42,11 +42,11 @@ class Word2Excel:
             # 对于空白行就直接跳过
             if not text:
                 continue
-
+            # LogUtil.d("paragraph text: ", text)
             matchObj = questionDescRule.match(text)
             if matchObj:
                 questionDesc = matchObj.group(2).strip()
-                # print(matchObj.group(1)[:-1], questionDesc)
+                # LogUtil.d("match questionDescRule", matchObj.group(1)[:-1], questionDesc)
                 if questionObj:
                     questionDataDict[questionNo] = questionObj
 
@@ -113,7 +113,12 @@ class Word2Excel:
         if key in dict.keys():
             OpenpyxlUtil.writeSheet(st, row, col, dict[key])
 
-    def genExcel(self):
+    def genExcel(self, saveFn, examInfo=None):
+        if examInfo is None:
+            examInfo = {
+                "examNam": "", "scoreLine": 80, "examTime": 90, "judgmentNums": 0, "judgmentScore": 2,
+                "oneChoiceNums": 0, "oneChoiceScore": 3, "multiChoiceNums": 0, "multiChoiceScore": 5
+            }
         bk = OpenpyxlUtil.createBook()
         examInfoSheet = OpenpyxlUtil.addSheet(bk, "考试信息")
         judgmentSheet = OpenpyxlUtil.addSheet(bk, "判断题", 1)
@@ -129,10 +134,11 @@ class Word2Excel:
             indent=0,  # 缩进值
         )
 
-        examInfo = [{"科目名称": ""}, {"分数线": 80}, {"判断题个数": 0}, {"判断题分值": 2}, {"单选题个数": 0}, {"单选题分值": 3}, {"多选题个数": 0},
-                    {"多选题分值": 5}]
-        for index in range(len(examInfo)):
-            for key, value in examInfo[index].items():
+        examExtInfo = [{"科目名称": examInfo["examNam"]}, {"分数线": examInfo["scoreLine"]}, {"考试时长": examInfo["examTime"]},
+                       {"判断题个数": examInfo["judgmentNums"]}, {"判断题分值": examInfo["judgmentScore"]}, {"单选题个数": examInfo["oneChoiceNums"]},
+                       {"单选题分值": examInfo["oneChoiceScore"]}, {"多选题个数": examInfo["multiChoiceNums"]}, {"多选题分值": examInfo["multiChoiceScore"]}]
+        for index in range(len(examExtInfo)):
+            for key, value in examExtInfo[index].items():
                 OpenpyxlUtil.writeSheet(examInfoSheet, 1, index + 1, key)
                 OpenpyxlUtil.writeSheet(examInfoSheet, 2, index + 1, value)
             examInfoSheet["ABCDEFGHI"[index] + "1"].alignment = alignment
@@ -162,6 +168,7 @@ class Word2Excel:
                     # end_color=None      # 背景色，16进制rgb
                 )
 
+        judgmentRow = 1
         oneChoiceRow = 1
         multiChoiceRow = 1
         for no, questionObj in self.questionDataDict.items():
@@ -173,9 +180,14 @@ class Word2Excel:
                 multiChoiceRow += 1
                 row = multiChoiceRow
             else:
-                st = oneChoiceSheet
-                oneChoiceRow += 1
-                row = oneChoiceRow
+                if "C" not in questionObj:
+                    st = judgmentSheet
+                    judgmentRow += 1
+                    row = judgmentRow
+                else:
+                    st = oneChoiceSheet
+                    oneChoiceRow += 1
+                    row = oneChoiceRow
 
             Word2Excel.writeSheet(st, row, 1, questionObj, "question")
             Word2Excel.writeSheet(st, row, 2, questionObj, "answer")
@@ -183,7 +195,7 @@ class Word2Excel:
             for index, ch in enumerate("ABCDEFGHIJK"):
                 Word2Excel.writeSheet(st, row, 5 + index, questionObj, ch)
 
-        bk.save("题库.xlsx")
+        bk.save(saveFn)
         bk.close()
 
 

@@ -48,34 +48,35 @@ class MockExamUtil:
         self.multipleChoiceSheet = OpenpyxlUtil.getSheet(self.bk, '多选题')
         self.examName = OpenpyxlUtil.getCell(self.infoSheet, 2, 1)
         self.scoreLine = OpenpyxlUtil.getCell(self.infoSheet, 2, 2)
+        self.examTime = OpenpyxlUtil.getCell(self.infoSheet, 2, 3)
 
-        self.judgmentNums = OpenpyxlUtil.getCell(self.infoSheet, 2, 3)
-        self.judgmentScore = OpenpyxlUtil.getCell(self.infoSheet, 2, 4)
+        self.judgmentNums = OpenpyxlUtil.getCell(self.infoSheet, 2, 4)
+        self.judgmentScore = OpenpyxlUtil.getCell(self.infoSheet, 2, 5)
         self.judgmentRequestBankNums = OpenpyxlUtil.getRows(self.judgmentSheet)
 
-        self.oneChoiceNums = OpenpyxlUtil.getCell(self.infoSheet, 2, 5)
-        self.oneChoiceScore = OpenpyxlUtil.getCell(self.infoSheet, 2, 6)
+        self.oneChoiceNums = OpenpyxlUtil.getCell(self.infoSheet, 2, 6)
+        self.oneChoiceScore = OpenpyxlUtil.getCell(self.infoSheet, 2, 7)
         self.oneChoiceRequestBankNums = OpenpyxlUtil.getRows(self.oneChoiceSheet)
 
-        self.multipleChoiceNums = OpenpyxlUtil.getCell(self.infoSheet, 2, 7)
-        self.multipleChoiceScore = OpenpyxlUtil.getCell(self.infoSheet, 2, 8)
-        self.multipleChoiceRequestBankNums = OpenpyxlUtil.getRows(self.multipleChoiceSheet)
+        self.multiChoiceNums = OpenpyxlUtil.getCell(self.infoSheet, 2, 8)
+        self.multiChoiceScore = OpenpyxlUtil.getCell(self.infoSheet, 2, 9)
+        self.multiChoiceRequestBankNums = OpenpyxlUtil.getRows(self.multipleChoiceSheet)
 
         self.maxCol = OpenpyxlUtil.getColumns(self.oneChoiceSheet)
 
-        LogUtil.w("MockExamUtil", "考试科目：", self.examName, "分数线：", self.scoreLine, "最大列数：", self.maxCol,
+        LogUtil.w("MockExamUtil", "考试科目：", self.examName, "分数线：", self.scoreLine, "考试时长：", self.examTime, "最大列数：", self.maxCol,
                   "\n判断题个数", self.judgmentNums, "\t判断题分值", self.judgmentScore, "\t判断题题库", self.judgmentRequestBankNums,
                   "\n单选题个数", self.oneChoiceNums, "\t单选题分值", self.oneChoiceScore, "\t单选题题库",
-                  self.oneChoiceRequestBankNums, "\n多选题个数", self.multipleChoiceNums, "\t多选题分值",
-                  self.multipleChoiceScore, "\t多选题题库", self.multipleChoiceRequestBankNums)
+                  self.oneChoiceRequestBankNums, "\n多选题个数", self.multiChoiceNums, "\t多选题分值",
+                  self.multiChoiceScore, "\t多选题题库", self.multiChoiceRequestBankNums)
 
     def genExamPaperByReal(self):
-        self.genExamPaper(self.judgmentNums, self.oneChoiceNums, self.multipleChoiceNums)
+        self.genExamPaper(self.judgmentNums, self.oneChoiceNums, self.multiChoiceNums)
         pass
 
     def genExamPaperByAll(self):
         self.genExamPaper(self.judgmentRequestBankNums, self.oneChoiceRequestBankNums,
-                          self.multipleChoiceRequestBankNums)
+                          self.multiChoiceRequestBankNums)
         pass
 
     def genExamPaper(self, judgmentNums, oneChoiceNums, multipleChoiceNums):
@@ -90,14 +91,14 @@ class MockExamUtil:
         self.realOneChoiceRequestNum = len(self.oneChoiceRequestRows)
 
         self.multipleChoiceRequestRows = []
-        if self.multipleChoiceRequestBankNums > 1 and multipleChoiceNums > 0:
+        if self.multiChoiceRequestBankNums > 1 and multipleChoiceNums > 0:
             self.multipleChoiceRequestRows = RandomUtil.sample(multipleChoiceNums, 2,
-                                                               self.multipleChoiceRequestBankNums)
+                                                               self.multiChoiceRequestBankNums)
         self.realMultipleChoiceRequestNum = len(self.multipleChoiceRequestRows)
 
         self.totalQuestionNums = self.realJudgmentRequestNum + self.realOneChoiceRequestNum + self.realMultipleChoiceRequestNum
         self.totalScore = self.judgmentScore * self.realJudgmentRequestNum + self.oneChoiceScore * self.realOneChoiceRequestNum + \
-                          self.multipleChoiceScore * self.realMultipleChoiceRequestNum
+                          self.multiChoiceScore * self.realMultipleChoiceRequestNum
         LogUtil.w("MockExamUtil genExamPaper:", "\n判断题题号：", self.judgmentRequestRows, self.realJudgmentRequestNum,
                   "\n单选题题号：", self.oneChoiceRequestRows, self.realOneChoiceRequestNum, "\n多选题题号：",
                   self.multipleChoiceRequestRows, self.realMultipleChoiceRequestNum, "\n总题数：", self.totalQuestionNums,
@@ -133,7 +134,7 @@ class MockExamUtil:
             elif index < self.realJudgmentRequestNum + self.realOneChoiceRequestNum:
                 score -= self.oneChoiceScore
             else:
-                score -= self.multipleChoiceScore
+                score -= self.multiChoiceScore
         return len(errAnswers), score
 
     def isPassExam(self, score):

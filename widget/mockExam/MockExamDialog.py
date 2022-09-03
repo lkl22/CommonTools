@@ -13,6 +13,7 @@ from util.DomXmlUtil import *
 from util.LogUtil import *
 from util.OperaIni import *
 from widget.mockExam.MockExamUtil import *
+from widget.mockExam.Word2Excel import *
 
 OPTION_CHAR = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
@@ -79,8 +80,18 @@ class MockExamDialog(QtWidgets.QDialog):
         vLayout = WidgetUtil.createVBoxLayout(margins=QMargins(0, 0, 0, 0))
         layoutWidget.setLayout(vLayout)
 
-        genMockExamGroupBox = self.createGenMockExamGroupBox(layoutWidget)
-        vLayout.addWidget(genMockExamGroupBox)
+        yPos = const.GROUP_BOX_MARGIN_TOP
+        width = MockExamDialog.WINDOW_WIDTH - const.PADDING * 12
+        splitter = WidgetUtil.createSplitter(layoutWidget, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT * 2))
+        self.word2ExcelToolBtn = WidgetUtil.createPushButton(splitter, text="显示Word转Excel工具",
+                                                             onClicked=self.toggledWord2ExcelTool)
+        vLayout.addWidget(splitter)
+
+        self.word2ExcelGroupBox = self.createWord2ExcelGroupBox(layoutWidget)
+        vLayout.addWidget(self.word2ExcelGroupBox)
+
+        mockExamGroupBox = self.createGenMockExamGroupBox(layoutWidget)
+        vLayout.addWidget(mockExamGroupBox)
 
         answerCardArea = self.createAnswerCardArea()
         vLayout.addWidget(answerCardArea)
@@ -98,6 +109,112 @@ class MockExamDialog(QtWidgets.QDialog):
         self.setWindowModality(Qt.ApplicationModal)
         # 很关键，不加出不来
         # self.exec_()
+
+    def createWord2ExcelGroupBox(self, parent):
+        yPos = const.GROUP_BOX_MARGIN_TOP
+        width = MockExamDialog.WINDOW_WIDTH - const.PADDING * 4
+
+        box = WidgetUtil.createGroupBox(parent, title="将Word题库转化为Excel格式",
+                                        minSize=QSize(width, const.GROUP_BOX_MARGIN_TOP + const.HEIGHT_OFFSET * 6))
+
+        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
+
+        WidgetUtil.createPushButton(splitter, text="选择题库模版（Word）", minSize=QSize(120, const.HEIGHT),
+                                    onClicked=self.getWordExamFilePath)
+        sizePolicy = WidgetUtil.createSizePolicy()
+        self.wordExamFilePathLineEdit = WidgetUtil.createLineEdit(splitter, text="", isEnable=False,
+                                                                  sizePolicy=sizePolicy)
+
+        yPos += const.HEIGHT_OFFSET
+        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
+        WidgetUtil.createPushButton(splitter, text="选择Excal文件保存路径", minSize=QSize(120, const.HEIGHT),
+                                    onClicked=self.getExcelExamFilePath)
+        self.excelExamFilePathLineEdit = WidgetUtil.createLineEdit(splitter, holderText="请输入要保存的文件路径，默认应用程序当前目录下的(题库.xlsx)文件", sizePolicy=sizePolicy)
+
+        yPos += const.HEIGHT_OFFSET
+        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
+        WidgetUtil.createLabel(splitter, text="设置科目名称：", alignment=Qt.AlignVCenter | Qt.AlignRight,
+                               minSize=QSize(120, const.HEIGHT))
+        self.examNameLineEdit = WidgetUtil.createLineEdit(splitter, sizePolicy=sizePolicy)
+        WidgetUtil.createLabel(splitter, text="设置通过分数线：", alignment=Qt.AlignVCenter | Qt.AlignRight,
+                               minSize=QSize(120, const.HEIGHT))
+        self.scoreLineSpinBox = WidgetUtil.createSpinBox(splitter, value=80, minValue=50, maxValue=100, step=5, suffix="%", sizePolicy=sizePolicy)
+        WidgetUtil.createLabel(splitter, text="设置考试时长：", alignment=Qt.AlignVCenter | Qt.AlignRight,
+                               minSize=QSize(120, const.HEIGHT))
+        self.examTimeSpinBox = WidgetUtil.createSpinBox(splitter, value=90, minValue=50, maxValue=180, step=10, suffix="分钟", sizePolicy=sizePolicy)
+
+        yPos += const.HEIGHT_OFFSET
+        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
+        WidgetUtil.createLabel(splitter, text="判断题分值：", alignment=Qt.AlignVCenter | Qt.AlignRight,
+                               minSize=QSize(120, const.HEIGHT))
+        self.judgmentScoreSpinBox = WidgetUtil.createSpinBox(splitter, value=2, minValue=1, maxValue=20, step=1, suffix="分", sizePolicy=sizePolicy)
+        WidgetUtil.createLabel(splitter, text="单选题分值：", alignment=Qt.AlignVCenter | Qt.AlignRight,
+                               minSize=QSize(120, const.HEIGHT))
+        self.oneChoiceScoreSpinBox = WidgetUtil.createSpinBox(splitter, value=3, minValue=1, maxValue=20, step=1, suffix="分", sizePolicy=sizePolicy)
+        WidgetUtil.createLabel(splitter, text="多选题分值：", alignment=Qt.AlignVCenter | Qt.AlignRight,
+                               minSize=QSize(120, const.HEIGHT))
+        self.multiChoiceScoreSpinBox = WidgetUtil.createSpinBox(splitter, value=5, minValue=1, maxValue=20, step=1, suffix="分", sizePolicy=sizePolicy)
+
+        yPos += const.HEIGHT_OFFSET
+        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
+        WidgetUtil.createLabel(splitter, text="判断题个数：", alignment=Qt.AlignVCenter | Qt.AlignRight,
+                               minSize=QSize(120, const.HEIGHT))
+        self.judgmentNumsSpinBox = WidgetUtil.createSpinBox(splitter, value=10, minValue=1, maxValue=50, step=5, suffix="道题", sizePolicy=sizePolicy)
+        WidgetUtil.createLabel(splitter, text="单选题个数：", alignment=Qt.AlignVCenter | Qt.AlignRight,
+                               minSize=QSize(120, const.HEIGHT))
+        self.oneChoiceNumsSpinBox = WidgetUtil.createSpinBox(splitter, value=10, minValue=1, maxValue=50, step=5, suffix="道题", sizePolicy=sizePolicy)
+        WidgetUtil.createLabel(splitter, text="多选题个数：", alignment=Qt.AlignVCenter | Qt.AlignRight,
+                               minSize=QSize(120, const.HEIGHT))
+        self.multiChoiceNumsSpinBox = WidgetUtil.createSpinBox(splitter, value=5, minValue=1, maxValue=50, step=5, suffix="道题", sizePolicy=sizePolicy)
+
+        yPos += const.HEIGHT_OFFSET
+        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, 120, const.HEIGHT))
+        self.startWord2ExcelBtn = WidgetUtil.createPushButton(splitter, text="转换题库", onClicked=self.startWord2Excel)
+        box.setVisible(False)
+        return box
+
+    def toggledWord2ExcelTool(self):
+        self.word2ExcelGroupBox.setVisible(not self.word2ExcelGroupBox.isVisible())
+        self.word2ExcelToolBtn.setText(f"{'隐藏' if self.word2ExcelGroupBox.isVisible() else '显示'}Word转Excel工具")
+        pass
+
+    def startWord2Excel(self):
+        self.startWord2ExcelBtn.setEnabled(False)
+        wordFp = self.wordExamFilePathLineEdit.text().strip()
+        if not wordFp:
+            WidgetUtil.showErrorDialog(message="请优先选择您的Word题库文件")
+            return
+        examName = self.examNameLineEdit.text().strip()
+        if not examName:
+            WidgetUtil.showErrorDialog(message="请输入考试科目名称")
+            return
+
+        scoreLine = self.scoreLineSpinBox.value()
+        examTime = self.examTimeSpinBox.value()
+        judgmentScore = self.judgmentScoreSpinBox.value()
+        judgmentNums = self.judgmentNumsSpinBox.value()
+        oneChoiceScore = self.oneChoiceScoreSpinBox.value()
+        oneChoiceNums = self.oneChoiceNumsSpinBox.value()
+        multiChoiceScore = self.multiChoiceScoreSpinBox.value()
+        multiChoiceNums = self.multiChoiceNumsSpinBox.value()
+
+        excelExamFp = self.excelExamFilePathLineEdit.text().strip()
+        if not excelExamFp:
+            excelExamFp = "题库.xlsx"
+        if not excelExamFp.endswith(".xlsx"):
+            FileUtil.mkFilePath(excelExamFp)
+            excelExamFp = os.path.join(excelExamFp, "题库.xlsx")
+        LogUtil.d("Word题库路径", wordFp, "\n保存路径", excelExamFp, "\n科目名称", examName, "scoreLine", scoreLine,
+                  "考试时长", examTime, "\n判断题分值", judgmentScore, "判断题个数", judgmentNums, "\n单选题分值", oneChoiceScore,
+                  "单选题个数", oneChoiceNums, "\n多选题分值", multiChoiceScore, "多选题个数", multiChoiceNums)
+
+        Word2Excel(wordFp, excelExamFp, {
+                "examNam": examName, "scoreLine": scoreLine, "examTime": examTime, "judgmentNums": judgmentNums, "judgmentScore": judgmentScore,
+                "oneChoiceNums": oneChoiceNums, "oneChoiceScore": oneChoiceScore, "multiChoiceNums": multiChoiceNums, "multiChoiceScore": multiChoiceScore
+            })
+        self.startWord2ExcelBtn.setEnabled(True)
+        LogUtil.d("Word2Excel finished.")
+        pass
 
     def createGenMockExamGroupBox(self, parent):
         yPos = const.GROUP_BOX_MARGIN_TOP
@@ -179,6 +296,18 @@ class MockExamDialog(QtWidgets.QDialog):
             self.answerLabel.setText("")
             self.solutionLabel.setText("")
             self.remarkLabel.setText("")
+        pass
+
+    def getWordExamFilePath(self):
+        fn = WidgetUtil.getOpenFileName(caption='选择模拟考试题库Word文件', filter='*.docx', initialFilter='*.docx')
+        if fn:
+            self.wordExamFilePathLineEdit.setText(fn)
+        pass
+
+    def getExcelExamFilePath(self):
+        fp = WidgetUtil.getExistingDirectory(caption='选择模拟考试题库Excel文件保存路径', directory="./")
+        if fp:
+            self.excelExamFilePathLineEdit.setText(fp)
         pass
 
     def getExamFilePath(self):
