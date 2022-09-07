@@ -140,6 +140,10 @@ class MockExamUtil:
     def isPassExam(self, score):
         return score >= self.totalScore * self.scoreLine / 100
 
+    def close(self):
+        self.bk.close()
+        pass
+
 
 if __name__ == "__main__":
     mockExamUtil = MockExamUtil()

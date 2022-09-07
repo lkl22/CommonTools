@@ -119,6 +119,12 @@ class MockExamDialog(QtWidgets.QDialog):
         # 很关键，不加出不来
         # self.exec_()
 
+    def closeEvent(self, event):
+        LogUtil.d("MockExamDialog", "closeEvent")
+        if self.mockExamUtil:
+            self.mockExamUtil.close()
+        pass
+
     def createWord2ExcelGroupBox(self, parent):
         yPos = const.GROUP_BOX_MARGIN_TOP
         width = MockExamDialog.WINDOW_WIDTH - const.PADDING * 4
