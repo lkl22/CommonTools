@@ -16,6 +16,7 @@ from util.LogUtil import *
 from util.OperaIni import *
 from widget.mockExam.MockExamUtil import *
 from widget.mockExam.Word2Excel import *
+from widget.mockExam.Excel2Word import *
 
 OPTION_CHAR = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
@@ -94,10 +95,15 @@ class MockExamDialog(QtWidgets.QDialog):
         splitter = WidgetUtil.createSplitter(layoutWidget, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT * 2))
         self.word2ExcelToolBtn = WidgetUtil.createPushButton(splitter, text="显示Word转Excel工具",
                                                              onClicked=self.toggledWord2ExcelTool)
+        self.excel2WordToolBtn = WidgetUtil.createPushButton(splitter, text="显示Excel转Word工具",
+                                                             onClicked=self.toggledExcel2WordTool)
         vLayout.addWidget(splitter)
 
         self.word2ExcelGroupBox = self.createWord2ExcelGroupBox(layoutWidget)
         vLayout.addWidget(self.word2ExcelGroupBox)
+
+        self.excel2WordGroupBox = self.createExcel2WordGroupBox(layoutWidget)
+        vLayout.addWidget(self.excel2WordGroupBox)
 
         mockExamGroupBox = self.createGenMockExamGroupBox(layoutWidget)
         vLayout.addWidget(mockExamGroupBox)
@@ -117,7 +123,7 @@ class MockExamDialog(QtWidgets.QDialog):
         self.prepareMockExam()
         self.setWindowModality(Qt.ApplicationModal)
         # 很关键，不加出不来
-        # self.exec_()
+        self.exec_()
 
     def closeEvent(self, event):
         LogUtil.d("MockExamDialog", "closeEvent")
@@ -143,10 +149,10 @@ class MockExamDialog(QtWidgets.QDialog):
         yPos += const.HEIGHT_OFFSET
         splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
         WidgetUtil.createPushButton(splitter, text="选择Excal文件保存路径", minSize=QSize(120, const.HEIGHT),
-                                    onClicked=self.getExcelExamFilePath)
-        self.excelExamFilePathLineEdit = WidgetUtil.createLineEdit(splitter,
-                                                                   holderText="请输入要保存的文件路径，默认应用程序当前目录下的(题库.xlsx)文件",
-                                                                   sizePolicy=sizePolicy)
+                                    onClicked=self.getSaveExcelExamFilePath)
+        self.saveExcelExamFilePathLineEdit = WidgetUtil.createLineEdit(splitter,
+                                                                       holderText="请输入要保存的文件路径，默认应用程序当前目录下的(题库.xlsx)文件",
+                                                                       sizePolicy=sizePolicy)
 
         yPos += const.HEIGHT_OFFSET
         splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
@@ -200,11 +206,13 @@ class MockExamDialog(QtWidgets.QDialog):
 
     def toggledWord2ExcelTool(self):
         self.word2ExcelGroupBox.setVisible(not self.word2ExcelGroupBox.isVisible())
+        if self.word2ExcelGroupBox.isVisible():
+            self.excel2WordGroupBox.setVisible(False)
         self.word2ExcelToolBtn.setText(f"{'隐藏' if self.word2ExcelGroupBox.isVisible() else '显示'}Word转Excel工具")
+        self.excel2WordToolBtn.setText(f"{'隐藏' if self.excel2WordGroupBox.isVisible() else '显示'}Excel转Word工具")
         pass
 
     def startWord2Excel(self):
-        self.startWord2ExcelBtn.setEnabled(False)
         wordFp = self.wordExamFilePathLineEdit.text().strip()
         if not wordFp:
             WidgetUtil.showErrorDialog(message="请优先选择您的Word题库文件")
@@ -213,7 +221,7 @@ class MockExamDialog(QtWidgets.QDialog):
         if not examName:
             WidgetUtil.showErrorDialog(message="请输入考试科目名称")
             return
-
+        self.startWord2ExcelBtn.setEnabled(False)
         scoreLine = self.scoreLineSpinBox.value()
         examTime = self.examTimeSpinBox.value()
         judgmentScore = self.judgmentScoreSpinBox.value()
@@ -223,7 +231,7 @@ class MockExamDialog(QtWidgets.QDialog):
         multiChoiceScore = self.multiChoiceScoreSpinBox.value()
         multiChoiceNums = self.multiChoiceNumsSpinBox.value()
 
-        excelExamFp = self.excelExamFilePathLineEdit.text().strip()
+        excelExamFp = self.saveExcelExamFilePathLineEdit.text().strip()
         if not excelExamFp:
             excelExamFp = "题库.xlsx"
         if not excelExamFp.endswith(".xlsx"):
@@ -241,6 +249,85 @@ class MockExamDialog(QtWidgets.QDialog):
         })
         self.startWord2ExcelBtn.setEnabled(True)
         LogUtil.d("Word2Excel finished.")
+        pass
+
+    def createExcel2WordGroupBox(self, parent):
+        yPos = const.GROUP_BOX_MARGIN_TOP
+        width = MockExamDialog.WINDOW_WIDTH - const.PADDING * 4
+
+        box = WidgetUtil.createGroupBox(parent, title="将Excel题库转化为Word格式",
+                                        minSize=QSize(width, const.GROUP_BOX_MARGIN_TOP + const.HEIGHT_OFFSET * 3))
+
+        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
+
+        WidgetUtil.createPushButton(splitter, text="选择题库模版（Excel）", minSize=QSize(120, const.HEIGHT),
+                                    onClicked=self.getExcelExamFilePath)
+        sizePolicy = WidgetUtil.createSizePolicy()
+        self.excelExamFilePathLineEdit = WidgetUtil.createLineEdit(splitter, text="", isEnable=False,
+                                                                   sizePolicy=sizePolicy)
+
+        yPos += const.HEIGHT_OFFSET
+        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
+        WidgetUtil.createPushButton(splitter, text="选择Word文件保存路径", minSize=QSize(120, const.HEIGHT),
+                                    onClicked=self.getSaveWordExamFilePath)
+        self.saveWordExamFilePathLineEdit = WidgetUtil.createLineEdit(splitter,
+                                                                      holderText="请输入要保存的文件路径，默认应用程序当前目录下的(题库.docx)文件",
+                                                                      sizePolicy=sizePolicy)
+        yPos += const.HEIGHT_OFFSET
+        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, 350, const.HEIGHT))
+        self.startExcel2WordByRealBtn = WidgetUtil.createPushButton(splitter, text="生成真实模拟考卷", onClicked=self.startExcel2WordByReal)
+        self.startExcel2WordByAllBtn = WidgetUtil.createPushButton(splitter, text="生成全量模拟考卷", onClicked=self.startExcel2WordByAll)
+        box.setVisible(False)
+        return box
+
+    def toggledExcel2WordTool(self):
+        self.excel2WordGroupBox.setVisible(not self.excel2WordGroupBox.isVisible())
+        if self.excel2WordGroupBox.isVisible():
+            self.word2ExcelGroupBox.setVisible(False)
+        self.excel2WordToolBtn.setText(f"{'隐藏' if self.excel2WordGroupBox.isVisible() else '显示'}Excel转Word工具")
+        self.word2ExcelToolBtn.setText(f"{'隐藏' if self.word2ExcelGroupBox.isVisible() else '显示'}Word转Excel工具")
+        pass
+
+    def getExcelExamFilePath(self):
+        fn = WidgetUtil.getOpenFileName(caption='选择模拟考试题库Excel文件', filter='*.xlsx', initialFilter='*.xlsx')
+        if fn:
+            self.excelExamFilePathLineEdit.setText(fn)
+        pass
+
+    def getSaveWordExamFilePath(self):
+        fp = WidgetUtil.getExistingDirectory(caption='选择模拟考试题库Word文件保存路径', directory="./")
+        if fp:
+            self.saveWordExamFilePathLineEdit.setText(fp)
+        pass
+
+    def startExcel2WordByReal(self):
+        self.startExcel2Word(False)
+        pass
+
+    def startExcel2WordByAll(self):
+        self.startExcel2Word(True)
+        pass
+
+    def startExcel2Word(self, isAllMock):
+        LogUtil.d("startExcel2Word", isAllMock)
+        excelFp = self.excelExamFilePathLineEdit.text().strip()
+        if not excelFp:
+            WidgetUtil.showErrorDialog(message="请优先选择您的Excel题库文件")
+            return
+
+        wordExamFp = self.saveWordExamFilePathLineEdit.text().strip()
+        if not wordExamFp:
+            wordExamFp = "题库.docx"
+        if not wordExamFp.endswith(".docx"):
+            FileUtil.mkFilePath(wordExamFp)
+            wordExamFp = os.path.join(wordExamFp, "题库.docx")
+
+        self.startExcel2WordByRealBtn.setEnabled(False)
+        self.startExcel2WordByAllBtn.setEnabled(False)
+        Excel2Word.genWord(excelFp, wordExamFp, isAllMock)
+        self.startExcel2WordByRealBtn.setEnabled(True)
+        self.startExcel2WordByAllBtn.setEnabled(True)
+        LogUtil.d("startExcel2Word", "finished.")
         pass
 
     def createGenMockExamGroupBox(self, parent):
@@ -271,7 +358,8 @@ class MockExamDialog(QtWidgets.QDialog):
         yPos += const.HEIGHT_OFFSET
         splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
         self.examInfoLabel = WidgetUtil.createLabel(splitter, text="")
-        self.timerLabel = WidgetUtil.createLabel(splitter, text="", alignment=Qt.AlignVCenter | Qt.AlignRight, sizePolicy=sizePolicy)
+        self.timerLabel = WidgetUtil.createLabel(splitter, text="", alignment=Qt.AlignVCenter | Qt.AlignRight,
+                                                 sizePolicy=sizePolicy)
         return box
 
     def createAnswerCardArea(self):
@@ -342,10 +430,10 @@ class MockExamDialog(QtWidgets.QDialog):
             self.wordExamFilePathLineEdit.setText(fn)
         pass
 
-    def getExcelExamFilePath(self):
+    def getSaveExcelExamFilePath(self):
         fp = WidgetUtil.getExistingDirectory(caption='选择模拟考试题库Excel文件保存路径', directory="./")
         if fp:
-            self.excelExamFilePathLineEdit.setText(fp)
+            self.saveExcelExamFilePathLineEdit.setText(fp)
         pass
 
     def getExamFilePath(self):
@@ -498,11 +586,12 @@ class MockExamDialog(QtWidgets.QDialog):
         oneChoiceNum = self.mockExamUtil.realOneChoiceRequestNum
         multiChoiceNum = self.mockExamUtil.realMultiChoiceRequestNum
 
-        self.examInfoLabel.setText(f'''本轮考试<span style='color:red;'>{"" if self.isAllMock else f"时长{self.mockExamUtil.examTime}分钟，"
-                }</span>总共有 <span style='color:red;'>{self.mockExamUtil.totalQuestionNums}</span> 道题（{
-                f"<span style='color:red;'>{judgmentNum}</span> 道判断题" if judgmentNum > 0 else ''} {
-                f"<span style='color:red;'>{oneChoiceNum}</span> 道单选题" if oneChoiceNum > 0 else ''} {
-                f"<span style='color:red;'>{multiChoiceNum}</span> 道多选题" if multiChoiceNum > 0 else ''}）''')
+        self.examInfoLabel.setText(
+            f'''本轮考试<span style='color:red;'>{"" if self.isAllMock else f"时长{self.mockExamUtil.examTime}分钟，"
+            }</span>总共有 <span style='color:red;'>{self.mockExamUtil.totalQuestionNums}</span> 道题（{
+            f"<span style='color:red;'>{judgmentNum}</span> 道判断题" if judgmentNum > 0 else ''} {
+            f"<span style='color:red;'>{oneChoiceNum}</span> 道单选题" if oneChoiceNum > 0 else ''} {
+            f"<span style='color:red;'>{multiChoiceNum}</span> 道多选题" if multiChoiceNum > 0 else ''}）''')
         self.submitBtn.setEnabled(True)
         if not self.isAllMock:
             self.timer = QTimer()
@@ -716,9 +805,11 @@ class MockExamDialog(QtWidgets.QDialog):
             minute = self.examTime // 60
             second = self.examTime % 60
             if self.examTime < 600:
-                self.timerLabel.setText(f'''还有最后 <span style="color:red;">{f"{minute} 分钟" if minute > 0 else ''} {f"{second} 秒" if second > 0 else ''}</span>''')
+                self.timerLabel.setText(
+                    f'''还有最后 <span style="color:red;">{f"{minute} 分钟" if minute > 0 else ''} {f"{second} 秒" if second > 0 else ''}</span>''')
             else:
-                self.timerLabel.setText(f'''<span style="color:red;">{f"{minute} 分钟" if minute > 0 else ''} {f"{second} 秒" if second > 0 else ''}</span> 后考试结束''')
+                self.timerLabel.setText(
+                    f'''<span style="color:red;">{f"{minute} 分钟" if minute > 0 else ''} {f"{second} 秒" if second > 0 else ''}</span> 后考试结束''')
             self.examTime -= 1
         else:
             self.timerLabel.setText("")

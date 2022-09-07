@@ -15,17 +15,16 @@ OPTION_CHAR = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 
 class Excel2Word:
-    def __init__(self, excelFilePath='../../resources/mockExam/题库模版.xlsx'):
-        self.mockExamUtil = MockExamUtil(excelFilePath)
-
-    def genWord(self, saveFn, isAllExam=False):
+    @staticmethod
+    def genWord(excelFilePath='../../resources/mockExam/题库模版.xlsx', saveFn='题库.docx', isAllMock=False):
+        mockExamUtil = MockExamUtil(excelFilePath)
         if FileUtil.existsFile(saveFn):
             FileUtil.removeFile(saveFn)
 
-        if isAllExam:
-            self.mockExamUtil.genExamPaperByAll()
+        if isAllMock:
+            mockExamUtil.genExamPaperByAll()
         else:
-            self.mockExamUtil.genExamPaperByReal()
+            mockExamUtil.genExamPaperByReal()
 
         document = Document()
 
@@ -33,9 +32,9 @@ class Excel2Word:
         document.styles['Normal'].font.name = u'宋体'
         document.styles['Normal']._element.rPr.rFonts.set(qn('w:eastAsia'), u'宋体')
 
-        for i in range(self.mockExamUtil.totalQuestionNums):
-            questionObj = self.mockExamUtil.getQuestion(i)
-            LogUtil.d("questionObj: ", questionObj)
+        for i in range(mockExamUtil.totalQuestionNums):
+            questionObj = mockExamUtil.getQuestion(i)
+            # LogUtil.d("questionObj: ", questionObj)
             p = document.add_paragraph()
             run = p.add_run(f"{questionObj[KEY_REAL_QUESTION_NO]}、{questionObj[KEY_QUESTION]}")
             font = run.font
@@ -73,11 +72,10 @@ class Excel2Word:
                 font.bold = True
 
         document.save(saveFn)
-        self.mockExamUtil.close()
+        mockExamUtil.close()
         pass
 
 
 if __name__ == '__main__':
-    excel2Word = Excel2Word()
-    excel2Word.genWord("题库.docx", True)
+    Excel2Word.genWord(isAllExam=True)
     pass
