@@ -87,7 +87,7 @@ class AndroidColorResDialog(QtWidgets.QDialog):
         width = AndroidColorResDialog.WINDOW_WIDTH - const.PADDING * 4
 
         box = WidgetUtil.createGroupBox(parent, title="生成Excel",
-                                        minSize=QSize(width, const.GROUP_BOX_MARGIN_TOP + const.HEIGHT_OFFSET * 9 / 2))
+                                        minSize=QSize(width, const.GROUP_BOX_MARGIN_TOP + const.HEIGHT_OFFSET * 9 // 2))
 
         splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
 
@@ -162,7 +162,7 @@ class AndroidColorResDialog(QtWidgets.QDialog):
         width = AndroidColorResDialog.WINDOW_WIDTH - const.PADDING * 4
 
         box = WidgetUtil.createGroupBox(parent, title="计算不透明度",
-                                        minSize=QSize(width, const.GROUP_BOX_MARGIN_TOP + const.HEIGHT_OFFSET * 3 / 2))
+                                        minSize=QSize(width, const.GROUP_BOX_MARGIN_TOP + const.HEIGHT_OFFSET * 3 // 2))
 
         splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
 

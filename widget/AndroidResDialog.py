@@ -13,7 +13,7 @@ RES_TYPE_LIST = ['无', 'string', 'color', 'style', 'dimen', 'plurals', 'declare
 
 
 class AndroidResDialog(QtWidgets.QDialog):
-    WINDOW_WIDTH = 800
+    WINDOW_WIDTH = 1200
     WINDOW_HEIGHT = 600
 
     def __init__(self):
@@ -47,7 +47,7 @@ class AndroidResDialog(QtWidgets.QDialog):
         box = WidgetUtil.createGroupBox(parent, title="xml resource")
         yPos = const.GROUP_BOX_MARGIN_TOP
         width = AndroidResDialog.WINDOW_WIDTH - const.PADDING * 4
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT * 2.5))
+        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, int(const.HEIGHT * 2.5)))
         sizePolicy = WidgetUtil.createSizePolicy()
         vLayout = WidgetUtil.createVBoxWidget(splitter, margins=QMargins(0, 0, 0, 0), sizePolicy=sizePolicy)
 

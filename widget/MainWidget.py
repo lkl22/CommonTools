@@ -10,7 +10,7 @@ from constant.WidgetConst import *
 
 
 class MainWidget(QMainWindow):
-    WINDOW_WIDTH = 880
+    WINDOW_WIDTH = 1100
     WINDOW_HEIGHT = 500
 
     windowList = []
@@ -20,6 +20,7 @@ class MainWidget(QMainWindow):
         QMainWindow.__init__(self)
         self.setObjectName("MainWidget")
         self.resize(MainWidget.WINDOW_WIDTH, MainWidget.WINDOW_HEIGHT)
+        self.setFixedSize(MainWidget.WINDOW_WIDTH, MainWidget.WINDOW_HEIGHT)
 
         layoutWidget = QtWidgets.QWidget(self)
         layoutWidget.setGeometry(QRect(const.PADDING, const.PADDING, MainWidget.WINDOW_WIDTH - const.PADDING * 2,

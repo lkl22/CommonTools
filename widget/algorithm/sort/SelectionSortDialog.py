@@ -31,7 +31,7 @@ class SelectionSortDialog(QtWidgets.QDialog):
 
         layoutWidget = QtWidgets.QWidget(self)
         layoutWidget.setGeometry(QRect(const.PADDING, const.PADDING, width,
-                                       SelectionSortDialog.WINDOW_HEIGHT - const.PADDING * 3 / 2))
+                                       SelectionSortDialog.WINDOW_HEIGHT - const.PADDING * 3 // 2))
         layoutWidget.setObjectName("layoutWidget")
         layoutWidget.setLayout(vbox)
 
@@ -71,8 +71,8 @@ class SelectionSortDialog(QtWidgets.QDialog):
 
         WidgetUtil.createLabel(splitter, text="算法执行绘制间隔时长：", alignment=Qt.AlignVCenter | Qt.AlignLeft,
                                minSize=QSize(100, const.HEIGHT))
-        self.delaySpinBox = WidgetUtil.createSpinBox(splitter, value=self.delay * 1000, minValue=100, maxValue=10000,
-                                                     step=100, sizePolicy=sizePolicy)
+        self.delaySpinBox = WidgetUtil.createSpinBox(splitter, value=int(self.delay * 1000), minValue=100,
+                                                     maxValue=10000, step=100, sizePolicy=sizePolicy)
 
         splitter = WidgetUtil.createSplitter(self, geometry=QRect(const.PADDING, const.PADDING, width, const.HEIGHT))
         vbox.addWidget(splitter)

@@ -25,6 +25,7 @@ class PhotoWallWindow(QMainWindow):
         QMainWindow.__init__(self)
         self.setObjectName("PhotoWallWindow")
         self.resize(PhotoWallWindow.WINDOW_WIDTH, PhotoWallWindow.WINDOW_HEIGHT)
+        self.setFixedSize(PhotoWallWindow.WINDOW_WIDTH, PhotoWallWindow.WINDOW_HEIGHT)
 
         self.filePath = filePath
         self.photoType = photoType if photoType else self.PHOTO_TYPE
