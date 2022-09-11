@@ -28,17 +28,16 @@ threadLock = threading.Lock()
 
 
 class CompressPicDialog(QtWidgets.QDialog):
-    WINDOW_WIDTH = 1000
-    WINDOW_HEIGHT = 670
-
     def __init__(self, isDebug=False):
         # 调用父类的构函
         QtWidgets.QDialog.__init__(self)
+        CompressPicDialog.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.7)
+        CompressPicDialog.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.7)
         LogUtil.d("Init Compress Pic Dialog")
+        self.setWindowTitle(WidgetUtil.translate(text="图片压缩工具"))
         self.setObjectName("CompressPicDialog")
         self.resize(CompressPicDialog.WINDOW_WIDTH, CompressPicDialog.WINDOW_HEIGHT)
-        self.setFixedSize(CompressPicDialog.WINDOW_WIDTH, CompressPicDialog.WINDOW_HEIGHT)
-        self.setWindowTitle(WidgetUtil.translate(text="图片压缩工具"))
+        # self.setFixedSize(CompressPicDialog.WINDOW_WIDTH, CompressPicDialog.WINDOW_HEIGHT)
 
         self.isDebug = isDebug
         if isDebug:
@@ -55,40 +54,29 @@ class CompressPicDialog(QtWidgets.QDialog):
         self.metaDataBtns = []
         self.compressRes = []
 
-        vLayout = WidgetUtil.createVBoxWidget(self, margins=QMargins(0, 0, 0, 0),
-                                              geometry=QRect(const.PADDING, const.PADDING,
-                                                             CompressPicDialog.WINDOW_WIDTH - const.PADDING * 2,
-                                                             CompressPicDialog.WINDOW_HEIGHT - const.PADDING * 2))
+        vLayout = WidgetUtil.createVBoxLayout(self, margins=QMargins(10, 10, 10, 10), spacing=10)
 
         apiKeyConfigGroupBox = self.createApiKeyConfigGroupBox(self)
         picCompressGroupBox = self.createPicCompressGroupBox(self)
 
         vLayout.addWidget(apiKeyConfigGroupBox)
         vLayout.addWidget(picCompressGroupBox)
-
         self.setWindowModality(Qt.ApplicationModal)
         # 很关键，不加出不来
         if not isDebug:
             self.exec_()
 
     def createApiKeyConfigGroupBox(self, parent):
-        width = CompressPicDialog.WINDOW_WIDTH - const.PADDING * 4
-        box = WidgetUtil.createGroupBox(parent, title="TinyPng API Key Config", minSize=QSize(width, 100))
-        yPos = const.GROUP_BOX_MARGIN_TOP
-        width = CompressPicDialog.WINDOW_WIDTH - const.PADDING * 4
-
-        sizePolicy = WidgetUtil.createSizePolicy()
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
-
-        WidgetUtil.createLabel(splitter, text="请输入要添加的API key：", alignment=Qt.AlignVCenter | Qt.AlignRight,
-                               minSize=QSize(140, const.HEIGHT))
-        self.apiKeysLineEdit = WidgetUtil.createLineEdit(splitter, sizePolicy=sizePolicy,
+        box = WidgetUtil.createGroupBox(parent, title="TinyPng API Key Config")
+        vbox = WidgetUtil.createHBoxLayout(box, margins=QMargins(10, 10, 10, 10))
+        hbox = WidgetUtil.createHBoxLayout(spacing=10)
+        hbox.addWidget(WidgetUtil.createLabel(box, text="请输入要添加的API key：", alignment=Qt.AlignVCenter | Qt.AlignRight))
+        self.apiKeysLineEdit = WidgetUtil.createLineEdit(box, sizePolicy=WidgetUtil.createSizePolicy(),
                                                          holderText="请输入要添加的API key，多个以\";\"分隔。（https://tinypng.com/developers 可以注册）",
                                                          textChanged=self.srcFnTextChanged)
-
-        yPos += const.HEIGHT_OFFSET
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, 150, const.HEIGHT))
-        WidgetUtil.createPushButton(splitter, text="添加key", onClicked=self.addApiKeys)
+        hbox.addWidget(self.apiKeysLineEdit)
+        hbox.addWidget(WidgetUtil.createPushButton(box, text="添加key", onClicked=self.addApiKeys))
+        vbox.addLayout(hbox)
         return box
 
     def addApiKeys(self):
@@ -108,99 +96,102 @@ class CompressPicDialog(QtWidgets.QDialog):
         sizePolicy = WidgetUtil.createSizePolicy()
         box = WidgetUtil.createGroupBox(parent, title="图片压缩", sizePolicy=sizePolicy)
 
-        yPos = const.GROUP_BOX_MARGIN_TOP
-        width = CompressPicDialog.WINDOW_WIDTH - const.PADDING * 4
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, int(const.HEIGHT * 2.5)))
-        vLayout = WidgetUtil.createVBoxWidget(splitter, margins=QMargins(0, 0, 0, 0), sizePolicy=sizePolicy)
+        vLayout = WidgetUtil.createVBoxLayout(box, margins=QMargins(10, 10, 10, 10), spacing=10)
 
-        vLayout1 = WidgetUtil.createVBoxWidget(splitter, margins=QMargins(20, 0, 10, 0))
-        btn = WidgetUtil.createPushButton(splitter, text="", fixedSize=QSize(30, 40),
+        hbox = WidgetUtil.createHBoxLayout()
+
+        srcFileDirPath = ''
+        if self.getConfig(KEY_SRC_FILE_DIR_PATH):
+            srcFileDirPath = self.getConfig(KEY_SRC_FILE_DIR_PATH)
+
+        vLayout1 = WidgetUtil.createVBoxLayout()
+        hbox1 = WidgetUtil.createHBoxLayout()
+        hbox1.addWidget(WidgetUtil.createPushButton(box, text="源文件路径", minSize=QSize(120, const.HEIGHT), onClicked=self.getSrcFilePath))
+        sizePolicy = WidgetUtil.createSizePolicy()
+        self.srcFilePathLineEdit = WidgetUtil.createLineEdit(box, text=srcFileDirPath, isEnable=False)
+        hbox1.addWidget(self.srcFilePathLineEdit)
+        vLayout1.addLayout(hbox1)
+
+        hbox1 = WidgetUtil.createHBoxLayout()
+        hbox1.addWidget(WidgetUtil.createPushButton(box, text="目标文件路径", minSize=QSize(120, const.HEIGHT), onClicked=self.getDstFilePath))
+        dstFileDirPath = ''
+        if self.getConfig(KEY_DST_FILE_DIR_PATH):
+            dstFileDirPath = self.getConfig(KEY_DST_FILE_DIR_PATH)
+        self.dstFilePathLineEdit = WidgetUtil.createLineEdit(box, text=dstFileDirPath, holderText="不填跟源路径一样")
+        hbox1.addWidget(self.dstFilePathLineEdit)
+        vLayout1.addLayout(hbox1)
+
+        hbox.addLayout(vLayout1)
+        btn = WidgetUtil.createPushButton(box, text="", fixedSize=QSize(30, 40),
                                           styleSheet="background-color: white",
                                           iconSize=QSize(30, 40),
                                           icon=QIcon("../../resources/icons/androidRes/exchange.png") if self.isDebug
                                           else QIcon(FileUtil.getIconFp('androidRes/exchange.png')),
                                           onClicked=self.exchangeDirs)
-        vLayout1.addWidget(btn)
+        hbox.addWidget(btn)
+        vLayout.addLayout(hbox, 2)
 
-        srcFileDirPath = ''
-        if self.getConfig(KEY_SRC_FILE_DIR_PATH):
-            srcFileDirPath = self.getConfig(KEY_SRC_FILE_DIR_PATH)
-        splitter = WidgetUtil.createSplitter(box,
-                                             geometry=QRect(const.PADDING, yPos, width - const.HEIGHT, const.HEIGHT))
-        WidgetUtil.createPushButton(splitter, text="源文件路径", minSize=QSize(120, const.HEIGHT),
-                                    onClicked=self.getSrcFilePath)
-        sizePolicy = WidgetUtil.createSizePolicy()
-        self.srcFilePathLineEdit = WidgetUtil.createLineEdit(splitter, text=srcFileDirPath, isEnable=False,
-                                                             sizePolicy=sizePolicy)
-        vLayout.addWidget(splitter)
-
-        yPos += const.HEIGHT_OFFSET
-        splitter = WidgetUtil.createSplitter(box,
-                                             geometry=QRect(const.PADDING, yPos, width - const.HEIGHT, const.HEIGHT))
-        WidgetUtil.createPushButton(splitter, text="目标文件路径", onClicked=self.getDstFilePath)
-        dstFileDirPath = ''
-        if self.getConfig(KEY_DST_FILE_DIR_PATH):
-            dstFileDirPath = self.getConfig(KEY_DST_FILE_DIR_PATH)
-        self.dstFilePathLineEdit = WidgetUtil.createLineEdit(splitter, text=dstFileDirPath, holderText="不填跟源路径一样",
-                                                             sizePolicy=sizePolicy)
-        vLayout.addWidget(splitter)
-
-        yPos += const.HEIGHT_OFFSET
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
-        WidgetUtil.createLabel(splitter, text="源图片匹配正则表达式：", alignment=Qt.AlignVCenter | Qt.AlignRight,
-                               minSize=QSize(140, const.HEIGHT))
-        self.srcFnPatternsLineEdit = WidgetUtil.createLineEdit(splitter, sizePolicy=sizePolicy,
+        hbox = WidgetUtil.createHBoxLayout(spacing=10)
+        hbox.addWidget(WidgetUtil.createLabel(box, text="源图片匹配正则表达式：", alignment=Qt.AlignVCenter | Qt.AlignRight))
+        self.srcFnPatternsLineEdit = WidgetUtil.createLineEdit(box, sizePolicy=sizePolicy,
                                                                holderText="请输入源图片文件名称正则表达式，多个以\";\"分隔。默认源目录下所有图片",
                                                                isEnable=True if srcFileDirPath else False,
                                                                textChanged=self.srcFnTextChanged)
+        hbox.addWidget(self.srcFnPatternsLineEdit)
+        vLayout.addLayout(hbox, 1)
 
-        yPos += const.HEIGHT_OFFSET
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
-        WidgetUtil.createLabel(splitter, text="目标图片文件名：", alignment=Qt.AlignVCenter | Qt.AlignRight,
-                               minSize=QSize(140, const.HEIGHT))
-        self.dstFnPatternsLineEdit = WidgetUtil.createLineEdit(splitter, sizePolicy=sizePolicy, isEnable=False,
+        hbox = WidgetUtil.createHBoxLayout(spacing=10)
+        hbox.addWidget(WidgetUtil.createLabel(box, text="目标图片文件名：", alignment=Qt.AlignVCenter | Qt.AlignRight,minSize=QSize(140, const.HEIGHT)))
+        self.dstFnPatternsLineEdit = WidgetUtil.createLineEdit(box, sizePolicy=sizePolicy, isEnable=False,
                                                                holderText="请输入目标图片文件名称。只有一个源图片文件名时有效，无效时以源文件名作为目标文件名")
+        hbox.addWidget(self.dstFnPatternsLineEdit)
+        vLayout.addLayout(hbox, 1)
 
-        yPos += const.HEIGHT_OFFSET
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
-        WidgetUtil.createLabel(splitter, text="选择保留的元数据：", alignment=Qt.AlignVCenter | Qt.AlignRight,
-                               minSize=QSize(140, const.HEIGHT))
+        hbox = WidgetUtil.createHBoxLayout(spacing=10)
+        hbox.addWidget(WidgetUtil.createLabel(box, text="选择保留的元数据：", alignment=Qt.AlignVCenter | Qt.AlignRight,minSize=QSize(140, const.HEIGHT)))
 
         for i in range(len(META_DATA_NICKNAME_LIST)):
-            self.metaDataBtns.append(WidgetUtil.createCheckBox(splitter, text=META_DATA_NICKNAME_LIST[i] + "  ",
-                                                               stateChanged=self.metaDataCheckChanged))
+            checkBox = WidgetUtil.createCheckBox(box, text=META_DATA_NICKNAME_LIST[i] + "  ", stateChanged=self.metaDataCheckChanged)
+            self.metaDataBtns.append(checkBox)
+            hbox.addWidget(checkBox)
+        hbox.addItem(WidgetUtil.createHSpacerItem(1, 1))
+        vLayout.addLayout(hbox, 1)
 
-        WidgetUtil.createLabel(splitter, text="", sizePolicy=WidgetUtil.createSizePolicy())
-
-        yPos += const.HEIGHT_OFFSET
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, 300, const.HEIGHT))
-        WidgetUtil.createLabel(splitter, text="同时压缩文件数量：", alignment=Qt.AlignVCenter | Qt.AlignRight,
-                               minSize=QSize(140, const.HEIGHT))
-        self.maxWorkerThreadCountSpinBox = WidgetUtil.createSpinBox(splitter,
+        hbox = WidgetUtil.createHBoxLayout()
+        hbox.addWidget(WidgetUtil.createLabel(box, text="同时压缩文件数量：", alignment=Qt.AlignVCenter | Qt.AlignRight,
+                               minSize=QSize(140, const.HEIGHT)))
+        self.maxWorkerThreadCountSpinBox = WidgetUtil.createSpinBox(box,
                                                                     value=self.maxWorkerThreadCount,
                                                                     minValue=3,
                                                                     maxValue=25,
                                                                     step=1,
-                                                                    sizePolicy=sizePolicy,
+                                                                    minSize=QSize(60, const.HEIGHT),
                                                                     valueChanged=self.maxWorkerThreadCountChanged)
+        hbox.addWidget(self.maxWorkerThreadCountSpinBox)
+        hbox.addItem(WidgetUtil.createHSpacerItem(1, 1))
+        vLayout.addLayout(hbox, 1)
 
-        yPos += const.HEIGHT_OFFSET
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, 150, const.HEIGHT))
-        WidgetUtil.createPushButton(splitter, text="启动压缩", onClicked=self.startPicCompress)
+        hbox = WidgetUtil.createHBoxLayout(spacing=10)
+        hbox.addWidget(WidgetUtil.createPushButton(box, text="启动压缩", onClicked=self.startPicCompress))
+        hbox.addItem(WidgetUtil.createHSpacerItem(1, 1))
+        vLayout.addLayout(hbox, 1)
 
-        yPos += const.HEIGHT_OFFSET
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, 600, const.HEIGHT))
-        WidgetUtil.createLabel(splitter, text="压缩进度：", alignment=Qt.AlignVCenter | Qt.AlignLeft,
-                               minSize=QSize(50, const.HEIGHT))
-        self.compressProgressBar = WidgetUtil.createProgressBar(splitter, value=0, format="%p%", textVisible=True,
+        hbox = WidgetUtil.createHBoxLayout(spacing=10)
+        hbox.addWidget(WidgetUtil.createLabel(box, text="压缩进度：", alignment=Qt.AlignVCenter | Qt.AlignLeft,
+                               minSize=QSize(50, const.HEIGHT)))
+        self.compressProgressBar = WidgetUtil.createProgressBar(box, value=0, format="%p%", textVisible=True,
                                                                 sizePolicy=sizePolicy)
-        self.progressTextLabel = WidgetUtil.createLabel(splitter, text="", alignment=Qt.AlignVCenter | Qt.AlignHCenter,
+        hbox.addWidget(self.compressProgressBar)
+        self.progressTextLabel = WidgetUtil.createLabel(box, text="", alignment=Qt.AlignVCenter | Qt.AlignHCenter,
                                                         minSize=QSize(100, const.HEIGHT))
+        hbox.addWidget(self.progressTextLabel)
+        hbox.addItem(WidgetUtil.createHSpacerItem(1, 1))
+        vLayout.addLayout(hbox, 1)
 
-        yPos += const.HEIGHT_OFFSET
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, 230))
-        self.compressResTableView = WidgetUtil.createTableView(splitter, minSize=QSize(width, 200),
-                                                               sizePolicy=sizePolicy)
+        vbox1 = WidgetUtil.createVBoxLayout(spacing=10)
+        self.compressResTableView = WidgetUtil.createTableView(box, sizePolicy=sizePolicy)
+        vbox1.addWidget(self.compressResTableView)
+        vLayout.addLayout(vbox1, 12)
         return box
 
     def getTinifyApiKeys(self):
@@ -343,17 +334,19 @@ class CompressPicDialog(QtWidgets.QDialog):
         dstFp = argRes.get("dstFile")
         LogUtil.d("picCompress start.", srcFp, dstFp, preserves)
         if not self.apiKeys:
-            WidgetUtil.showErrorDialog(message="请添加tinypng API key。（https://tinypng.com/developers 可以注册）")
-            return "api keys is empty. Please config."
+            # 子线程不能显示dialog
+            # WidgetUtil.showErrorDialog(message="请添加tinypng API key。（https://tinypng.com/developers 可以注册）")
+            return "keyEmpty", "api keys is empty. Please config."
         # 获取锁，用于线程同步
         threadLock.acquire()
         apiKey = self.apiKeys[self.apiKeyIndex]
         while not TinifyUtil.validate(apiKey):
             if self.apiKeyIndex == len(self.apiKeys) - 1:
-                WidgetUtil.showErrorDialog(message="请检查网络或是否API key有效。")
+                # 子线程不能显示dialog
+                # WidgetUtil.showErrorDialog(message="请检查网络或是否API key有效。")
                 LogUtil.d("api keys all invalid or network invalid.")
                 threadLock.release()
-                return "api keys all invalid or network invalid. "
+                return "invalid", "api keys all invalid or network invalid. "
             else:
                 self.apiKeyIndex += 1
                 apiKey = self.apiKeys[self.apiKeyIndex]
@@ -363,7 +356,7 @@ class CompressPicDialog(QtWidgets.QDialog):
         argRes["msg"] = TinifyUtil.compressing(apiKey, srcFp, dstFp, preserves)
         argRes["dstFileSize"] = FileUtil.readFileSize(dstFp)
         argRes["compressRatio"] = f'{round((argRes["srcFileSize"] - argRes["dstFileSize"]) / float(argRes["srcFileSize"]) * 100, 2)}%'
-        return argRes
+        return "success", argRes
         pass
 
 
