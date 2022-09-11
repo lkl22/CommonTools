@@ -2,20 +2,10 @@
 # python 3.x
 # Filename: AndroidAssistTestDialog.py
 # 定义一个AndroidAssistTestDialog类实现android测试相关功能
-from PyQt5.QtCore import QModelIndex
-from PyQt5.QtWidgets import QAbstractItemView
-
-from constant.TestStepConst import *
-from constant.WidgetConst import *
 from util.AdbUtil import AdbUtil
 from util.DateUtil import DateUtil
-from util.FileUtil import *
-from util.DialogUtil import *
 from util.JsonUtil import JsonUtil
-from util.NetworkUtil import NetworkUtil
 from util.OperaIni import OperaIni
-from util.ShellUtil import *
-from util.LogUtil import *
 from util.WeditorUtil import *
 from widget.test.EditTestStepDialog import *
 
@@ -26,14 +16,14 @@ ANDROID_TEST_ASSIST_TOOL_LOWEST_VERSION_NAME = "1.0.1"
 
 
 class AndroidAssistTestDialog(QtWidgets.QDialog):
-    WINDOW_WIDTH = 900
-    WINDOW_HEIGHT = 690
     TABLE_KEY_TYPE = '操作类型'
     TABLE_KEY_DESC = '操作描述信息'
 
     def __init__(self, defaultPackageName="", defaultActivityName="", isDebug=False):
         # 调用父类的构函
         QtWidgets.QDialog.__init__(self)
+        AndroidAssistTestDialog.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.7)
+        AndroidAssistTestDialog.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.7)
         LogUtil.d("Init Android Assist Test Dialog")
         self.setObjectName("AndroidAssistTestDialog")
 
@@ -54,26 +44,17 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
         self.autoClickButtonTxt = "|".join(JsonUtil.decode(self.operaIni.getValue("autoClickButtonText", "test")))
 
         self.resize(AndroidAssistTestDialog.WINDOW_WIDTH, AndroidAssistTestDialog.WINDOW_HEIGHT)
-        self.setFixedSize(AndroidAssistTestDialog.WINDOW_WIDTH, AndroidAssistTestDialog.WINDOW_HEIGHT)
+        # self.setFixedSize(AndroidAssistTestDialog.WINDOW_WIDTH, AndroidAssistTestDialog.WINDOW_HEIGHT)
         self.setWindowTitle(WidgetUtil.translate(text="Android测试辅助工具"))
 
         self.defaultPackageName = defaultPackageName
-        self.u: Uiautomator = None
-        self.t: AutoTestUtil = None
         self.defaultActivityName = defaultActivityName
         self.execTestStepTableDatas = []
         self.adbGroupBoxHeight = 580
 
-        layoutWidget = QtWidgets.QWidget(self)
-        layoutWidget.setGeometry(
-            QRect(const.PADDING, const.PADDING, AndroidAssistTestDialog.WINDOW_WIDTH - const.PADDING * 2,
-                  AndroidAssistTestDialog.WINDOW_HEIGHT - const.PADDING * 2))
-        layoutWidget.setObjectName("layoutWidget")
+        vLayout = WidgetUtil.createVBoxLayout(self, margins=QMargins(10, 10, 10, 10), spacing=10)
 
-        vLayout = WidgetUtil.createVBoxLayout(margins=QMargins(0, 0, 0, 0))
-        layoutWidget.setLayout(vLayout)
-
-        adbGroupBox = self.createGroupBox(layoutWidget)
+        adbGroupBox = self.createGroupBox(self)
         vLayout.addWidget(adbGroupBox)
 
         self.setWindowModality(Qt.ApplicationModal)
@@ -81,86 +62,95 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
         self.exec_()
 
     def createGroupBox(self, parent):
-        yPos = const.GROUP_BOX_MARGIN_TOP
-        width = AndroidAssistTestDialog.WINDOW_WIDTH - const.PADDING * 4
-        box = WidgetUtil.createGroupBox(parent, title="Android Test", minSize=QSize(width, self.adbGroupBoxHeight))
+        box = WidgetUtil.createGroupBox(parent, title="Android Test")
         sizePolicy = WidgetUtil.createSizePolicy()
 
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
-        WidgetUtil.createLabel(splitter, text="请输入应用的包名：", minSize=QSize(80, const.HEIGHT))
-        self.packageNameLineEdit = WidgetUtil.createLineEdit(splitter, text=self.defaultPackageName,
+        vbox = WidgetUtil.createVBoxLayout(box, margins=QMargins(10, 10, 10, 10), spacing=10)
+        hbox = WidgetUtil.createHBoxLayout()
+        hbox.addWidget(WidgetUtil.createLabel(box, text="请输入应用的包名：", minSize=QSize(80, const.HEIGHT)))
+        self.packageNameLineEdit = WidgetUtil.createLineEdit(box, text=self.defaultPackageName,
                                                              holderText="请输入应用的包名",
                                                              sizePolicy=sizePolicy)
-        WidgetUtil.createLabel(splitter, text="请输入要启动页面的activity：", minSize=QSize(80, const.HEIGHT))
-        self.activityNameLineEdit = WidgetUtil.createLineEdit(splitter, text=self.defaultActivityName,
+        hbox.addWidget(self.packageNameLineEdit)
+        hbox.addWidget(WidgetUtil.createLabel(box, text="请输入要启动页面的activity：", minSize=QSize(80, const.HEIGHT)))
+        self.activityNameLineEdit = WidgetUtil.createLineEdit(box, text=self.defaultActivityName,
                                                               holderText="请输入要启动页面的activity",
                                                               sizePolicy=sizePolicy)
+        hbox.addWidget(self.activityNameLineEdit)
+        vbox.addLayout(hbox)
 
-        yPos += const.HEIGHT_OFFSET
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, int(const.HEIGHT * 1.2)))
-        self.cmdComboBox = WidgetUtil.createComboBox(splitter, sizePolicy=sizePolicy,
+        hbox = WidgetUtil.createHBoxLayout()
+        self.cmdComboBox = WidgetUtil.createComboBox(box, sizePolicy=sizePolicy,
                                                      currentIndexChanged=self.cmdComboBoxIndexChanged)
+        hbox.addWidget(self.cmdComboBox)
         for item in self.notOftenUsedCmds:
             self.cmdComboBox.addItem(item.get("text"))
-        WidgetUtil.createPushButton(splitter, text="执行", fixedSize=QSize(100, const.HEIGHT),
-                                    onClicked=self.execComboBoxCmd)
+        hbox.addWidget(WidgetUtil.createPushButton(box, text="执行", minSize=QSize(100, const.HEIGHT),
+                                                   onClicked=self.execComboBoxCmd))
+        vbox.addLayout(hbox)
 
-        yPos += int(const.HEIGHT_OFFSET * 1.2)
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
-        WidgetUtil.createPushButton(splitter, text="清除应用数据与缓存", onClicked=self.clearApkData)
-        WidgetUtil.createPushButton(splitter, text="启动应用/调起Activity", onClicked=self.startActivity)
-        WidgetUtil.createPushButton(splitter, text="清缓存并重启应用", onClicked=self.clearDataAndRestartApp)
+        hbox = WidgetUtil.createHBoxLayout()
+        hbox.addWidget(WidgetUtil.createPushButton(box, text="清除应用数据与缓存", onClicked=self.clearApkData))
+        hbox.addWidget(WidgetUtil.createPushButton(box, text="启动应用/调起Activity", onClicked=self.startActivity))
+        hbox.addWidget(WidgetUtil.createPushButton(box, text="清缓存并重启应用", onClicked=self.clearDataAndRestartApp))
+        vbox.addLayout(hbox)
 
-        yPos += int(const.HEIGHT_OFFSET * 1.5)
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
-        WidgetUtil.createLabel(splitter, text="请输入要传输的文字：", minSize=QSize(80, const.HEIGHT))
-        self.inputTextLineEdit = WidgetUtil.createLineEdit(splitter, holderText="请输入要传输的文字", sizePolicy=sizePolicy)
-        WidgetUtil.createPushButton(splitter, text="传输", minSize=QSize(100, const.HEIGHT), onClicked=self.inputText)
+        hbox = WidgetUtil.createHBoxLayout()
+        hbox.addWidget(WidgetUtil.createLabel(box, text="请输入要传输的文字：", minSize=QSize(80, const.HEIGHT)))
+        self.inputTextLineEdit = WidgetUtil.createLineEdit(box, holderText="请输入要传输的文字", sizePolicy=sizePolicy)
+        hbox.addWidget(self.inputTextLineEdit)
+        hbox.addWidget(
+            WidgetUtil.createPushButton(box, text="传输", minSize=QSize(100, const.HEIGHT), onClicked=self.inputText))
+        vbox.addLayout(hbox)
 
-        yPos += int(const.HEIGHT_OFFSET * 1.5)
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
-        WidgetUtil.createLabel(splitter, text="文件传输：", minSize=QSize(80, const.HEIGHT))
-        yPos += const.HEIGHT_OFFSET
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
-        WidgetUtil.createPushButton(splitter, text="电脑上的文件路径", onClicked=self.getPcFilePath)
-        self.pcPathLineEdit = WidgetUtil.createLineEdit(splitter, sizePolicy=sizePolicy)
-        WidgetUtil.createLabel(splitter, text="设备里的文件路径", minSize=QSize(80, const.HEIGHT))
-        self.phonePathLineEdit = WidgetUtil.createLineEdit(splitter, sizePolicy=sizePolicy)
-        yPos += const.HEIGHT_OFFSET
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, int(width / 2), const.HEIGHT))
-        WidgetUtil.createPushButton(splitter, text="复制设备里的文件到电脑", minSize=QSize(100, const.HEIGHT),
-                                    onClicked=self.pullFile)
-        WidgetUtil.createPushButton(splitter, text="复制电脑里的文件到设备", minSize=QSize(100, const.HEIGHT),
-                                    onClicked=self.pushFile)
+        vbox.addWidget(WidgetUtil.createLabel(box, text="文件传输：", minSize=QSize(80, const.HEIGHT)))
 
-        yPos += int(const.HEIGHT_OFFSET * 1.5)
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
-        WidgetUtil.createLabel(splitter, text="抓取视频、log：", minSize=QSize(80, const.HEIGHT))
-        yPos += const.HEIGHT_OFFSET
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
-        WidgetUtil.createPushButton(splitter, text="视频、Log存储路径", onClicked=self.getVideoLogFilePath)
-        self.videoLogPathLineEdit = WidgetUtil.createLineEdit(splitter, sizePolicy=sizePolicy)
-        WidgetUtil.createLabel(splitter, text="请输入缓存空间大小：", alignment=Qt.AlignRight | Qt.AlignVCenter,
-                               minSize=QSize(150, const.HEIGHT))
-        self.cacheSizeSpinBox = WidgetUtil.createSpinBox(splitter, value=30, minValue=10, maxValue=100, step=5,
+        hbox = WidgetUtil.createHBoxLayout()
+        hbox.addWidget(WidgetUtil.createPushButton(box, text="电脑上的文件路径", onClicked=self.getPcFilePath))
+        self.pcPathLineEdit = WidgetUtil.createLineEdit(box, sizePolicy=sizePolicy)
+        hbox.addWidget(self.pcPathLineEdit)
+        hbox.addWidget(WidgetUtil.createLabel(box, text="设备里的文件路径", minSize=QSize(80, const.HEIGHT)))
+        self.phonePathLineEdit = WidgetUtil.createLineEdit(box, sizePolicy=sizePolicy)
+        hbox.addWidget(self.phonePathLineEdit)
+        vbox.addLayout(hbox)
+
+        hbox = WidgetUtil.createHBoxLayout()
+        hbox.addWidget(WidgetUtil.createPushButton(box, text="复制设备里的文件到电脑", minSize=QSize(100, const.HEIGHT),
+                                                   onClicked=self.pullFile))
+        hbox.addWidget(WidgetUtil.createPushButton(box, text="复制电脑里的文件到设备", minSize=QSize(100, const.HEIGHT),
+                                                   onClicked=self.pushFile))
+        vbox.addLayout(hbox)
+
+        vbox.addWidget(WidgetUtil.createLabel(box, text="抓取视频、log：", minSize=QSize(80, const.HEIGHT)))
+
+        hbox = WidgetUtil.createHBoxLayout()
+        hbox.addWidget(WidgetUtil.createPushButton(box, text="视频、Log存储路径", onClicked=self.getVideoLogFilePath))
+        self.videoLogPathLineEdit = WidgetUtil.createLineEdit(box, sizePolicy=sizePolicy)
+        hbox.addWidget(self.videoLogPathLineEdit)
+        hbox.addWidget(WidgetUtil.createLabel(box, text="请输入缓存空间大小：", alignment=Qt.AlignRight | Qt.AlignVCenter,
+                                              minSize=QSize(150, const.HEIGHT)))
+        self.cacheSizeSpinBox = WidgetUtil.createSpinBox(box, value=30, minValue=10, maxValue=100, step=5,
                                                          suffix="M", sizePolicy=sizePolicy)
-        WidgetUtil.createLabel(splitter, text="请输入录屏总时长：", alignment=Qt.AlignRight | Qt.AlignVCenter,
-                               minSize=QSize(150, const.HEIGHT))
-        self.totalTimeSpinBox = WidgetUtil.createSpinBox(splitter, value=30, minValue=10, maxValue=300, step=5,
+        hbox.addWidget(self.cacheSizeSpinBox)
+        hbox.addWidget(WidgetUtil.createLabel(box, text="请输入录屏总时长：", alignment=Qt.AlignRight | Qt.AlignVCenter,
+                                              minSize=QSize(150, const.HEIGHT)))
+        self.totalTimeSpinBox = WidgetUtil.createSpinBox(box, value=30, minValue=10, maxValue=300, step=5,
                                                          suffix="s", sizePolicy=sizePolicy)
-        yPos += const.HEIGHT_OFFSET
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
-        WidgetUtil.createPushButton(splitter, text="测试环境准备", minSize=QSize(100, const.HEIGHT),
-                                    onClicked=self.prepareEvn)
-        self.extractBtn = WidgetUtil.createPushButton(splitter, text="抓取视频、log", minSize=QSize(100, const.HEIGHT),
-                                                      isEnable=False, onClicked=self.extractVideoAndLog)
+        hbox.addWidget(self.totalTimeSpinBox)
+        vbox.addLayout(hbox)
 
-        yPos += const.HEIGHT_OFFSET
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
-        WidgetUtil.createLabel(splitter, text="操作信息：", minSize=QSize(80, const.HEIGHT))
-        yPos += const.HEIGHT_OFFSET
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, 180))
-        self.execResTE = WidgetUtil.createTextEdit(splitter, isReadOnly=True)
+        hbox = WidgetUtil.createHBoxLayout()
+        hbox.addWidget(WidgetUtil.createPushButton(box, text="测试环境准备", minSize=QSize(100, const.HEIGHT),
+                                                   onClicked=self.prepareEvn))
+        self.extractBtn = WidgetUtil.createPushButton(box, text="抓取视频、log", minSize=QSize(100, const.HEIGHT),
+                                                      isEnable=False, onClicked=self.extractVideoAndLog)
+        hbox.addWidget(self.extractBtn)
+        vbox.addLayout(hbox)
+
+        vbox.addWidget(WidgetUtil.createLabel(box, text="操作信息：", minSize=QSize(80, const.HEIGHT)))
+
+        self.execResTE = WidgetUtil.createTextEdit(box, isReadOnly=True)
+        vbox.addWidget(self.execResTE, 1)
         return box
 
     def checkAdbEnv(self):
@@ -334,8 +324,8 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
     def extractVideoAndLog(self):
         nowTimestamp = DateUtil.nowTimestamp(True)
         AdbUtil.sendOperationRequest(AdbUtil.putStringExtra("type", "startMuxer"),
-                                                    AdbUtil.putLongExtra("timestamp", nowTimestamp),
-                                                    AdbUtil.putIntExtra("totalTime", self.totalTimeSpinBox.value()))
+                                     AdbUtil.putLongExtra("timestamp", nowTimestamp),
+                                     AdbUtil.putIntExtra("totalTime", self.totalTimeSpinBox.value()))
         AdbUtil.killAdbServer()
         AdbUtil.startAdbServer()
         videoLogPath = self.videoLogPathLineEdit.text().strip()
