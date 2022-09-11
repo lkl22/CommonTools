@@ -177,13 +177,14 @@ class WidgetUtil:
 
     @staticmethod
     def createHBoxLayout(parent: QWidget = None, objectName="HBoxLayout", margins: QMargins = None,
-                         spacing: int = None):
+                         spacing: int = None, alignment: Union[Qt.Alignment, Qt.AlignmentFlag] = None):
         """
         创建一个水平布局容器
         :param parent: 父QWidget
         :param objectName: objectName
         :param margins: margin值
         :param spacing: spacing值
+        :param alignment: 文本对其方式，默认左居中
         :return: QHBoxLayout
         """
         if parent:
@@ -195,17 +196,20 @@ class WidgetUtil:
             layout.setContentsMargins(margins)
         if spacing:
             layout.setSpacing(spacing)
+        if alignment:
+            layout.setAlignment(alignment)
         return layout
 
     @staticmethod
     def createVBoxLayout(parent: QWidget = None, objectName="VBoxLayout", margins: QMargins = None,
-                         spacing: int = None):
+                         spacing: int = None, alignment: Union[Qt.Alignment, Qt.AlignmentFlag] = None):
         """
         创建一个垂直布局容器
         :param parent: 父QWidget
         :param objectName: objectName
         :param margins: margin值
         :param spacing: spacing值
+        :param alignment: 文本对其方式，默认左居中
         :return: QVBoxLayout
         """
         if parent:
@@ -217,6 +221,8 @@ class WidgetUtil:
             layout.setContentsMargins(margins)
         if spacing:
             layout.setSpacing(spacing)
+        if alignment:
+            layout.setAlignment(alignment)
         return layout
 
     @staticmethod

@@ -4,23 +4,28 @@
 # 定义一个PicturePreviewDialog类实现图片预览功能
 from PyQt5.QtCore import QPoint, QEvent
 from PyQt5.QtGui import QPixmap, QPainter, QKeyEvent
-from PyQt5.QtWidgets import QFrame
 import sys
-
-from constant.WidgetConst import *
 from util.DialogUtil import *
 from util.FileUtil import *
 
 
+def getIconFp(iconName, isDebug=False):
+    if isDebug:
+        return f'../../resources/icons/previewImage/{iconName}'
+    else:
+        return FileUtil.getIconFp(f'previewImage/{iconName}')
+    pass
+
+
 class PicturePreviewDialog(QtWidgets.QDialog):
-    WINDOW_WIDTH = 1000
-    WINDOW_HEIGHT = 800
     MAX_SCALE = 2
     MIN_SCALE = 0.1
 
-    def __init__(self, filePathList=None, index=0):
+    def __init__(self, filePathList=None, index=0, isDebug=False):
         # 调用父类的构函
         QtWidgets.QDialog.__init__(self)
+        PicturePreviewDialog.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.8)
+        PicturePreviewDialog.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.8)
         LogUtil.d("Init picture preview Dialog")
         self.setObjectName("PicturePreviewDialog")
         self.resize(self.WINDOW_WIDTH, self.WINDOW_HEIGHT)
@@ -30,76 +35,39 @@ class PicturePreviewDialog(QtWidgets.QDialog):
         self.filePathList = filePathList
         self.index = index
 
-        vbox = WidgetUtil.createVBoxLayout()
-        vbox.setContentsMargins(5, 10, 5, 10)
-        vbox.setSpacing(5)
-
-        w = QWidget(self)
-        layout = WidgetUtil.createHBoxLayout()
-        layout.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
-        layout.setContentsMargins(10, 0, 0, 0)
-        w.setLayout(layout)
-        w.setFixedSize(750, 30)
-
+        vbox = WidgetUtil.createVBoxLayout(self, margins=QMargins(5, 10, 5, 10), spacing=5)
+        layout = WidgetUtil.createHBoxLayout(self, margins=QMargins(10, 0, 0, 0), spacing=30, alignment=Qt.AlignCenter)
         if not filePathList:
             self.openFile = WidgetUtil.createPushButton(self, text="Open Image", toolTip="Open the image to view.",
                                                         onClicked=self.openImage)
             self.openFile.setFixedSize(100, 30)
             layout.addWidget(self.openFile)
-
-        self.zoomIn = self.createPushBtn(FileUtil.getIconFp('previewImage/zoom_in.png'), self.largeClick)
-        # self.zoomIn = self.createPushBtn('../../resources/icons/previewImage/zoom_in.png', self.largeClick)
+        self.zoomIn = self.createPushBtn(getIconFp('zoom_in.png', isDebug), self.largeClick)
         layout.addWidget(self.zoomIn)
-
-        self.zoomOut = self.createPushBtn(FileUtil.getIconFp('previewImage/zoom_out.png'), self.smallClick)
-        # self.zoomOut = self.createPushBtn('../../resources/icons/previewImage/zoom_out.png', self.smallClick)
+        self.zoomOut = self.createPushBtn(getIconFp('zoom_out.png', isDebug), self.smallClick)
         layout.addWidget(self.zoomOut)
-
-        self.rotateLeft = self.createPushBtn(FileUtil.getIconFp('previewImage/rotateLeft.png'), self.rotateLeftClick)
-        # self.rotateLeft = self.createPushBtn('../../resources/icons/previewImage/rotateLeft.png', self.rotateLeftClick)
+        self.rotateLeft = self.createPushBtn(getIconFp('rotateLeft.png', isDebug), self.rotateLeftClick)
         layout.addWidget(self.rotateLeft)
-
-        self.rotateRight = self.createPushBtn(FileUtil.getIconFp('previewImage/rotateRight.png'), self.rotateRightClick)
-        # self.rotateRight = self.createPushBtn('../../resources/icons/previewImage/rotateRight.png', self.rotateRightClick)
+        self.rotateRight = self.createPushBtn(getIconFp('rotateRight.png', isDebug), self.rotateRightClick)
         layout.addWidget(self.rotateRight)
+        vbox.addLayout(layout)
 
-        vbox.addWidget(w)
-
-        w = QWidget(self)
-        layout = WidgetUtil.createHBoxLayout()
-        layout.setAlignment(Qt.AlignCenter)
-        layout.setContentsMargins(10, 0, 10, 0)
-        w.setLayout(layout)
-        w.setFixedSize(990, 700)
-
+        layout = WidgetUtil.createHBoxLayout(self, margins=QMargins(10, 10, 10, 10), spacing=20, alignment=Qt.AlignCenter)
         self.box = ImageBox()
-        # self.box.setSizePolicy(sizePolicy)
-        self.box.setFixedSize(890, 700)
-
-        self.backBtn = self.createPushBtn(FileUtil.getIconFp('previewImage/back.png'), self.backClick)
-        # self.backBtn = self.createPushBtn('../../icons/previewImage/back.png', self.backClick)
+        self.box.setFixedSize(int(PicturePreviewDialog.WINDOW_WIDTH * 0.9),
+                              int(PicturePreviewDialog.WINDOW_HEIGHT * 0.88))
+        self.backBtn = self.createPushBtn(getIconFp('back.png', isDebug), self.backClick)
         layout.addWidget(self.backBtn)
-
         layout.addWidget(self.box)
-
-        self.nextBtn = self.createPushBtn(FileUtil.getIconFp('previewImage/next.png'), self.nextClick)
-        # self.nextBtn = self.createPushBtn('../../icons/previewImage/next.png', self.nextClick)
+        self.nextBtn = self.createPushBtn(getIconFp('next.png', isDebug), self.nextClick)
         layout.addWidget(self.nextBtn)
+        vbox.addLayout(layout)
 
-        vbox.addWidget(w)
-
-        w = QWidget(self)
-        layout = WidgetUtil.createHBoxLayout()
-        layout.setAlignment(Qt.AlignCenter)
-        layout.setContentsMargins(0, 0, 0, 0)
-        w.setLayout(layout)
-        w.setFixedHeight(20)
-
-        sizePolicy = WidgetUtil.createSizePolicy()
-        self.titleLabel = WidgetUtil.createLabel(w, alignment=Qt.AlignCenter, sizePolicy=sizePolicy)
+        layout = WidgetUtil.createHBoxLayout(self, margins=QMargins(10, 15, 10, 5), alignment=Qt.AlignCenter)
+        self.titleLabel = WidgetUtil.createLabel(self, alignment=Qt.AlignCenter,
+                                                 sizePolicy=WidgetUtil.createSizePolicy())
         layout.addWidget(self.titleLabel)
-
-        vbox.addWidget(w)
+        vbox.addLayout(layout)
 
         self.setLayout(vbox)
 
@@ -324,7 +292,7 @@ class ImageBox(QWidget):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    # window = PicturePreviewDialog()
-    window = PicturePreviewDialog(['/Users/likunlun/Pictures/生活照/Macao/IMG_20170403_175221.jpg'])
+    # window = PicturePreviewDialog(isDebug=True)
+    window = PicturePreviewDialog(['/Users/likunlun/Pictures/生活照/Macao/IMG_20170403_175221.jpg'], isDebug=True)
     window.show()
     sys.exit(app.exec_())
