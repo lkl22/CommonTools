@@ -47,6 +47,24 @@ def widgetSetAttrs(widget: QWidget, objectName, toolTip=None, geometry: QRect = 
 
 
 class WidgetUtil:
+    screenRect = None
+
+    @staticmethod
+    def getScreenRect():
+        # 获取显示器分辨率
+        if not WidgetUtil.screenRect:
+            WidgetUtil.screenRect = QApplication.desktop().screenGeometry()
+            LogUtil.d(f"Screen width {WidgetUtil.screenRect.width()}\nScreen height {WidgetUtil.screenRect.height()}")
+        return WidgetUtil.screenRect
+
+    @staticmethod
+    def getScreenHeight():
+        return WidgetUtil.getScreenRect().height()
+
+    @staticmethod
+    def getScreenWidth():
+        return WidgetUtil.getScreenRect().width()
+
     @staticmethod
     def getColor():
         """
@@ -158,32 +176,68 @@ class WidgetUtil:
         return sizePolicy
 
     @staticmethod
-    def createHBoxLayout(objectName="HBoxLayout", margins: QMargins = None):
+    def createHBoxLayout(parent: QWidget = None, objectName="HBoxLayout", margins: QMargins = None,
+                         spacing: int = None):
         """
         创建一个水平布局容器
+        :param parent: 父QWidget
         :param objectName: objectName
         :param margins: margin值
+        :param spacing: spacing值
         :return: QHBoxLayout
         """
-        layout = QtWidgets.QHBoxLayout()
+        if parent:
+            layout = QtWidgets.QHBoxLayout(parent)
+        else:
+            layout = QtWidgets.QHBoxLayout()
         layout.setObjectName(objectName)
         if margins:
             layout.setContentsMargins(margins)
+        if spacing:
+            layout.setSpacing(spacing)
         return layout
 
     @staticmethod
-    def createVBoxLayout(objectName="VBoxLayout", margins: QMargins = None):
+    def createVBoxLayout(parent: QWidget = None, objectName="VBoxLayout", margins: QMargins = None,
+                         spacing: int = None):
         """
         创建一个垂直布局容器
+        :param parent: 父QWidget
         :param objectName: objectName
         :param margins: margin值
+        :param spacing: spacing值
         :return: QVBoxLayout
         """
-        layout = QtWidgets.QVBoxLayout()
+        if parent:
+            layout = QtWidgets.QVBoxLayout(parent)
+        else:
+            layout = QtWidgets.QVBoxLayout()
         layout.setObjectName(objectName)
         if margins:
             layout.setContentsMargins(margins)
+        if spacing:
+            layout.setSpacing(spacing)
         return layout
+
+    @staticmethod
+    def createHSpacerItem(w: int, h: int):
+        """
+        创建一个水平垫片容器，用于占位空间
+        :param w: 宽度
+        :param h: 高度
+        :return: QSpacerItem
+        """
+        return QtWidgets.QSpacerItem(w, h, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+
+    @staticmethod
+    def createVSpacerItem(w: int, h: int):
+        """
+        创建一个垂直垫片容器，用于占位空间
+        :param w: 宽度
+        :param h: 高度
+        :return: QSpacerItem
+        """
+        return QtWidgets.QSpacerItem(w, h, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
 
     @staticmethod
     def createVBoxWidget(parent: QWidget, margins: QMargins = None, geometry: QRect = None,

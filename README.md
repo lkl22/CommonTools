@@ -58,7 +58,7 @@ py -3.9 -m pip install pyqt5-tools --index-url https://pypi.tuna.tsinghua.edu.cn
 
 Name：Qt Designer
 
-Programs：D:\Python\Python38\Lib\site-packages\pyqt5_tools\Qt\bin\designer.exe
+Programs：D:\Program Files\Python39\Lib\site-packages\qt5_applications\Qt\bin\designer.exe
 
 Working directory：$ProjectFileDir$
 

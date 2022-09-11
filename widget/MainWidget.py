@@ -6,35 +6,34 @@ from PyQt5.QtWidgets import QMainWindow
 from util.WidgetUtil import *
 from util.DateUtil import *
 from util.FileUtil import *
-from constant.WidgetConst import *
 
 
 class MainWidget(QMainWindow):
-    WINDOW_WIDTH = 1100
-    WINDOW_HEIGHT = 500
-
     windowList = []
 
     def __init__(self):
         # 调用父类的构函
         QMainWindow.__init__(self)
+        MainWidget.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.8)
+        MainWidget.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.6)
         self.setObjectName("MainWidget")
         self.resize(MainWidget.WINDOW_WIDTH, MainWidget.WINDOW_HEIGHT)
-        self.setFixedSize(MainWidget.WINDOW_WIDTH, MainWidget.WINDOW_HEIGHT)
 
-        layoutWidget = QtWidgets.QWidget(self)
-        layoutWidget.setGeometry(QRect(const.PADDING, const.PADDING, MainWidget.WINDOW_WIDTH - const.PADDING * 2,
-                                       MainWidget.WINDOW_HEIGHT - const.PADDING * 2))
-        layoutWidget.setObjectName("layoutWidget")
+        centralWidget = QtWidgets.QWidget(self)
+        centralWidget.setObjectName("centralWidget")
 
-        vLayout = WidgetUtil.createVBoxLayout(margins=QMargins(0, 0, 0, 0))
-        layoutWidget.setLayout(vLayout)
+        vLayout = WidgetUtil.createVBoxLayout(centralWidget, margins=QMargins(10, 10, 10, 10), spacing=5)
+        centralWidget.setLayout(vLayout)
 
-        commonGroupBox = self.createCommonGroupBox(layoutWidget)
-        otherGroupBox = self.createOtherUtilGroupBox(layoutWidget)
+        commonGroupBox = self.createCommonGroupBox(centralWidget)
+        otherGroupBox = self.createOtherUtilGroupBox(centralWidget)
 
-        vLayout.addWidget(commonGroupBox)
-        vLayout.addWidget(otherGroupBox)
+        vLayout.addWidget(commonGroupBox, 1)
+        vLayout.addWidget(otherGroupBox, 3)
+        # vLayout.setStretch(0, 1)
+        # vLayout.setStretch(1, 3)
+
+        self.setCentralWidget(centralWidget)
 
         self.setWindowTitle(WidgetUtil.translate("MainWidget", "开发测试辅助工具"))
         QtCore.QMetaObject.connectSlotsByName(self)
@@ -42,27 +41,32 @@ class MainWidget(QMainWindow):
 
     def createCommonGroupBox(self, parent):
         box = WidgetUtil.createGroupBox(parent, title="常用工具")
-        yPos = const.GROUP_BOX_MARGIN_TOP
-        width = MainWidget.WINDOW_WIDTH - const.PADDING * 4
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
-        WidgetUtil.createLabel(splitter, text="时间转化工具：")
-        yPos += const.HEIGHT_OFFSET
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING,  yPos, width, const.HEIGHT))
-        WidgetUtil.createLabel(splitter, text="时间戳转化时间：")
-        sizePolicy = WidgetUtil.createSizePolicy(hStretch=2)
-        sizePolicy1 = WidgetUtil.createSizePolicy(hStretch=3)
-        self.timestampLineEdit1 = WidgetUtil.createLineEdit(splitter, text=str(DateUtil.nowTimestamp()),
-                                                            holderText="1578623033", sizePolicy=sizePolicy)
-        WidgetUtil.createPushButton(splitter, text="转化", onClicked=self.timestamp2Time)
-        self.timeLineEdit1 = WidgetUtil.createLineEdit(splitter, isEnable=False, sizePolicy=sizePolicy)
+        vbox = WidgetUtil.createVBoxLayout(box, spacing=10)
+        hbox = WidgetUtil.createHBoxLayout()
+        hbox.addWidget(WidgetUtil.createLabel(box, text="时间转化工具："))
+        vbox.addLayout(hbox)
 
-        yPos += int(const.HEIGHT_OFFSET * 1.2)
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
-        WidgetUtil.createLabel(splitter, text="时间转化时间戳：")
-        self.timeLineEdit2 = WidgetUtil.createLineEdit(splitter, text=str(DateUtil.nowTime()),
-                                                       holderText="2020-01-11 10:28:28", sizePolicy=sizePolicy)
-        WidgetUtil.createPushButton(splitter, text="转化", onClicked=self.time2Timestamp)
-        self.timestampLineEdit2 = WidgetUtil.createLineEdit(splitter, isEnable=False, sizePolicy=sizePolicy)
+        hbox = WidgetUtil.createHBoxLayout()
+        hbox.addWidget(WidgetUtil.createLabel(box, text="时间戳转化时间："))
+        self.timestampLineEdit1 = WidgetUtil.createLineEdit(box, text=str(DateUtil.nowTimestamp()),
+                                                            holderText="1578623033")
+        hbox.addWidget(self.timestampLineEdit1)
+        hbox.addWidget(WidgetUtil.createPushButton(box, text="转化", onClicked=self.timestamp2Time))
+        self.timeLineEdit1 = WidgetUtil.createLineEdit(box, isEnable=False)
+        hbox.addWidget(self.timeLineEdit1)
+        vbox.addLayout(hbox)
+
+        hbox = WidgetUtil.createHBoxLayout()
+        hbox.addWidget(WidgetUtil.createLabel(box, text="时间转化时间戳："))
+        self.timeLineEdit2 = WidgetUtil.createLineEdit(box, text=str(DateUtil.nowTime()),
+                                                       holderText="2020-01-11 10:28:28")
+        hbox.addWidget(self.timeLineEdit2)
+        hbox.addWidget(WidgetUtil.createPushButton(box, text="转化", onClicked=self.time2Timestamp))
+        self.timestampLineEdit2 = WidgetUtil.createLineEdit(box, isEnable=False)
+        hbox.addWidget(self.timestampLineEdit2)
+        vbox.addLayout(hbox)
+
+        vbox.addItem(WidgetUtil.createVSpacerItem(1, 1))
         return box
 
     def timestamp2Time(self):
@@ -88,22 +92,27 @@ class MainWidget(QMainWindow):
 
     def createOtherUtilGroupBox(self, parent):
         box = WidgetUtil.createGroupBox(parent, title="其他工具")
-        yPos = const.GROUP_BOX_MARGIN_TOP
-        width = MainWidget.WINDOW_WIDTH - const.PADDING * 4
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
-        WidgetUtil.createPushButton(splitter, text="Android测试辅助工具", onClicked=self.jumpAndroidAssistTestDialog)
-        WidgetUtil.createPushButton(splitter, text="文件操作工具", onClicked=self.jumpFileOperationDialog)
-        WidgetUtil.createPushButton(splitter, text="Android资源移动工具", onClicked=self.jumpAndroidResDialog)
-        WidgetUtil.createPushButton(splitter, text="Android color资源管理工具", onClicked=self.jumpAndroidColorResDialog)
-        WidgetUtil.createPushButton(splitter, text="照片墙", onClicked=self.jumpPhotoWall)
+        vbox = WidgetUtil.createVBoxLayout(box, spacing=10)
+        hbox = WidgetUtil.createHBoxLayout()
+        hbox.addWidget(
+            WidgetUtil.createPushButton(box, text="Android测试辅助工具", onClicked=self.jumpAndroidAssistTestDialog))
+        hbox.addWidget(WidgetUtil.createPushButton(box, text="文件操作工具", onClicked=self.jumpFileOperationDialog))
+        hbox.addWidget(
+            WidgetUtil.createPushButton(box, text="Android资源移动工具", onClicked=self.jumpAndroidResDialog))
+        hbox.addWidget(WidgetUtil.createPushButton(box, text="Android color资源管理工具",
+                                                   onClicked=self.jumpAndroidColorResDialog))
+        hbox.addWidget(WidgetUtil.createPushButton(box, text="照片墙", onClicked=self.jumpPhotoWall))
+        vbox.addLayout(hbox)
 
-        yPos += const.HEIGHT_OFFSET
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
-        WidgetUtil.createPushButton(splitter, text="图片压缩", onClicked=self.jumpCompressPicDialog)
-        WidgetUtil.createPushButton(splitter, text="Json格式化工具", onClicked=self.jumpJsonDialog)
-        WidgetUtil.createPushButton(splitter, text="Android adb指令工具", onClicked=self.jumpAndroidAdbDialog)
-        WidgetUtil.createPushButton(splitter, text="算法可视化", onClicked=self.jumpAlgorithmVisualizer)
-        WidgetUtil.createPushButton(splitter, text="模拟考试", onClicked=self.jumpMockExamDialog)
+        hbox = WidgetUtil.createHBoxLayout()
+        hbox.addWidget(WidgetUtil.createPushButton(box, text="图片压缩", onClicked=self.jumpCompressPicDialog))
+        hbox.addWidget(WidgetUtil.createPushButton(box, text="Json格式化工具", onClicked=self.jumpJsonDialog))
+        hbox.addWidget(
+            WidgetUtil.createPushButton(box, text="Android adb指令工具", onClicked=self.jumpAndroidAdbDialog))
+        hbox.addWidget(WidgetUtil.createPushButton(box, text="算法可视化", onClicked=self.jumpAlgorithmVisualizer))
+        hbox.addWidget(WidgetUtil.createPushButton(box, text="模拟考试", onClicked=self.jumpMockExamDialog))
+        vbox.addLayout(hbox)
+        vbox.addItem(WidgetUtil.createVSpacerItem(1, 1))
         return box
 
     def jumpAndroidAssistTestDialog(self):
