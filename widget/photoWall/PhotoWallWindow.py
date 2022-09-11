@@ -13,9 +13,6 @@ from constant.WidgetConst import *
 
 
 class PhotoWallWindow(QMainWindow):
-    WINDOW_WIDTH = 1180
-    WINDOW_HEIGHT = 620
-
     DISPLAYED_PHOTO_SIZES = [100, 150, 200]
     PHOTO_TYPE = '.*.((jpg)|(JPG)|(png)|(PNG)|(JPEG)|(jpeg))'
 
@@ -23,9 +20,11 @@ class PhotoWallWindow(QMainWindow):
 
     def __init__(self, filePath=None, photoType=None, previewFinishedFunc=None):
         QMainWindow.__init__(self)
+        PhotoWallWindow.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.8)
+        PhotoWallWindow.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.6)
         self.setObjectName("PhotoWallWindow")
+        self.setWindowTitle(WidgetUtil.translate("PhotoWall", "照片墙"))
         self.resize(PhotoWallWindow.WINDOW_WIDTH, PhotoWallWindow.WINDOW_HEIGHT)
-        self.setFixedSize(PhotoWallWindow.WINDOW_WIDTH, PhotoWallWindow.WINDOW_HEIGHT)
 
         self.filePath = filePath
         self.photoType = photoType if photoType else self.PHOTO_TYPE
@@ -34,18 +33,13 @@ class PhotoWallWindow(QMainWindow):
         self.photoFps = None
 
         layoutWidget = QtWidgets.QWidget(self)
-        layoutWidget.setGeometry(
-            QRect(const.PADDING, const.PADDING * 2, PhotoWallWindow.WINDOW_WIDTH - const.PADDING * 2,
-                  PhotoWallWindow.WINDOW_HEIGHT - const.PADDING * 4))
         layoutWidget.setObjectName("layoutWidget")
+        self.setCentralWidget(layoutWidget)
 
         self.scrollAres = QScrollArea(self)
         self.scrollAres.setWidgetResizable(True)
 
-        self.scrollAreaWidget = WidgetUtil.createWidget(self, 'scrollAreaWidget',
-                                                        geometry=QRect(const.PADDING, const.PADDING * 2,
-                                                                       self.WINDOW_WIDTH - const.PADDING * 4,
-                                                                       self.WINDOW_HEIGHT - const.PADDING * 6))
+        self.scrollAreaWidget = WidgetUtil.createWidget(self, 'scrollAreaWidget')
 
         # 进行网络布局
         self.gridLayout = QGridLayout(self.scrollAreaWidget)
@@ -66,7 +60,6 @@ class PhotoWallWindow(QMainWindow):
         # 图像列数
         self.maxColumns = 1
 
-        self.setWindowTitle(WidgetUtil.translate("PhotoWall", "照片墙"))
         QtCore.QMetaObject.connectSlotsByName(self)
         self.show()
         if filePath:
