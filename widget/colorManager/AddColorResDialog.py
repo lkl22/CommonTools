@@ -14,44 +14,48 @@ class AddColorResDialog(QtWidgets.QDialog):
     def __init__(self, callbackFunc, srcFindColorRes=[{}]):
         # 调用父类的构函
         QtWidgets.QDialog.__init__(self)
+        self.setWindowFlags(Qt.Dialog | Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint)
+        AddColorResDialog.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.5)
+        AddColorResDialog.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.3)
         LogUtil.d("Init Add color Res Dialog")
         self.setObjectName("AddColorResDialog")
         self.resize(AddColorResDialog.WINDOW_WIDTH, AddColorResDialog.WINDOW_HEIGHT)
-        self.setFixedSize(AddColorResDialog.WINDOW_WIDTH, AddColorResDialog.WINDOW_HEIGHT)
+        # self.setFixedSize(AddColorResDialog.WINDOW_WIDTH, AddColorResDialog.WINDOW_HEIGHT)
         self.setWindowTitle(WidgetUtil.translate(text="添加color资源"))
 
         self.callbackFunc = callbackFunc
         self.srcFindColorRes = srcFindColorRes
 
+        vbox1 = WidgetUtil.createVBoxLayout(self, margins=QMargins(10, 10, 10, 10), spacing=10)
+
         vbox = WidgetUtil.createVBoxLayout()
-        width = AddColorResDialog.WINDOW_WIDTH - const.PADDING * 2
-        splitter = WidgetUtil.createSplitter(self, geometry=QRect(const.PADDING, const.PADDING, width, const.HEIGHT))
-        WidgetUtil.createLabel(splitter, text="资源名称：", alignment=Qt.AlignVCenter | Qt.AlignLeft,
-                               minSize=QSize(100, const.HEIGHT))
+        hbox = WidgetUtil.createHBoxLayout()
+        hbox.addWidget(WidgetUtil.createLabel(self, text="资源名称：", alignment=Qt.AlignVCenter | Qt.AlignRight,
+                                              minSize=QSize(150, const.HEIGHT)))
         sizePolicy = WidgetUtil.createSizePolicy()
-        self.colorNameLineEdit = WidgetUtil.createLineEdit(splitter, sizePolicy=sizePolicy)
-        vbox.addWidget(splitter)
+        self.colorNameLineEdit = WidgetUtil.createLineEdit(self, sizePolicy=sizePolicy)
+        hbox.addWidget(self.colorNameLineEdit)
+        vbox.addLayout(hbox)
 
-        splitter = WidgetUtil.createSplitter(self, geometry=QRect(const.PADDING, const.PADDING, width, const.HEIGHT))
-        WidgetUtil.createPushButton(splitter, text="normal color：", minSize=QSize(100, const.HEIGHT), onClicked=self.normalColorSelected)
-        sizePolicy = WidgetUtil.createSizePolicy()
-        self.normalColorLineEdit = WidgetUtil.createLineEdit(splitter, sizePolicy=sizePolicy)
-        vbox.addWidget(splitter)
+        hbox = WidgetUtil.createHBoxLayout()
+        hbox.addWidget(WidgetUtil.createPushButton(self, text="normal color：", minSize=QSize(150, const.HEIGHT),
+                                                   onClicked=self.normalColorSelected))
+        self.normalColorLineEdit = WidgetUtil.createLineEdit(self, sizePolicy=sizePolicy)
+        hbox.addWidget(self.normalColorLineEdit)
+        vbox.addLayout(hbox)
 
-        splitter = WidgetUtil.createSplitter(self, geometry=QRect(const.PADDING, const.PADDING, width, const.HEIGHT))
-        WidgetUtil.createPushButton(splitter, text="dark color：", minSize=QSize(100, const.HEIGHT), onClicked=self.darkColorSelected)
-        sizePolicy = WidgetUtil.createSizePolicy()
-        self.darkColorLineEdit = WidgetUtil.createLineEdit(splitter, sizePolicy=sizePolicy)
-        vbox.addWidget(splitter)
+        hbox = WidgetUtil.createHBoxLayout()
+        hbox.addWidget(WidgetUtil.createPushButton(self, text="dark color：", minSize=QSize(150, const.HEIGHT),
+                                                   onClicked=self.darkColorSelected))
+        self.darkColorLineEdit = WidgetUtil.createLineEdit(self, sizePolicy=sizePolicy)
+        hbox.addWidget(self.darkColorLineEdit)
+        vbox.addLayout(hbox)
+        vbox.addWidget(WidgetUtil.createLabel(self), 1)
 
+        vbox1.addLayout(vbox, 1)
         splitter, _, _, _ = DialogUtil.createBottomBtn(self, okCallback=self.acceptFunc, cancelBtnText="Cancel")
-        vbox.addLayout(splitter)
+        vbox1.addLayout(splitter)
 
-        layoutWidget = QtWidgets.QWidget(self)
-        layoutWidget.setGeometry(QRect(const.PADDING, const.PADDING, width,
-                                       AddColorResDialog.WINDOW_HEIGHT - const.PADDING * 3 / 2))
-        layoutWidget.setObjectName("layoutWidget")
-        layoutWidget.setLayout(vbox)
         self.setWindowModality(Qt.ApplicationModal)
         # 很关键，不加出不来
         self.exec_()
@@ -95,4 +99,3 @@ class AddColorResDialog(QtWidgets.QDialog):
         if self.callbackFunc:
             self.callbackFunc(colorName, normalColor, darkColor)
         return True
-

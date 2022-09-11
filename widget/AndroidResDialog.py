@@ -20,7 +20,7 @@ class AndroidResDialog(QtWidgets.QDialog):
         QtWidgets.QDialog.__init__(self)
         self.setWindowFlags(Qt.Dialog | Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint)
         AndroidResDialog.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.7)
-        AndroidResDialog.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.7)
+        AndroidResDialog.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.35)
         LogUtil.d("Init Android Res Dialog")
         self.setObjectName("AndroidResDialog")
         self.resize(AndroidResDialog.WINDOW_WIDTH, AndroidResDialog.WINDOW_HEIGHT)
@@ -38,7 +38,8 @@ class AndroidResDialog(QtWidgets.QDialog):
 
         self.setWindowModality(Qt.ApplicationModal)
         # 很关键，不加出不来
-        # self.exec_()
+        if not isDebug:
+            self.exec_()
 
     def createXmlResGroupBox(self, parent):
         box = WidgetUtil.createGroupBox(parent, title="xml resource")
@@ -53,7 +54,8 @@ class AndroidResDialog(QtWidgets.QDialog):
         vLayout.addWidget(splitter)
 
         splitter = WidgetUtil.createSplitter(box)
-        WidgetUtil.createPushButton(splitter, text="目标文件路径", onClicked=self.getDstFilePath)
+        WidgetUtil.createPushButton(splitter, text="目标文件路径", minSize=QSize(120, const.HEIGHT),
+                                    onClicked=self.getDstFilePath)
         self.dstFilePathLineEdit = WidgetUtil.createLineEdit(splitter, sizePolicy=sizePolicy)
         vLayout.addWidget(splitter)
 

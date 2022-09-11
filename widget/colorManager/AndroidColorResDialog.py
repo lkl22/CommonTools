@@ -27,13 +27,16 @@ class AndroidColorResDialog(QtWidgets.QDialog):
     KEY_DARK_COLOR_COL_NUM = 2
     KEY_ROW = "row"
 
-    def __init__(self):
+    def __init__(self, isDebug=False):
         # 调用父类的构函
         QtWidgets.QDialog.__init__(self)
+        self.setWindowFlags(Qt.Dialog | Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint)
+        AndroidColorResDialog.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.7)
+        AndroidColorResDialog.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.7)
         LogUtil.d("Init Android color Res Dialog")
         self.setObjectName("AndroidColorResDialog")
         self.resize(AndroidColorResDialog.WINDOW_WIDTH, AndroidColorResDialog.WINDOW_HEIGHT)
-        self.setFixedSize(AndroidColorResDialog.WINDOW_WIDTH, AndroidColorResDialog.WINDOW_HEIGHT)
+        # self.setFixedSize(AndroidColorResDialog.WINDOW_WIDTH, AndroidColorResDialog.WINDOW_HEIGHT)
         self.setWindowTitle(WidgetUtil.translate(text="Android color资源管理"))
 
         self.normalColorRes = {}
@@ -46,24 +49,20 @@ class AndroidColorResDialog(QtWidgets.QDialog):
         # 当前正在编辑的color资源
         self.curEditColorRes = {}
 
-        layoutWidget = QtWidgets.QWidget(self)
-        layoutWidget.setGeometry(
-            QRect(const.PADDING, const.PADDING, AndroidColorResDialog.WINDOW_WIDTH - const.PADDING * 2,
-                  AndroidColorResDialog.WINDOW_HEIGHT - const.PADDING * 2))
-        layoutWidget.setObjectName("layoutWidget")
+        vLayout = WidgetUtil.createVBoxLayout(self, margins=QMargins(10, 10, 10, 10), spacing=10)
 
-        vLayout = WidgetUtil.createVBoxLayout(margins=QMargins(0, 0, 0, 0))
-        layoutWidget.setLayout(vLayout)
-
-        generateExcelGroupBox = self.createGenerateExcelGroupBox(layoutWidget)
-        opacityGroupBox = self.createOpacityGroupBox(layoutWidget)
-        findGroupBox = self.createFindGroupBox(layoutWidget)
+        generateExcelGroupBox = self.createGenerateExcelGroupBox(self)
+        opacityGroupBox = self.createOpacityGroupBox(self)
+        findGroupBox = self.createFindGroupBox(self)
 
         vLayout.addWidget(generateExcelGroupBox)
         vLayout.addWidget(opacityGroupBox)
-        vLayout.addWidget(findGroupBox)
+        vLayout.addWidget(findGroupBox, 1)
 
-        self.operaIni = OperaIni()
+        if isDebug:
+            self.operaIni = OperaIni('../../resources/config/BaseConfig.ini')
+        else:
+            self.operaIni = OperaIni()
 
         LogUtil.d(FileUtil.getProjectPath())
 
@@ -80,35 +79,38 @@ class AndroidColorResDialog(QtWidgets.QDialog):
 
         self.setWindowModality(Qt.ApplicationModal)
         # 很关键，不加出不来
-        self.exec_()
+        if not isDebug:
+            self.exec_()
 
     def createGenerateExcelGroupBox(self, parent):
-        yPos = const.GROUP_BOX_MARGIN_TOP
-        width = AndroidColorResDialog.WINDOW_WIDTH - const.PADDING * 4
+        box = WidgetUtil.createGroupBox(parent, title="生成Excel")
 
-        box = WidgetUtil.createGroupBox(parent, title="生成Excel",
-                                        minSize=QSize(width, const.GROUP_BOX_MARGIN_TOP + const.HEIGHT_OFFSET * 9 // 2))
-
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
-
-        WidgetUtil.createPushButton(splitter, text="normal color res XML文件路径", minSize=QSize(120, const.HEIGHT),
-                                    onClicked=self.getSrcFilePath)
+        vbox = WidgetUtil.createVBoxLayout(box, margins=QMargins(10, 10, 10, 10), spacing=10)
+        hbox = WidgetUtil.createHBoxLayout()
+        hbox.addWidget(
+            WidgetUtil.createPushButton(box, text="normal color res XML文件路径", minSize=QSize(120, const.HEIGHT),
+                                        onClicked=self.getSrcFilePath))
         sizePolicy = WidgetUtil.createSizePolicy()
-        self.srcFilePathLineEdit = WidgetUtil.createLineEdit(splitter, isEnable=False, sizePolicy=sizePolicy)
+        self.srcFilePathLineEdit = WidgetUtil.createLineEdit(box, isEnable=False, sizePolicy=sizePolicy)
+        hbox.addWidget(self.srcFilePathLineEdit)
+        vbox.addLayout(hbox)
 
-        yPos += const.HEIGHT_OFFSET
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
-        WidgetUtil.createPushButton(splitter, text="dark color res XML文件路径", onClicked=self.getDstFilePath)
-        self.dstFilePathLineEdit = WidgetUtil.createLineEdit(splitter, isEnable=False, sizePolicy=sizePolicy)
+        hbox = WidgetUtil.createHBoxLayout()
+        hbox.addWidget(WidgetUtil.createPushButton(box, text="dark color res XML文件路径", onClicked=self.getDstFilePath))
+        self.dstFilePathLineEdit = WidgetUtil.createLineEdit(box, isEnable=False, sizePolicy=sizePolicy)
+        hbox.addWidget(self.dstFilePathLineEdit)
+        vbox.addLayout(hbox)
 
-        yPos += const.HEIGHT_OFFSET
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
-        WidgetUtil.createPushButton(splitter, text="生成Excel文件路径", onClicked=self.getGenerateExcelFilePath)
-        self.generateExcelLineEdit = WidgetUtil.createLineEdit(splitter, isEnable=False, sizePolicy=sizePolicy)
+        hbox = WidgetUtil.createHBoxLayout()
+        hbox.addWidget(WidgetUtil.createPushButton(box, text="生成Excel文件路径", onClicked=self.getGenerateExcelFilePath))
+        self.generateExcelLineEdit = WidgetUtil.createLineEdit(box, isEnable=False, sizePolicy=sizePolicy)
+        hbox.addWidget(self.generateExcelLineEdit)
+        vbox.addLayout(hbox)
 
-        yPos += const.HEIGHT_OFFSET
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, 100, const.HEIGHT))
-        WidgetUtil.createPushButton(splitter, text="生成Excel", onClicked=self.generateExcel)
+        hbox = WidgetUtil.createHBoxLayout()
+        hbox.addWidget(WidgetUtil.createPushButton(box, text="生成Excel", onClicked=self.generateExcel))
+        hbox.addItem(WidgetUtil.createHSpacerItem(1, 1))
+        vbox.addLayout(hbox)
         return box
 
     def getSrcFilePath(self):
@@ -158,35 +160,33 @@ class AndroidColorResDialog(QtWidgets.QDialog):
         pass
 
     def createOpacityGroupBox(self, parent):
-        yPos = const.GROUP_BOX_MARGIN_TOP
-        width = AndroidColorResDialog.WINDOW_WIDTH - const.PADDING * 4
+        box = WidgetUtil.createGroupBox(parent, title="计算不透明度")
 
-        box = WidgetUtil.createGroupBox(parent, title="计算不透明度",
-                                        minSize=QSize(width, const.GROUP_BOX_MARGIN_TOP + const.HEIGHT_OFFSET * 3 // 2))
+        vbox = WidgetUtil.createVBoxLayout(box, margins=QMargins(10, 10, 10, 10), spacing=10)
+        hbox = WidgetUtil.createHBoxLayout()
 
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
-
-        WidgetUtil.createLabel(splitter, text="不透明度：", minSize=QSize(50, const.HEIGHT))
+        hbox.addWidget(WidgetUtil.createLabel(box, text="不透明度：", minSize=QSize(50, const.HEIGHT)))
         sizePolicy = WidgetUtil.createSizePolicy()
-        self.percentOpacitySpinBox = WidgetUtil.createSpinBox(splitter, value=0, minValue=0, maxValue=100, step=5,
+        self.percentOpacitySpinBox = WidgetUtil.createSpinBox(box, value=0, minValue=0, maxValue=100, step=5,
                                                               suffix='%',
                                                               sizePolicy=sizePolicy,
                                                               valueChanged=self.percentOpacityChanged)
-
-        WidgetUtil.createLabel(splitter, text="透明度：", alignment=Qt.AlignVCenter | Qt.AlignRight,
-                               minSize=QSize(120, const.HEIGHT))
-        sizePolicy = WidgetUtil.createSizePolicy()
-        self.percentOpennessSpinBox = WidgetUtil.createSpinBox(splitter, value=100, minValue=0, maxValue=100, step=5,
+        hbox.addWidget(self.percentOpacitySpinBox)
+        hbox.addWidget(WidgetUtil.createLabel(box, text="透明度：", alignment=Qt.AlignVCenter | Qt.AlignRight,
+                                              minSize=QSize(120, const.HEIGHT)))
+        self.percentOpennessSpinBox = WidgetUtil.createSpinBox(box, value=100, minValue=0, maxValue=100, step=5,
                                                                suffix='%',
                                                                sizePolicy=sizePolicy,
                                                                valueChanged=self.percentOpennessChanged)
-
-        WidgetUtil.createLabel(splitter, text="16进制数值：", alignment=Qt.AlignVCenter | Qt.AlignRight,
-                               minSize=QSize(120, const.HEIGHT))
-        self.hexOpacitySpinBox = WidgetUtil.createSpinBox(splitter, value=0, minValue=0, maxValue=255, step=1,
+        hbox.addWidget(self.percentOpennessSpinBox)
+        hbox.addWidget(WidgetUtil.createLabel(box, text="16进制数值：", alignment=Qt.AlignVCenter | Qt.AlignRight,
+                                              minSize=QSize(120, const.HEIGHT)))
+        self.hexOpacitySpinBox = WidgetUtil.createSpinBox(box, value=0, minValue=0, maxValue=255, step=1,
                                                           prefix='0x',
                                                           intBase=16, sizePolicy=sizePolicy,
                                                           valueChanged=self.hexOpacityChanged)
+        hbox.addWidget(self.hexOpacitySpinBox)
+        vbox.addLayout(hbox)
         return box
 
     def percentOpacityChanged(self):
@@ -216,43 +216,44 @@ class AndroidColorResDialog(QtWidgets.QDialog):
     def createFindGroupBox(self, parent):
         sizePolicy = WidgetUtil.createSizePolicy()
         box = WidgetUtil.createGroupBox(parent, title="查找资源", sizePolicy=sizePolicy)
-        yPos = const.GROUP_BOX_MARGIN_TOP
-        width = AndroidColorResDialog.WINDOW_WIDTH - const.PADDING * 4
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
-        WidgetUtil.createPushButton(splitter, text="color资源汇总Excel文件", minSize=QSize(120, const.HEIGHT),
-                                    onClicked=self.getExcelFile)
+        vbox = WidgetUtil.createVBoxLayout(box, margins=QMargins(10, 10, 10, 10), spacing=10)
+        hbox = WidgetUtil.createHBoxLayout()
+        hbox.addWidget(WidgetUtil.createPushButton(box, text="color资源汇总Excel文件", minSize=QSize(120, const.HEIGHT),
+                                    onClicked=self.getExcelFile))
         sizePolicy = WidgetUtil.createSizePolicy()
-        self.findExcelFnLineEdit = WidgetUtil.createLineEdit(splitter, isEnable=False, sizePolicy=sizePolicy)
+        self.findExcelFnLineEdit = WidgetUtil.createLineEdit(box, isEnable=False, sizePolicy=sizePolicy)
+        hbox.addWidget(self.findExcelFnLineEdit)
+        vbox.addLayout(hbox)
 
-        yPos += const.HEIGHT_OFFSET
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
-        WidgetUtil.createLabel(splitter, text="资源名称", alignment=Qt.AlignVCenter | Qt.AlignLeft,
-                               minSize=QSize(80, const.HEIGHT))
-        sizePolicy = WidgetUtil.createSizePolicy()
-        self.colorNameLineEdit = WidgetUtil.createLineEdit(splitter, isEnable=False, sizePolicy=sizePolicy,
+        hbox = WidgetUtil.createHBoxLayout()
+        hbox.addWidget(WidgetUtil.createLabel(box, text="资源名称", alignment=Qt.AlignVCenter | Qt.AlignLeft,
+                               minSize=QSize(80, const.HEIGHT)))
+        self.colorNameLineEdit = WidgetUtil.createLineEdit(box, isEnable=False, sizePolicy=sizePolicy,
                                                            textChanged=self.colorNameTextChange)
-
-        WidgetUtil.createLabel(splitter, text="normal color", alignment=Qt.AlignVCenter | Qt.AlignRight,
-                               minSize=QSize(120, const.HEIGHT))
-        self.normalColorLineEdit = WidgetUtil.createLineEdit(splitter, isEnable=False, sizePolicy=sizePolicy,
+        hbox.addWidget(self.colorNameLineEdit)
+        hbox.addWidget(WidgetUtil.createLabel(box, text="normal color", alignment=Qt.AlignVCenter | Qt.AlignRight,
+                               minSize=QSize(120, const.HEIGHT)))
+        self.normalColorLineEdit = WidgetUtil.createLineEdit(box, isEnable=False, sizePolicy=sizePolicy,
                                                              textChanged=self.normalColorTextChange)
-
-        WidgetUtil.createLabel(splitter, text="dark color", alignment=Qt.AlignVCenter | Qt.AlignRight,
-                               minSize=QSize(120, const.HEIGHT))
-        self.darkColorLineEdit = WidgetUtil.createLineEdit(splitter, isEnable=False, sizePolicy=sizePolicy,
+        hbox.addWidget(self.normalColorLineEdit)
+        hbox.addWidget(WidgetUtil.createLabel(box, text="dark color", alignment=Qt.AlignVCenter | Qt.AlignRight,
+                               minSize=QSize(120, const.HEIGHT)))
+        self.darkColorLineEdit = WidgetUtil.createLineEdit(box, isEnable=False, sizePolicy=sizePolicy,
                                                            textChanged=self.darkColorTextChange)
+        hbox.addWidget(self.darkColorLineEdit)
+        vbox.addLayout(hbox)
 
-        yPos += const.HEIGHT_OFFSET
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, 200, const.HEIGHT))
-        self.findColorResBtn = WidgetUtil.createPushButton(splitter, text="查找", isEnable=False, onClicked=self.findRes)
-        self.addColorResBtn = WidgetUtil.createPushButton(splitter, text="添加color资源", isEnable=False,
+        hbox = WidgetUtil.createHBoxLayout()
+        self.findColorResBtn = WidgetUtil.createPushButton(box, text="查找", isEnable=False, onClicked=self.findRes)
+        hbox.addWidget(self.findColorResBtn)
+        self.addColorResBtn = WidgetUtil.createPushButton(box, text="添加color资源", isEnable=False,
                                                           onClicked=self.addColorRes)
+        hbox.addWidget(self.addColorResBtn)
+        hbox.addItem(WidgetUtil.createHSpacerItem(1, 1))
+        vbox.addLayout(hbox)
 
-        yPos += const.HEIGHT_OFFSET
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, 230))
-        self.findResTableView = WidgetUtil.createTableView(splitter, minSize=QSize(width, 200), sizePolicy=sizePolicy,
-                                                           doubleClicked=self.tableDoubleClicked)
-
+        self.findResTableView = WidgetUtil.createTableView(box, doubleClicked=self.tableDoubleClicked)
+        vbox.addWidget(self.findResTableView, 1)
         return box
 
     def getExcelFile(self):
@@ -437,3 +438,10 @@ class AndroidColorResDialog(QtWidgets.QDialog):
                   colorRes[AndroidColorResDialog.KEY_DARK_COLOR])
         self.curEditColorRes = colorRes
         pass
+
+
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
+    window = AndroidColorResDialog(isDebug=True)
+    window.show()
+    sys.exit(app.exec_())
