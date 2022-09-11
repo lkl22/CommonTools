@@ -2,6 +2,8 @@
 # python 3.x
 # Filename: AndroidResDialog.py
 # 定义一个AndroidResDialog类实现android xml资源文件移动合并的功能
+import sys
+
 from constant.WidgetConst import *
 from util.FileUtil import *
 from util.DialogUtil import *
@@ -13,115 +15,117 @@ RES_TYPE_LIST = ['无', 'string', 'color', 'style', 'dimen', 'plurals', 'declare
 
 
 class AndroidResDialog(QtWidgets.QDialog):
-    WINDOW_WIDTH = 1200
-    WINDOW_HEIGHT = 600
-
-    def __init__(self):
+    def __init__(self, isDebug=False):
         # 调用父类的构函
         QtWidgets.QDialog.__init__(self)
+        self.setWindowFlags(Qt.Dialog | Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint)
+        AndroidResDialog.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.7)
+        AndroidResDialog.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.7)
         LogUtil.d("Init Android Res Dialog")
         self.setObjectName("AndroidResDialog")
         self.resize(AndroidResDialog.WINDOW_WIDTH, AndroidResDialog.WINDOW_HEIGHT)
-        self.setFixedSize(AndroidResDialog.WINDOW_WIDTH, AndroidResDialog.WINDOW_HEIGHT)
+        # self.setFixedSize(AndroidResDialog.WINDOW_WIDTH, AndroidResDialog.WINDOW_HEIGHT)
         self.setWindowTitle(WidgetUtil.translate(text="Android xml资源文件处理"))
 
         self.resType = RES_TYPE_LIST[0]
+        self.isDebug = isDebug
 
-        layoutWidget = QtWidgets.QWidget(self)
-        layoutWidget.setGeometry(QRect(const.PADDING, const.PADDING, AndroidResDialog.WINDOW_WIDTH - const.PADDING * 2,
-                                       AndroidResDialog.WINDOW_HEIGHT - const.PADDING * 2))
-        layoutWidget.setObjectName("layoutWidget")
+        vLayout = WidgetUtil.createVBoxLayout(self, margins=QMargins(10, 10, 10, 10), spacing=10)
 
-        vLayout = WidgetUtil.createVBoxLayout(margins=QMargins(0, 0, 0, 0))
-        layoutWidget.setLayout(vLayout)
-
-        androidResGroupBox = self.createXmlResGroupBox(layoutWidget)
+        androidResGroupBox = self.createXmlResGroupBox(self)
 
         vLayout.addWidget(androidResGroupBox)
 
         self.setWindowModality(Qt.ApplicationModal)
         # 很关键，不加出不来
-        self.exec_()
+        # self.exec_()
 
     def createXmlResGroupBox(self, parent):
         box = WidgetUtil.createGroupBox(parent, title="xml resource")
-        yPos = const.GROUP_BOX_MARGIN_TOP
-        width = AndroidResDialog.WINDOW_WIDTH - const.PADDING * 4
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, int(const.HEIGHT * 2.5)))
+        vbox = WidgetUtil.createVBoxLayout(box, margins=QMargins(10, 10, 10, 10), spacing=10)
         sizePolicy = WidgetUtil.createSizePolicy()
-        vLayout = WidgetUtil.createVBoxWidget(splitter, margins=QMargins(0, 0, 0, 0), sizePolicy=sizePolicy)
 
-        vLayout1 = WidgetUtil.createVBoxWidget(splitter, margins=QMargins(20, 0, 10, 0))
-        btn = WidgetUtil.createPushButton(splitter, text="", fixedSize=QSize(30, 40), styleSheet="background-color: white",
-                                          iconSize=QSize(30, 40), icon=QIcon(FileUtil.getIconFp('androidRes/exchange.png')),
-                                          onClicked=self.exchangeDirs)
-        vLayout1.addWidget(btn)
-
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width - const.HEIGHT, const.HEIGHT))
+        vLayout = WidgetUtil.createVBoxLayout()
+        splitter = WidgetUtil.createSplitter(box)
         WidgetUtil.createPushButton(splitter, text="源文件路径", minSize=QSize(120, const.HEIGHT),
                                     onClicked=self.getSrcFilePath)
-        sizePolicy = WidgetUtil.createSizePolicy()
         self.srcFilePathLineEdit = WidgetUtil.createLineEdit(splitter, isEnable=False, sizePolicy=sizePolicy)
         vLayout.addWidget(splitter)
 
-        yPos += const.HEIGHT_OFFSET
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width - const.HEIGHT, const.HEIGHT))
+        splitter = WidgetUtil.createSplitter(box)
         WidgetUtil.createPushButton(splitter, text="目标文件路径", onClicked=self.getDstFilePath)
         self.dstFilePathLineEdit = WidgetUtil.createLineEdit(splitter, sizePolicy=sizePolicy)
         vLayout.addWidget(splitter)
 
-        yPos += const.HEIGHT_OFFSET
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
-        WidgetUtil.createLabel(splitter, text="源资源文件名：", alignment=Qt.AlignVCenter | Qt.AlignRight,
-                               minSize=QSize(120, const.HEIGHT))
-        self.srcFnPatternsLineEdit = WidgetUtil.createLineEdit(splitter, sizePolicy=sizePolicy,
-                            holderText="请输入源资源文件名称正则表达式，多个以\";\"分隔", textChanged=self.srcFnTextChanged)
+        hbox = WidgetUtil.createHBoxLayout(spacing=20)
+        hbox.addLayout(vLayout)
 
-        yPos += const.HEIGHT_OFFSET
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
-        WidgetUtil.createLabel(splitter, text="目标资源文件名：", alignment=Qt.AlignVCenter | Qt.AlignRight,
-                               minSize=QSize(120, const.HEIGHT))
-        self.dstFnPatternsLineEdit = WidgetUtil.createLineEdit(splitter, sizePolicy=sizePolicy, isEnable=False,
+        btn = WidgetUtil.createPushButton(box, text="", fixedSize=QSize(30, 40),
+                                          styleSheet="background-color: white",
+                                          iconSize=QSize(30, 40), icon=QIcon(
+                '../resources/icons/androidRes/exchange.png' if self.isDebug else FileUtil.getIconFp(
+                    'androidRes/exchange.png')),
+                                          onClicked=self.exchangeDirs)
+        hbox.addWidget(btn)
+        vbox.addLayout(hbox)
+
+        hbox = WidgetUtil.createHBoxLayout()
+        hbox.addWidget(WidgetUtil.createLabel(box, text="源资源文件名：", alignment=Qt.AlignVCenter | Qt.AlignRight,
+                                              minSize=QSize(120, const.HEIGHT)))
+        self.srcFnPatternsLineEdit = WidgetUtil.createLineEdit(box, sizePolicy=sizePolicy,
+                                                               holderText="请输入源资源文件名称正则表达式，多个以\";\"分隔",
+                                                               textChanged=self.srcFnTextChanged)
+        hbox.addWidget(self.srcFnPatternsLineEdit)
+        vbox.addLayout(hbox)
+
+        hbox = WidgetUtil.createHBoxLayout()
+        hbox.addWidget(WidgetUtil.createLabel(box, text="目标资源文件名：", alignment=Qt.AlignVCenter | Qt.AlignRight,
+                                              minSize=QSize(120, const.HEIGHT)))
+        self.dstFnPatternsLineEdit = WidgetUtil.createLineEdit(box, sizePolicy=sizePolicy, isEnable=False,
                                                                holderText="请输入目标资源文件名称")
+        hbox.addWidget(self.dstFnPatternsLineEdit)
+        vbox.addLayout(hbox)
 
-        yPos += const.HEIGHT_OFFSET
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
-        WidgetUtil.createLabel(splitter, text="选择资源类型：", alignment=Qt.AlignVCenter | Qt.AlignRight,
-                               minSize=QSize(120, const.HEIGHT))
+        hbox = WidgetUtil.createHBoxLayout()
+        hbox.addWidget(WidgetUtil.createLabel(box, text="选择资源类型：", alignment=Qt.AlignVCenter | Qt.AlignRight,
+                                              minSize=QSize(120, const.HEIGHT)))
+        hbox.addItem(WidgetUtil.createHSpacerItem(1, 1))
+        vbox.addLayout(hbox)
+
+        hbox = WidgetUtil.createHBoxLayout(margins=QMargins(30, 0, 30, 0), spacing=10)
+        vbox.addLayout(hbox)
         self.resTypeBg = WidgetUtil.createButtonGroup(onToggled=self.resTypeToggled)
         for i in range(len(RES_TYPE_LIST)):
-            if i == 0:
-                self.resTypeBg.addButton(
-                    WidgetUtil.createRadioButton(splitter, text=RES_TYPE_LIST[i] + "  ", isChecked=True), i)
-            else:
-                if i == 8:
-                    WidgetUtil.createLabel(splitter, text="", sizePolicy=WidgetUtil.createSizePolicy())
-                    yPos += const.HEIGHT_OFFSET
-                    splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
-                    WidgetUtil.createLabel(splitter, text="", minSize=QSize(120, 20))
-                self.resTypeBg.addButton(WidgetUtil.createRadioButton(splitter, text=RES_TYPE_LIST[i] + "  "), i)
+            if i == 12:
+                hbox.addItem(WidgetUtil.createHSpacerItem(1, 1))
+                hbox = WidgetUtil.createHBoxLayout(margins=QMargins(30, 0, 30, 0), spacing=10)
+            radioButton = WidgetUtil.createRadioButton(box, text=RES_TYPE_LIST[i] + "  ", isChecked=i == 0)
+            self.resTypeBg.addButton(radioButton, i)
+            hbox.addWidget(radioButton)
+        hbox.addItem(WidgetUtil.createHSpacerItem(1, 1))
+        vbox.addLayout(hbox)
 
-        WidgetUtil.createLabel(splitter, text="", sizePolicy=WidgetUtil.createSizePolicy())
-
-        yPos += const.HEIGHT_OFFSET
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
-        WidgetUtil.createLabel(splitter, text="输入资源名称：", alignment=Qt.AlignVCenter | Qt.AlignRight,
-                               minSize=QSize(120, const.HEIGHT))
-        self.resNamesLineEdit = WidgetUtil.createLineEdit(splitter, holderText="请输入要复制/移动的资源名称，多个以\";\"分隔",
+        hbox = WidgetUtil.createHBoxLayout()
+        hbox.addWidget(WidgetUtil.createLabel(box, text="输入资源名称：", alignment=Qt.AlignVCenter | Qt.AlignRight,
+                                              minSize=QSize(120, const.HEIGHT)))
+        self.resNamesLineEdit = WidgetUtil.createLineEdit(box, holderText="请输入要复制/移动的资源名称，多个以\";\"分隔",
                                                           isEnable=False, sizePolicy=sizePolicy)
+        hbox.addWidget(self.resNamesLineEdit)
+        vbox.addLayout(hbox)
 
-        # yPos += const.HEIGHT_OFFSET
-        # splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
         # WidgetUtil.createLabel(splitter, text="输入namespace：", alignment=Qt.AlignVCenter | Qt.AlignRight,
         #                        minSize=QSize(120, const.HEIGHT))
         # self.resNamespaceLineEdit = WidgetUtil.createLineEdit(splitter,
         #                                                       holderText='xmlns:android="http://schemas.android.com/apk/res/android"',
         #                                                       sizePolicy=sizePolicy)
 
-        yPos += const.HEIGHT_OFFSET
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, 300, const.HEIGHT))
-        WidgetUtil.createPushButton(splitter, text="复制", onClicked=self.copyElements)
-        WidgetUtil.createPushButton(splitter, text="移动", onClicked=self.moveElements)
+        hbox = WidgetUtil.createHBoxLayout()
+        hbox.addWidget(WidgetUtil.createPushButton(box, text="复制", onClicked=self.copyElements))
+        hbox.addWidget(WidgetUtil.createPushButton(box, text="移动", onClicked=self.moveElements))
+        hbox.addItem(WidgetUtil.createHSpacerItem(1, 1))
+        vbox.addLayout(hbox)
+
+        vbox.addWidget(WidgetUtil.createLabel(box), 1)
         return box
 
     def getSrcFilePath(self):
@@ -215,3 +219,10 @@ class AndroidResDialog(QtWidgets.QDialog):
         else:
             WidgetUtil.showErrorDialog(message="指定目录下未查找到指定的资源文件")
         pass
+
+
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
+    window = AndroidResDialog(isDebug=True)
+    window.show()
+    sys.exit(app.exec_())
