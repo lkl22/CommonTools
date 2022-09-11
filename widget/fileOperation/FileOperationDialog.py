@@ -2,34 +2,26 @@
 # python 3.x
 # Filename: FileOperationDialog.py
 # 定义一个FileOperationDialog类实现文件操作相关的功能
-from constant.WidgetConst import *
 from util.FileUtil import *
 from util.DialogUtil import *
 from util.LogUtil import *
 
 
 class FileOperationDialog(QtWidgets.QDialog):
-    WINDOW_WIDTH = 800
-    WINDOW_HEIGHT = 360
-
     def __init__(self):
         # 调用父类的构函
         QtWidgets.QDialog.__init__(self)
+        FileOperationDialog.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.7)
+        FileOperationDialog.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.7)
         LogUtil.d("Init File Operation Dialog")
         self.setObjectName("FileOperationDialog")
         self.resize(FileOperationDialog.WINDOW_WIDTH, FileOperationDialog.WINDOW_HEIGHT)
-        self.setFixedSize(FileOperationDialog.WINDOW_WIDTH, FileOperationDialog.WINDOW_HEIGHT)
+        # self.setFixedSize(FileOperationDialog.WINDOW_WIDTH, FileOperationDialog.WINDOW_HEIGHT)
         self.setWindowTitle(WidgetUtil.translate(text="文件相关操作"))
 
-        layoutWidget = QtWidgets.QWidget(self)
-        layoutWidget.setGeometry(QRect(const.PADDING, const.PADDING, FileOperationDialog.WINDOW_WIDTH - const.PADDING * 2,
-                                       FileOperationDialog.WINDOW_HEIGHT - const.PADDING * 2))
-        layoutWidget.setObjectName("layoutWidget")
+        vLayout = WidgetUtil.createVBoxLayout(self, margins=QMargins(10, 10, 10, 10), spacing=10)
 
-        vLayout = WidgetUtil.createVBoxLayout(margins=QMargins(0, 0, 0, 0))
-        layoutWidget.setLayout(vLayout)
-
-        androidResGroupBox = self.createFileUtilGroupBox(layoutWidget)
+        androidResGroupBox = self.createFileUtilGroupBox(self)
 
         vLayout.addWidget(androidResGroupBox)
 
@@ -38,53 +30,57 @@ class FileOperationDialog(QtWidgets.QDialog):
         self.exec_()
 
     def createFileUtilGroupBox(self, parent):
-        yPos = const.GROUP_BOX_MARGIN_TOP
-        width = FileOperationDialog.WINDOW_WIDTH - const.PADDING * 4
         box = WidgetUtil.createGroupBox(parent, title="文件工具")
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
-        WidgetUtil.createLabel(splitter, text="文件批量复制/移动：")
+        vbox = WidgetUtil.createVBoxLayout(box, margins=QMargins(10, 10, 10, 10), spacing=10)
+        vbox.addWidget(WidgetUtil.createLabel(box, text="文件批量复制/移动："))
 
-        yPos += const.HEIGHT_OFFSET
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
-        WidgetUtil.createPushButton(splitter, text="源文件路径", onClicked=self.getSrcFilePath)
+        hbox = WidgetUtil.createHBoxLayout()
+        hbox.addWidget(WidgetUtil.createPushButton(box, text="源文件路径", onClicked=self.getSrcFilePath))
         sizePolicy = WidgetUtil.createSizePolicy()
-        self.srcFilePathLineEdit = WidgetUtil.createLineEdit(splitter, isEnable=False, sizePolicy=sizePolicy)
+        self.srcFilePathLineEdit = WidgetUtil.createLineEdit(box, isEnable=False, sizePolicy=sizePolicy)
+        hbox.addWidget(self.srcFilePathLineEdit)
+        hbox.addWidget(WidgetUtil.createPushButton(box, text="目标文件路径", onClicked=self.getDstFilePath))
+        self.dstFilePathLineEdit = WidgetUtil.createLineEdit(box, sizePolicy=sizePolicy)
+        hbox.addWidget(self.dstFilePathLineEdit)
+        vbox.addLayout(hbox)
 
-        WidgetUtil.createPushButton(splitter, text="目标文件路径", onClicked=self.getDstFilePath)
-        self.dstFilePathLineEdit = WidgetUtil.createLineEdit(splitter, sizePolicy=sizePolicy)
-
-        yPos += const.HEIGHT_OFFSET
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
-        WidgetUtil.createLabel(splitter, text="复制/移动文件的名称：")
-        self.srcFnPatternsLineEdit = WidgetUtil.createLineEdit(splitter, holderText="请输入要复制/移动的文件名的正则表达式，多个以\";\"分隔",
+        hbox = WidgetUtil.createHBoxLayout()
+        hbox.addWidget(WidgetUtil.createLabel(box, text="复制/移动文件的名称："))
+        self.srcFnPatternsLineEdit = WidgetUtil.createLineEdit(box, holderText="请输入要复制/移动的文件名的正则表达式，多个以\";\"分隔",
                                                                sizePolicy=sizePolicy)
+        hbox.addWidget(self.srcFnPatternsLineEdit)
+        vbox.addLayout(hbox)
 
-        yPos += const.HEIGHT_OFFSET
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, 300, const.HEIGHT))
-        WidgetUtil.createPushButton(splitter, text="复制", onClicked=self.copyFiles)
-        WidgetUtil.createPushButton(splitter, text="移动", onClicked=self.moveFiles)
+        hbox = WidgetUtil.createHBoxLayout()
+        hbox.addWidget(WidgetUtil.createPushButton(box, text="复制", onClicked=self.copyFiles))
+        hbox.addWidget(WidgetUtil.createPushButton(box, text="移动", onClicked=self.moveFiles))
+        hbox.addItem(WidgetUtil.createHSpacerItem(1, 1))
+        vbox.addLayout(hbox)
 
-        yPos += int(const.HEIGHT_OFFSET * 1.6)
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
-        WidgetUtil.createLabel(splitter, text="批量修改文件名：")
+        vbox.addWidget(WidgetUtil.createLabel(box, text="批量修改文件名："))
 
-        yPos += const.HEIGHT_OFFSET
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
-        WidgetUtil.createPushButton(splitter, text="文件路径", onClicked=self.getChangeFilePath)
-        sizePolicy = WidgetUtil.createSizePolicy()
-        self.changeFpLineEdit = WidgetUtil.createLineEdit(splitter, isEnable=False, sizePolicy=sizePolicy)
+        hbox = WidgetUtil.createHBoxLayout()
+        hbox.addWidget(WidgetUtil.createPushButton(box, text="文件路径", onClicked=self.getChangeFilePath))
+        self.changeFpLineEdit = WidgetUtil.createLineEdit(box, isEnable=False, sizePolicy=sizePolicy)
+        hbox.addWidget(self.changeFpLineEdit)
+        vbox.addLayout(hbox)
 
-        yPos += const.HEIGHT_OFFSET
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
-        WidgetUtil.createLabel(splitter, text="修改前文件名称：")
-        self.fnChangeBeforeLineEdit = WidgetUtil.createLineEdit(splitter, sizePolicy=sizePolicy)
-        WidgetUtil.createLabel(splitter, text="修改后文件名称：")
-        self.fnChangeAfterLineEdit = WidgetUtil.createLineEdit(splitter, sizePolicy=sizePolicy)
-        yPos += const.HEIGHT_OFFSET
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, 150, const.HEIGHT))
-        WidgetUtil.createPushButton(splitter, text="修改", onClicked=self.modifyFilesName)
+        hbox = WidgetUtil.createHBoxLayout()
+        hbox.addWidget(WidgetUtil.createLabel(box, text="修改前文件名称："))
+        self.fnChangeBeforeLineEdit = WidgetUtil.createLineEdit(box, sizePolicy=sizePolicy)
+        hbox.addWidget(self.fnChangeBeforeLineEdit)
+        hbox.addWidget(WidgetUtil.createLabel(box, text="修改后文件名称："))
+        self.fnChangeAfterLineEdit = WidgetUtil.createLineEdit(box, sizePolicy=sizePolicy)
+        hbox.addWidget(self.fnChangeAfterLineEdit)
+        vbox.addLayout(hbox)
+
+        hbox = WidgetUtil.createHBoxLayout()
+        hbox.addWidget(WidgetUtil.createPushButton(box, text="修改", onClicked=self.modifyFilesName))
+        hbox.addItem(WidgetUtil.createHSpacerItem(1, 1))
+        vbox.addLayout(hbox)
+
+        vbox.addWidget(WidgetUtil.createLabel(box), 1)
         return box
-
 
     def getSrcFilePath(self):
         fp = WidgetUtil.getExistingDirectory()
