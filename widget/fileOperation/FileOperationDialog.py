@@ -11,6 +11,7 @@ class FileOperationDialog(QtWidgets.QDialog):
     def __init__(self):
         # 调用父类的构函
         QtWidgets.QDialog.__init__(self)
+        self.setWindowFlags(Qt.Dialog | Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint)
         FileOperationDialog.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.7)
         FileOperationDialog.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.7)
         LogUtil.d("Init File Operation Dialog")

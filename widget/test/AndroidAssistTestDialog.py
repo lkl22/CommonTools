@@ -22,6 +22,7 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
     def __init__(self, defaultPackageName="", defaultActivityName="", isDebug=False):
         # 调用父类的构函
         QtWidgets.QDialog.__init__(self)
+        self.setWindowFlags(Qt.Dialog | Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint)
         AndroidAssistTestDialog.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.7)
         AndroidAssistTestDialog.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.7)
         LogUtil.d("Init Android Assist Test Dialog")
