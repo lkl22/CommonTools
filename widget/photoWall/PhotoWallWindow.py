@@ -64,6 +64,18 @@ class PhotoWallWindow(QMainWindow):
         self.show()
         if filePath:
             self.startPhotoViewer()
+        pass
+
+    def changeEvent(self, event):
+        LogUtil.d("changeEvent", event)
+        if event.type() == QtCore.QEvent.WindowStateChange:
+            if self.isMinimized():
+                LogUtil.d("窗口最小化")
+            elif self.isActiveWindow() or self.isFullScreen() or self.isMaximized():
+                LogUtil.d("活动窗口 or 全屏显示 or 窗口最大化")
+                if self.filePath:
+                    self.startPhotoViewer()
+        pass
 
     def createMenuBar(self):
         # 底部状态栏
@@ -182,7 +194,7 @@ class PhotoWallWindow(QMainWindow):
 
     def getMaxColumns(self):
         # 展示图片的区域
-        scrollAreaPhotoWidth = PhotoWallWindow.WINDOW_WIDTH - const.PADDING * 2
+        scrollAreaPhotoWidth = self.width() - const.PADDING * 2
         itemWidth = self.displayedPhotoSize + const.PADDING
         if scrollAreaPhotoWidth > itemWidth:
             # 计算出一行几列；
