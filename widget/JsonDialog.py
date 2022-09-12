@@ -2,6 +2,8 @@
 # python 3.x
 # Filename: JsonDialog.py
 # 定义一个JsonDialog类实现Json树形结构展示的功能
+import sys
+
 from constant.WidgetConst import *
 from util.JsonUtil import *
 from util.DialogUtil import *
@@ -9,67 +11,56 @@ from util.LogUtil import *
 
 
 class JsonDialog(QtWidgets.QDialog):
-    WINDOW_WIDTH = 1280
-    WINDOW_HEIGHT = 720
-    def __init__(self):
+    def __init__(self, isDebug=False):
         # 调用父类的构函
         QtWidgets.QDialog.__init__(self)
+        self.setWindowFlags(Qt.Dialog | Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint)
+        JsonDialog.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.7)
+        JsonDialog.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.8)
         LogUtil.d("Init Json Format Dialog")
         self.setObjectName("JsonDialog")
         self.resize(JsonDialog.WINDOW_WIDTH, JsonDialog.WINDOW_HEIGHT)
-        self.setFixedSize(JsonDialog.WINDOW_WIDTH, JsonDialog.WINDOW_HEIGHT)
-        # self.setWindowFlags(QtCore.Qt.WindowMinimizeButtonHint)
-        # self.setWindowFlags(QtCore.Qt.WindowMaximizeButtonHint)
+        # self.setFixedSize(JsonDialog.WINDOW_WIDTH, JsonDialog.WINDOW_HEIGHT)
         self.setWindowTitle(WidgetUtil.translate(text="JsonDialog"))
 
         self.jsonObj = None
         self.curOperateItem: QTreeWidgetItem = None
 
-        layoutWidget = QtWidgets.QWidget(self)
-        layoutWidget.setGeometry(QRect(const.PADDING, const.PADDING, JsonDialog.WINDOW_WIDTH - const.PADDING * 2,
-                                       JsonDialog.WINDOW_HEIGHT - const.PADDING * 2))
-        layoutWidget.setObjectName("layoutWidget")
+        hLayout = WidgetUtil.createHBoxLayout(self, margins=QMargins(10, 10, 10, 10), spacing=10)
 
-        hLayout = WidgetUtil.createHBoxLayout(margins=QMargins(0, 0, 0, 0))
-        layoutWidget.setLayout(hLayout)
+        jsonStrGroupBox = self.createJsonStrGroupBox(self)
+        changeBtnBox = self.createChangeBtnBox(self)
+        treeGroupBox = self.createTreeGroupBox(self)
 
-        jsonStrGroupBox = self.createJsonStrGroupBox(layoutWidget)
-        splitter = self.createChangeBtnSplitter(layoutWidget)
-        treeGroupBox = self.createTreeGroupBox(layoutWidget)
-
-        hLayout.addWidget(jsonStrGroupBox)
-        hLayout.addWidget(splitter)
-        hLayout.addWidget(treeGroupBox)
+        hLayout.addWidget(jsonStrGroupBox, 2)
+        hLayout.addLayout(changeBtnBox)
+        hLayout.addWidget(treeGroupBox, 3)
 
         self.setWindowModality(Qt.ApplicationModal)
         # 很关键，不加出不来
-        self.exec_()
+        if not isDebug:
+            self.exec_()
 
     def createJsonStrGroupBox(self, parent):
-        sizePolicy = WidgetUtil.createSizePolicy(hStretch=2)
-        box = WidgetUtil.createGroupBox(parent, title="请输入json数据", sizePolicy=sizePolicy)
-        yPos = const.GROUP_BOX_MARGIN_TOP
-        splitter = WidgetUtil.createSplitter(box, isVertical=True, geometry=QRect(const.PADDING, yPos, 450, 660))
-        self.jsonDataTextEdit = WidgetUtil.createTextEdit(splitter, text='{"a":false, "b":[["b"],["a"]]}')
+        box = WidgetUtil.createGroupBox(parent, title="请输入json数据")
+        vbox = WidgetUtil.createVBoxLayout(box, margins=QMargins(10, 10, 10, 10), spacing=10)
+        self.jsonDataTextEdit = WidgetUtil.createTextEdit(box, text='{"a":false, "b":[["b"],["a"]]}')
+        vbox.addWidget(self.jsonDataTextEdit)
         return box
 
-    def createChangeBtnSplitter(self, parent):
-        sizePolicy = WidgetUtil.createSizePolicy(hPolicy=QSizePolicy.Fixed)
-        splitter = WidgetUtil.createSplitter(parent, isVertical=True, geometry=QRect(0, 0, 100, 200), sizePolicy=sizePolicy)
-        sizePolicy = WidgetUtil.createSizePolicy(vPolicy=QSizePolicy.Fixed)
-        WidgetUtil.createLabel(splitter, sizePolicy=sizePolicy)
-        WidgetUtil.createPushButton(splitter, text=" >> ", onClicked=self.decodeJsonFunc)
-        WidgetUtil.createPushButton(splitter, text=" << ", onClicked=self.encodeJsonFunc)
-        WidgetUtil.createLabel(splitter, sizePolicy=sizePolicy)
-        return splitter
+    def createChangeBtnBox(self, parent):
+        vbox = WidgetUtil.createVBoxLayout(parent, margins=QMargins(20, 10, 20, 10), spacing=10,
+                                           alignment=Qt.AlignCenter)
+        vbox.addWidget(WidgetUtil.createPushButton(parent, text=" >> ", onClicked=self.decodeJsonFunc))
+        vbox.addWidget(WidgetUtil.createPushButton(parent, text=" << ", onClicked=self.encodeJsonFunc))
+        return vbox
 
     def createTreeGroupBox(self, parent):
-        sizePolicy = WidgetUtil.createSizePolicy(hStretch=3)
-        box = WidgetUtil.createGroupBox(parent, title="格式化后数据", sizePolicy=sizePolicy)
-        yPos = const.GROUP_BOX_MARGIN_TOP
-        splitter = WidgetUtil.createSplitter(box, isVertical=True, geometry=QRect(const.PADDING, yPos, 685, 660))
-        self.jsonTreeWidget = WidgetUtil.createTreeWidget(splitter)
+        box = WidgetUtil.createGroupBox(parent, title="格式化后数据")
+        vbox = WidgetUtil.createVBoxLayout(box, margins=QMargins(10, 10, 10, 10), spacing=10)
+        self.jsonTreeWidget = WidgetUtil.createTreeWidget(box)
         self.jsonTreeWidget.customContextMenuRequested.connect(self.customRightMenu)
+        vbox.addWidget(self.jsonTreeWidget)
         return box
 
     def customRightMenu(self, pos):
@@ -86,7 +77,8 @@ class JsonDialog(QtWidgets.QDialog):
                 if self.curOperateItem.text(0) == "[]":
                     menu = WidgetUtil.createMenu(func1=self.addItem, action2="删除", func2=self.delItem)
                 else:
-                    menu = WidgetUtil.createMenu(func1=self.addItem, action2="修改", func2=self.modifyItem, action3="删除", func3=self.delItem)
+                    menu = WidgetUtil.createMenu(func1=self.addItem, action2="修改", func2=self.modifyItem, action3="删除",
+                                                 func3=self.delItem)
             menu.exec_(self.jsonTreeWidget.mapToGlobal(pos))
         else:
             print("这种情况是右键的位置不在treeItem的范围内，即在空白位置右击")
@@ -146,3 +138,10 @@ class JsonDialog(QtWidgets.QDialog):
         except json.decoder.JSONDecodeError as err:
             WidgetUtil.showErrorDialog(message="%s" % err)
             self.jsonObj = None
+
+
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
+    window = JsonDialog(isDebug=True)
+    window.show()
+    sys.exit(app.exec_())
