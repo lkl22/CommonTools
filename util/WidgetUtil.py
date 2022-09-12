@@ -8,7 +8,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtGui import QIcon, QBrush, QStandardItemModel, QStandardItem, QColor, QKeySequence
 from PyQt5.QtWidgets import QWidget, QMessageBox, QSizePolicy, QTreeWidget, QMenu, QTreeWidgetItem, QDialog, \
     QRadioButton, QTableView, QHeaderView, QColorDialog, QSpinBox, QTextEdit, QApplication, QDoubleSpinBox, QMenuBar, \
-    QTabWidget, QCheckBox, QProgressBar, QComboBox
+    QTabWidget, QCheckBox, QProgressBar, QComboBox, QDialogButtonBox
 from PyQt5.QtCore import QRect, QMargins, QSize, Qt
 
 from util.LogUtil import *
@@ -1001,6 +1001,24 @@ class WidgetUtil:
         if valueChanged:
             widget.valueChanged.connect(valueChanged)
         return widget
+
+    @staticmethod
+    def createDialogButtonBox(standardButton: Union[
+        QDialogButtonBox.StandardButtons, QDialogButtonBox.StandardButton] = QDialogButtonBox.Ok | QDialogButtonBox.Cancel,
+                              orientation: Qt.Orientation = QtCore.Qt.Horizontal, parent: QWidget = None,
+                              objectName="QDialogButtonBox", isCenter=False, acceptedFunc=None, rejectedFunc=None,
+                              clickedFunc=None):
+        btnBox = QDialogButtonBox(standardButton, orientation, parent)
+        btnBox.setObjectName(objectName)
+        btnBox.setCenterButtons(isCenter)
+        if acceptedFunc:
+            btnBox.accepted.connect(acceptedFunc)
+        if rejectedFunc:
+            btnBox.rejected.connect(rejectedFunc)
+        if clickedFunc:
+            btnBox.clicked.connect(clickedFunc)
+        return btnBox
+        pass
 
     @classmethod
     def translate(cls, context=contextName, text=""):

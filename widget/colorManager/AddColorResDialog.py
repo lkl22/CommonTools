@@ -53,8 +53,9 @@ class AddColorResDialog(QtWidgets.QDialog):
         vbox.addWidget(WidgetUtil.createLabel(self), 1)
 
         vbox1.addLayout(vbox, 1)
-        splitter, _, _, _ = DialogUtil.createBottomBtn(self, okCallback=self.acceptFunc, cancelBtnText="Cancel")
-        vbox1.addLayout(splitter)
+
+        btnBox = WidgetUtil.createDialogButtonBox(parent=self, acceptedFunc=self.acceptFunc, rejectedFunc=self.rejectedFunc)
+        vbox1.addWidget(btnBox)
 
         self.setWindowModality(Qt.ApplicationModal)
         # 很关键，不加出不来
@@ -98,4 +99,11 @@ class AddColorResDialog(QtWidgets.QDialog):
             darkColor = '#' + darkColor
         if self.callbackFunc:
             self.callbackFunc(colorName, normalColor, darkColor)
+        # 有回调函数并且处理完成
+        self.close()
         return True
+
+    def rejectedFunc(self):
+        # 有回调函数并且处理完成
+        self.close()
+        pass

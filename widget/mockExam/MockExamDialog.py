@@ -6,7 +6,7 @@ import random
 
 from PyQt5.QtCore import pyqtSignal, QTimer
 from PyQt5.QtGui import QMouseEvent
-from PyQt5.QtWidgets import QScrollArea, QPushButton
+from PyQt5.QtWidgets import QScrollArea, QPushButton, QAbstractButton
 
 from constant.WidgetConst import *
 from util.DialogUtil import *
@@ -32,7 +32,7 @@ def getDictData(key, dicts):
 
 
 class MockExamDialog(QtWidgets.QDialog):
-    def __init__(self):
+    def __init__(self, isDebug=False):
         # 调用父类的构函
         QtWidgets.QDialog.__init__(self)
         self.setWindowFlags(Qt.Dialog | Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint)
@@ -104,16 +104,22 @@ class MockExamDialog(QtWidgets.QDialog):
         questionArea = self.createQuestionArea()
         vLayout.addWidget(questionArea)
 
-        splitter, self.submitBtn, self.nextBtn, self.preBtn = \
-            DialogUtil.createBottomBtn(self, okBtnText="交卷", okCallback=self.submitFunc,
-                                       cancelBtnText="下一题", cancelCallback=self.nextQuestionFunc,
-                                       ignoreBtnText="上一题", ignoreCallback=self.preQuestionFunc)
-        vLayout.addLayout(splitter)
+        btnBox = WidgetUtil.createDialogButtonBox(standardButton=QDialogButtonBox.Ok | QDialogButtonBox.Cancel | QDialogButtonBox.Ignore,
+                                                  parent=self,
+                                                  clickedFunc=self.clickedFunc)
+        self.preBtn = btnBox.button(QDialogButtonBox.Ignore)
+        self.nextBtn = btnBox.button(QDialogButtonBox.Cancel)
+        self.submitBtn = btnBox.button(QDialogButtonBox.Ok)
+        self.preBtn.setText("上一题")
+        self.nextBtn.setText("下一题")
+        self.submitBtn.setText("交卷")
+        vLayout.addWidget(btnBox)
 
         self.prepareMockExam()
         self.setWindowModality(Qt.ApplicationModal)
-        # 很关键，不加出不来
-        self.exec_()
+        if not isDebug:
+            # 很关键，不加出不来
+            self.exec_()
 
     def closeEvent(self, event):
         LogUtil.d("MockExamDialog", "closeEvent")
@@ -714,6 +720,16 @@ class MockExamDialog(QtWidgets.QDialog):
                 choiceOptionBtnList[ord(optionX) - 65].setChecked(True)
         pass
 
+    def clickedFunc(self, btn: QAbstractButton):
+        LogUtil.d("clickedFunc", btn.text())
+        if btn == self.preBtn:
+            self.preQuestionFunc()
+        elif btn == self.nextBtn:
+            self.nextQuestionFunc()
+        elif btn == self.submitBtn:
+            self.submitFunc()
+        pass
+
     def preQuestionFunc(self):
         LogUtil.d("preQuestionFunc")
         if self.curQuestionNo < 2:
@@ -837,6 +853,6 @@ class CustomPushButton(QPushButton):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    window = MockExamDialog()
+    window = MockExamDialog(isDebug=True)
     window.show()
     sys.exit(app.exec_())
