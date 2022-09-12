@@ -37,6 +37,7 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
             {"text": '查看应用安装路径', "func": self.getApkPath},
             {"text": '查看应用列表（系统）', "func": lambda: self.getPackageList("-s")},
             {"text": '查看应用列表（第三方）', "func": lambda: self.getPackageList("-3")},
+            {"text": '获取设备基本信息', "func": self.getDeviceInfo},
             {"text": '获取设备公网IP地址', "func": self.getPubicIpAddr},
             {"text": '获取设备IP地址', "func": self.getIPAddr},
             {"text": '获取设备MAC地址', "func": self.getMACAddr}
@@ -226,6 +227,16 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
         self.printRes(f"\n\n获取设备MAC地址开始：", '#0f0')
         self.printCmdRes(*AdbUtil.getMACAddr())
         self.printRes("获取设备MAC地址结束", '#0f0')
+        pass
+
+    def getDeviceInfo(self):
+        self.printRes(f"\n\n获取设备基本信息开始：", '#0f0')
+        deviceInfo = AdbUtil.getDeviceInfo()
+        for info in deviceInfo:
+            self.printRes(f"{info['name']}：")
+            self.printRes(info["value"], "#f00")
+
+        self.printRes("获取设备基本信息结束", '#0f0')
         pass
 
     def getPubicIpAddr(self):

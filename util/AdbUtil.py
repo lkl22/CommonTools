@@ -463,6 +463,55 @@ class AdbUtil:
         """
         return ShellUtil.exec("adb shell cat /sys/class/net/wlan0/address")
 
+    @staticmethod
+    def getDeviceInfo():
+        """
+        adb shell cat /system/build.prop
+        获取设备基础信息
+        :return: 设备基础信息
+        """
+        deviceInfo = []
+        out, err = ShellUtil.exec("adb shell getprop ro.product.brand")
+        if out:
+            deviceInfo.append({"name": "手机品牌", "value": out})
+
+        out, err = ShellUtil.exec("adb shell getprop ro.product.model")
+        if out:
+            deviceInfo.append({"name": "手机型号", "value": out})
+
+        out, err = ShellUtil.exec("adb shell getprop ro.build.version.release")
+        if out:
+            deviceInfo.append({"name": "Android 系统版本", "value": out})
+
+        out, err = ShellUtil.exec("adb shell getprop ro.build.version.sdk")
+        if out:
+            deviceInfo.append({"name": "SDK 版本", "value": out})
+
+        out, err = ShellUtil.exec("adb shell wm size")
+        if out:
+            deviceInfo.append({"name": "屏幕分辨率", "value": out})
+
+        out, err = ShellUtil.exec("adb shell wm density")
+        if out:
+            deviceInfo.append({"name": "屏幕密度", "value": out})
+
+        out, err = ShellUtil.exec("adb shell getprop ro.product.name")
+        if out:
+            deviceInfo.append({"name": "设备名", "value": out})
+
+        out, err = ShellUtil.exec("adb shell getprop ro.product.board")
+        if out:
+            deviceInfo.append({"name": "处理器型号", "value": out})
+
+        out, err = ShellUtil.exec("adb shell getprop ro.product.cpu.abilist")
+        if err or not out:
+            out, err = ShellUtil.exec("adb shell cat /system/build.prop | grep ro.product.cpu.abi")
+            if out:
+                deviceInfo.append({"name": "CPU 支持的 abi 列表", "value": out})
+        else:
+            deviceInfo.append({"name": "CPU 支持的 abi 列表", "value": out})
+        return deviceInfo
+
 
 if __name__ == "__main__":
     androidTestAssistTool = 'com.lkl.androidtestassisttool'
@@ -504,4 +553,5 @@ if __name__ == "__main__":
     # print(AdbUtil.checkAdbEvn())
     # print(AdbUtil.isDeviceConnect())
 
-    LogUtil.d(*AdbUtil.getIPAddr())
+    # LogUtil.d(*AdbUtil.getIPAddr())
+    LogUtil.d(*AdbUtil.getDeviceInfo())
