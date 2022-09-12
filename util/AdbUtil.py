@@ -101,7 +101,7 @@ class AdbUtil:
         :param apkFp: apk文件路径
         :return: 输出结果
         """
-        return ShellUtil.exec("adb install -r -d -t {}".format(apkFp))
+        return ShellUtil.exec("adb install -r -d -t {}".format(apkFp), timeout=30)
 
     @staticmethod
     def uninstallApk(packageName: str):

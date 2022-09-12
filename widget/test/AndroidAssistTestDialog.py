@@ -11,8 +11,8 @@ from widget.test.EditTestStepDialog import *
 
 ANDROID_TEST_ASSIST_TOOL_PACKAGE_NAME = 'com.lkl.androidtestassisttool'
 ANDROID_TEST_ASSIST_TOOL_MAIN_ACTIVITY = '.MainActivity'
-ANDROID_TEST_ASSIST_TOOL_LOWEST_VERSION = 10001
-ANDROID_TEST_ASSIST_TOOL_LOWEST_VERSION_NAME = "1.0.1"
+ANDROID_TEST_ASSIST_TOOL_LOWEST_VERSION = 10002
+ANDROID_TEST_ASSIST_TOOL_LOWEST_VERSION_NAME = "1.0.2"
 
 
 class AndroidAssistTestDialog(QtWidgets.QDialog):
@@ -37,6 +37,7 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
             {"text": '查看应用安装路径', "func": self.getApkPath},
             {"text": '查看应用列表（系统）', "func": lambda: self.getPackageList("-s")},
             {"text": '查看应用列表（第三方）', "func": lambda: self.getPackageList("-3")},
+            {"text": '获取设备公网IP地址', "func": self.getPubicIpAddr},
             {"text": '获取设备IP地址', "func": self.getIPAddr},
             {"text": '获取设备MAC地址', "func": self.getMACAddr}
         ]
@@ -153,7 +154,11 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
         hbox.addWidget(self.extractBtn)
         vbox.addLayout(hbox)
 
-        vbox.addWidget(WidgetUtil.createLabel(box, text="操作信息：", minSize=QSize(80, const.HEIGHT)))
+        hbox = WidgetUtil.createHBoxLayout()
+        hbox.addWidget(WidgetUtil.createLabel(box, text="操作信息：", minSize=QSize(80, const.HEIGHT)))
+        hbox.addWidget(WidgetUtil.createPushButton(box, text="清除操作信息", onClicked=self.clearExecRes))
+        hbox.addItem(WidgetUtil.createHSpacerItem(1, 1))
+        vbox.addLayout(hbox)
 
         self.execResTE = WidgetUtil.createTextEdit(box, isReadOnly=True)
         vbox.addWidget(self.execResTE, 1)
@@ -221,6 +226,26 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
         self.printRes(f"\n\n获取设备MAC地址开始：", '#0f0')
         self.printCmdRes(*AdbUtil.getMACAddr())
         self.printRes("获取设备MAC地址结束", '#0f0')
+        pass
+
+    def getPubicIpAddr(self):
+        if not self.checkTestApkInstall():
+            return
+        self.printRes(f"\n\n获取设备公网IP地址开始：", '#0f0')
+        ip = AdbUtil.sendOperationRequest(AdbUtil.putStringExtra("type", 'getPublicIpAddr'),
+                                          AdbUtil.putBooleanExtra("clearPublicIp", True))
+        retryTimes = 5
+        while not ip and retryTimes > 0:
+            retryTimes -= 1
+            time.sleep(1)
+            ip = AdbUtil.sendOperationRequest(AdbUtil.putStringExtra("type", 'getPublicIpAddr'))
+
+        if ip:
+            self.printRes(f"获取设备公网IP地址：{ip}")
+        else:
+            self.printRes("获取失败，请检查网络稍后重试。", '#f00')
+
+        self.printRes("获取设备公网IP地址结束", '#0f0')
         pass
 
     def getRunningActivities(self):
@@ -322,14 +347,14 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
     def checkTestApkInstall(self):
         if not self.hasCheckInstallFinish and int(AdbUtil.getVersionCode(
                 ANDROID_TEST_ASSIST_TOOL_PACKAGE_NAME)) < ANDROID_TEST_ASSIST_TOOL_LOWEST_VERSION:
+            AdbUtil.uninstallApk(ANDROID_TEST_ASSIST_TOOL_PACKAGE_NAME)
             self.printRes("准备下载测试apk。。。")
             downloadFile = "v{}.apk".format(ANDROID_TEST_ASSIST_TOOL_LOWEST_VERSION_NAME)
             if os.path.isfile(downloadFile):
                 self.printRes("apk已经存在。。。")
                 self.hasDownloadFinish = True
             if not self.hasDownloadFinish:
-                url = "https://github.com/lkl22/AndroidTestAssistTool/releases/download/v{}/app-release.apk" \
-                    .format(ANDROID_TEST_ASSIST_TOOL_LOWEST_VERSION_NAME)
+                url = f"https://github.com/lkl22/AndroidTestAssistTool/releases/download/v{ANDROID_TEST_ASSIST_TOOL_LOWEST_VERSION_NAME}/app-release.apk"
                 if not NetworkUtil.downloadPackage(url, downloadFile):
                     WidgetUtil.showErrorDialog(message="下载apk失败，请检查网络后，重新尝试！")
                     FileUtil.removeFile(downloadFile)
@@ -382,6 +407,10 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
                            DateUtil.timestamp2Time(nowTimestamp / 1000 - self.totalTimeSpinBox.value(), timeFormat),
                            DateUtil.timestamp2Time(nowTimestamp / 1000, timeFormat))
         self.printRes("log抓取成功: {}".format(dstFile))
+
+    def clearExecRes(self):
+        self.execResTE.clear()
+        pass
 
     def execCmd(self, cmd: str):
         LogUtil.d("exec cmd:", cmd)
