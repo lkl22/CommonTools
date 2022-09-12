@@ -2,35 +2,25 @@
 # python 3.x
 # Filename: AlgorithmDescDialog.py
 # 定义一个AlgorithmDescDialog类实现算法描述和代码实现功能
-from PyQt5 import QtPrintSupport
 from PyQt5.Qsci import QsciScintilla, QsciLexerPython, QsciLexer, QsciLexerJavaScript, QsciLexerJava, QsciLexerCPP
-from constant.WidgetConst import *
 from util.Uiautomator import *
 
 
 class AlgorithmDescDialog(QtWidgets.QDialog):
-    WINDOW_WIDTH = 800
-    WINDOW_HEIGHT = 600
-    DESC_GROUP_BOX_HEIGHT = 200
-
-    def __init__(self, title, descText, javaCode=None, javaScriptCode=None, pythonCode=None, cCode=None, cppCode=None, swiftCode=None):
+    def __init__(self, title, descText, javaCode=None, javaScriptCode=None, pythonCode=None, cCode=None, cppCode=None,
+                 swiftCode=None):
         # 调用父类的构函
         QtWidgets.QDialog.__init__(self)
+        self.setWindowFlags(Qt.Dialog | Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint)
+        AlgorithmDescDialog.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.8)
+        AlgorithmDescDialog.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.8)
         LogUtil.d("Init Algorithm Visualizer Dialog")
         self.setObjectName("AlgorithmVisualizerDialog")
         self.resize(AlgorithmDescDialog.WINDOW_WIDTH, AlgorithmDescDialog.WINDOW_HEIGHT)
-        self.setFixedSize(AlgorithmDescDialog.WINDOW_WIDTH, AlgorithmDescDialog.WINDOW_HEIGHT)
+        # self.setFixedSize(AlgorithmDescDialog.WINDOW_WIDTH, AlgorithmDescDialog.WINDOW_HEIGHT)
         self.setWindowTitle(WidgetUtil.translate(text=title))
 
-        width = AlgorithmDescDialog.WINDOW_WIDTH - const.PADDING * 2
-
-        vbox = WidgetUtil.createVBoxLayout()
-
-        layoutWidget = QtWidgets.QWidget(self)
-        layoutWidget.setGeometry(QRect(const.PADDING, const.PADDING, width,
-                                       int(AlgorithmDescDialog.WINDOW_HEIGHT - const.PADDING * 3 / 2)))
-        layoutWidget.setObjectName("layoutWidget")
-        layoutWidget.setLayout(vbox)
+        vbox = WidgetUtil.createVBoxLayout(self, margins=QMargins(10, 10, 10, 10), spacing=10)
 
         self.descText = descText
         self.javaCode = javaCode
@@ -40,12 +30,10 @@ class AlgorithmDescDialog(QtWidgets.QDialog):
         self.cppCode = cppCode
         self.swiftCode = swiftCode
 
-        descGroupBox = self.createDescGroupBox(layoutWidget)
+        descGroupBox = self.createDescGroupBox(self)
         vbox.addWidget(descGroupBox)
 
-        sizePolicy = WidgetUtil.createSizePolicy()
-        codeGroupBox = self.createCodeGroupBox(layoutWidget)
-        codeGroupBox.setSizePolicy(sizePolicy)
+        codeGroupBox = self.createCodeGroupBox(self)
         vbox.addWidget(codeGroupBox)
 
         self.setWindowModality(Qt.ApplicationModal)
@@ -53,30 +41,17 @@ class AlgorithmDescDialog(QtWidgets.QDialog):
         self.exec_()
 
     def createDescGroupBox(self, parent):
-        yPos = const.GROUP_BOX_MARGIN_TOP
-        width = AlgorithmDescDialog.WINDOW_WIDTH - const.PADDING * 4
-
-        box = WidgetUtil.createGroupBox(parent, title="算法描述",
-                                        minSize=QSize(width, AlgorithmDescDialog.DESC_GROUP_BOX_HEIGHT))
-
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width - const.PADDING * 2,
-                                                                 AlgorithmDescDialog.DESC_GROUP_BOX_HEIGHT - const.PADDING * 4))
-
-        desc = WidgetUtil.createTextEdit(splitter, isReadOnly=True)
+        box = WidgetUtil.createGroupBox(parent, title="算法描述")
+        vbox = WidgetUtil.createVBoxLayout(box, margins=QMargins(10, 10, 10, 10), spacing=10)
+        desc = WidgetUtil.createTextEdit(box, isReadOnly=True)
         desc.insertHtml(self.descText)
+        vbox.addWidget(desc)
         return box
 
     def createCodeGroupBox(self, parent):
-        yPos = const.GROUP_BOX_MARGIN_TOP
-        width = AlgorithmDescDialog.WINDOW_WIDTH - const.PADDING * 4
-
-        box = WidgetUtil.createGroupBox(parent, title="代码实现",
-                                        minSize=QSize(width, AlgorithmDescDialog.DESC_GROUP_BOX_HEIGHT))
-
-        # sizePolicy = WidgetUtil.createSizePolicy()
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width - const.PADDING * 2, 330))
-
-        tabWidget = WidgetUtil.createTabWidget(splitter)
+        box = WidgetUtil.createGroupBox(parent, title="代码实现")
+        vbox = WidgetUtil.createVBoxLayout(box, margins=QMargins(10, 10, 10, 10), spacing=10)
+        tabWidget = WidgetUtil.createTabWidget(box)
         if self.javaCode:
             tabWidget.addTab(self.createTabWidget(self.javaCode, QsciLexerJava()), "Java")
         if self.javaScriptCode:
@@ -89,7 +64,7 @@ class AlgorithmDescDialog(QtWidgets.QDialog):
             tabWidget.addTab(self.createTabWidget(self.cppCode, QsciLexerCPP()), "C++")
         if self.swiftCode:
             tabWidget.addTab(self.createTabWidget(self.swiftCode, QsciLexerCPP()), "Swift")
-
+        vbox.addWidget(tabWidget)
         return box
 
     def createTabWidget(self, code, textLexer: QsciLexer):

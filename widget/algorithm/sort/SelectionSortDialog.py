@@ -9,32 +9,28 @@ from util.AutoTestUtil import *
 from util.GraphicsUtil import GraphicsUtil
 from util.RandomUtil import RandomUtil
 from util.Uiautomator import *
+from constant.WidgetConst import *
+
+legendTextList = ["未排序的元素", "排完序的元素", "当前比较的元素", "当前最小的元素"]
+legendColorList = [ColorConst.Grey, ColorConst.Red, ColorConst.LightBlue, ColorConst.Indigo]
 
 
 class SelectionSortDialog(QtWidgets.QDialog):
-    WINDOW_WIDTH = 1360
-    WINDOW_HEIGHT = 680
-    GROUP_BOX_HEIGHT = 560
-
-    def __init__(self):
+    def __init__(self, isDebug=False):
         # 调用父类的构函
         QtWidgets.QDialog.__init__(self)
+        self.setWindowFlags(Qt.Dialog | Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint)
+        SelectionSortDialog.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.8)
+        SelectionSortDialog.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.8)
         LogUtil.d("Init Algorithm Visualizer Dialog")
         self.setObjectName("AlgorithmVisualizerDialog")
         self.resize(SelectionSortDialog.WINDOW_WIDTH, SelectionSortDialog.WINDOW_HEIGHT)
-        self.setFixedSize(SelectionSortDialog.WINDOW_WIDTH, SelectionSortDialog.WINDOW_HEIGHT)
+        # self.setFixedSize(SelectionSortDialog.WINDOW_WIDTH, SelectionSortDialog.WINDOW_HEIGHT)
         self.setWindowTitle(WidgetUtil.translate(text="选择算法可视化"))
 
-        width = SelectionSortDialog.WINDOW_WIDTH - const.PADDING * 2
+        vbox = WidgetUtil.createVBoxLayout(self, margins=QMargins(10, 10, 10, 10), spacing=10)
 
-        vbox = WidgetUtil.createVBoxLayout()
-
-        layoutWidget = QtWidgets.QWidget(self)
-        layoutWidget.setGeometry(QRect(const.PADDING, const.PADDING, width,
-                                       SelectionSortDialog.WINDOW_HEIGHT - const.PADDING * 3 // 2))
-        layoutWidget.setObjectName("layoutWidget")
-        layoutWidget.setLayout(vbox)
-
+        self.isDebug = isDebug
         self.minValue = 0
         self.maxValue = 200
         self.count = 15
@@ -47,11 +43,14 @@ class SelectionSortDialog(QtWidgets.QDialog):
         # 当前比较过程中数值最小的元素下标
         self.currentMinIndex = -1
         self.graphicsItems = []
+        self.legendItems = []
 
         self.isStop = False
+        self.sceneH = None
+        self.sceneW = None
 
         sizePolicy = WidgetUtil.createSizePolicy()
-        splitter = WidgetUtil.createSplitter(self, geometry=QRect(const.PADDING, const.PADDING, width, const.HEIGHT))
+        splitter = WidgetUtil.createSplitter(self)
         vbox.addWidget(splitter)
 
         WidgetUtil.createLabel(splitter, text="排序数字个数：", alignment=Qt.AlignVCenter | Qt.AlignLeft,
@@ -74,7 +73,7 @@ class SelectionSortDialog(QtWidgets.QDialog):
         self.delaySpinBox = WidgetUtil.createSpinBox(splitter, value=int(self.delay * 1000), minValue=100,
                                                      maxValue=10000, step=100, sizePolicy=sizePolicy)
 
-        splitter = WidgetUtil.createSplitter(self, geometry=QRect(const.PADDING, const.PADDING, width, const.HEIGHT))
+        splitter = WidgetUtil.createSplitter(self)
         vbox.addWidget(splitter)
 
         self.resetDataBtn = WidgetUtil.createPushButton(splitter, text="重置数据", onClicked=self.resetNumbers)
@@ -82,14 +81,15 @@ class SelectionSortDialog(QtWidgets.QDialog):
         self.stopExecBtn = WidgetUtil.createPushButton(splitter, text="终止执行", onClicked=self.stopExecAlgorithm)
         WidgetUtil.createPushButton(splitter, text="算法解读", onClicked=self.jumpAlgoDesc)
 
-        clickParamGroupBox = self.createAlgorithmVisualizerGroupBox(layoutWidget)
-        vbox.addWidget(clickParamGroupBox)
+        self.clickParamGroupBox = self.createAlgorithmVisualizerGroupBox(self)
+        vbox.addWidget(self.clickParamGroupBox)
 
-        self.resetNumbers()
+        # self.resetNumbers()
 
         self.setWindowModality(Qt.ApplicationModal)
-        # 很关键，不加出不来
-        self.exec_()
+        if not isDebug:
+            # 很关键，不加出不来
+            self.exec_()
 
     def genRandomNumbers(self):
         self.minValue = self.minValueSpinBox.value()
@@ -104,33 +104,11 @@ class SelectionSortDialog(QtWidgets.QDialog):
         self.renderData()
 
     def createAlgorithmVisualizerGroupBox(self, parent):
-        width = SelectionSortDialog.WINDOW_WIDTH - const.PADDING * 6
-        box = WidgetUtil.createGroupBox(parent, title="可视化视图",
-                                        minSize=QSize(width, SelectionSortDialog.GROUP_BOX_HEIGHT))
-        sizePolicy = WidgetUtil.createSizePolicy()
-        box.setSizePolicy(sizePolicy)
-
-        yPos = const.GROUP_BOX_MARGIN_TOP
-        graphicsViewH = SelectionSortDialog.GROUP_BOX_HEIGHT - const.PADDING * 2
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, graphicsViewH))
-
+        box = WidgetUtil.createGroupBox(parent, title="可视化视图")
+        vbox = WidgetUtil.createVBoxLayout(box, margins=QMargins(10, 10, 10, 10), spacing=10)
         self.scene = GraphicsUtil.createGraphicsScene(ColorConst.White)
-        GraphicsUtil.createGraphicsView(splitter, self.scene)
-
-        self.sceneW = width - const.PADDING * 2
-        self.sceneH = graphicsViewH - const.PADDING * 2
-
-        legendColW = self.sceneW / 4
-        legendTextList = ["未排序的元素", "排完序的元素", "当前比较的元素", "当前最小的元素"]
-        legendColorList = [ColorConst.Grey, ColorConst.Red, ColorConst.LightBlue, ColorConst.Indigo]
-        for i in range(0, 4):
-            self.scene.addItem(
-                GraphicsUtil.createGraphicsRectItem(QRectF(i * legendColW, 5, 20, 8), brush=QBrush(legendColorList[i])))
-            self.scene.addItem(
-                GraphicsUtil.createGraphicsSimpleTextItem(legendTextList[i], legendColorList[i],
-                                                          QPointF(i * legendColW + 25, 0), 12))
-
-        LogUtil.d("scene size", self.scene.width(), self.scene.height())
+        self.graphicsView = GraphicsUtil.createGraphicsView(box, self.scene)
+        vbox.addWidget(self.graphicsView)
         return box
 
     def execAlgorithm(self):
@@ -173,6 +151,28 @@ class SelectionSortDialog(QtWidgets.QDialog):
         self.pause(self.delay)
 
     def renderData(self, isReset=True):
+        sceneW = self.graphicsView.width() - const.PADDING * 4
+        sceneH = self.graphicsView.height() - const.PADDING * 2
+        if self.sceneW != sceneW or self.sceneH != sceneH:
+            self.sceneW = sceneW
+            self.sceneH = sceneH
+
+            for item in self.legendItems:
+                self.scene.removeItem(item)
+            self.legendItems.clear()
+            legendColW = self.sceneW / 4
+            for i in range(0, 4):
+                rectItem = GraphicsUtil.createGraphicsRectItem(QRectF(i * legendColW, 5, 20, 8),
+                                                               brush=QBrush(legendColorList[i]))
+                self.scene.addItem(rectItem)
+                self.legendItems.append(rectItem)
+                textItem = GraphicsUtil.createGraphicsSimpleTextItem(legendTextList[i], legendColorList[i],
+                                                                     QPointF(i * legendColW + 25, 0), 12)
+                self.scene.addItem(textItem)
+                self.legendItems.append(textItem)
+
+            LogUtil.d("scene size", sceneW, sceneH)
+
         if isReset:
             # 清空上次的数据
             # self.scene.clear()
@@ -226,7 +226,8 @@ class SelectionSortDialog(QtWidgets.QDialog):
     def jumpAlgoDesc(self):
         LogUtil.i("jumpAlgoDesc")
         from widget.algorithm.AlgorithmDescDialog import AlgorithmDescDialog
-        basePath = FileUtil.getAlgorithmFp("SelectionSort/")
+        basePath = "../../../resources/algorithm/SelectionSort/" if self.isDebug else FileUtil.getAlgorithmFp(
+            "SelectionSort/")
         LogUtil.e("basePath:", basePath)
         AlgorithmDescDialog("选择排序算法描述", FileUtil.readFile(basePath + "SelectionSort.html"),
                             FileUtil.readFile(basePath + "SelectionSort.java"),
@@ -236,3 +237,10 @@ class SelectionSortDialog(QtWidgets.QDialog):
                             FileUtil.readFile(basePath + "SelectionSort.cpp"),
                             FileUtil.readFile(basePath + "SelectionSort.swift"))
         pass
+
+
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
+    window = SelectionSortDialog(isDebug=True)
+    window.show()
+    sys.exit(app.exec_())

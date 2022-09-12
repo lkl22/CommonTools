@@ -8,14 +8,10 @@ from constant.WidgetConst import *
 from util.ExcelUtil import *
 from util.DialogUtil import *
 from util.DomXmlUtil import *
-from util.LogUtil import *
 from util.OperaIni import *
 
 
 class AndroidColorResDialog(QtWidgets.QDialog):
-    WINDOW_WIDTH = 800
-    WINDOW_HEIGHT = 670
-
     KEY_FIND_EXCEL_FN = "findExcelFn"
     SECTION_ANDROID = "android"
 
