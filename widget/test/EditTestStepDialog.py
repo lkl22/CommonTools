@@ -2,25 +2,24 @@
 # python 3.x
 # Filename: EditTestStepDialog.py
 # 定义一个EditTestStepDialog类实现添加测试步骤
-from constant.TestStepConst import *
+from PyQt5.QtWidgets import QAbstractButton
 from constant.WidgetConst import *
-from util.DialogUtil import *
 from util.AutoTestUtil import *
 from util.Uiautomator import *
 
 
 class EditTestStepDialog(QtWidgets.QDialog):
-    WINDOW_WIDTH = 600
-    WINDOW_HEIGHT = 280
-    GROUP_BOX_HEIGHT = 140
-
-    def __init__(self, callbackFunc, stepType=const.STEP_TYPE_SINGLE_CLICK, params={}, u: Uiautomator = None):
+    def __init__(self, callbackFunc, stepType=const.STEP_TYPE_SINGLE_CLICK, params={}, u: Uiautomator = None,
+                 isDebug=False):
         # 调用父类的构函
         QtWidgets.QDialog.__init__(self)
+        self.setWindowFlags(Qt.Dialog | Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint)
+        EditTestStepDialog.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.5)
+        EditTestStepDialog.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.3)
         LogUtil.d("Init edit test step Dialog")
         self.setObjectName("EditTestStepDialog")
         self.resize(EditTestStepDialog.WINDOW_WIDTH, EditTestStepDialog.WINDOW_HEIGHT)
-        self.setFixedSize(EditTestStepDialog.WINDOW_WIDTH, EditTestStepDialog.WINDOW_HEIGHT)
+        # self.setFixedSize(EditTestStepDialog.WINDOW_WIDTH, EditTestStepDialog.WINDOW_HEIGHT)
         self.setWindowTitle(WidgetUtil.translate(text="添加/编辑Test step"))
 
         self.callbackFunc = callbackFunc
@@ -29,55 +28,45 @@ class EditTestStepDialog(QtWidgets.QDialog):
         self.u: Uiautomator = u
         self.t: AutoTestUtil = None
 
-        sizePolicy = WidgetUtil.createSizePolicy()
-        width = EditTestStepDialog.WINDOW_WIDTH - const.PADDING * 2
-
-        vbox = WidgetUtil.createVBoxLayout()
-
-        layoutWidget = QtWidgets.QWidget(self)
-        layoutWidget.setGeometry(QRect(const.PADDING, const.PADDING, width,
-                                       EditTestStepDialog.WINDOW_HEIGHT - const.PADDING * 3 / 2))
-        layoutWidget.setObjectName("layoutWidget")
-        layoutWidget.setLayout(vbox)
-
-        splitter = WidgetUtil.createSplitter(self, geometry=QRect(const.PADDING, const.PADDING, width, const.HEIGHT))
-        WidgetUtil.createLabel(splitter, text="操作类型：", alignment=Qt.AlignVCenter | Qt.AlignLeft,
-                               minSize=QSize(80, const.HEIGHT))
+        vbox = WidgetUtil.createVBoxLayout(self, margins=QMargins(10, 10, 10, 10), spacing=10)
+        hbox = WidgetUtil.createHBoxLayout(spacing=10)
+        hbox.addWidget(WidgetUtil.createLabel(self, text="操作类型：", alignment=Qt.AlignVCenter | Qt.AlignLeft,
+                                              minSize=QSize(80, const.HEIGHT)))
         self.superTestTypes = WidgetUtil.createButtonGroup(onToggled=self.superTestTypeToggled)
         for i in range(len(const.STEP_TYPE_NAMES)):
-            self.superTestTypes.addButton(
-                WidgetUtil.createRadioButton(splitter, text=const.STEP_TYPE_NAMES[i] + "  ",
-                                             isChecked=(stepType // 10 == i)), i)
-        WidgetUtil.createLabel(splitter, text="", sizePolicy=sizePolicy)
-        vbox.addWidget(splitter)
+            radioButton = WidgetUtil.createRadioButton(self, text=const.STEP_TYPE_NAMES[i] + "  ",
+                                                       isChecked=(stepType // 10 == i))
+            self.superTestTypes.addButton(radioButton, i)
+            hbox.addWidget(radioButton)
+        hbox.addItem(WidgetUtil.createHSpacerItem(1, 1))
+        vbox.addLayout(hbox)
 
-        self.subTypeSplitter = WidgetUtil.createSplitter(self, geometry=QRect(const.PADDING, const.PADDING, width,
-                                                                              const.HEIGHT))
-        WidgetUtil.createLabel(self.subTypeSplitter, text="", alignment=Qt.AlignVCenter | Qt.AlignLeft,
-                               minSize=QSize(80, const.HEIGHT))
+        hbox = WidgetUtil.createHBoxLayout(spacing=10)
+        hbox.addWidget(WidgetUtil.createLabel(self, text="", alignment=Qt.AlignVCenter | Qt.AlignLeft,
+                                              minSize=QSize(80, const.HEIGHT)))
         self.subClickTestTypes = WidgetUtil.createButtonGroup(onToggled=self.subClickTestTypeToggled)
         for i in range(len(const.CLICK_TYPES)):
-            self.subClickTestTypes.addButton(
-                WidgetUtil.createRadioButton(self.subTypeSplitter, text=const.CLICK_TYPES[i] + "  ", isChecked=False),
-                i)
+            radioButton = WidgetUtil.createRadioButton(self, text=const.CLICK_TYPES[i] + "  ", isChecked=False)
+            self.subClickTestTypes.addButton(radioButton, i)
+            hbox.addWidget(radioButton)
 
         self.subSwipeTestTypes = WidgetUtil.createButtonGroup(onToggled=self.subSwipeTestTypeToggled)
         for i in range(len(const.SWIPE_TYPES)):
-            self.subSwipeTestTypes.addButton(
-                WidgetUtil.createRadioButton(self.subTypeSplitter, text=const.SWIPE_TYPES[i] + "  ", isChecked=False),
-                i)
+            radioButton = WidgetUtil.createRadioButton(self, text=const.SWIPE_TYPES[i] + "  ", isChecked=False)
+            self.subSwipeTestTypes.addButton(radioButton, i)
+            hbox.addWidget(radioButton)
+        hbox.addItem(WidgetUtil.createHSpacerItem(1, 1))
+        vbox.addLayout(hbox)
 
-        WidgetUtil.createLabel(self.subTypeSplitter, text="", sizePolicy=sizePolicy)
-        vbox.addWidget(self.subTypeSplitter)
-
-        clickParamGroupBox = self.createClickParamGroupBox(layoutWidget)
+        clickParamGroupBox = self.createClickParamGroupBox(self)
         vbox.addWidget(clickParamGroupBox)
 
-        swipeParamGroupBox = self.createSwipeParamGroupBox(layoutWidget)
+        swipeParamGroupBox = self.createSwipeParamGroupBox(self)
         vbox.addWidget(swipeParamGroupBox)
 
-        findParamGroupBox = self.createFindParamGroupBox(layoutWidget)
+        findParamGroupBox = self.createFindParamGroupBox(self)
         vbox.addWidget(findParamGroupBox)
+        vbox.addWidget(WidgetUtil.createLabel(self), 1)
 
         self.groupBoxList = []
         self.groupBoxList.append(clickParamGroupBox)
@@ -89,13 +78,22 @@ class EditTestStepDialog(QtWidgets.QDialog):
         self.setSwipeParam(self.params)
         self.setFindParam(self.params)
 
-        splitter, _, _, _ = DialogUtil.createBottomBtn(self, okCallback=self.acceptFunc, cancelBtnText="Cancel",
-                                                       ignoreBtnText='Test', ignoreCallback=self.testStep)
-        vbox.addLayout(splitter)
+        btnBox = WidgetUtil.createDialogButtonBox(
+            standardButton=QDialogButtonBox.Ok | QDialogButtonBox.Cancel | QDialogButtonBox.Ignore,
+            parent=self, clickedFunc=self.clickedFunc)
+        self.testBtn = btnBox.button(QDialogButtonBox.Ignore if PlatformUtil.isMac() else QDialogButtonBox.Ok)
+        self.cancelBtn = btnBox.button(QDialogButtonBox.Cancel if PlatformUtil.isMac() else QDialogButtonBox.Ignore)
+        self.okBtn = btnBox.button(QDialogButtonBox.Ok if PlatformUtil.isMac() else QDialogButtonBox.Cancel)
+        self.testBtn.setText("Test")
+        self.cancelBtn.setText("Cancel")
+        self.okBtn.setText("Ok")
+
+        vbox.addWidget(btnBox)
 
         self.setWindowModality(Qt.ApplicationModal)
-        # 很关键，不加出不来
-        self.exec_()
+        if not isDebug:
+            # 很关键，不加出不来
+            self.exec_()
 
     def subTestTypeToggledVisible(self):
         """
@@ -147,101 +145,115 @@ class EditTestStepDialog(QtWidgets.QDialog):
         pass
 
     def createClickParamGroupBox(self, parent):
-        width = EditTestStepDialog.WINDOW_WIDTH - const.PADDING * 8
-        box = WidgetUtil.createGroupBox(parent, title="click params",
-                                        minSize=QSize(width, EditTestStepDialog.GROUP_BOX_HEIGHT))
-        yPos = const.GROUP_BOX_MARGIN_TOP
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
-        sizePolicy = WidgetUtil.createSizePolicy()
-        WidgetUtil.createLabel(splitter, text="目标对象XPath：", alignment=Qt.AlignVCenter | Qt.AlignLeft,
-                               minSize=QSize(100, const.HEIGHT))
-        self.clickXpathLineEdit = WidgetUtil.createLineEdit(splitter, sizePolicy=sizePolicy)
+        box = WidgetUtil.createGroupBox(parent, title="click params")
+        vbox = WidgetUtil.createVBoxLayout(box, margins=QMargins(10, 10, 10, 10), spacing=10)
+        hbox = WidgetUtil.createHBoxLayout()
+        hbox.addWidget(WidgetUtil.createLabel(box, text="目标对象XPath：", alignment=Qt.AlignVCenter | Qt.AlignLeft,
+                                              minSize=QSize(100, const.HEIGHT)))
+        self.clickXpathLineEdit = WidgetUtil.createLineEdit(box)
+        hbox.addWidget(self.clickXpathLineEdit)
+        vbox.addLayout(hbox)
 
-        yPos += const.HEIGHT_OFFSET
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
-        WidgetUtil.createLabel(splitter, text="click对象坐标：", alignment=Qt.AlignVCenter | Qt.AlignLeft,
-                               minSize=QSize(100, const.HEIGHT))
-        WidgetUtil.createLabel(splitter, text="x坐标", alignment=Qt.AlignVCenter | Qt.AlignRight,
-                               minSize=QSize(50, const.HEIGHT))
-        self.clickXPosSpinBox = WidgetUtil.createDoubleSpinBox(splitter, value=0.5, minValue=0, maxValue=10000,
+        hbox = WidgetUtil.createHBoxLayout()
+        sizePolicy = WidgetUtil.createSizePolicy()
+        hbox.addWidget(WidgetUtil.createLabel(box, text="click对象坐标：", alignment=Qt.AlignVCenter | Qt.AlignLeft,
+                                              minSize=QSize(100, const.HEIGHT)))
+        hbox.addWidget(WidgetUtil.createLabel(box, text="x坐标", alignment=Qt.AlignVCenter | Qt.AlignRight,
+                                              minSize=QSize(50, const.HEIGHT)))
+        self.clickXPosSpinBox = WidgetUtil.createDoubleSpinBox(box, value=0.5, minValue=0, maxValue=10000,
                                                                step=0.1, suffix='  %/px', decimals=3,
                                                                sizePolicy=sizePolicy)
-        WidgetUtil.createLabel(splitter, text="y坐标", alignment=Qt.AlignVCenter | Qt.AlignRight,
-                               minSize=QSize(50, const.HEIGHT))
-        self.clickYPosSpinBox = WidgetUtil.createDoubleSpinBox(splitter, value=0.5, minValue=0, maxValue=10000,
+        hbox.addWidget(self.clickXPosSpinBox)
+        hbox.addWidget(WidgetUtil.createLabel(box, text="y坐标", alignment=Qt.AlignVCenter | Qt.AlignRight,
+                                              minSize=QSize(50, const.HEIGHT)))
+        self.clickYPosSpinBox = WidgetUtil.createDoubleSpinBox(box, value=0.5, minValue=0, maxValue=10000,
                                                                step=0.1, suffix='  %/px', decimals=3,
                                                                sizePolicy=sizePolicy)
-        yPos += const.HEIGHT_OFFSET
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
-        WidgetUtil.createLabel(splitter, text="描述：", alignment=Qt.AlignVCenter | Qt.AlignLeft,
-                               minSize=QSize(100, const.HEIGHT))
-        self.clickDescLineEdit = WidgetUtil.createLineEdit(splitter, sizePolicy=sizePolicy)
+        hbox.addWidget(self.clickYPosSpinBox)
+        vbox.addLayout(hbox)
+
+        hbox = WidgetUtil.createHBoxLayout()
+        hbox.addWidget(WidgetUtil.createLabel(box, text="描述：", alignment=Qt.AlignVCenter | Qt.AlignLeft,
+                                              minSize=QSize(100, const.HEIGHT)))
+        self.clickDescLineEdit = WidgetUtil.createLineEdit(box, sizePolicy=sizePolicy)
+        hbox.addWidget(self.clickDescLineEdit)
+        vbox.addLayout(hbox)
         return box
 
     def createSwipeParamGroupBox(self, parent):
-        width = EditTestStepDialog.WINDOW_WIDTH - const.PADDING * 8
-        box = WidgetUtil.createGroupBox(parent, title="swipe params",
-                                        minSize=QSize(width, EditTestStepDialog.GROUP_BOX_HEIGHT))
-        yPos = const.GROUP_BOX_MARGIN_TOP
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
+        box = WidgetUtil.createGroupBox(parent, title="swipe params")
+        vbox = WidgetUtil.createVBoxLayout(box, margins=QMargins(10, 10, 10, 10), spacing=10)
+        hbox = WidgetUtil.createHBoxLayout()
         sizePolicy = WidgetUtil.createSizePolicy()
-        WidgetUtil.createLabel(splitter, text="起始坐标：", alignment=Qt.AlignVCenter | Qt.AlignLeft,
-                               minSize=QSize(80, const.HEIGHT))
-        WidgetUtil.createLabel(splitter, text="x坐标", alignment=Qt.AlignVCenter | Qt.AlignRight,
-                               minSize=QSize(50, const.HEIGHT))
-        self.swipeXPosSpinBox = WidgetUtil.createDoubleSpinBox(splitter, value=0.5, minValue=0, maxValue=10000,
+        hbox.addWidget(WidgetUtil.createLabel(box, text="起始坐标：", alignment=Qt.AlignVCenter | Qt.AlignLeft,
+                                              minSize=QSize(80, const.HEIGHT)))
+        hbox.addWidget(WidgetUtil.createLabel(box, text="x坐标", alignment=Qt.AlignVCenter | Qt.AlignRight,
+                                              minSize=QSize(50, const.HEIGHT)))
+        self.swipeXPosSpinBox = WidgetUtil.createDoubleSpinBox(box, value=0.5, minValue=0, maxValue=10000,
                                                                step=0.1, suffix='  %/px', decimals=3,
                                                                sizePolicy=sizePolicy)
-        WidgetUtil.createLabel(splitter, text="y坐标", alignment=Qt.AlignVCenter | Qt.AlignRight,
-                               minSize=QSize(50, const.HEIGHT))
-        self.swipeYPosSpinBox = WidgetUtil.createDoubleSpinBox(splitter, value=0.5, minValue=0, maxValue=10000,
+        hbox.addWidget(self.swipeXPosSpinBox)
+        hbox.addWidget(WidgetUtil.createLabel(box, text="y坐标", alignment=Qt.AlignVCenter | Qt.AlignRight,
+                                              minSize=QSize(50, const.HEIGHT)))
+        self.swipeYPosSpinBox = WidgetUtil.createDoubleSpinBox(box, value=0.5, minValue=0, maxValue=10000,
                                                                step=0.1, suffix='  %/px', decimals=3,
                                                                sizePolicy=sizePolicy)
-        yPos += const.HEIGHT_OFFSET
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
-        WidgetUtil.createLabel(splitter, text="滑动距离：", alignment=Qt.AlignVCenter | Qt.AlignLeft,
-                               minSize=QSize(80, const.HEIGHT))
-        self.swipeDistanceSpinBox = WidgetUtil.createDoubleSpinBox(splitter, value=0.3, minValue=0, maxValue=10000,
+        hbox.addWidget(self.swipeYPosSpinBox)
+        vbox.addLayout(hbox)
+
+        hbox = WidgetUtil.createHBoxLayout()
+        hbox.addWidget(WidgetUtil.createLabel(box, text="滑动距离：", alignment=Qt.AlignVCenter | Qt.AlignLeft,
+                                              minSize=QSize(80, const.HEIGHT)))
+        self.swipeDistanceSpinBox = WidgetUtil.createDoubleSpinBox(box, value=0.3, minValue=0, maxValue=10000,
                                                                    step=0.1, suffix='  %/px', decimals=3,
                                                                    sizePolicy=sizePolicy)
-        WidgetUtil.createLabel(splitter, text="滑动时长：", alignment=Qt.AlignVCenter | Qt.AlignRight,
-                               minSize=QSize(80, const.HEIGHT))
-        self.swipeDurationSpinBox = WidgetUtil.createDoubleSpinBox(splitter, value=0.03, minValue=0.005, maxValue=10,
+        hbox.addWidget(self.swipeDistanceSpinBox)
+        hbox.addWidget(WidgetUtil.createLabel(box, text="滑动时长：", alignment=Qt.AlignVCenter | Qt.AlignRight,
+                                              minSize=QSize(80, const.HEIGHT)))
+        self.swipeDurationSpinBox = WidgetUtil.createDoubleSpinBox(box, value=0.03, minValue=0.005, maxValue=10,
                                                                    step=0.01, suffix='  s', decimals=3,
                                                                    sizePolicy=sizePolicy)
-        yPos += const.HEIGHT_OFFSET
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
-        WidgetUtil.createLabel(splitter, text="描述：", alignment=Qt.AlignVCenter | Qt.AlignLeft,
-                               minSize=QSize(80, const.HEIGHT))
-        self.swipeDescLineEdit = WidgetUtil.createLineEdit(splitter, sizePolicy=sizePolicy)
+        hbox.addWidget(self.swipeDurationSpinBox)
+        vbox.addLayout(hbox)
+
+        hbox = WidgetUtil.createHBoxLayout()
+        hbox.addWidget(WidgetUtil.createLabel(box, text="描述：", alignment=Qt.AlignVCenter | Qt.AlignLeft,
+                                              minSize=QSize(80, const.HEIGHT)))
+        self.swipeDescLineEdit = WidgetUtil.createLineEdit(box, sizePolicy=sizePolicy)
+        hbox.addWidget(self.swipeDescLineEdit)
+        vbox.addLayout(hbox)
         return box
 
     def createFindParamGroupBox(self, parent):
-        width = EditTestStepDialog.WINDOW_WIDTH - const.PADDING * 8
-        box = WidgetUtil.createGroupBox(parent, title="find params",
-                                        minSize=QSize(width, EditTestStepDialog.GROUP_BOX_HEIGHT))
-        yPos = const.GROUP_BOX_MARGIN_TOP
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
+        box = WidgetUtil.createGroupBox(parent, title="find params")
+        vbox = WidgetUtil.createVBoxLayout(box, margins=QMargins(10, 10, 10, 10), spacing=10)
+        hbox = WidgetUtil.createHBoxLayout()
         sizePolicy = WidgetUtil.createSizePolicy()
-        WidgetUtil.createLabel(splitter, text="目标对象XPath：", alignment=Qt.AlignVCenter | Qt.AlignLeft,
-                               minSize=QSize(100, const.HEIGHT))
-        self.findXathLineEdit = WidgetUtil.createLineEdit(splitter, sizePolicy=sizePolicy)
+        hbox.addWidget(WidgetUtil.createLabel(box, text="目标对象XPath：", alignment=Qt.AlignVCenter | Qt.AlignLeft,
+                                              minSize=QSize(100, const.HEIGHT)))
+        self.findXathLineEdit = WidgetUtil.createLineEdit(box, sizePolicy=sizePolicy)
+        hbox.addWidget(self.findXathLineEdit)
+        vbox.addLayout(hbox)
 
-        yPos += const.HEIGHT_OFFSET
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
-        WidgetUtil.createLabel(splitter, text="间隔时间：", alignment=Qt.AlignVCenter | Qt.AlignLeft,
-                               minSize=QSize(100, const.HEIGHT))
-        self.intervalTimeSpinBox = WidgetUtil.createSpinBox(splitter, value=3, minValue=1, maxValue=10, step=1,
+        hbox = WidgetUtil.createHBoxLayout()
+        hbox.addWidget(WidgetUtil.createLabel(box, text="间隔时间：", alignment=Qt.AlignVCenter | Qt.AlignLeft,
+                                              minSize=QSize(100, const.HEIGHT)))
+        self.intervalTimeSpinBox = WidgetUtil.createSpinBox(box, value=3, minValue=1, maxValue=10, step=1,
                                                             suffix='s', sizePolicy=sizePolicy)
-        WidgetUtil.createLabel(splitter, text="等待次数：", alignment=Qt.AlignVCenter | Qt.AlignRight,
-                               minSize=QSize(150, const.HEIGHT))
-        self.repeatNumSpinBox = WidgetUtil.createSpinBox(splitter, value=0, minValue=0, maxValue=10, step=1,
+        hbox.addWidget(self.intervalTimeSpinBox)
+        hbox.addWidget(WidgetUtil.createLabel(box, text="等待次数：", alignment=Qt.AlignVCenter | Qt.AlignRight,
+                                              minSize=QSize(150, const.HEIGHT)))
+        self.repeatNumSpinBox = WidgetUtil.createSpinBox(box, value=0, minValue=0, maxValue=10, step=1,
                                                          suffix='次', sizePolicy=sizePolicy)
-        yPos += const.HEIGHT_OFFSET
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
-        WidgetUtil.createLabel(splitter, text="描述：", alignment=Qt.AlignVCenter | Qt.AlignLeft,
-                               minSize=QSize(100, const.HEIGHT))
-        self.findDescLineEdit = WidgetUtil.createLineEdit(splitter, sizePolicy=sizePolicy)
+        hbox.addWidget(self.repeatNumSpinBox)
+        vbox.addLayout(hbox)
+
+        hbox = WidgetUtil.createHBoxLayout()
+        hbox.addWidget(WidgetUtil.createLabel(box, text="描述：", alignment=Qt.AlignVCenter | Qt.AlignLeft,
+                                              minSize=QSize(100, const.HEIGHT)))
+        self.findDescLineEdit = WidgetUtil.createLineEdit(box, sizePolicy=sizePolicy)
+        hbox.addWidget(self.findDescLineEdit)
+        vbox.addLayout(hbox)
         return box
 
     def setClickParam(self, params: dict = {}):
@@ -305,15 +317,26 @@ class EditTestStepDialog(QtWidgets.QDialog):
         else:
             self.findDescLineEdit.setText('')
 
+    def clickedFunc(self, btn: QAbstractButton):
+        LogUtil.d("clickedFunc", btn.text())
+        if btn == self.testBtn:
+            self.testStep()
+        elif btn == self.cancelBtn:
+            self.close()
+        elif btn == self.okBtn:
+            self.acceptFunc()
+        pass
+
     def acceptFunc(self):
         LogUtil.i("acceptFunc")
         self.getParams()
         if not self.checkParams():
             LogUtil.i("testStep params check failed.")
-            return False
+            return
         if self.callbackFunc:
             self.callbackFunc(self.stepType, self.params)
-        return True
+        self.close()
+        pass
 
     def testStep(self):
         LogUtil.i("testStep")
@@ -329,10 +352,10 @@ class EditTestStepDialog(QtWidgets.QDialog):
         self.getParams()
         if not self.checkParams():
             LogUtil.i("testStep params check failed.")
-            return False
+            return
         res = self.t.startTestStep(stepType=self.stepType, params=self.params)
         LogUtil.d('res:', res)
-        return False
+        pass
 
     def getParams(self):
         self.params = {}
@@ -392,3 +415,12 @@ class EditTestStepDialog(QtWidgets.QDialog):
             WidgetUtil.showErrorDialog(message="请设置xpath参数")
             return False
         return True
+
+
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
+    window = EditTestStepDialog(callbackFunc=lambda stepType, params: {
+        LogUtil.d("callback:", "stepType", stepType, "params", params)
+    }, isDebug=True)
+    window.show()
+    sys.exit(app.exec_())

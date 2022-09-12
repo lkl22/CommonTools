@@ -4,13 +4,6 @@
 # 定义一个AndroidAdbDialog类实现android adb指令操作功能
 from PyQt5.QtCore import QModelIndex
 from PyQt5.QtWidgets import QAbstractItemView
-
-from constant.TestStepConst import *
-from constant.WidgetConst import *
-from util.FileUtil import *
-from util.DialogUtil import *
-from util.ShellUtil import *
-from util.LogUtil import *
 from util.WeditorUtil import *
 from widget.test.EditTestStepDialog import *
 
@@ -85,6 +78,7 @@ class AndroidAdbDialog(QtWidgets.QDialog):
         hbox = WidgetUtil.createHBoxLayout()
         hbox.addWidget(WidgetUtil.createPushButton(box, text="add step", onClicked=self.addStep))
         hbox.addWidget(WidgetUtil.createPushButton(box, text="exec steps", onClicked=self.execSteps))
+        hbox.addItem(WidgetUtil.createHSpacerItem(1, 1))
         vbox.addLayout(hbox)
 
         hbox = WidgetUtil.createHBoxLayout()
