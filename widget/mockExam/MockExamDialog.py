@@ -107,9 +107,9 @@ class MockExamDialog(QtWidgets.QDialog):
         btnBox = WidgetUtil.createDialogButtonBox(standardButton=QDialogButtonBox.Ok | QDialogButtonBox.Cancel | QDialogButtonBox.Ignore,
                                                   parent=self,
                                                   clickedFunc=self.clickedFunc)
-        self.preBtn = btnBox.button(QDialogButtonBox.Ignore)
-        self.nextBtn = btnBox.button(QDialogButtonBox.Cancel)
-        self.submitBtn = btnBox.button(QDialogButtonBox.Ok)
+        self.preBtn = btnBox.button(QDialogButtonBox.Ignore if PlatformUtil.isMac() else QDialogButtonBox.Ok)
+        self.nextBtn = btnBox.button(QDialogButtonBox.Cancel if PlatformUtil.isMac() else QDialogButtonBox.Ignore)
+        self.submitBtn = btnBox.button(QDialogButtonBox.Ok if PlatformUtil.isMac() else QDialogButtonBox.Cancel)
         self.preBtn.setText("上一题")
         self.nextBtn.setText("下一题")
         self.submitBtn.setText("交卷")
