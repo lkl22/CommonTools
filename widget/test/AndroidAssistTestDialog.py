@@ -34,7 +34,11 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
             {"text": '查看运行的Activities', "func": self.getRunningActivities},
             {"text": '是否安装', "func": self.isInstalled},
             {"text": '获取apk版本信息', "func": self.getVersionInfo},
-            {"text": '查看应用安装路径', "func": self.getApkPath}
+            {"text": '查看应用安装路径', "func": self.getApkPath},
+            {"text": '查看应用列表（系统）', "func": lambda: self.getPackageList("-s")},
+            {"text": '查看应用列表（第三方）', "func": lambda: self.getPackageList("-3")},
+            {"text": '获取设备IP地址', "func": self.getIPAddr},
+            {"text": '获取设备MAC地址', "func": self.getMACAddr}
         ]
         self.isDebug = isDebug
         if isDebug:
@@ -59,8 +63,9 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
         vLayout.addWidget(adbGroupBox)
 
         self.setWindowModality(Qt.ApplicationModal)
-        # 很关键，不加出不来
-        self.exec_()
+        if not isDebug:
+            # 很关键，不加出不来
+            self.exec_()
 
     def createGroupBox(self, parent):
         box = WidgetUtil.createGroupBox(parent, title="Android Test")
@@ -198,6 +203,24 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
     def getApkPath(self):
         packageName = self.getPackageName()
         self.printRes('{} 的安装路径：{}'.format(packageName, AdbUtil.getApkPath(packageName)))
+        pass
+
+    def getPackageList(self, params):
+        self.printRes(f"\n\n获取安装应用开始（{params}）：", '#0f0')
+        self.printCmdRes(*AdbUtil.getPackageList(params))
+        self.printRes("获取安装应用结束", '#0f0')
+        pass
+
+    def getIPAddr(self):
+        self.printRes(f"\n\n获取设备IP地址开始：", '#0f0')
+        self.printCmdRes(*AdbUtil.getIPAddr())
+        self.printRes("获取设备IP地址结束", '#0f0')
+        pass
+
+    def getMACAddr(self):
+        self.printRes(f"\n\n获取设备MAC地址开始：", '#0f0')
+        self.printCmdRes(*AdbUtil.getMACAddr())
+        self.printRes("获取设备MAC地址结束", '#0f0')
         pass
 
     def getRunningActivities(self):

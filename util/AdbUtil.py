@@ -77,6 +77,24 @@ class AdbUtil:
         return False
 
     @staticmethod
+    def getPackageList(params=""):
+        """
+        adb shell pm list packages [-f] [-d] [-e] [-s] [-3] [-i] [-u] [--user USER_ID] [FILTER]
+        参数	        显示列表
+        无	        所有应用
+        -f	        显示应用关联的 apk 文件
+        -d	        只显示 disabled 的应用
+        -e	        只显示 enabled 的应用
+        -s	        只显示系统应用
+        -3	        只显示第三方应用
+        -i	        显示应用的 installer
+        -u	        包含已卸载应用
+        <FILTER>	包名包含 <FILTER> 字符串
+        :return: 应用列表
+        """
+        return ShellUtil.exec(f"adb shell pm list packages {params}")
+
+    @staticmethod
     def installApk(apkFp: str):
         """
         安装apk
@@ -424,6 +442,27 @@ class AdbUtil:
         srcFile.close()
         dstFile.close()
 
+    @staticmethod
+    def getIPAddr():
+        """
+        获取设备的IP地址信息
+        :return: IP地址信息
+        """
+        out, err = ShellUtil.exec(f"adb shell ifconfig | {findCmd} Mask")
+        if err or "not found" in out:
+            out, err = ShellUtil.exec("adb shell ifconfig wlan0")
+            if err or "not found" in out:
+                out, err = ShellUtil.exec("adb shell netcfg")
+        return out, err
+
+    @staticmethod
+    def getMACAddr():
+        """
+        获取设备MAC地址信息
+        :return: MAC地址信息
+        """
+        return ShellUtil.exec("adb shell cat /sys/class/net/wlan0/address")
+
 
 if __name__ == "__main__":
     androidTestAssistTool = 'com.lkl.androidtestassisttool'
@@ -460,7 +499,9 @@ if __name__ == "__main__":
     # print(AdbUtil.findUiElementCenter("允许|立即开始|Allow|Start now"))
     # print(AdbUtil.click(786.0, 1800.0))
 
-    print(AdbUtil.extractLog("20220109_155953_backup.log", '20220109_155953.log', '01-09 15:59:43', '01-09 15:59:53'))
+    # print(AdbUtil.extractLog("20220109_155953_backup.log", '20220109_155953.log', '01-09 15:59:43', '01-09 15:59:53'))
 
     # print(AdbUtil.checkAdbEvn())
     # print(AdbUtil.isDeviceConnect())
+
+    LogUtil.d(*AdbUtil.getIPAddr())
