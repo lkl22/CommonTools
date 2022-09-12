@@ -16,18 +16,19 @@ from widget.test.EditTestStepDialog import *
 
 
 class AndroidAdbDialog(QtWidgets.QDialog):
-    WINDOW_WIDTH = 800
-    WINDOW_HEIGHT = 600
     TABLE_KEY_TYPE = '操作类型'
     TABLE_KEY_DESC = '操作描述信息'
 
-    def __init__(self, execSteps=[], callback=None):
+    def __init__(self, execSteps=[], callback=None, isDebug=False):
         # 调用父类的构函
         QtWidgets.QDialog.__init__(self)
+        self.setWindowFlags(Qt.Dialog | Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint)
+        AndroidAdbDialog.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.7)
+        AndroidAdbDialog.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.7)
         LogUtil.d("Init Android adb Dialog")
         self.setObjectName("AndroidAdbDialog")
         self.resize(AndroidAdbDialog.WINDOW_WIDTH, AndroidAdbDialog.WINDOW_HEIGHT)
-        self.setFixedSize(AndroidAdbDialog.WINDOW_WIDTH, AndroidAdbDialog.WINDOW_HEIGHT)
+        # self.setFixedSize(AndroidAdbDialog.WINDOW_WIDTH, AndroidAdbDialog.WINDOW_HEIGHT)
         self.setWindowTitle(WidgetUtil.translate(text="Android Adb"))
 
         self.callback = callback
@@ -40,58 +41,56 @@ class AndroidAdbDialog(QtWidgets.QDialog):
         else:
             self.adbGroupBoxHeight = 580
 
-        layoutWidget = QtWidgets.QWidget(self)
-        layoutWidget.setGeometry(QRect(const.PADDING, const.PADDING, AndroidAdbDialog.WINDOW_WIDTH - const.PADDING * 2,
-                                       AndroidAdbDialog.WINDOW_HEIGHT - const.PADDING * 2))
-        layoutWidget.setObjectName("layoutWidget")
+        vLayout = WidgetUtil.createVBoxLayout(self, margins=QMargins(10, 10, 10, 10), spacing=10)
 
-        vLayout = WidgetUtil.createVBoxLayout(margins=QMargins(0, 0, 0, 0))
-        layoutWidget.setLayout(vLayout)
-
-        adbGroupBox = self.createAdbGroupBox(layoutWidget)
+        adbGroupBox = self.createAdbGroupBox(self)
         vLayout.addWidget(adbGroupBox)
 
         if self.callback:
-            splitter, _, _, _ = DialogUtil.createBottomBtn(self, okCallback=self.acceptFunc, cancelBtnText="Cancel")
-            vLayout.addLayout(splitter)
+            btnBox = WidgetUtil.createDialogButtonBox(parent=self, acceptedFunc=self.acceptFunc,
+                                                      rejectedFunc=lambda: self.close())
+            vLayout.addWidget(btnBox)
 
         if self.execTestSteps:
             self.updateTableData()
 
         self.setWindowModality(Qt.ApplicationModal)
-        # 很关键，不加出不来
-        self.exec_()
+        if not isDebug:
+            # 很关键，不加出不来
+            self.exec_()
 
     def createAdbGroupBox(self, parent):
-        yPos = const.GROUP_BOX_MARGIN_TOP
-        width = AndroidAdbDialog.WINDOW_WIDTH - const.PADDING * 4
-        box = WidgetUtil.createGroupBox(parent, title="Android adb", minSize=QSize(width, self.adbGroupBoxHeight))
+        box = WidgetUtil.createGroupBox(parent, title="Android adb")
+        vbox = WidgetUtil.createVBoxLayout(box, margins=QMargins(10, 10, 10, 10), spacing=10)
         sizePolicy = WidgetUtil.createSizePolicy()
 
         if not self.callback:
-            splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
-            WidgetUtil.createLabel(splitter, text="输入要执行的shell指令：", minSize=QSize(80, const.HEIGHT))
-            self.cmdLineEdit = WidgetUtil.createLineEdit(splitter, holderText="请输入要执行的指令，多个以\";\"分隔",
+            hbox = WidgetUtil.createHBoxLayout()
+            hbox.addWidget(WidgetUtil.createLabel(box, text="输入要执行的shell指令：", minSize=QSize(80, const.HEIGHT)))
+            self.cmdLineEdit = WidgetUtil.createLineEdit(box, holderText="请输入要执行的指令，多个以\";\"分隔",
                                                          sizePolicy=sizePolicy)
-            WidgetUtil.createPushButton(splitter, text="执行", onClicked=self.execShellCmd)
-            yPos += const.HEIGHT_OFFSET * 2
+            hbox.addWidget(self.cmdLineEdit)
+            hbox.addWidget(WidgetUtil.createPushButton(box, text="执行", onClicked=self.execShellCmd))
+            vbox.addLayout(hbox)
 
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
-        WidgetUtil.createLabel(splitter, text="输入要连接设备的addr：", minSize=QSize(80, const.HEIGHT))
-        self.devAddrEdit = WidgetUtil.createLineEdit(splitter, holderText="the device serial/device IP",
+        hbox = WidgetUtil.createHBoxLayout()
+        hbox.addWidget(WidgetUtil.createLabel(box, text="输入要连接设备的addr：", minSize=QSize(80, const.HEIGHT)))
+        self.devAddrEdit = WidgetUtil.createLineEdit(box, holderText="the device serial/device IP",
                                                      sizePolicy=sizePolicy)
-        WidgetUtil.createPushButton(splitter, text="connect", onClicked=self.connectDevice)
-        WidgetUtil.createPushButton(splitter, text="open weditor", onClicked=self.openWeditor)
+        hbox.addWidget(self.devAddrEdit)
+        hbox.addWidget(WidgetUtil.createPushButton(box, text="connect", onClicked=self.connectDevice))
+        hbox.addWidget(WidgetUtil.createPushButton(box, text="open weditor", onClicked=self.openWeditor))
+        vbox.addLayout(hbox)
 
-        yPos += const.HEIGHT_OFFSET
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, 200, const.HEIGHT))
-        WidgetUtil.createPushButton(splitter, text="add step", onClicked=self.addStep)
-        WidgetUtil.createPushButton(splitter, text="exec steps", onClicked=self.execSteps)
+        hbox = WidgetUtil.createHBoxLayout()
+        hbox.addWidget(WidgetUtil.createPushButton(box, text="add step", onClicked=self.addStep))
+        hbox.addWidget(WidgetUtil.createPushButton(box, text="exec steps", onClicked=self.execSteps))
+        vbox.addLayout(hbox)
 
-        yPos += const.HEIGHT_OFFSET
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, 180))
-        self.stepsTableView = WidgetUtil.createTableView(splitter, minSize=QSize(width, 150), sizePolicy=sizePolicy,
+        hbox = WidgetUtil.createHBoxLayout()
+        self.stepsTableView = WidgetUtil.createTableView(box, sizePolicy=sizePolicy,
                                                          doubleClicked=self.tableDoubleClicked)
+        hbox.addWidget(self.stepsTableView)
         # 设为不可编辑
         self.stepsTableView.setEditTriggers(QAbstractItemView.NoEditTriggers)
         # 设置选中模式为选中行
@@ -101,13 +100,16 @@ class AndroidAdbDialog(QtWidgets.QDialog):
         # 设置自定义右键菜单
         self.stepsTableView.setContextMenuPolicy(Qt.CustomContextMenu)
         self.stepsTableView.customContextMenuRequested.connect(self.customRightMenu)
+        vbox.addLayout(hbox)
 
-        yPos += 185
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, const.HEIGHT))
-        WidgetUtil.createLabel(splitter, text="操作信息：", minSize=QSize(80, const.HEIGHT))
-        yPos += const.HEIGHT_OFFSET
-        splitter = WidgetUtil.createSplitter(box, geometry=QRect(const.PADDING, yPos, width, 180))
-        self.execResTE = WidgetUtil.createTextEdit(splitter, isReadOnly=True)
+        hbox = WidgetUtil.createHBoxLayout()
+        hbox.addWidget(WidgetUtil.createLabel(box, text="操作信息：", minSize=QSize(80, const.HEIGHT)))
+        vbox.addLayout(hbox)
+
+        hbox = WidgetUtil.createHBoxLayout()
+        self.execResTE = WidgetUtil.createTextEdit(box, isReadOnly=True)
+        hbox.addWidget(self.execResTE)
+        vbox.addLayout(hbox, 1)
         return box
 
     def execCmd(self, cmd: str):
@@ -248,16 +250,17 @@ class AndroidAdbDialog(QtWidgets.QDialog):
         LogUtil.d('acceptFunc')
         if self.callback:
             self.callback(self.execTestSteps)
-        return True
+        self.close()
+        pass
 
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    # window = AndroidAdbDialog()
+    # window = AndroidAdbDialog(isDebug=True)
     window = AndroidAdbDialog(execSteps=[{'type': 0, 'params': {'xpath': '', 'x': 0.5, 'y': 0.5, 'desc': ""}},
                                          {'type': 1, 'params': {'xpath': '', 'x': 0.5, 'y': 0.5, 'desc': ""}}],
                               callback=lambda aa: {
-                                  LogUtil.d(str(aa))
-                              })
+                                  LogUtil.d("callback:", str(aa))
+                              }, isDebug=True)
     window.show()
     sys.exit(app.exec_())
