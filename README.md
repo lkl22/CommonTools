@@ -78,7 +78,7 @@ Working directory：$ProjectFileDir$
 ## Python项目的打包（Windows）
 1、spec文件，见CommonTools.spec
 
-2、pyinstaller -D CommonTools.spec
+2、pyinstaller CommonTools.spec
 
 ## 参考文献
 
