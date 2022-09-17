@@ -18,7 +18,7 @@ class HashUtil:
         """
         with open(fp, 'rb') as f:
             if hashType == 'CRC32':
-                return hex(zlib.crc32(f.read()))
+                return str(hex(zlib.crc32(f.read())))[2:]
             if hashType == "MD5":
                 hashObj = hashlib.md5()
             elif hashType == "SHA1":

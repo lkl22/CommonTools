@@ -112,6 +112,11 @@ class MainWidget(QMainWindow):
         hbox.addWidget(WidgetUtil.createPushButton(box, text="算法可视化", onClicked=self.jumpAlgorithmVisualizer))
         hbox.addWidget(WidgetUtil.createPushButton(box, text="模拟考试", onClicked=self.jumpMockExamDialog))
         vbox.addLayout(hbox)
+
+        hbox = WidgetUtil.createHBoxLayout(spacing=10)
+        hbox.addWidget(WidgetUtil.createPushButton(box, text="计算文件hash", onClicked=self.jumpFileHashDialog), 1)
+        hbox.addWidget(WidgetUtil.createLabel(box), 4)
+        vbox.addLayout(hbox)
         vbox.addItem(WidgetUtil.createVSpacerItem(1, 1))
         return box
 
@@ -177,4 +182,10 @@ class MainWidget(QMainWindow):
         LogUtil.i("jumpAlgorithmVisualizer")
         from widget.mockExam.MockExamDialog import MockExamDialog
         MockExamDialog()
+        pass
+
+    def jumpFileHashDialog(self):
+        LogUtil.i("jumpFileHashDialog")
+        from widget.hash.FileHashDialog import FileHashDialog
+        FileHashDialog()
         pass
