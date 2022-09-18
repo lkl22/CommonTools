@@ -514,8 +514,8 @@ class WidgetUtil:
         return widget
 
     @staticmethod
-    def createComboBox(parent: QWidget, objectName="ComboBox", toolTip=None, isEnable=True,
-                       geometry: QRect = None, sizePolicy: QSizePolicy = None, currentIndexChanged=None):
+    def createComboBox(parent: QWidget, objectName="ComboBox", toolTip=None, isEnable=True, geometry: QRect = None,
+                       sizePolicy: QSizePolicy = None, currentIndexChanged=None, activated=None):
         """
         创建一个下拉选择框
         :param parent: 父QWidget
@@ -524,12 +524,16 @@ class WidgetUtil:
         :param isEnable: enable
         :param geometry: geometry
         :param sizePolicy: 缩放策略
-        :param currentIndexChanged: 当前选择改变
+        :param currentIndexChanged: 改变当前索引触发，包括代码里设置索引
+        :param activated: 用户选中下拉列表某一项触发，编辑和代码改变索引时不会触发
         :return: 下拉选择框
         """
         widget = QComboBox(parent)
         widgetSetAttrs(widget, objectName, toolTip=toolTip, geometry=geometry, isEnable=isEnable, sizePolicy=sizePolicy)
-        widget.currentIndexChanged[int].connect(currentIndexChanged)
+        if currentIndexChanged:
+            widget.currentIndexChanged[int].connect(currentIndexChanged)
+        if activated:
+            widget.activated[int].connect(activated)
         return widget
 
     @staticmethod

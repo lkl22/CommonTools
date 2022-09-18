@@ -57,11 +57,11 @@ class CipherUtil:
 
 
 if __name__ == "__main__":
-    LogUtil.d(CipherUtil.encrypt("addfaaaaaddfaddd", b"1234567812345678"))
+    LogUtil.d(CipherUtil.encrypt("addfaaaaaddfaddd", "1234567812345678".encode()))
     LogUtil.d(CipherUtil.decrypt('f653392b65fa6795c2ac83d4b4acef3bd96aa42b59151a9e9b5925fc9d95adaf',
                                  b"1234567812345678"))
 
-    LogUtil.d(CipherUtil.encrypt("addfaaaaaddfaddd", b"12345678", "DES"))
+    LogUtil.d(CipherUtil.encrypt("addfaaaaaddfaddd", "12345678".encode(), "DES"))
     LogUtil.d(CipherUtil.decrypt('cf63c95c39b8d93d547c0c485f7c0856feb959b7d4642fcb',
                                  b"12345678", "DES"))
     pass

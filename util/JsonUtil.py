@@ -9,16 +9,17 @@ from util.LogUtil import LogUtil
 
 class JsonUtil:
     @staticmethod
-    def encode(obj, indent=4, separators=(',', ': '), sort_keys=True):
+    def encode(obj, ensureAscii=True, indent=4, separators=(',', ': '), sort_keys=True):
         """
         将 Python 数据编码为 JSON 格式数据
         :param obj: Python 数据
+        :param ensureAscii: 是否使用ascii编码
         :param indent: 空格缩进
         :param separators: 分隔符
         :param sort_keys: 是否对key排序
         :return: Json数据
         """
-        return json.dumps(obj, indent=indent, separators=separators, sort_keys=sort_keys)
+        return json.dumps(obj, ensure_ascii=ensureAscii, indent=indent, separators=separators, sort_keys=sort_keys)
 
     @staticmethod
     def decode(jsonData):
