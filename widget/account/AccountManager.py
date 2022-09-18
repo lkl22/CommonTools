@@ -18,6 +18,10 @@ KEY_DESC = 'desc'
 KEY_FLAVOR_NAME = 'flavorName'
 KEY_COUNTRY_CODE = 'countryCode'
 
+KEY_ACCOUNT = 'account'
+KEY_NICKNAME = 'nickname'
+KEY_PWD = 'pwd'
+
 
 class AccountManager:
     def __init__(self, isDebug=False):
@@ -38,12 +42,13 @@ class AccountManager:
         self.operaIni.saveIni()
         pass
 
-    def getAccountInfos(self, flavorName):
-        return JsonUtil.decode(self.operaIni.getValue(flavorName, KEY_SECTION))
+    def getAccountInfos(self, key):
+        return JsonUtil.decode(self.operaIni.getValue(key, KEY_SECTION))
 
-    def saveAccountInfos(self, flavorName, infos):
+    def saveAccountInfos(self, key, infos):
         # [{'phoneNo' : '18589001736', 'pwd' : 'qwe123456'}, 'desc': '中国成人账号']
-        self.operaIni.addItem(KEY_SECTION, flavorName, infos)
+        self.operaIni.addItem(KEY_SECTION, key, JsonUtil.encode(infos, ensureAscii=False, sort_keys=False))
+        self.operaIni.saveIni()
         pass
 
 

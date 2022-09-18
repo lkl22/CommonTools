@@ -2,18 +2,14 @@
 # python 3.x
 # Filename: AccountManagerDialog.py
 # 定义一个AccountManagerDialog类实现账号管理相关功能
-import random
-
-from PyQt5.QtCore import pyqtSignal, QTimer
-from PyQt5.QtGui import QMouseEvent
-from PyQt5.QtWidgets import QScrollArea, QPushButton, QAbstractButton
-
 from constant.WidgetConst import *
 from util.DialogUtil import *
 from util.OperaIni import *
 from util.ReUtil import ReUtil
-from widget.mockExam.Word2Excel import *
+from util.CipherUtil import CipherUtil
 from widget.account.AccountManager import *
+
+AES_KEY = "1234567812345678"
 
 
 class AccountManagerDialog(QtWidgets.QDialog):
@@ -40,6 +36,10 @@ class AccountManagerDialog(QtWidgets.QDialog):
             self.countries = {KEY_DEFAULT: None, KEY_LIST: []}
         self.curFlavorInfo = self.flavors[KEY_DEFAULT]
         self.curCountryInfo = self.countries[KEY_DEFAULT]
+        # 当前账号列表对应的key
+        self.curAccountsInfoKey = None
+        self.accounts = None
+        self.curAccountInfo = None
 
         vLayout = WidgetUtil.createVBoxLayout(self, margins=QMargins(10, 10, 10, 10), spacing=10)
         self.setLayout(vLayout)
@@ -74,7 +74,19 @@ class AccountManagerDialog(QtWidgets.QDialog):
                                                    onClicked=self.addCountry))
         vbox.addLayout(hbox)
 
-        vbox.addItem(WidgetUtil.createVSpacerItem(1, 1))
+        hbox = WidgetUtil.createHBoxLayout(spacing=10)
+        hbox.addWidget(WidgetUtil.createPushButton(box, text="添加账号", minSize=QSize(100, const.HEIGHT),
+                                                   onClicked=self.addAccount))
+        hbox.addWidget(WidgetUtil.createPushButton(box, text="删除账号", minSize=QSize(100, const.HEIGHT),
+                                                   onClicked=self.delAccount))
+        vbox.addLayout(hbox)
+
+        tableBox = WidgetUtil.createVBoxLayout(box)
+        self.accountTableView = WidgetUtil.createTableView(box)
+        tableBox.addWidget(self.accountTableView)
+        vbox.addLayout(tableBox, 1)
+
+        self.updateAccountInfoTableView()
         return box
 
     def updateFlavorComboBox(self):
@@ -114,6 +126,7 @@ class AccountManagerDialog(QtWidgets.QDialog):
     def updateFlavorInfo(self):
         self.flavors[KEY_DEFAULT] = self.curFlavorInfo
         self.accountManager.saveFlavorInfos(self.flavors)
+        self.updateAccountInfoTableView()
         pass
 
     def updateCountriesComboBox(self):
@@ -137,7 +150,8 @@ class AccountManagerDialog(QtWidgets.QDialog):
 
     def addCountry(self):
         LogUtil.d("addCountry")
-        AddCountryDialog(countryList=self.countries[KEY_LIST], callback=self.addCountryCallback, isDebug=self.isDebug).show()
+        AddCountryDialog(countryList=self.countries[KEY_LIST], callback=self.addCountryCallback,
+                         isDebug=self.isDebug).show()
         pass
 
     def addCountryCallback(self, countryCode, countryDesc):
@@ -153,6 +167,51 @@ class AccountManagerDialog(QtWidgets.QDialog):
     def updateCountryInfo(self):
         self.countries[KEY_DEFAULT] = self.curCountryInfo
         self.accountManager.saveCountryInfos(self.countries)
+        self.updateAccountInfoTableView()
+        pass
+
+    def updateAccountInfoTableView(self):
+        if not self.curFlavorInfo or not self.curCountryInfo:
+            return
+        accountsInfoKey = self.curFlavorInfo[KEY_FLAVOR_NAME] + self.curCountryInfo[KEY_COUNTRY_CODE]
+        LogUtil.d("updateAccountInfo", accountsInfoKey, self.curAccountsInfoKey)
+        if self.curAccountsInfoKey != accountsInfoKey:
+            self.curAccountsInfoKey = accountsInfoKey
+            self.accounts = self.accountManager.getAccountInfos(accountsInfoKey)
+
+        if self.accounts and self.accounts[KEY_LIST]:
+            WidgetUtil.addTableViewData(self.accountTableView, self.accounts[KEY_LIST], ignoreCol=[KEY_PWD],
+                                        headerLabels=["账号", "昵称", "描述"])
+        pass
+
+    def addAccount(self):
+        LogUtil.d("addAccount")
+        if not self.curFlavorInfo or not self.curCountryInfo:
+            WidgetUtil.showErrorDialog(message="请先设置渠道和国家")
+            return
+        if not self.accounts or not self.accounts[KEY_LIST]:
+            self.accounts = {KEY_DEFAULT: None, KEY_LIST: []}
+        accountList = self.accounts[KEY_LIST]
+        AddAccountDialog(accountList=accountList, callback=self.addAccountCallback,
+                         isDebug=self.isDebug).show()
+        pass
+
+    def addAccountCallback(self, accountInfo):
+        LogUtil.d("addAccountCallback", accountInfo)
+        accountList = self.accounts[KEY_LIST]
+
+        accountList.append(accountInfo)
+        self.accounts[KEY_LIST] = sorted(accountList, key=lambda x: x[KEY_ACCOUNT])
+        self.updateAccountInfoTableView()
+        self.updateAccountInfo()
+        pass
+
+    def updateAccountInfo(self):
+        self.accounts[KEY_DEFAULT] = self.curAccountInfo
+        self.accountManager.saveAccountInfos(self.curAccountsInfoKey, self.accounts)
+        pass
+
+    def delAccount(self):
         pass
 
 
@@ -281,6 +340,80 @@ class AddCountryDialog(QtWidgets.QDialog):
                 WidgetUtil.showErrorDialog(message=f"请设置一个其他的描述，{countryDesc}已经存在了，相同的描述会产生混淆")
                 return
         self.callback(countryCode, countryDesc)
+        self.close()
+        pass
+
+
+class AddAccountDialog(QtWidgets.QDialog):
+    def __init__(self, accountList, callback, isDebug=False):
+        # 调用父类的构函
+        QtWidgets.QDialog.__init__(self)
+        self.setWindowFlags(Qt.Dialog | Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint)
+        AddAccountDialog.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.3)
+        AddAccountDialog.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.2)
+        LogUtil.d("Add Account Dialog")
+        self.setWindowTitle(WidgetUtil.translate(text="添加账号信息"))
+
+        self.callback = callback
+        self.accountList = accountList
+
+        self.setObjectName("AddAccountDialog")
+        self.resize(AddAccountDialog.WINDOW_WIDTH, AddAccountDialog.WINDOW_HEIGHT)
+        self.setFixedSize(AddAccountDialog.WINDOW_WIDTH, AddAccountDialog.WINDOW_HEIGHT)
+
+        vLayout = WidgetUtil.createVBoxLayout(self, margins=QMargins(10, 10, 10, 10), spacing=10)
+        self.setLayout(vLayout)
+
+        hbox = WidgetUtil.createHBoxLayout(spacing=10)
+        hbox.addWidget(WidgetUtil.createLabel(self, text="登录账号名：", minSize=QSize(120, 20)))
+        self.accountLineEdit = WidgetUtil.createLineEdit(self, holderText="注册时使用的手机号或者邮箱")
+        hbox.addWidget(self.accountLineEdit)
+        vLayout.addLayout(hbox)
+
+        hbox = WidgetUtil.createHBoxLayout(spacing=10)
+        hbox.addWidget(WidgetUtil.createLabel(self, text="登录密码：", minSize=QSize(120, 20)))
+        self.pwdLineEdit = WidgetUtil.createLineEdit(self, holderText="注册账号时设置的密码，用于账号登录")
+        hbox.addWidget(self.pwdLineEdit)
+        vLayout.addLayout(hbox)
+
+        hbox = WidgetUtil.createHBoxLayout(spacing=10)
+        hbox.addWidget(WidgetUtil.createLabel(self, text="昵称：", minSize=QSize(120, 20)))
+        self.nickNameLineEdit = WidgetUtil.createLineEdit(self, holderText="用户的昵称")
+        hbox.addWidget(self.nickNameLineEdit)
+        vLayout.addLayout(hbox)
+
+        hbox = WidgetUtil.createHBoxLayout(spacing=10)
+        hbox.addWidget(WidgetUtil.createLabel(self, text="描述：", minSize=QSize(120, 20)))
+        self.descLineEdit = WidgetUtil.createLineEdit(self, holderText="账号的相关描述，便于识别存储的账户")
+        hbox.addWidget(self.descLineEdit)
+        vLayout.addLayout(hbox)
+
+        vLayout.addWidget(WidgetUtil.createLabel(self), 1)
+
+        btnBox = WidgetUtil.createDialogButtonBox(parent=self, acceptedFunc=self.acceptFunc,
+                                                  rejectedFunc=lambda: self.close())
+        vLayout.addWidget(btnBox)
+        self.setWindowModality(Qt.ApplicationModal)
+        if not isDebug:
+            # 很关键，不加出不来
+            self.exec_()
+        pass
+
+    def acceptFunc(self):
+        account = self.accountLineEdit.text().strip()
+        if not account:
+            WidgetUtil.showErrorDialog(message="请输入登录账号名")
+            return
+        pwd = self.pwdLineEdit.text().strip()
+        if not pwd:
+            WidgetUtil.showErrorDialog(message="请输入账号登录密码")
+            return
+        for item in self.accountList:
+            if account == item[KEY_ACCOUNT]:
+                WidgetUtil.showErrorDialog(message=f"请重新添加一个其他的账号，{account}已经存在了，不能重复添加")
+                return
+        self.callback({KEY_ACCOUNT: account, KEY_PWD: CipherUtil.encrypt(pwd, AES_KEY), KEY_NICKNAME: self.nickNameLineEdit.text().strip(),
+                       KEY_DESC: self.descLineEdit.text().strip()})
         self.close()
         pass
 
