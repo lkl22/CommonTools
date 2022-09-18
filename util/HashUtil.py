@@ -31,7 +31,7 @@ class HashUtil:
 
 if __name__ == "__main__":
     LogUtil.d("MD5", HashUtil.calcFileHash('GraphicsUtil.py'))
-    LogUtil.d("MD5", HashUtil.calcFileHash('GraphicsUtil.py', 'SHA1'))
-    LogUtil.d("MD5", HashUtil.calcFileHash('GraphicsUtil.py', 'SHA256'))
-    LogUtil.d("MD5", HashUtil.calcFileHash('GraphicsUtil.py', 'CRC32'))
-    LogUtil.d("MD5", HashUtil.calcFileHash('OpenpyxlUtil.py', 'CRC32'))
+    LogUtil.d("SHA1", HashUtil.calcFileHash('GraphicsUtil.py', 'SHA1'))
+    LogUtil.d("SHA256", HashUtil.calcFileHash('GraphicsUtil.py', 'SHA256'))
+    LogUtil.d("CRC32", HashUtil.calcFileHash('GraphicsUtil.py', 'CRC32'))
+    LogUtil.d("CRC32", HashUtil.calcFileHash('OpenpyxlUtil.py', 'CRC32'))

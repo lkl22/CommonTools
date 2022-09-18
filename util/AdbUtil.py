@@ -475,6 +475,10 @@ class AdbUtil:
         if out:
             deviceInfo.append({"name": "手机品牌", "value": out})
 
+        out, err = ShellUtil.exec("adb shell getprop ro.product.manufacturer")
+        if out:
+            deviceInfo.append({"name": "设备制造商", "value": out})
+
         out, err = ShellUtil.exec("adb shell getprop ro.product.model")
         if out:
             deviceInfo.append({"name": "手机型号", "value": out})
@@ -486,6 +490,25 @@ class AdbUtil:
         out, err = ShellUtil.exec("adb shell getprop ro.build.version.sdk")
         if out:
             deviceInfo.append({"name": "SDK 版本", "value": out})
+
+        out, err = ShellUtil.exec("adb shell getprop ro.hw.country")
+        if out.strip():
+            deviceInfo.append({"name": "手机发货地", "value": out})
+
+        # device Serial Number
+        out, err = ShellUtil.exec("adb shell getprop ro.serialno")
+        if out:
+            deviceInfo.append({"name": "sn", "value": out})
+
+        # device IMEI
+        out, err = ShellUtil.exec('''adb shell "service call iphonesubinfo 1 | cut -c 52-66 | tr -d '.[:space:]'"''')
+        if out:
+            deviceInfo.append({"name": "IMEI", "value": out})
+
+        # Android ID
+        out, err = ShellUtil.exec("adb shell settings get secure android_id")
+        if out:
+            deviceInfo.append({"name": "Android ID", "value": out})
 
         out, err = ShellUtil.exec("adb shell wm size")
         if out:
