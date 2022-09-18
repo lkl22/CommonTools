@@ -47,6 +47,8 @@ pip install wheel PyQt5 PyQt5-tools PyQt5-stubs==5.15.6.0 Pyinstaller xlrd xluti
 pip install weditor==0.6.3
 
 py -3.9 -m pip install pyqt5-tools --index-url https://pypi.tuna.tsinghua.edu.cn/simple/
+
+pip install pycryptodomex -i https://pypi.douban.com/simple 
 ```
 
 4、PyCharm配置
