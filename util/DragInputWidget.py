@@ -8,6 +8,7 @@ import sys
 from PyQt5.QtGui import QMouseEvent
 from PyQt5.QtWidgets import QFrame
 from util.WidgetUtil import *
+from util.PlatformUtil import PlatformUtil
 
 
 class DragInputWidget(QFrame):
@@ -30,7 +31,7 @@ class DragInputWidget(QFrame):
     # 鼠标拖入事件
     def dragEnterEvent(self, evn):
         text = evn.mimeData().text()
-        self.lineEdit.setText(text.replace("file://", ""))
+        self.lineEdit.setText(text.replace("file://" if PlatformUtil.isMac() else "file:///", ""))
         # 鼠标放开函数事件
         evn.accept()
 

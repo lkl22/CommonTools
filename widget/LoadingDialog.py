@@ -16,14 +16,14 @@ class LoadingDialog(QtWidgets.QDialog):
     WINDOW_WIDTH = 200
     WINDOW_HEIGHT = 120
 
-    def __init__(self, showText: str = '正在加载中。。。'):
+    def __init__(self, showText: str = '正在加载中。。。', isDebug=False):
         # 调用父类的构函
         QtWidgets.QDialog.__init__(self)
         LogUtil.d("Init Loading Dialog")
 
         self.setFixedSize(LoadingDialog.WINDOW_WIDTH, LoadingDialog.WINDOW_HEIGHT)
-        # 设置透明用
-        self.setWindowOpacity(0.5)
+        # 设置透明度
+        self.setWindowOpacity(0.8)
         self.setWindowFlags(Qt.Dialog or Qt.CustomizeWindowHint)
 
         # 取消对话框标题
@@ -42,7 +42,7 @@ class LoadingDialog(QtWidgets.QDialog):
         layoutWidget.setLayout(vLayout)
 
         label = WidgetUtil.createLabel(self, alignment=Qt.AlignCenter)
-        movie = QMovie(FileUtil.getIconFp("loading.gif"))
+        movie = QMovie("../resources/icons/loading.gif" if isDebug else FileUtil.getIconFp("loading.gif"))
         label.setMovie(movie)
         movie.start()
 
@@ -54,11 +54,12 @@ class LoadingDialog(QtWidgets.QDialog):
 
         self.setWindowModality(Qt.ApplicationModal)
         # 很关键，不加出不来
-        self.exec_()
+        if not isDebug:
+            self.exec_()
 
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    window = LoadingDialog()
+    window = LoadingDialog(isDebug=True)
     window.show()
     sys.exit(app.exec_())
