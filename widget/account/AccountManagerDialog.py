@@ -2,6 +2,8 @@
 # python 3.x
 # Filename: AccountManagerDialog.py
 # 定义一个AccountManagerDialog类实现账号管理相关功能
+from PyQt5.QtWidgets import QAbstractItemView
+
 from constant.WidgetConst import *
 from util.DialogUtil import *
 from util.OperaIni import *
@@ -47,7 +49,7 @@ class AccountManagerDialog(QtWidgets.QDialog):
         self.accountManagerGroupBox = self.createAccountManagerGroupBox(self)
         vLayout.addWidget(self.accountManagerGroupBox)
 
-        self.setWindowModality(Qt.ApplicationModal)
+        self.setWindowModality(Qt.WindowModal)
         if not isDebug:
             # 很关键，不加出不来
             self.exec_()
@@ -77,12 +79,19 @@ class AccountManagerDialog(QtWidgets.QDialog):
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
         hbox.addWidget(WidgetUtil.createPushButton(box, text="添加账号", minSize=QSize(100, const.HEIGHT),
                                                    onClicked=self.addAccount))
-        hbox.addWidget(WidgetUtil.createPushButton(box, text="删除账号", minSize=QSize(100, const.HEIGHT),
-                                                   onClicked=self.delAccount))
         vbox.addLayout(hbox)
 
         tableBox = WidgetUtil.createVBoxLayout(box)
         self.accountTableView = WidgetUtil.createTableView(box)
+        # 设为不可编辑
+        self.accountTableView.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        # 设置选中模式为选中行
+        self.accountTableView.setSelectionBehavior(QAbstractItemView.SelectRows)
+        # 设置选中单个
+        self.accountTableView.setSelectionMode(QAbstractItemView.SingleSelection)
+        # 设置自定义右键菜单
+        self.accountTableView.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.accountTableView.customContextMenuRequested.connect(self.customRightMenu)
         tableBox.addWidget(self.accountTableView)
         vbox.addLayout(tableBox, 1)
 
@@ -179,9 +188,10 @@ class AccountManagerDialog(QtWidgets.QDialog):
             self.curAccountsInfoKey = accountsInfoKey
             self.accounts = self.accountManager.getAccountInfos(accountsInfoKey)
 
-        if self.accounts and self.accounts[KEY_LIST]:
-            WidgetUtil.addTableViewData(self.accountTableView, self.accounts[KEY_LIST], ignoreCol=[KEY_PWD],
-                                        headerLabels=["账号", "昵称", "描述"])
+        if not self.accounts or not self.accounts[KEY_LIST]:
+            self.accounts = {KEY_DEFAULT: None, KEY_LIST: []}
+        WidgetUtil.addTableViewData(self.accountTableView, self.accounts[KEY_LIST], ignoreCol=[KEY_PWD],
+                                    headerLabels=["账号", "昵称", "描述"])
         pass
 
     def addAccount(self):
@@ -211,7 +221,24 @@ class AccountManagerDialog(QtWidgets.QDialog):
         self.accountManager.saveAccountInfos(self.curAccountsInfoKey, self.accounts)
         pass
 
+    def customRightMenu(self, pos):
+        self.curDelRow = self.accountTableView.currentIndex().row()
+        LogUtil.i("customRightMenu", pos, ' row: ', self.curDelRow)
+        menu = WidgetUtil.createMenu("删除", func1=self.delAccount)
+        menu.exec(self.accountTableView.mapToGlobal(pos))
+        pass
+
     def delAccount(self):
+        account = self.accounts[KEY_LIST][self.curDelRow][KEY_ACCOUNT]
+        LogUtil.i(f"delAccount {account}")
+        WidgetUtil.showQuestionDialog(message=f"你确定需要删除 <span style='color:red;'>{account}</span> 吗？", acceptFunc=self.delTableItem)
+        pass
+
+    def delTableItem(self):
+        LogUtil.i("delTreeWidgetItem")
+        self.accounts[KEY_LIST].remove(self.accounts[KEY_LIST][self.curDelRow])
+        self.updateAccountInfoTableView()
+        self.updateAccountInfo()
         pass
 
 
@@ -412,7 +439,8 @@ class AddAccountDialog(QtWidgets.QDialog):
             if account == item[KEY_ACCOUNT]:
                 WidgetUtil.showErrorDialog(message=f"请重新添加一个其他的账号，{account}已经存在了，不能重复添加")
                 return
-        self.callback({KEY_ACCOUNT: account, KEY_PWD: CipherUtil.encrypt(pwd, AES_KEY), KEY_NICKNAME: self.nickNameLineEdit.text().strip(),
+        self.callback({KEY_ACCOUNT: account, KEY_PWD: CipherUtil.encrypt(pwd, AES_KEY),
+                       KEY_NICKNAME: self.nickNameLineEdit.text().strip(),
                        KEY_DESC: self.descLineEdit.text().strip()})
         self.close()
         pass
