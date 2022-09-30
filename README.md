@@ -90,7 +90,13 @@ Working directory：$ProjectFileDir$
 
 [Python 3.6.12 文档](https://docs.python.org/zh-cn/3.6/)
 
+[Qt for Python](https://doc.qt.io/qtforpython/index.html)
+
+[PyQt5 Reference Guide](https://www.riverbankcomputing.com/static/Docs/PyQt5/index.html)
+
 [pyqt5-tools](https://pypi.org/project/pyqt5-tools/)
+
+[PYQT5实现控制台显示功能](https://www.cnblogs.com/gaigaige/p/7883713.html)
 
 [awesome-adb](https://github.com/BlankLun/awesome-adb)
 
