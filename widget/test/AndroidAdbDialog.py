@@ -47,7 +47,7 @@ class AndroidAdbDialog(QtWidgets.QDialog):
         if self.execTestSteps:
             self.updateTableData()
 
-        self.setWindowModality(Qt.ApplicationModal)
+        self.setWindowModality(Qt.WindowModal)
         if not isDebug:
             # 很关键，不加出不来
             self.exec_()

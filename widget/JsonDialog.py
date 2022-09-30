@@ -36,7 +36,7 @@ class JsonDialog(QtWidgets.QDialog):
         hLayout.addLayout(changeBtnBox)
         hLayout.addWidget(treeGroupBox, 3)
 
-        self.setWindowModality(Qt.ApplicationModal)
+        self.setWindowModality(Qt.WindowModal)
         # 很关键，不加出不来
         if not isDebug:
             self.exec_()
