@@ -58,7 +58,7 @@ class AccountManagerDialog(QtWidgets.QDialog):
             self.exec_()
 
     def createAccountManagerGroupBox(self, parent):
-        box = WidgetUtil.createGroupBox(parent)
+        box = WidgetUtil.createGroupBox(parent, title="")
         vbox = WidgetUtil.createVBoxLayout(box, margins=QMargins(10, 10, 10, 10), spacing=10)
 
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
@@ -101,7 +101,6 @@ class AccountManagerDialog(QtWidgets.QDialog):
                                                    onClicked=self.inputPwd))
         vbox.addLayout(hbox)
 
-        tableBox = WidgetUtil.createVBoxLayout(box)
         self.accountTableView = WidgetUtil.createTableView(box, doubleClicked=self.tableDoubleClicked)
         # 设为不可编辑
         self.accountTableView.setEditTriggers(QAbstractItemView.NoEditTriggers)
@@ -112,8 +111,7 @@ class AccountManagerDialog(QtWidgets.QDialog):
         # 设置自定义右键菜单
         self.accountTableView.setContextMenuPolicy(Qt.CustomContextMenu)
         self.accountTableView.customContextMenuRequested.connect(self.customRightMenu)
-        tableBox.addWidget(self.accountTableView)
-        vbox.addLayout(tableBox, 1)
+        vbox.addWidget(self.accountTableView, 1)
 
         self.updateAccountInfoTableView()
         return box

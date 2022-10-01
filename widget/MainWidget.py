@@ -115,7 +115,8 @@ class MainWidget(QMainWindow):
 
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
         hbox.addWidget(WidgetUtil.createPushButton(box, text="计算文件hash", onClicked=self.jumpFileHashDialog), 1)
-        hbox.addWidget(WidgetUtil.createLabel(box), 4)
+        hbox.addWidget(WidgetUtil.createPushButton(box, text="账号管理", onClicked=self.jumpAccountManagerDialog), 1)
+        hbox.addWidget(WidgetUtil.createLabel(box), 3)
         vbox.addLayout(hbox)
         vbox.addItem(WidgetUtil.createVSpacerItem(1, 1))
         return box
@@ -188,4 +189,10 @@ class MainWidget(QMainWindow):
         LogUtil.i("jumpFileHashDialog")
         from widget.hash.FileHashDialog import FileHashDialog
         FileHashDialog()
+        pass
+
+    def jumpAccountManagerDialog(self):
+        LogUtil.i("jumpAccountManagerDialog")
+        from widget.account.AccountManagerDialog import AccountManagerDialog
+        AccountManagerDialog()
         pass
