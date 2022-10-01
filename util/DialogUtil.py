@@ -81,5 +81,5 @@ class DialogUtil:
         :param showText: 显示的文字
         :return: 加载框
         """
-        from widget.LoadingDialog import LoadingDialog
+        from widget.custom.LoadingDialog import LoadingDialog
         return LoadingDialog(showText)

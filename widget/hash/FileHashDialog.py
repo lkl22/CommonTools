@@ -5,7 +5,7 @@
 from util.DialogUtil import *
 from util.OperaIni import *
 from util.HashUtil import HashUtil
-from util.DragInputWidget import DragInputWidget
+from widget.custom.DragInputWidget import DragInputWidget
 from widget.mockExam.Excel2Word import *
 
 HASH_ALGORITHM = ['MD5', 'SHA1', 'SHA256', 'CRC32']
