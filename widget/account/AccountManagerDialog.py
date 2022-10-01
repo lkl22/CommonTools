@@ -397,7 +397,7 @@ class AddOrEditAccountDialog(QtWidgets.QDialog):
         self.accountList = accountList
         self.default = default
 
-        self.setObjectName("AddAccountDialog")
+        self.setObjectName("AddOrEditAccountDialog")
         self.resize(AddOrEditAccountDialog.WINDOW_WIDTH, AddOrEditAccountDialog.WINDOW_HEIGHT)
         self.setFixedSize(AddOrEditAccountDialog.WINDOW_WIDTH, AddOrEditAccountDialog.WINDOW_HEIGHT)
 
@@ -416,6 +416,7 @@ class AddOrEditAccountDialog(QtWidgets.QDialog):
         self.pwdLineEdit = WidgetUtil.createLineEdit(self, text=CipherUtil.decrypt(default[KEY_PWD],
                                                                                    AES_KEY) if default else "",
                                                      holderText="注册账号时设置的密码，用于账号登录")
+        self.pwdLineEdit.setEchoMode(QtWidgets.QLineEdit.PasswordEchoOnEdit)
         hbox.addWidget(self.pwdLineEdit)
         vLayout.addLayout(hbox)
 
