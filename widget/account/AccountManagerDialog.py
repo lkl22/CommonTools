@@ -6,6 +6,7 @@ from PyQt5.QtCore import QModelIndex
 from PyQt5.QtWidgets import QAbstractItemView
 
 from constant.WidgetConst import *
+from util.AdbUtil import AdbUtil
 from util.ClipboardUtil import ClipboardUtil
 from util.DialogUtil import *
 from util.OperaIni import *
@@ -94,6 +95,10 @@ class AccountManagerDialog(QtWidgets.QDialog):
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
         hbox.addWidget(WidgetUtil.createPushButton(box, text="添加账号", minSize=QSize(100, const.HEIGHT),
                                                    onClicked=self.addAccount))
+        hbox.addWidget(WidgetUtil.createPushButton(box, text="传输账号", toolTip="向手机输入框传输账号",
+                                                   onClicked=self.inputAccount))
+        hbox.addWidget(WidgetUtil.createPushButton(box, text="传输密码", toolTip="向手机输入框传输密码",
+                                                   onClicked=self.inputPwd))
         vbox.addLayout(hbox)
 
         tableBox = WidgetUtil.createVBoxLayout(box)
@@ -230,6 +235,33 @@ class AccountManagerDialog(QtWidgets.QDialog):
             self.accounts = {KEY_DEFAULT: None, KEY_LIST: []}
         WidgetUtil.addTableViewData(self.accountTableView, self.accounts[KEY_LIST], ignoreCol=[KEY_PWD],
                                     headerLabels=["账号", "昵称", "描述"])
+        pass
+
+    def inputAccount(self):
+        self.inputData(False)
+        pass
+
+    def inputPwd(self):
+        self.inputData(True)
+        pass
+
+    def inputData(self, isPwd):
+        row = self.accountTableView.currentIndex().row()
+        LogUtil.d("inputData", "isPwd", isPwd, "row", row)
+        if row < 0:
+            WidgetUtil.showAboutDialog(text="请先选择需要传输数据的账号。")
+            return
+        accountInfo = self.accounts[KEY_LIST][row]
+        if isPwd:
+            data = CipherUtil.decrypt(accountInfo[KEY_PWD], AccountManagerDialog.AES_KEY)
+            if not data:
+                WidgetUtil.showErrorDialog(message="请输入正确的密钥，密码解密失败，或者重新编辑账号信息输入密码。")
+                return
+        else:
+            data = accountInfo[KEY_ACCOUNT]
+        out, err = AdbUtil.inputText(data)
+        if err:
+            WidgetUtil.showErrorDialog(message=f"数据传输失败：<span style='color:red;'>{err}</span>")
         pass
 
     def addAccount(self):

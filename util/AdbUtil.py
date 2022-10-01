@@ -226,7 +226,7 @@ class AdbUtil:
         :return: 执行结果
         """
         out, err = ShellUtil.exec('adb shell input text {}'.format(text))
-        return out
+        return out, err
 
     @staticmethod
     def getCurKeyboardId():
