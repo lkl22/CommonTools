@@ -2,6 +2,7 @@
 # python 3.x
 # Filename: AccountManagerDialog.py
 # 定义一个AccountManagerDialog类实现账号管理相关功能
+from PyQt5.QtCore import QModelIndex
 from PyQt5.QtWidgets import QAbstractItemView
 
 from constant.WidgetConst import *
@@ -82,7 +83,7 @@ class AccountManagerDialog(QtWidgets.QDialog):
         vbox.addLayout(hbox)
 
         tableBox = WidgetUtil.createVBoxLayout(box)
-        self.accountTableView = WidgetUtil.createTableView(box)
+        self.accountTableView = WidgetUtil.createTableView(box, doubleClicked=self.tableDoubleClicked)
         # 设为不可编辑
         self.accountTableView.setEditTriggers(QAbstractItemView.NoEditTriggers)
         # 设置选中模式为选中行
@@ -202,15 +203,15 @@ class AccountManagerDialog(QtWidgets.QDialog):
         if not self.accounts or not self.accounts[KEY_LIST]:
             self.accounts = {KEY_DEFAULT: None, KEY_LIST: []}
         accountList = self.accounts[KEY_LIST]
-        AddAccountDialog(accountList=accountList, callback=self.addAccountCallback,
-                         isDebug=self.isDebug).show()
+        AddOrEditAccountDialog(accountList=accountList, callback=self.addOrEditAccountCallback,
+                               isDebug=self.isDebug).show()
         pass
 
-    def addAccountCallback(self, accountInfo):
+    def addOrEditAccountCallback(self, accountInfo):
         LogUtil.d("addAccountCallback", accountInfo)
         accountList = self.accounts[KEY_LIST]
-
-        accountList.append(accountInfo)
+        if accountInfo:
+            accountList.append(accountInfo)
         self.accounts[KEY_LIST] = sorted(accountList, key=lambda x: x[KEY_ACCOUNT])
         self.updateAccountInfoTableView()
         self.updateAccountInfo()
@@ -219,6 +220,16 @@ class AccountManagerDialog(QtWidgets.QDialog):
     def updateAccountInfo(self):
         self.accounts[KEY_DEFAULT] = self.curAccountInfo
         self.accountManager.saveAccountInfos(self.curAccountsInfoKey, self.accounts)
+        pass
+
+    def tableDoubleClicked(self, index: QModelIndex):
+        oldValue = index.data()
+        row = index.row()
+        LogUtil.d("双击的单元格：row ", row, ' col', index.column(), ' data ', oldValue)
+
+        accountInfo = self.accounts[KEY_LIST][row]
+        AddOrEditAccountDialog(accountList=self.accounts[KEY_LIST], callback=self.addOrEditAccountCallback, default=accountInfo,
+                               isDebug=self.isDebug).show()
         pass
 
     def customRightMenu(self, pos):
@@ -231,7 +242,8 @@ class AccountManagerDialog(QtWidgets.QDialog):
     def delAccount(self):
         account = self.accounts[KEY_LIST][self.curDelRow][KEY_ACCOUNT]
         LogUtil.i(f"delAccount {account}")
-        WidgetUtil.showQuestionDialog(message=f"你确定需要删除 <span style='color:red;'>{account}</span> 吗？", acceptFunc=self.delTableItem)
+        WidgetUtil.showQuestionDialog(message=f"你确定需要删除 <span style='color:red;'>{account}</span> 吗？",
+                                      acceptFunc=self.delTableItem)
         pass
 
     def delTableItem(self):
@@ -371,47 +383,53 @@ class AddCountryDialog(QtWidgets.QDialog):
         pass
 
 
-class AddAccountDialog(QtWidgets.QDialog):
-    def __init__(self, accountList, callback, isDebug=False):
+class AddOrEditAccountDialog(QtWidgets.QDialog):
+    def __init__(self, accountList, callback, default=None, isDebug=False):
         # 调用父类的构函
         QtWidgets.QDialog.__init__(self)
         self.setWindowFlags(Qt.Dialog | Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint)
-        AddAccountDialog.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.3)
-        AddAccountDialog.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.2)
-        LogUtil.d("Add Account Dialog")
-        self.setWindowTitle(WidgetUtil.translate(text="添加账号信息"))
+        AddOrEditAccountDialog.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.3)
+        AddOrEditAccountDialog.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.2)
+        LogUtil.d("Add or Edit Account Dialog")
+        self.setWindowTitle(WidgetUtil.translate(text="添加/编辑账号信息"))
 
         self.callback = callback
         self.accountList = accountList
+        self.default = default
 
         self.setObjectName("AddAccountDialog")
-        self.resize(AddAccountDialog.WINDOW_WIDTH, AddAccountDialog.WINDOW_HEIGHT)
-        self.setFixedSize(AddAccountDialog.WINDOW_WIDTH, AddAccountDialog.WINDOW_HEIGHT)
+        self.resize(AddOrEditAccountDialog.WINDOW_WIDTH, AddOrEditAccountDialog.WINDOW_HEIGHT)
+        self.setFixedSize(AddOrEditAccountDialog.WINDOW_WIDTH, AddOrEditAccountDialog.WINDOW_HEIGHT)
 
         vLayout = WidgetUtil.createVBoxLayout(self, margins=QMargins(10, 10, 10, 10), spacing=10)
         self.setLayout(vLayout)
 
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
         hbox.addWidget(WidgetUtil.createLabel(self, text="登录账号名：", minSize=QSize(120, 20)))
-        self.accountLineEdit = WidgetUtil.createLineEdit(self, holderText="注册时使用的手机号或者邮箱")
+        self.accountLineEdit = WidgetUtil.createLineEdit(self, text=default[KEY_ACCOUNT] if default else "",
+                                                         holderText="注册时使用的手机号或者邮箱")
         hbox.addWidget(self.accountLineEdit)
         vLayout.addLayout(hbox)
 
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
         hbox.addWidget(WidgetUtil.createLabel(self, text="登录密码：", minSize=QSize(120, 20)))
-        self.pwdLineEdit = WidgetUtil.createLineEdit(self, holderText="注册账号时设置的密码，用于账号登录")
+        self.pwdLineEdit = WidgetUtil.createLineEdit(self, text=CipherUtil.decrypt(default[KEY_PWD],
+                                                                                   AES_KEY) if default else "",
+                                                     holderText="注册账号时设置的密码，用于账号登录")
         hbox.addWidget(self.pwdLineEdit)
         vLayout.addLayout(hbox)
 
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
         hbox.addWidget(WidgetUtil.createLabel(self, text="昵称：", minSize=QSize(120, 20)))
-        self.nickNameLineEdit = WidgetUtil.createLineEdit(self, holderText="用户的昵称")
+        self.nickNameLineEdit = WidgetUtil.createLineEdit(self, text=default[KEY_NICKNAME] if default else "",
+                                                          holderText="用户的昵称")
         hbox.addWidget(self.nickNameLineEdit)
         vLayout.addLayout(hbox)
 
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
         hbox.addWidget(WidgetUtil.createLabel(self, text="描述：", minSize=QSize(120, 20)))
-        self.descLineEdit = WidgetUtil.createLineEdit(self, holderText="账号的相关描述，便于识别存储的账户")
+        self.descLineEdit = WidgetUtil.createLineEdit(self, text=default[KEY_DESC] if default else "",
+                                                      holderText="账号的相关描述，便于识别存储的账户")
         hbox.addWidget(self.descLineEdit)
         vLayout.addLayout(hbox)
 
@@ -435,13 +453,23 @@ class AddAccountDialog(QtWidgets.QDialog):
         if not pwd:
             WidgetUtil.showErrorDialog(message="请输入账号登录密码")
             return
-        for item in self.accountList:
-            if account == item[KEY_ACCOUNT]:
-                WidgetUtil.showErrorDialog(message=f"请重新添加一个其他的账号，{account}已经存在了，不能重复添加")
-                return
-        self.callback({KEY_ACCOUNT: account, KEY_PWD: CipherUtil.encrypt(pwd, AES_KEY),
-                       KEY_NICKNAME: self.nickNameLineEdit.text().strip(),
-                       KEY_DESC: self.descLineEdit.text().strip()})
+        if not self.default or self.default[KEY_ACCOUNT] != account:
+            for item in self.accountList:
+                if account == item[KEY_ACCOUNT]:
+                    WidgetUtil.showErrorDialog(message=f"请重新添加一个其他的账号，{account}已经存在了，不能重复添加")
+                    return
+        nickName = self.nickNameLineEdit.text().strip()
+        desc = self.descLineEdit.text().strip()
+        if self.default:
+            self.default[KEY_ACCOUNT] = account
+            self.default[KEY_PWD] = CipherUtil.encrypt(pwd, AES_KEY)
+            self.default[KEY_NICKNAME] = nickName
+            self.default[KEY_DESC] = desc
+            self.callback(None)
+        else:
+            self.callback({KEY_ACCOUNT: account, KEY_PWD: CipherUtil.encrypt(pwd, AES_KEY),
+                           KEY_NICKNAME: nickName,
+                           KEY_DESC: desc})
         self.close()
         pass
 
