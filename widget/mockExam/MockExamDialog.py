@@ -11,6 +11,7 @@ from PyQt5.QtWidgets import QScrollArea, QPushButton, QAbstractButton
 from constant.WidgetConst import *
 from util.DialogUtil import *
 from util.OperaIni import *
+from widget.custom.ChoiceButton import ChoiceButton
 from widget.mockExam.Word2Excel import *
 from widget.mockExam.Excel2Word import *
 
@@ -55,8 +56,7 @@ class MockExamDialog(QtWidgets.QDialog):
 
         self.questionDescLabel = None
         self.oneChoiceGroup = None
-        self.oneChoiceOptionBtnList = None
-        self.multiChoiceOptionBtnList = None
+        self.choiceBtnList = None
         self.answerLabel = None
         self.solutionLabel = None
         self.remarkLabel = None
@@ -526,27 +526,17 @@ class MockExamDialog(QtWidgets.QDialog):
             self.questionDescLabel.setMinimumHeight(160)
             self.questionVBox.addWidget(self.questionDescLabel)
 
-        if not self.oneChoiceGroup:
-            self.oneChoiceOptionBtnList = []
-            self.oneChoiceGroup = WidgetUtil.createButtonGroup(onToggled=self.oneChoiceToggled)
+        if not self.choiceBtnList:
+            self.choiceBtnList = []
+            self.oneChoiceGroup = WidgetUtil.createButtonGroup()
+            multiChoiceGroup = WidgetUtil.createButtonGroup()
+            multiChoiceGroup.setExclusive(False)
             for option in range(self.maxOptionNum + 1):
-                radioButton = WidgetUtil.createRadioButton(self.questionScrollAreaWidget, isEnable=True)
-                radioButton.setMinimumHeight(30)
-                self.oneChoiceOptionBtnList.append(radioButton)
-                self.oneChoiceGroup.addButton(radioButton, option)
-                self.questionVBox.addWidget(radioButton)
-
-        if not self.multiChoiceOptionBtnList:
-            self.multiChoiceOptionBtnList = []
-            # 必须是成员变量，本地变量不行，很奇怪
-            self.multiChoiceGroup = WidgetUtil.createButtonGroup(onToggled=self.multiChoiceToggled)
-            self.multiChoiceGroup.setExclusive(False)
-            for option in range(self.maxOptionNum + 1):
-                checkBox = WidgetUtil.createCheckBox(self.questionScrollAreaWidget)
-                checkBox.setMinimumHeight(30)
-                self.multiChoiceOptionBtnList.append(checkBox)
-                self.multiChoiceGroup.addButton(checkBox, option)
-                self.questionVBox.addWidget(checkBox)
+                choiceButton = ChoiceButton(f"{OPTION_CHAR[option]}.", "", option, onToggled=self.choiceButtonToggled)
+                self.choiceBtnList.append(choiceButton)
+                self.oneChoiceGroup.addButton(choiceButton.getButton(ChoiceButton.Radio), option)
+                multiChoiceGroup.addButton(choiceButton.getButton(ChoiceButton.CheckBox), option)
+                self.questionVBox.addWidget(choiceButton)
 
         if not self.answerLabel:
             self.answerLabel = WidgetUtil.createLabel(self.questionScrollAreaWidget)
@@ -615,9 +605,9 @@ class MockExamDialog(QtWidgets.QDialog):
         self.questionDescLabel.setText(f"{questionObj[KEY_REAL_QUESTION_NO]}. " + questionObj[KEY_QUESTION])
 
         if questionObj[KEY_QUESTION_TYPE] == QUESTION_TYPE_MULTI_CHOICE:
-            self.updateChoiceOptionBtn(questionObj, yourAnswer, self.multiChoiceOptionBtnList)
+            self.updateChoiceOptionBtn(questionObj, yourAnswer, self.choiceBtnList, ChoiceButton.CheckBox)
         else:
-            self.updateChoiceOptionBtn(questionObj, yourAnswer, self.oneChoiceOptionBtnList)
+            self.updateChoiceOptionBtn(questionObj, yourAnswer, self.choiceBtnList, ChoiceButton.Radio)
 
         if self.isShowErrQuestion:
             self.answerLabel.setText(
@@ -633,8 +623,16 @@ class MockExamDialog(QtWidgets.QDialog):
         self.updateChangeQuestionBtn()
         pass
 
-    def oneChoiceToggled(self):
-        option = OPTION_CHAR[self.oneChoiceGroup.checkedId()]
+    def choiceButtonToggled(self, id):
+        LogUtil.d("choiceButtonToggled", id)
+        if self.choiceBtnList[id].getMode() == ChoiceButton.Radio:
+            self.oneChoiceToggled(id)
+        else:
+            self.multiChoiceToggled()
+        pass
+
+    def oneChoiceToggled(self, id):
+        option = OPTION_CHAR[id]
         self.yourAnswers[self.curQuestionNo] = option
         if option in self.realAnswerDict[self.curQuestionNo]:
             delDictData(self.curQuestionNo, self.errAnswers)
@@ -647,7 +645,7 @@ class MockExamDialog(QtWidgets.QDialog):
     def multiChoiceToggled(self):
         LogUtil.e("multiChoiceToggled")
         checkedOptions = []
-        for index, checkBox in enumerate(self.multiChoiceOptionBtnList):
+        for index, checkBox in enumerate(self.choiceBtnList):
             if checkBox.isChecked():
                 checkedOptions.append(OPTION_CHAR[index])
 
@@ -677,17 +675,13 @@ class MockExamDialog(QtWidgets.QDialog):
         """
         # 为了消除按钮选中状态
         self.oneChoiceGroup.setExclusive(False)
-        for radioButton in self.oneChoiceOptionBtnList:
-            radioButton.setVisible(False)
-            radioButton.setChecked(False)
+        for choiceButton in self.choiceBtnList:
+            choiceButton.setVisible(False)
+            choiceButton.setChecked(False)
         self.oneChoiceGroup.setExclusive(True)
-
-        for checkBox in self.multiChoiceOptionBtnList:
-            checkBox.setVisible(False)
-            checkBox.setChecked(False)
         pass
 
-    def updateChoiceOptionBtn(self, questionObj, yourAnswer, choiceOptionBtnList):
+    def updateChoiceOptionBtn(self, questionObj, yourAnswer, choiceOptionBtnList, mode: ChoiceButton.Mode):
         # 清除选项卡的状态
         self.hideOptionBtn()
         realAnswer = getDictData(questionObj[KEY_REAL_QUESTION_NO], self.realAnswerDict)
@@ -709,9 +703,9 @@ class MockExamDialog(QtWidgets.QDialog):
             self.realOptionsDict[questionObj[KEY_REAL_QUESTION_NO]] = realOptions
             self.realAnswerDict[questionObj[KEY_REAL_QUESTION_NO]] = realAnswer
         for index, option in enumerate(realOptions):
-            optionX = chr(65 + index)
             optionDesc = questionObj[option]
-            choiceOptionBtnList[index].setText(f"{optionX}. {optionDesc}")
+            choiceOptionBtnList[index].setMode(mode)
+            choiceOptionBtnList[index].setText(text=optionDesc)
             choiceOptionBtnList[index].setVisible(True)
             choiceOptionBtnList[index].setEnabled(not self.isShowErrQuestion)
 

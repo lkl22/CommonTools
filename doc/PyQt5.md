@@ -20,3 +20,9 @@
 .setEchoMode(QtWidgets.QLineEdit.Password)
 .setEchoMode(QtWidgets.QLineEdit.PasswordEchoOnEdit)
 ```
+
+## QTextEdit
+
+### 去除外框
+
+> .setStyleSheet("border: none;")

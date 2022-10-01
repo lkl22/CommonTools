@@ -51,6 +51,7 @@ a = Analysis(['RunMain.py',
               'widget/compressPicture/CompressPicDialog.py',
 
               'widget/custom/progressBar/RoundProgressBar.py',
+              'widget/custom/ChoiceButton.py',
               'widget/custom/DragInputWidget.py',
               'widget/custom/LoadingDialog.py',
 
