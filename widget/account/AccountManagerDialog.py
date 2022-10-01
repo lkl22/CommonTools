@@ -6,16 +6,17 @@ from PyQt5.QtCore import QModelIndex
 from PyQt5.QtWidgets import QAbstractItemView
 
 from constant.WidgetConst import *
+from util.ClipboardUtil import ClipboardUtil
 from util.DialogUtil import *
 from util.OperaIni import *
 from util.ReUtil import ReUtil
 from util.CipherUtil import CipherUtil
 from widget.account.AccountManager import *
 
-AES_KEY = "1234567812345678"
-
 
 class AccountManagerDialog(QtWidgets.QDialog):
+    AES_KEY = "1234567812345678"
+
     def __init__(self, isDebug=False):
         # 调用父类的构函
         QtWidgets.QDialog.__init__(self)
@@ -60,7 +61,20 @@ class AccountManagerDialog(QtWidgets.QDialog):
         vbox = WidgetUtil.createVBoxLayout(box, margins=QMargins(10, 10, 10, 10), spacing=10)
 
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
-        hbox.addWidget(WidgetUtil.createLabel(box, text="请选择渠道信息：", minSize=QSize(120, const.HEIGHT)))
+        hbox.addWidget(WidgetUtil.createLabel(box, text="请输入密码加密的密钥：", minSize=QSize(150, const.HEIGHT)))
+        self.aesKeyLineEdit = WidgetUtil.createLineEdit(box, text=AccountManagerDialog.AES_KEY,
+                                                        holderText="请输入16个字符，用于加解密密码数据，请自己妥善保管，以免信息泄漏",
+                                                        toolTip="用于解密数据的密钥，请自己妥善保管，以免信息泄漏",
+                                                        echoMode=QtWidgets.QLineEdit.Password,
+                                                        editingFinished=self.aesKeyChanged)
+        hbox.addWidget(self.aesKeyLineEdit)
+        self.showOrHideAesKeyBtn = WidgetUtil.createPushButton(box, text="显示", onClicked=self.showOrHideAesKey)
+        hbox.addWidget(self.showOrHideAesKeyBtn)
+        hbox.addWidget(WidgetUtil.createPushButton(box, text="Copy", onClicked=self.copyAesKeyToClipboard))
+        vbox.addLayout(hbox)
+
+        hbox = WidgetUtil.createHBoxLayout(spacing=10)
+        hbox.addWidget(WidgetUtil.createLabel(box, text="请选择渠道信息：", minSize=QSize(150, const.HEIGHT)))
         self.flavorsComboBox = WidgetUtil.createComboBox(box, activated=self.flavorIndexChanged)
         self.updateFlavorComboBox()
         hbox.addWidget(self.flavorsComboBox, 1)
@@ -69,7 +83,7 @@ class AccountManagerDialog(QtWidgets.QDialog):
         vbox.addLayout(hbox)
 
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
-        hbox.addWidget(WidgetUtil.createLabel(box, text="请选择国家：", minSize=QSize(120, const.HEIGHT)))
+        hbox.addWidget(WidgetUtil.createLabel(box, text="请选择国家：", minSize=QSize(150, const.HEIGHT)))
         self.countriesComboBox = WidgetUtil.createComboBox(box, activated=self.countryIndexChanged)
         self.updateCountriesComboBox()
         hbox.addWidget(self.countriesComboBox, 1)
@@ -98,6 +112,29 @@ class AccountManagerDialog(QtWidgets.QDialog):
 
         self.updateAccountInfoTableView()
         return box
+
+    def aesKeyChanged(self):
+        aesKey = self.aesKeyLineEdit.text().strip()
+        if not ReUtil.match(aesKey, ".{16}"):
+            WidgetUtil.showAboutDialog(text="请输入16位的密钥，否则会引起密码加解密问题。")
+        else:
+            AccountManagerDialog.AES_KEY = aesKey
+        pass
+
+    def showOrHideAesKey(self):
+        LogUtil.d("showOrHideAesKey")
+        if self.aesKeyLineEdit.echoMode() == QLineEdit.Password:
+            self.aesKeyLineEdit.setEchoMode(QLineEdit.Normal)
+            self.showOrHideAesKeyBtn.setText("隐藏")
+        else:
+            self.aesKeyLineEdit.setEchoMode(QLineEdit.Password)
+            self.showOrHideAesKeyBtn.setText("显示")
+        pass
+
+    def copyAesKeyToClipboard(self):
+        LogUtil.d("copyAesKeyToClipboard")
+        ClipboardUtil.copyToClipboard(AccountManagerDialog.AES_KEY)
+        pass
 
     def updateFlavorComboBox(self):
         if self.flavors and self.flavors[KEY_LIST]:
@@ -414,9 +451,9 @@ class AddOrEditAccountDialog(QtWidgets.QDialog):
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
         hbox.addWidget(WidgetUtil.createLabel(self, text="登录密码：", minSize=QSize(120, 20)))
         self.pwdLineEdit = WidgetUtil.createLineEdit(self, text=CipherUtil.decrypt(default[KEY_PWD],
-                                                                                   AES_KEY) if default else "",
-                                                     holderText="注册账号时设置的密码，用于账号登录")
-        self.pwdLineEdit.setEchoMode(QtWidgets.QLineEdit.PasswordEchoOnEdit)
+                                                                                   AccountManagerDialog.AES_KEY) if default else "",
+                                                     holderText="注册账号时设置的密码，用于账号登录",
+                                                     echoMode=QtWidgets.QLineEdit.PasswordEchoOnEdit)
         hbox.addWidget(self.pwdLineEdit)
         vLayout.addLayout(hbox)
 
@@ -463,12 +500,12 @@ class AddOrEditAccountDialog(QtWidgets.QDialog):
         desc = self.descLineEdit.text().strip()
         if self.default:
             self.default[KEY_ACCOUNT] = account
-            self.default[KEY_PWD] = CipherUtil.encrypt(pwd, AES_KEY)
+            self.default[KEY_PWD] = CipherUtil.encrypt(pwd, AccountManagerDialog.AES_KEY)
             self.default[KEY_NICKNAME] = nickName
             self.default[KEY_DESC] = desc
             self.callback(None)
         else:
-            self.callback({KEY_ACCOUNT: account, KEY_PWD: CipherUtil.encrypt(pwd, AES_KEY),
+            self.callback({KEY_ACCOUNT: account, KEY_PWD: CipherUtil.encrypt(pwd, AccountManagerDialog.AES_KEY),
                            KEY_NICKNAME: nickName,
                            KEY_DESC: desc})
         self.close()

@@ -8,7 +8,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtGui import QIcon, QBrush, QStandardItemModel, QStandardItem, QColor, QKeySequence
 from PyQt5.QtWidgets import QWidget, QMessageBox, QSizePolicy, QTreeWidget, QMenu, QTreeWidgetItem, QDialog, \
     QRadioButton, QTableView, QHeaderView, QColorDialog, QSpinBox, QTextEdit, QApplication, QDoubleSpinBox, QMenuBar, \
-    QTabWidget, QCheckBox, QProgressBar, QComboBox, QDialogButtonBox
+    QTabWidget, QCheckBox, QProgressBar, QComboBox, QDialogButtonBox, QLineEdit
 from PyQt5.QtCore import QRect, QMargins, QSize, Qt
 
 from util.LogUtil import *
@@ -577,7 +577,7 @@ class WidgetUtil:
     @staticmethod
     def createLineEdit(parent: QWidget, objectName="LineEdit", text="", holderText="", toolTip=None,
                        geometry: QRect = None, isEnable=True, sizePolicy: QSizePolicy = None, textChanged=None,
-                       isReadOnly=False):
+                       isReadOnly=False, echoMode: QLineEdit.EchoMode = None, editingFinished = None):
         """
         创建一个输入文本框
         :param parent: 父QWidget
@@ -590,6 +590,8 @@ class WidgetUtil:
         :param sizePolicy: 缩放策略
         :param textChanged: 输入内容变化监听函数
         :param isReadOnly: 是否只读不能编辑
+        :param echoMode: 显示模式
+        :param editingFinished: 编辑结束
         :return: QLineEdit
         """
         widget = QtWidgets.QLineEdit(parent)
@@ -600,6 +602,10 @@ class WidgetUtil:
             widget.setText(_translate(contextName, text))
         if textChanged:
             widget.textChanged.connect(textChanged)
+        if echoMode:
+            widget.setEchoMode(echoMode)
+        if editingFinished:
+            widget.editingFinished.connect(editingFinished)
         widget.setReadOnly(isReadOnly)
         return widget
 
