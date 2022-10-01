@@ -23,7 +23,7 @@ class LogUtil:
 
     @staticmethod
     def i(tag, *args, **kwargs):
-        LogUtil.log(30, tag, *args, **kwargs)
+        LogUtil.log(32, tag, *args, **kwargs)
 
     @staticmethod
     def d(tag, *args, **kwargs):

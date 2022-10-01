@@ -18,6 +18,6 @@ if __name__ == "__main__":
     # 增加icon图标，如果没有图片可以没有这句
     mainWidget.setWindowIcon(QIcon('web.png'))
     # 初始打开以全屏方式
-    mainWidget.showMaximized()
+    # mainWidget.showMaximized()
     mainWidget.show()
     sys.exit(app.exec_())

@@ -33,10 +33,43 @@ class MainWidget(QMainWindow):
         # vLayout.setStretch(0, 1)
         # vLayout.setStretch(1, 3)
 
+        self.createMenuBar()
+
         self.setCentralWidget(centralWidget)
 
         self.setWindowTitle(WidgetUtil.translate("MainWidget", "开发测试辅助工具"))
         QtCore.QMetaObject.connectSlotsByName(self)
+        pass
+
+    def createMenuBar(self):
+        # 顶部菜单栏
+        menuBar: QMenuBar = self.menuBar()
+        menuBar.setNativeMenuBar(False)
+        sizeMenu = menuBar.addMenu('&Setting')
+        sizeMenu.setStatusTip('配置备份与恢复')
+        sizeMenu.addAction(WidgetUtil.createAction(menuBar, '备份', self.backupConfig, statusTip='显示小图标'))
+        sizeMenu.addAction(WidgetUtil.createAction(menuBar, '恢复', self.restoreConfig, statusTip='显示中图标'))
+
+    def backupConfig(self):
+        configFp = FileUtil.getConfigFp("BaseConfig.ini")
+        LogUtil.d("backupConfig", configFp)
+        fp = WidgetUtil.getExistingDirectory("请选择要备份保存的路径", "./")
+        if not fp:
+            WidgetUtil.showAboutDialog(text="您未选择备份路径，备份失败。")
+            return
+        if FileUtil.modifyFilePath(configFp, os.path.join(fp, "BaseConfig.ini")):
+            WidgetUtil.showAboutDialog(text=f"恭喜您成功备份到<span style='color:red;'>{os.path.join(fp, 'BaseConfig.ini')}</span>")
+        pass
+
+    def restoreConfig(self):
+        LogUtil.d("restoreConfig")
+        fp = WidgetUtil.getOpenFileName(caption='选择备份的配置文件', filter='*.ini', initialFilter='*.ini')
+        if not fp:
+            WidgetUtil.showAboutDialog(text="您未选择配置文件，恢复失败。")
+            return
+        configFp = FileUtil.getConfigFp("BaseConfig.ini")
+        if FileUtil.modifyFilePath(fp, configFp):
+            WidgetUtil.showAboutDialog(text=f"恭喜您成功恢复配置。")
         pass
 
     def createCommonGroupBox(self, parent):

@@ -82,14 +82,20 @@ class FileUtil:
         """
         if not os.path.isfile(srcFile):
             LogUtil.e("modifyFilePath", "%s not exist!" % srcFile)
+            return False
         else:
             FileUtil.mkFilePath(dstFile)
-            if isCopy:
-                shutil.copyfile(srcFile, dstFile)  # 复制文件
-                LogUtil.w("copy %s ->\nto   %s" % (srcFile, dstFile))
-            else:
-                shutil.move(srcFile, dstFile)  # 移动文件
-                LogUtil.w("move %s ->\nto   %s" % (srcFile, dstFile))
+            try:
+                if isCopy:
+                    shutil.copyfile(srcFile, dstFile)  # 复制文件
+                    LogUtil.w("copy %s ->\nto   %s" % (srcFile, dstFile))
+                else:
+                    shutil.move(srcFile, dstFile)  # 移动文件
+                    LogUtil.w("move %s ->\nto   %s" % (srcFile, dstFile))
+                return True
+            except Exception as err:
+                LogUtil.e('modifyFilePath 错误信息：', err)
+                return False
         pass
 
     @staticmethod
@@ -149,7 +155,7 @@ class FileUtil:
         for fileName in os.listdir(path):
             if fn in fileName:
                 return path + fileName
-        return None
+        return path + fn
 
     @staticmethod
     def getIconFp(fn):
