@@ -2,6 +2,7 @@
 # python 3.x
 # Filename: DragInputWidget.py
 # 定义一个DragInputWidget窗口类实现拖动文件输入的功能
+import os
 import sys
 
 
@@ -12,14 +13,14 @@ from util.PlatformUtil import PlatformUtil
 
 
 class DragInputWidget(QFrame):
-    def __init__(self, text="", fileParam=None, dirParam=None, isReadOnly=True, holderText=None, textChanged=None):
+    def __init__(self, text=None, fileParam=None, dirParam=None, isReadOnly=True, holderText=None, toolTip=None, textChanged=None):
         super(DragInputWidget, self).__init__()
         # self.setWindowFlags(QtCore.Qt.SplashScreen | QtCore.Qt.FramelessWindowHint)
         self.fileParam = fileParam
         self.dirParam = dirParam
 
         hbox = WidgetUtil.createHBoxLayout(self)
-        self.lineEdit = WidgetUtil.createLineEdit(self, text=text, holderText=holderText, isEnable=False,
+        self.lineEdit = WidgetUtil.createLineEdit(self, text=text, holderText=holderText, toolTip=toolTip, isEnable=False,
                                                   textChanged=textChanged, isReadOnly=isReadOnly)
         self.setAutoFillBackground(True)
         hbox.addWidget(self.lineEdit)
@@ -31,7 +32,15 @@ class DragInputWidget(QFrame):
     # 鼠标拖入事件
     def dragEnterEvent(self, evn):
         text = evn.mimeData().text()
-        self.lineEdit.setText(text.replace("file://" if PlatformUtil.isMac() else "file:///", ""))
+        text = text.replace("file://" if PlatformUtil.isMac() else "file:///", "")
+        if self.fileParam and not os.path.isfile(text):
+            WidgetUtil.showErrorDialog(message="请拖动一个文件到此")
+            return
+        if self.dirParam and not os.path.isdir(text):
+            WidgetUtil.showErrorDialog(message="请拖动一个文件夹到此")
+            return
+
+        self.lineEdit.setText(text)
         # 鼠标放开函数事件
         evn.accept()
 
@@ -64,9 +73,14 @@ class DragInputWidget(QFrame):
             self.lineEdit.setText(fp)
         pass
 
+    def text(self):
+        return self.lineEdit.text().strip()
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     e = DragInputWidget()
+    # e = DragInputWidget(fileParam=["file", "./", "*.py", "*.py"])
+    # e = DragInputWidget(dirParam=["dir", "./"])
     e.show()
     sys.exit(app.exec_())
