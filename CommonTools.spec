@@ -65,10 +65,13 @@ a = Analysis(['RunMain.py',
               'widget/mockExam/Word2Excel.py',
               'widget/photoWall/PhotoWallWindow.py',
               'widget/photoWall/PicturePreviewDialog.py',
+
+              'widget/projectManage/AddOrEditCmdDialog.py',
               'widget/projectManage/AddOrEditEvnDialog.py',
               'widget/projectManage/AddOrEditProjectDialog.py',
               'widget/projectManage/ProjectManager.py',
               'widget/projectManage/ProjectManagerWindow.py',
+
               'widget/test/AndroidAdbDialog.py',
               'widget/test/AndroidAssistTestDialog.py',
               'widget/test/EditTestStepDialog.py',

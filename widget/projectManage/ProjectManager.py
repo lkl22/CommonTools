@@ -20,6 +20,9 @@ KEY_ID = 'id'
 KEY_PATH = 'path'
 KEY_ENV_LIST = 'evnList'
 KEY_VALUE = 'value'
+KEY_PROGRAM = 'program'
+KEY_ARGUMENTS = 'arguments'
+KEY_WORKING_DIR = 'workingDir'
 
 KEY_EVN_IS_PATH = 'isPath'
 
