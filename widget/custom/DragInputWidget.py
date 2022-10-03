@@ -20,7 +20,7 @@ class DragInputWidget(QFrame):
         self.dirParam = dirParam
 
         hbox = WidgetUtil.createHBoxLayout(self)
-        self.lineEdit = WidgetUtil.createLineEdit(self, text=text, holderText=holderText, toolTip=toolTip, isEnable=False,
+        self.lineEdit = WidgetUtil.createLineEdit(self, text=text, holderText=holderText, toolTip=toolTip, isEnable=not isReadOnly,
                                                   textChanged=textChanged, isReadOnly=isReadOnly)
         self.setAutoFillBackground(True)
         hbox.addWidget(self.lineEdit)
@@ -56,11 +56,11 @@ class DragInputWidget(QFrame):
         LogUtil.d('mouseDoubleClickEvent')
         if ev.button() == Qt.LeftButton:
             if self.fileParam:
-                fp = WidgetUtil.getOpenFileName(*self.fileParam)
+                fp = WidgetUtil.getOpenFileName(self, *self.fileParam)
                 self.mouseLeftBtnDoubleClick(fp)
                 return
             if self.dirParam:
-                fp = WidgetUtil.getExistingDirectory(*self.dirParam)
+                fp = WidgetUtil.getExistingDirectory(self, *self.dirParam)
                 self.mouseLeftBtnDoubleClick(fp)
                 return
             # 默认选择一个文件，不限制文件类型
@@ -69,7 +69,7 @@ class DragInputWidget(QFrame):
         pass
 
     def mouseLeftBtnDoubleClick(self, fp):
-        if fp:
+        if self.lineEdit and fp:
             self.lineEdit.setText(fp)
         pass
 
@@ -79,8 +79,8 @@ class DragInputWidget(QFrame):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    e = DragInputWidget()
-    # e = DragInputWidget(fileParam=["file", "./", "*.py", "*.py"])
+    # e = DragInputWidget()
+    e = DragInputWidget(fileParam=["file", "./", "*.py", "*.py"])
     # e = DragInputWidget(dirParam=["dir", "./"])
     e.show()
     sys.exit(app.exec_())

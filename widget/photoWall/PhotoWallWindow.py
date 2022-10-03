@@ -126,7 +126,7 @@ class PhotoWallWindow(QMainWindow):
         pass
 
     def openDir(self):
-        filePath = WidgetUtil.getExistingDirectory('选择文件夹', './')
+        filePath = WidgetUtil.getExistingDirectory(caption='选择文件夹', directory='./')
         if not filePath:
             QMessageBox.information(self, '提示', '文件夹为空，请重新操作')
             return

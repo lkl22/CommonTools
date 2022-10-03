@@ -53,7 +53,7 @@ class MainWidget(QMainWindow):
     def backupConfig(self):
         configFp = FileUtil.getConfigFp("BaseConfig.ini")
         LogUtil.d("backupConfig", configFp)
-        fp = WidgetUtil.getExistingDirectory("请选择要备份保存的路径", "./")
+        fp = WidgetUtil.getExistingDirectory(caption="请选择要备份保存的路径", directory="./")
         if not fp:
             WidgetUtil.showAboutDialog(text="您未选择备份路径，备份失败。")
             return
@@ -149,7 +149,8 @@ class MainWidget(QMainWindow):
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
         hbox.addWidget(WidgetUtil.createPushButton(box, text="计算文件hash", onClicked=self.jumpFileHashDialog), 1)
         hbox.addWidget(WidgetUtil.createPushButton(box, text="账号管理", onClicked=self.jumpAccountManagerDialog), 1)
-        hbox.addWidget(WidgetUtil.createLabel(box), 3)
+        hbox.addWidget(WidgetUtil.createPushButton(box, text="项目管理", onClicked=self.jumpProjectManagerWindow), 1)
+        hbox.addWidget(WidgetUtil.createLabel(box), 2)
         vbox.addLayout(hbox)
         vbox.addItem(WidgetUtil.createVSpacerItem(1, 1))
         return box
@@ -228,4 +229,15 @@ class MainWidget(QMainWindow):
         LogUtil.i("jumpAccountManagerDialog")
         from widget.account.AccountManagerDialog import AccountManagerDialog
         AccountManagerDialog()
+        pass
+
+    def jumpProjectManagerWindow(self):
+        LogUtil.i("jumpProjectManagerWindow")
+        from widget.projectManage.ProjectManagerWindow import ProjectManagerWindow
+        window = ProjectManagerWindow()
+        window.center()
+        # 注：没有这句，是不打开另一个主界面的
+        self.windowList.append(window)
+        self.close()
+        window.show()
         pass

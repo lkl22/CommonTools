@@ -18,7 +18,8 @@ class AddOrEditEvnDialog(QtWidgets.QDialog):
         AddOrEditEvnDialog.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.2)
         LogUtil.d("Add or Edit Evn Dialog")
         self.setWindowTitle(WidgetUtil.translate(text="添加/编辑环境变量"))
-
+        if evnList is None:
+            evnList = []
         self.callback = callback
         self.evnList = evnList
         self.default = default
@@ -42,7 +43,7 @@ class AddOrEditEvnDialog(QtWidgets.QDialog):
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
         hbox.addWidget(WidgetUtil.createLabel(self, text="环境变量值：", minSize=QSize(labelWidth, const.HEIGHT)))
         self.valueLineEdit = DragInputWidget(isReadOnly=False, holderText="工程运行时的环境变量值",
-                                             toolTip="您可以拖动文件或者文件夹到此，或者双击选择文件")
+                                             toolTip="您可以拖动文件或者文件夹到此")
         hbox.addWidget(self.valueLineEdit)
         vLayout.addLayout(hbox)
 
@@ -58,7 +59,7 @@ class AddOrEditEvnDialog(QtWidgets.QDialog):
         btnBox = WidgetUtil.createDialogButtonBox(parent=self, acceptedFunc=self.acceptFunc,
                                                   rejectedFunc=lambda: self.close())
         vLayout.addWidget(btnBox)
-        self.setWindowModality(Qt.ApplicationModal)
+        self.setWindowModality(Qt.WindowModal)
         if not isDebug:
             # 很关键，不加出不来
             self.exec_()

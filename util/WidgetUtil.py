@@ -77,29 +77,31 @@ class WidgetUtil:
         return None
 
     @staticmethod
-    def getOpenFileName(caption='', directory='', filter='', initialFilter=''):
+    def getOpenFileName(parent=None, caption='', directory='', filter='', initialFilter=''):
         """
         打开一个文件弹框选择一个指定的文件
+        :param parent: 父窗口
         :param caption: 标题
         :param directory: directory
         :param filter: 过滤列表
         :param initialFilter: 默认的过滤条件
         :return: 文件路径
         """
-        (filePath, _) = QtWidgets.QFileDialog.getOpenFileName(caption=caption, directory=directory, filter=filter,
+        (filePath, _) = QtWidgets.QFileDialog.getOpenFileName(parent=parent, caption=caption, directory=directory, filter=filter,
                                                               initialFilter=initialFilter)
         print("选择的文件： " + filePath)
         return filePath
 
     @staticmethod
-    def getExistingDirectory(caption='', directory=''):
+    def getExistingDirectory(parent=None, caption='', directory=''):
         """
         打开一个文件夹弹框选择一个指定的文件夹
+        :param parent: 父窗口
         :param caption: 标题
         :param directory: directory
         :return: 文件夹路径
         """
-        dirPath = QtWidgets.QFileDialog.getExistingDirectory(caption=caption, directory=directory)
+        dirPath = QtWidgets.QFileDialog.getExistingDirectory(parent=parent, caption=caption, directory=directory)
         print("选择的目录： " + dirPath)
         return dirPath
 
