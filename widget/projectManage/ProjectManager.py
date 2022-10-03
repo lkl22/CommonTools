@@ -24,6 +24,7 @@ KEY_PROJECT_ENV_LIST = 'projectEvnList'
 
 KEY_EVN_NAME = 'evnName'
 KEY_EVN_VALUE = 'evnValue'
+KEY_EVN_IS_PATH = 'isPath'
 
 KEY_MODULE_NAME = 'moduleName'
 

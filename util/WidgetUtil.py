@@ -87,7 +87,8 @@ class WidgetUtil:
         :param initialFilter: 默认的过滤条件
         :return: 文件路径
         """
-        (filePath, _) = QtWidgets.QFileDialog.getOpenFileName(parent=parent, caption=caption, directory=directory, filter=filter,
+        (filePath, _) = QtWidgets.QFileDialog.getOpenFileName(parent=parent, caption=caption, directory=directory,
+                                                              filter=filter,
                                                               initialFilter=initialFilter)
         print("选择的文件： " + filePath)
         return filePath
@@ -579,7 +580,7 @@ class WidgetUtil:
     @staticmethod
     def createLineEdit(parent: QWidget, objectName="LineEdit", text="", holderText="", toolTip=None,
                        geometry: QRect = None, isEnable=True, sizePolicy: QSizePolicy = None, textChanged=None,
-                       isReadOnly=False, echoMode: QLineEdit.EchoMode = None, editingFinished = None):
+                       isReadOnly=False, echoMode: QLineEdit.EchoMode = None, editingFinished=None):
         """
         创建一个输入文本框
         :param parent: 父QWidget
@@ -826,19 +827,24 @@ class WidgetUtil:
             return jsonData
 
     @staticmethod
-    def createAction(parent: Union[QMenu, QMenuBar], text="添加", func=None,
+    def createAction(parent: Union[QMenu, QMenuBar], icon: QIcon = None, text="添加", func=None,
                      shortcut: Union[QKeySequence, QKeySequence.StandardKey, str, int] = None,
                      statusTip: str = None):
         """
         创建一个菜单action
         :param parent: QMenu、QMenuBar
+        :param icon: 图标
         :param text: 显示文本
         :param func: 触发回调函数
         :param shortcut: 快捷键
         :param statusTip: 状态栏信息文本
         :return: QAction
         """
-        action = QtWidgets.QAction(text, parent)
+        action = QtWidgets.QAction(parent)
+        if icon:
+            action.setIcon(icon)
+        if text:
+            action.setText(text)
         if func:
             action.triggered.connect(func)
         if shortcut:

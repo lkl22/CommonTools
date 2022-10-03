@@ -69,10 +69,11 @@ class AddOrEditProjectDialog(QtWidgets.QDialog):
 
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
         hbox.addWidget(WidgetUtil.createLabel(box, text="工程路径：", minSize=QSize(labelWidth, const.HEIGHT)))
-        self.projectPathInputWidget = DragInputWidget(text=self.projectInfo[KEY_PROJECT_PATH] if self.projectInfo else "",
-                                                      dirParam=["请选择您工程工作目录", "./"], isReadOnly=True,
-                                                      holderText="请拖动您工程的工作目录到此框或者双击选择您的工程路径",
-                                                      textChanged=self.dragInputTextChanged)
+        self.projectPathInputWidget = DragInputWidget(
+            text=self.projectInfo[KEY_PROJECT_PATH] if self.projectInfo else "",
+            dirParam=["请选择您工程工作目录", "./"], isReadOnly=True,
+            holderText="请拖动您工程的工作目录到此框或者点击右侧的按钮选择您的工程路径",
+            textChanged=self.dragInputTextChanged)
         hbox.addWidget(self.projectPathInputWidget)
         vbox.addLayout(hbox)
 
@@ -150,9 +151,10 @@ class AddOrEditProjectDialog(QtWidgets.QDialog):
         else:
             evnList = self.projectInfo[KEY_PROJECT_ENV_LIST]
         WidgetUtil.addTableViewData(self.evnTableView, evnList,
-                                    headerLabels=["环境变量名", "环境变量值", "环境变量描述"])
+                                    headerLabels=["环境变量名", "环境变量值", "环境变量描述", "Path环境变量"])
         WidgetUtil.tableViewSetColumnWidth(self.evnTableView, 0, 100)
         WidgetUtil.tableViewSetColumnWidth(self.evnTableView, 2, 100)
+        WidgetUtil.tableViewSetColumnWidth(self.evnTableView, 3, 100)
         pass
 
     def acceptFunc(self):
@@ -189,7 +191,11 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     # window = AddOrEditProjectDialog(callback=lambda it: LogUtil.d("callback", it), isDebug=True)
     window = AddOrEditProjectDialog(callback=lambda it: LogUtil.d("callback", it),
-                                    projectInfo={'projectEvnList': [{'evnName': 'ss', 'evnValue': 'dd', 'desc': 'ff'}], 'projectId': '0cc175b9c0f1b6a831c399e269772661', 'projectName': 'a', 'desc': 'dd', 'projectPath': '/Users/likunlun/PycharmProjects/CommonTools/widget/projectManage'},
+                                    projectInfo={'projectEvnList': [
+                                        {'evnName': 'ss', 'evnValue': 'dd', 'desc': 'ff', "isPath": True}],
+                                                 'projectId': '0cc175b9c0f1b6a831c399e269772661',
+                                                 'projectName': 'a', 'desc': 'dd',
+                                                 'projectPath': '/Users/likunlun/PycharmProjects/CommonTools/widget/projectManage'},
                                     isDebug=True)
     window.show()
     sys.exit(app.exec_())
