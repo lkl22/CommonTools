@@ -35,14 +35,14 @@ class AddOrEditEvnDialog(QtWidgets.QDialog):
 
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
         hbox.addWidget(WidgetUtil.createLabel(self, text="环境变量名：", minSize=QSize(labelWidth, const.HEIGHT)))
-        self.nameLineEdit = WidgetUtil.createLineEdit(self, text=default[KEY_EVN_NAME] if default else "",
+        self.nameLineEdit = WidgetUtil.createLineEdit(self, text=default[KEY_NAME] if default else "",
                                                       holderText="工程运行时的环境变量名")
         hbox.addWidget(self.nameLineEdit)
         vLayout.addLayout(hbox)
 
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
         hbox.addWidget(WidgetUtil.createLabel(self, text="环境变量值：", minSize=QSize(labelWidth, const.HEIGHT)))
-        self.valueLineEdit = DragInputWidget(text=default[KEY_EVN_VALUE] if default else "",
+        self.valueLineEdit = DragInputWidget(text=default[KEY_VALUE] if default else "",
                                              fileParam=['', './', '', ''],
                                              dirParam=["", "./"],
                                              isReadOnly=False,
@@ -85,21 +85,21 @@ class AddOrEditEvnDialog(QtWidgets.QDialog):
         if not value:
             WidgetUtil.showErrorDialog(message="请输入环境变量值")
             return
-        if not self.default or self.default[KEY_EVN_NAME] != name:
+        if not self.default or self.default[KEY_NAME] != name:
             for item in self.evnList:
-                if name == item[KEY_EVN_NAME]:
+                if name == item[KEY_NAME]:
                     WidgetUtil.showErrorDialog(message=f"请重新添加一个其他的环境变量，{name}已经存在了，不能重复添加")
                     return
         desc = self.descLineEdit.text().strip()
         isPath = self.isPathRadioButton.isChecked()
         if self.default:
-            self.default[KEY_EVN_NAME] = name
-            self.default[KEY_EVN_VALUE] = value
+            self.default[KEY_NAME] = name
+            self.default[KEY_VALUE] = value
             self.default[KEY_DESC] = desc
             self.default[KEY_EVN_IS_PATH] = isPath
             self.callback(None)
         else:
-            self.callback({KEY_EVN_NAME: name, KEY_EVN_VALUE: value, KEY_DESC: desc, KEY_EVN_IS_PATH: isPath})
+            self.callback({KEY_NAME: name, KEY_VALUE: value, KEY_DESC: desc, KEY_EVN_IS_PATH: isPath})
         self.close()
         pass
 

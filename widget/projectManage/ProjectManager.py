@@ -2,8 +2,6 @@
 # python 3.x
 # Filename: AccountManager.py
 # 定义一个AccountManager类实现账户数据管理相关的功能
-from Cryptodome.Cipher import DES, AES
-import binascii
 from util.LogUtil import *
 from util.OperaIni import OperaIni
 from util.JsonUtil import JsonUtil
@@ -14,19 +12,16 @@ ITEM_KEY_PROJECT = 'projects'
 
 KEY_DEFAULT = 'default'
 KEY_LIST = 'list'
+KEY_NAME = 'name'
 KEY_DESC = 'desc'
 
-# 项目的唯一标识，通过projectName生成的MD5值，不限制projectName的输入字符
-KEY_PROJECT_ID = 'projectId'
-KEY_PROJECT_NAME = 'projectName'
-KEY_PROJECT_PATH = 'projectPath'
-KEY_PROJECT_ENV_LIST = 'projectEvnList'
+# 唯一标识，区分条目的
+KEY_ID = 'id'
+KEY_PATH = 'path'
+KEY_ENV_LIST = 'evnList'
+KEY_VALUE = 'value'
 
-KEY_EVN_NAME = 'evnName'
-KEY_EVN_VALUE = 'evnValue'
 KEY_EVN_IS_PATH = 'isPath'
-
-KEY_MODULE_NAME = 'moduleName'
 
 
 class AccountManager:

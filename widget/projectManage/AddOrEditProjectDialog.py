@@ -56,7 +56,7 @@ class AddOrEditProjectDialog(QtWidgets.QDialog):
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
         hbox.addWidget(WidgetUtil.createLabel(box, text="工程名：", minSize=QSize(labelWidth, const.HEIGHT)))
         self.projectNameLineEdit = WidgetUtil.createLineEdit(box, text=self.projectInfo[
-            KEY_PROJECT_NAME] if self.projectInfo else "", isReadOnly=self.projectInfo is not None)
+            KEY_NAME] if self.projectInfo else "", isReadOnly=self.projectInfo is not None)
         hbox.addWidget(self.projectNameLineEdit)
         vbox.addLayout(hbox)
 
@@ -70,7 +70,7 @@ class AddOrEditProjectDialog(QtWidgets.QDialog):
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
         hbox.addWidget(WidgetUtil.createLabel(box, text="工程路径：", minSize=QSize(labelWidth, const.HEIGHT)))
         self.projectPathInputWidget = DragInputWidget(
-            text=self.projectInfo[KEY_PROJECT_PATH] if self.projectInfo else "",
+            text=self.projectInfo[KEY_PATH] if self.projectInfo else "",
             dirParam=["请选择您工程工作目录", "./"], isReadOnly=True,
             holderText="请拖动您工程的工作目录到此框或者点击右侧的按钮选择您的工程路径",
             textChanged=self.dragInputTextChanged)
@@ -101,17 +101,17 @@ class AddOrEditProjectDialog(QtWidgets.QDialog):
     def addEvn(self):
         LogUtil.d("addEvn")
         if self.projectInfo is None:
-            self.projectInfo = {KEY_PROJECT_ENV_LIST: []}
-        evnList = DictUtil.get(self.projectInfo, KEY_PROJECT_ENV_LIST)
+            self.projectInfo = {KEY_ENV_LIST: []}
+        evnList = DictUtil.get(self.projectInfo, KEY_ENV_LIST)
         AddOrEditEvnDialog(evnList=evnList, callback=self.addOrEditEvnCallback)
         pass
 
     def addOrEditEvnCallback(self, evnInfo):
         LogUtil.d("addOrEditEvnCallback", evnInfo)
-        evnList = self.projectInfo[KEY_PROJECT_ENV_LIST]
+        evnList = self.projectInfo[KEY_ENV_LIST]
         if evnInfo:
             evnList.append(evnInfo)
-        self.projectInfo[KEY_PROJECT_ENV_LIST] = sorted(evnList, key=lambda x: x[KEY_EVN_NAME])
+        self.projectInfo[KEY_ENV_LIST] = sorted(evnList, key=lambda x: x[KEY_NAME])
         self.updateEvnTableView()
         pass
 
@@ -120,8 +120,8 @@ class AddOrEditProjectDialog(QtWidgets.QDialog):
         row = index.row()
         LogUtil.d("双击的单元格：row ", row, ' col', index.column(), ' data ', oldValue)
 
-        evnInfo = self.projectInfo[KEY_PROJECT_ENV_LIST][row]
-        AddOrEditEvnDialog(evnList=self.projectInfo[KEY_PROJECT_ENV_LIST], callback=self.addOrEditEvnCallback,
+        evnInfo = self.projectInfo[KEY_ENV_LIST][row]
+        AddOrEditEvnDialog(evnList=self.projectInfo[KEY_ENV_LIST], callback=self.addOrEditEvnCallback,
                            default=evnInfo)
         pass
 
@@ -133,7 +133,7 @@ class AddOrEditProjectDialog(QtWidgets.QDialog):
         pass
 
     def delProjectEvn(self):
-        evn = self.projectInfo[KEY_PROJECT_ENV_LIST][self.curDelRow][KEY_EVN_NAME]
+        evn = self.projectInfo[KEY_ENV_LIST][self.curDelRow][KEY_NAME]
         LogUtil.i(f"delAccount {evn}")
         WidgetUtil.showQuestionDialog(message=f"你确定需要删除 <span style='color:red;'>{evn}</span> 吗？",
                                       acceptFunc=self.delTableItem)
@@ -141,15 +141,15 @@ class AddOrEditProjectDialog(QtWidgets.QDialog):
 
     def delTableItem(self):
         LogUtil.i("delTreeWidgetItem")
-        self.projectInfo[KEY_PROJECT_ENV_LIST].remove(self.projectInfo[KEY_PROJECT_ENV_LIST][self.curDelRow])
+        self.projectInfo[KEY_ENV_LIST].remove(self.projectInfo[KEY_ENV_LIST][self.curDelRow])
         self.updateEvnTableView()
         pass
 
     def updateEvnTableView(self):
-        if not self.projectInfo or not self.projectInfo[KEY_PROJECT_ENV_LIST]:
+        if not self.projectInfo or not self.projectInfo[KEY_ENV_LIST]:
             evnList = []
         else:
-            evnList = self.projectInfo[KEY_PROJECT_ENV_LIST]
+            evnList = self.projectInfo[KEY_ENV_LIST]
         WidgetUtil.addTableViewData(self.evnTableView, evnList,
                                     headerLabels=["环境变量名", "环境变量值", "环境变量描述", "Path环境变量"])
         WidgetUtil.tableViewSetColumnWidth(self.evnTableView, 0, 100)
@@ -177,10 +177,10 @@ class AddOrEditProjectDialog(QtWidgets.QDialog):
 
         if self.projectInfo is None:
             self.projectInfo = {}
-        self.projectInfo[KEY_PROJECT_ID] = id
-        self.projectInfo[KEY_PROJECT_NAME] = name
+        self.projectInfo[KEY_ID] = id
+        self.projectInfo[KEY_NAME] = name
         self.projectInfo[KEY_DESC] = desc
-        self.projectInfo[KEY_PROJECT_PATH] = path
+        self.projectInfo[KEY_PATH] = path
 
         self.callback(self.projectInfo if self.isAdd else None)
         self.close()
@@ -191,11 +191,11 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     # window = AddOrEditProjectDialog(callback=lambda it: LogUtil.d("callback", it), isDebug=True)
     window = AddOrEditProjectDialog(callback=lambda it: LogUtil.d("callback", it),
-                                    projectInfo={'projectEvnList': [
-                                        {'evnName': 'ss', 'evnValue': 'dd', 'desc': 'ff', "isPath": True}],
-                                                 'projectId': '0cc175b9c0f1b6a831c399e269772661',
-                                                 'projectName': 'a', 'desc': 'dd',
-                                                 'projectPath': '/Users/likunlun/PycharmProjects/CommonTools/widget/projectManage'},
+                                    projectInfo={'evnList': [
+                                        {'name': 'ss', 'value': 'dd', 'desc': 'ff', "isPath": True}],
+                                                 'id': '0cc175b9c0f1b6a831c399e269772661',
+                                                 'name': 'a', 'desc': 'dd',
+                                                 'path': '/Users/likunlun/PycharmProjects/CommonTools/widget/projectManage'},
                                     isDebug=True)
     window.show()
     sys.exit(app.exec_())
