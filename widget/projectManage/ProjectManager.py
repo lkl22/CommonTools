@@ -23,8 +23,9 @@ KEY_VALUE = 'value'
 KEY_PROGRAM = 'program'
 KEY_ARGUMENTS = 'arguments'
 KEY_WORKING_DIR = 'workingDir'
-
 KEY_EVN_IS_PATH = 'isPath'
+
+KEY_CMD_LIST = 'cmdList'
 
 
 class AccountManager:

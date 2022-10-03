@@ -52,24 +52,24 @@ class AddOrEditCmdDialog(QtWidgets.QDialog):
 
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
         hbox.addWidget(WidgetUtil.createLabel(self, text="Program：", minSize=QSize(labelWidth, const.HEIGHT)))
-        self.programLineEdit = DragInputWidget(text=DictUtil.get(default, KEY_PROGRAM),
-                                               fileParam=['', './', '', ''],
-                                               dirParam=["", "./"],
-                                               isReadOnly=False,
-                                               holderText="需要执行的命令行指令",
-                                               toolTip="您可以拖动文件或者文件夹到此或者点击右侧的图标")
-        hbox.addWidget(self.programLineEdit)
+        self.programInputWidget = DragInputWidget(text=DictUtil.get(default, KEY_PROGRAM),
+                                                  fileParam=['', './', '', ''],
+                                                  dirParam=["", "./"],
+                                                  isReadOnly=False,
+                                                  holderText="需要执行的命令行指令",
+                                                  toolTip="您可以拖动文件或者文件夹到此或者点击右侧的图标")
+        hbox.addWidget(self.programInputWidget)
         vLayout.addLayout(hbox)
 
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
         hbox.addWidget(WidgetUtil.createLabel(self, text="Working directory：", minSize=QSize(labelWidth, const.HEIGHT)))
-        self.workDirLineEdit = DragInputWidget(text=DictUtil.get(default, KEY_WORKING_DIR),
-                                               fileParam=['', './', '', ''],
-                                               dirParam=["", "./"],
-                                               isReadOnly=False,
-                                               holderText="执行命令行指令所在的工作空间，不填，默认跟随模块工作目录",
-                                               toolTip="您可以拖动文件或者文件夹到此或者点击右侧的图标")
-        hbox.addWidget(self.workDirLineEdit)
+        self.workDirInputWidget = DragInputWidget(text=DictUtil.get(default, KEY_WORKING_DIR),
+                                                  fileParam=['', './', '', ''],
+                                                  dirParam=["", "./"],
+                                                  isReadOnly=False,
+                                                  holderText="执行命令行指令所在的工作空间，不填，默认跟随模块工作目录",
+                                                  toolTip="您可以拖动文件或者文件夹到此或者点击右侧的图标")
+        hbox.addWidget(self.workDirInputWidget)
         vLayout.addLayout(hbox)
 
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
@@ -95,7 +95,7 @@ class AddOrEditCmdDialog(QtWidgets.QDialog):
         if not name:
             WidgetUtil.showErrorDialog(message="请输入需要执行的命令行指令别名")
             return
-        program = self.programLineEdit.text().strip()
+        program = self.programInputWidget.text().strip()
         if not program:
             WidgetUtil.showErrorDialog(message="请输入需要执行的命令行指令")
             return
@@ -105,8 +105,7 @@ class AddOrEditCmdDialog(QtWidgets.QDialog):
                     WidgetUtil.showErrorDialog(message=f"请重新添加一个其他的指令别名，{name}已经存在了，不能重复添加")
                     return
         desc = self.descLineEdit.text().strip()
-        program = self.programLineEdit.text().strip()
-        workDir = self.workDirLineEdit.text().strip()
+        workDir = self.workDirInputWidget.text().strip()
         arguments = self.argumentsLineEdit.text().strip()
         if self.isAdd:
             self.callback({KEY_NAME: name, KEY_DESC: desc, KEY_PROGRAM: program, KEY_WORKING_DIR: workDir,
