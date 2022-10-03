@@ -8,6 +8,7 @@ from PyQt5.QtWidgets import QAbstractItemView
 from constant.WidgetConst import *
 from util.DialogUtil import *
 from util.DictUtil import DictUtil
+from util.MD5Util import MD5Util
 from util.OperaIni import *
 from widget.custom.DragInputWidget import DragInputWidget
 from widget.projectManage.AddOrEditEvnDialog import AddOrEditEvnDialog
@@ -15,13 +16,15 @@ from widget.projectManage.ProjectManager import *
 
 
 class AddOrEditProjectDialog(QtWidgets.QDialog):
-    def __init__(self, projectInfo=None, projectList=None, isDebug=False):
+    def __init__(self, callback, projectInfo=None, projectList=None, isDebug=False):
         # 调用父类的构函
         QtWidgets.QDialog.__init__(self)
         self.isDebug = isDebug
         if projectList is None:
             projectList = []
+        self.callback = callback
         self.projectInfo = projectInfo
+        self.isAdd = projectInfo is None
         self.projectList = projectList
 
         self.setWindowFlags(Qt.Dialog | Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint)
@@ -51,24 +54,23 @@ class AddOrEditProjectDialog(QtWidgets.QDialog):
         vbox = WidgetUtil.createVBoxLayout(box, margins=QMargins(5, 5, 5, 5), spacing=5)
         labelWidth = 120
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
-        hbox.addWidget(WidgetUtil.createLabel(box, text="项目名：", minSize=QSize(labelWidth, const.HEIGHT)))
+        hbox.addWidget(WidgetUtil.createLabel(box, text="工程名：", minSize=QSize(labelWidth, const.HEIGHT)))
         self.projectNameLineEdit = WidgetUtil.createLineEdit(box, text=self.projectInfo[
-            KEY_PROJECT_NAME] if self.projectInfo else "",
-                                                             isReadOnly=self.projectInfo is not None)
+            KEY_PROJECT_NAME] if self.projectInfo else "", isReadOnly=self.projectInfo is not None)
         hbox.addWidget(self.projectNameLineEdit)
         vbox.addLayout(hbox)
 
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
-        hbox.addWidget(WidgetUtil.createLabel(box, text="项目描述：", minSize=QSize(labelWidth, const.HEIGHT)))
+        hbox.addWidget(WidgetUtil.createLabel(box, text="工程描述：", minSize=QSize(labelWidth, const.HEIGHT)))
         self.projectDescLineEdit = WidgetUtil.createLineEdit(box, text=self.projectInfo[
-            KEY_DESC] if self.projectInfo else "",
-                                                             isReadOnly=self.projectInfo is not None)
+            KEY_DESC] if self.projectInfo else "")
         hbox.addWidget(self.projectDescLineEdit)
         vbox.addLayout(hbox)
 
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
-        hbox.addWidget(WidgetUtil.createLabel(box, text="项目路径：", minSize=QSize(labelWidth, const.HEIGHT)))
-        self.projectPathInputWidget = DragInputWidget(dirParam=["请选择您工程工作目录", "./"], isReadOnly=True,
+        hbox.addWidget(WidgetUtil.createLabel(box, text="工程路径：", minSize=QSize(labelWidth, const.HEIGHT)))
+        self.projectPathInputWidget = DragInputWidget(text=self.projectInfo[KEY_PROJECT_PATH] if self.projectInfo else "",
+                                                      dirParam=["请选择您工程工作目录", "./"], isReadOnly=True,
                                                       holderText="请拖动您工程的工作目录到此框或者双击选择您的工程路径",
                                                       textChanged=self.dragInputTextChanged)
         hbox.addWidget(self.projectPathInputWidget)
@@ -85,6 +87,7 @@ class AddOrEditProjectDialog(QtWidgets.QDialog):
         # 设置自定义右键菜单
         self.evnTableView.setContextMenuPolicy(Qt.CustomContextMenu)
         self.evnTableView.customContextMenuRequested.connect(self.customRightMenu)
+        self.updateEvnTableView()
         vbox.addWidget(self.evnTableView)
 
         vbox.addItem(WidgetUtil.createVSpacerItem(1, 1))
@@ -99,8 +102,7 @@ class AddOrEditProjectDialog(QtWidgets.QDialog):
         if self.projectInfo is None:
             self.projectInfo = {KEY_PROJECT_ENV_LIST: []}
         evnList = DictUtil.get(self.projectInfo, KEY_PROJECT_ENV_LIST)
-        AddOrEditEvnDialog(evnList=evnList, callback=self.addOrEditEvnCallback,
-                           isDebug=self.isDebug)
+        AddOrEditEvnDialog(evnList=evnList, callback=self.addOrEditEvnCallback)
         pass
 
     def addOrEditEvnCallback(self, evnInfo):
@@ -119,8 +121,7 @@ class AddOrEditProjectDialog(QtWidgets.QDialog):
 
         evnInfo = self.projectInfo[KEY_PROJECT_ENV_LIST][row]
         AddOrEditEvnDialog(evnList=self.projectInfo[KEY_PROJECT_ENV_LIST], callback=self.addOrEditEvnCallback,
-                           default=evnInfo,
-                           isDebug=self.isDebug).show()
+                           default=evnInfo)
         pass
 
     def customRightMenu(self, pos):
@@ -150,18 +151,45 @@ class AddOrEditProjectDialog(QtWidgets.QDialog):
             evnList = self.projectInfo[KEY_PROJECT_ENV_LIST]
         WidgetUtil.addTableViewData(self.evnTableView, evnList,
                                     headerLabels=["环境变量名", "环境变量值", "环境变量描述"])
-        WidgetUtil.tableViewSetColumnWidth(self.evnTableView, 0, 150)
-        WidgetUtil.tableViewSetColumnWidth(self.evnTableView, 2, 150)
+        WidgetUtil.tableViewSetColumnWidth(self.evnTableView, 0, 100)
+        WidgetUtil.tableViewSetColumnWidth(self.evnTableView, 2, 100)
         pass
 
     def acceptFunc(self):
         LogUtil.d("acceptFunc")
+        name = self.projectNameLineEdit.text().strip()
+        if not name:
+            WidgetUtil.showErrorDialog(message="请输入工程名")
+            return
+        desc = self.projectDescLineEdit.text().strip()
+        if not desc:
+            WidgetUtil.showErrorDialog(message="请输入工程描述")
+            return
+        path = self.projectPathInputWidget.text().strip()
+        if not path:
+            WidgetUtil.showErrorDialog(message="请选择工程路径")
+            return
+
+        id = MD5Util.md5(name)
+        # if id in self.projectList:
+
+        if self.projectInfo is None:
+            self.projectInfo = {}
+        self.projectInfo[KEY_PROJECT_ID] = id
+        self.projectInfo[KEY_PROJECT_NAME] = name
+        self.projectInfo[KEY_DESC] = desc
+        self.projectInfo[KEY_PROJECT_PATH] = path
+
+        self.callback(self.projectInfo if self.isAdd else None)
         self.close()
         pass
 
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    window = AddOrEditProjectDialog(isDebug=True)
+    # window = AddOrEditProjectDialog(callback=lambda it: LogUtil.d("callback", it), isDebug=True)
+    window = AddOrEditProjectDialog(callback=lambda it: LogUtil.d("callback", it),
+                                    projectInfo={'projectEvnList': [{'evnName': 'ss', 'evnValue': 'dd', 'desc': 'ff'}], 'projectId': '0cc175b9c0f1b6a831c399e269772661', 'projectName': 'a', 'desc': 'dd', 'projectPath': '/Users/likunlun/PycharmProjects/CommonTools/widget/projectManage'},
+                                    isDebug=True)
     window.show()
     sys.exit(app.exec_())

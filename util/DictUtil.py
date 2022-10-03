@@ -2,7 +2,6 @@
 # python 3.x
 # Filename: DictUtil.py
 # 定义一个DictUtil工具类实现字典操作相关的功能
-import time
 from util.LogUtil import *
 
 
