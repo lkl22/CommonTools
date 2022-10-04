@@ -55,22 +55,21 @@ class AddOrEditProjectDialog(QtWidgets.QDialog):
         labelWidth = 120
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
         hbox.addWidget(WidgetUtil.createLabel(box, text="工程名：", minSize=QSize(labelWidth, const.HEIGHT)))
-        self.projectNameLineEdit = WidgetUtil.createLineEdit(box, text=self.projectInfo[
-            KEY_NAME] if self.projectInfo else "", isReadOnly=self.projectInfo is not None)
+        self.projectNameLineEdit = WidgetUtil.createLineEdit(box, text=DictUtil.get(self.projectInfo, KEY_NAME),
+                                                             isReadOnly=not self.isAdd)
         hbox.addWidget(self.projectNameLineEdit)
         vbox.addLayout(hbox)
 
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
         hbox.addWidget(WidgetUtil.createLabel(box, text="工程描述：", minSize=QSize(labelWidth, const.HEIGHT)))
-        self.projectDescLineEdit = WidgetUtil.createLineEdit(box, text=self.projectInfo[
-            KEY_DESC] if self.projectInfo else "")
+        self.projectDescLineEdit = WidgetUtil.createLineEdit(box, text=DictUtil.get(self.projectInfo, KEY_DESC))
         hbox.addWidget(self.projectDescLineEdit)
         vbox.addLayout(hbox)
 
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
         hbox.addWidget(WidgetUtil.createLabel(box, text="工程路径：", minSize=QSize(labelWidth, const.HEIGHT)))
         self.projectPathInputWidget = DragInputWidget(
-            text=self.projectInfo[KEY_PATH] if self.projectInfo else "",
+            text=DictUtil.get(self.projectInfo, KEY_PATH),
             dirParam=["请选择您工程工作目录", "./"], isReadOnly=True,
             holderText="请拖动您工程的工作目录到此框或者点击右侧的按钮选择您的工程路径")
         hbox.addWidget(self.projectPathInputWidget)
@@ -97,6 +96,8 @@ class AddOrEditProjectDialog(QtWidgets.QDialog):
         LogUtil.d("addEvn")
         if self.projectInfo is None:
             self.projectInfo = {KEY_ENV_LIST: []}
+        elif KEY_ENV_LIST not in self.projectInfo:
+            self.projectInfo[KEY_ENV_LIST] = []
         evnList = DictUtil.get(self.projectInfo, KEY_ENV_LIST)
         AddOrEditEvnDialog(evnList=evnList, callback=self.addOrEditEvnCallback)
         pass
@@ -141,15 +142,11 @@ class AddOrEditProjectDialog(QtWidgets.QDialog):
         pass
 
     def updateEvnTableView(self):
-        if not self.projectInfo or not self.projectInfo[KEY_ENV_LIST]:
-            evnList = []
-        else:
-            evnList = self.projectInfo[KEY_ENV_LIST]
+        evnList = DictUtil.get(data=self.projectInfo, key=KEY_ENV_LIST, default=[])
         WidgetUtil.addTableViewData(self.evnTableView, evnList,
                                     headerLabels=["环境变量名", "环境变量值", "环境变量描述", "Path环境变量"])
-        WidgetUtil.tableViewSetColumnWidth(self.evnTableView, 0, 100)
-        WidgetUtil.tableViewSetColumnWidth(self.evnTableView, 2, 100)
-        WidgetUtil.tableViewSetColumnWidth(self.evnTableView, 3, 100)
+        if len(evnList) > 0:
+            WidgetUtil.tableViewSetColumnWidth(self.evnTableView, 0, 100)
         pass
 
     def acceptFunc(self):
@@ -167,9 +164,13 @@ class AddOrEditProjectDialog(QtWidgets.QDialog):
             WidgetUtil.showErrorDialog(message="请选择工程路径")
             return
 
-        id = MD5Util.md5(name)
-        # if id in self.projectList:
+        if self.isAdd:
+            for item in self.projectList:
+                if name == item[KEY_NAME]:
+                    WidgetUtil.showErrorDialog(message=f"请重新添加一个其他的工程名，{name}已经存在了，可以下拉选择")
+                    return
 
+        id = MD5Util.md5(name)
         if self.projectInfo is None:
             self.projectInfo = {}
         self.projectInfo[KEY_ID] = id
@@ -184,13 +185,13 @@ class AddOrEditProjectDialog(QtWidgets.QDialog):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    # window = AddOrEditProjectDialog(callback=lambda it: LogUtil.d("callback", it), isDebug=True)
-    window = AddOrEditProjectDialog(callback=lambda it: LogUtil.d("callback", it),
-                                    projectInfo={'evnList': [
-                                        {'name': 'ss', 'value': 'dd', 'desc': 'ff', "isPath": True}],
-                                                 'id': '0cc175b9c0f1b6a831c399e269772661',
-                                                 'name': 'a', 'desc': 'dd',
-                                                 'path': '/Users/likunlun/PycharmProjects/CommonTools/widget/projectManage'},
-                                    isDebug=True)
+    window = AddOrEditProjectDialog(callback=lambda it: LogUtil.d("callback", it), isDebug=True)
+    # window = AddOrEditProjectDialog(callback=lambda it: LogUtil.d("callback", it),
+    #                                 projectInfo={'evnList': [
+    #                                     {'name': 'ss', 'value': 'dd', 'desc': 'ff', "isPath": True}],
+    #                                              'id': '0cc175b9c0f1b6a831c399e269772661',
+    #                                              'name': 'a', 'desc': 'dd',
+    #                                              'path': '/Users/likunlun/PycharmProjects/CommonTools/widget/projectManage'},
+    #                                 isDebug=True)
     window.show()
     sys.exit(app.exec_())

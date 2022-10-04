@@ -7,16 +7,17 @@ from util.LogUtil import *
 
 class DictUtil:
     @staticmethod
-    def get(data: dict, key: str):
+    def get(data: dict, key: str, default=None):
         """
         从字典中获取指定的数据
         :param data: data
         :param key: key
+        :param default: 默认值
         :return: value
         """
         if data and key in data:
             return data[key]
-        return None
+        return default
 
 
 if __name__ == "__main__":

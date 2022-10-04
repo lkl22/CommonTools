@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # python 3.x
-# Filename: AccountManager.py
-# 定义一个AccountManager类实现账户数据管理相关的功能
+# Filename: ProjectManager.py
+# 定义一个ProjectManager类实现项目数据管理相关的功能
 from util.LogUtil import *
 from util.OperaIni import OperaIni
 from util.JsonUtil import JsonUtil
@@ -28,14 +28,14 @@ KEY_EVN_IS_PATH = 'isPath'
 KEY_CMD_LIST = 'cmdList'
 
 
-class AccountManager:
+class ProjectManager:
     def __init__(self, isDebug=False):
         self.operaIni = OperaIni("../../resources/config/BaseConfig.ini" if isDebug else '')
         # {"default": {"desc": "镜像环境", "flavorName": "mirror"}, "list": [{"desc": "开发环境", "flavorName": "develop"},{"desc": "镜像环境", "flavorName": "mirror"}]}
         self.projects = JsonUtil.decode(self.operaIni.getValue(ITEM_KEY_PROJECT, KEY_SECTION))
     pass
 
-    def saveProjectInfos(self, infos):
+    def saveProjects(self, infos):
         self.operaIni.addItem(KEY_SECTION, ITEM_KEY_PROJECT, JsonUtil.encode(infos, ensureAscii=False))
         self.operaIni.saveIni()
         pass
@@ -56,6 +56,6 @@ class AccountManager:
 
 
 if __name__ == "__main__":
-    accountManager = AccountManager(isDebug=True)
-    accountManager.saveAccountInfos('product', "[{'flavorName' : 'product', 'desc' : '现网环境'}]")
+    projectManager = ProjectManager(isDebug=True)
+    projectManager.saveAccountInfos('product', "[{'flavorName' : 'product', 'desc' : '现网环境'}]")
     pass

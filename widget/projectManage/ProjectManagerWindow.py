@@ -2,12 +2,13 @@
 # python 3.x
 # Filename: ProjectManagerDialog.py
 # 定义一个ProjectManagerDialog类实现项目管理功能
-from util.DialogUtil import *
+from util.DictUtil import DictUtil
 from util.OperaIni import *
 from util.PlatformUtil import PlatformUtil
 from util.WidgetUtil import *
 from PyQt5.QtWidgets import *
 from widget.projectManage.AddOrEditProjectDialog import AddOrEditProjectDialog
+from widget.projectManage.ProjectManager import *
 
 
 class ProjectManagerWindow(QMainWindow):
@@ -25,6 +26,11 @@ class ProjectManagerWindow(QMainWindow):
         self.resize(ProjectManagerWindow.WINDOW_WIDTH, ProjectManagerWindow.WINDOW_HEIGHT)
 
         self.isDebug = isDebug
+        self.projectManager = ProjectManager(isDebug)
+        self.projects = self.projectManager.projects
+        if not self.projects:
+            self.projects = {KEY_DEFAULT: -1, KEY_LIST: []}
+        self.curProjectIndex = self.projects[KEY_DEFAULT]
 
         layoutWidget = QtWidgets.QWidget(self)
         layoutWidget.setObjectName("layoutWidget")
@@ -56,7 +62,7 @@ class ProjectManagerWindow(QMainWindow):
     def center(self):  # 主窗口居中显示函数
         screen = QDesktopWidget().screenGeometry()
         size = self.geometry()
-        self.move((screen.width() - size.width()) / 2, (screen.height() - size.height()) / (3 if PlatformUtil.isMac() else 2))
+        self.move(int((screen.width() - size.width()) / 2), int((screen.height() - size.height()) / (3 if PlatformUtil.isMac() else 2)))
         pass
 
     def createProjectManageGroupBox(self, parent):
@@ -68,13 +74,14 @@ class ProjectManagerWindow(QMainWindow):
         return box
 
     def createMainModuleGroupBox(self, parent):
-        box = WidgetUtil.createGroupBox(parent, title="主工程配置")
+        box = WidgetUtil.createGroupBox(parent, title="工程配置")
         vbox = WidgetUtil.createVBoxLayout(box, margins=QMargins(5, 5, 5, 5), spacing=5)
         hbox = WidgetUtil.createHBoxLayout()
 
         hbox.addWidget(WidgetUtil.createLabel(box, text="请选择工程："))
         self.projectComboBox = WidgetUtil.createComboBox(box, activated=self.projectIndexChanged)
         hbox.addWidget(self.projectComboBox, 1)
+
         hbox.addWidget(WidgetUtil.createPushButton(box, text="Add", toolTip="添加新项目", onClicked=self.addProject))
         hbox.addWidget(WidgetUtil.createPushButton(box, text="Modify", toolTip="修改项目配置", onClicked=self.modifyProject))
         hbox.addWidget(WidgetUtil.createPushButton(box, text="Del", toolTip="删除项目", onClicked=self.delProject))
@@ -84,31 +91,109 @@ class ProjectManagerWindow(QMainWindow):
 
         vbox.addWidget(WidgetUtil.createLabel(box, text="项目配置信息："))
 
-        self.projectConfigInfo = WidgetUtil.createTextEdit(box, isReadOnly=True)
-        vbox.addWidget(self.projectConfigInfo)
+        self.projectConfigInfoTextEdit = WidgetUtil.createTextEdit(box, isReadOnly=True)
+        vbox.addWidget(self.projectConfigInfoTextEdit)
 
+        self.updateProjectComboBox()
         box.setFixedHeight(int(ProjectManagerWindow.WINDOW_HEIGHT * 0.2))
         return box
 
-    def projectIndexChanged(self):
-        LogUtil.d("projectIndexChanged")
+    def genProjectDesc(self, projectInfo):
+        evnList = DictUtil.get(projectInfo, KEY_ENV_LIST)
+        evnDesc = ""
+        if evnList:
+            evnDesc = "<span style='color:green;'>环境变量：</span><br/>"
+            for item in evnList:
+                evnDesc += f"<span style='color:red;'>变量名：{item[KEY_NAME]}<br/>变量值：{item[KEY_VALUE]}</span><br/>" \
+                           f"是否是Path环境变量：{item[KEY_EVN_IS_PATH]}<br/>描述：{item[KEY_DESC]}<br/><br/>"
+
+        desc = f"<span style='color:green;'>工程路径：<br/></span><span style='color:red;'>{projectInfo[KEY_PATH]}</span>" \
+               f"<br/><br/>{evnDesc}"
+        return desc
+
+    def updateProjectDesc(self):
+        projectInfo = self.getCurProjectInfo()
+        self.projectConfigInfoTextEdit.setText(self.genProjectDesc(projectInfo) if projectInfo else "")
+
+    def updateProjectComboBox(self):
+        if self.projects and self.projects[KEY_LIST]:
+            self.projectComboBox.clear()
+            for index, item in enumerate(self.projects[KEY_LIST]):
+                self.projectComboBox.addItem(f"{item[KEY_NAME]}（{item[KEY_DESC]}）", item)
+            if self.curProjectIndex < 0:
+                self.curProjectIndex = 0
+            curProjectInfo = self.projects[KEY_LIST][self.curProjectIndex]
+            self.projectComboBox.setCurrentText(f"{curProjectInfo[KEY_NAME]}（{curProjectInfo[KEY_DESC]}）")
+            self.updateProjectDesc()
+            LogUtil.d('updateFlavorComboBox setCurrentText', curProjectInfo[KEY_NAME])
+        pass
+
+    def projectIndexChanged(self, index):
+        LogUtil.d('projectIndexChanged', index)
+        self.curProjectIndex = index
+        self.updateProjectDesc()
+        self.saveProjects()
+        pass
+
+    def saveProjects(self):
+        # 更新当前默认打开的项目信息
+        self.projects[KEY_DEFAULT] = self.curProjectIndex
+        # 将项目配置保存到ini文件
+        self.projectManager.saveProjects(self.projects)
         pass
 
     def addProject(self):
         LogUtil.d("addProject")
-        AddOrEditProjectDialog()
+        AddOrEditProjectDialog(callback=self.addOrEditProjectCallback)
         pass
 
     def modifyProject(self):
         LogUtil.d("modifyProject")
+        if self.curProjectIndex < 0:
+            WidgetUtil.showAboutDialog(text="请先选择一个工程")
+            return
+        AddOrEditProjectDialog(callback=self.addOrEditProjectCallback, projectInfo=self.projects[KEY_LIST][self.curProjectIndex], projectList=self.projects)
         pass
+
+    def addOrEditProjectCallback(self, info):
+        LogUtil.d("addOrEditProjectCallback", info)
+        projects = self.projects[KEY_LIST]
+        if info:
+            projects.append(info)
+        # 按项目名称重新排序
+        self.projects[KEY_LIST] = sorted(projects, key=lambda x: x[KEY_NAME])
+        # 更新工程下拉选择框
+        self.updateProjectComboBox()
+        # 将工程信息保存到ini文件
+        self.saveProjects()
+        pass
+
+    def getCurProjectInfo(self):
+        return self.projects[KEY_LIST][self.curProjectIndex]
 
     def delProject(self):
         LogUtil.d("delProject")
+        if self.curProjectIndex < 0:
+            WidgetUtil.showAboutDialog(text="请先选择一个工程")
+            return
+        projectInfo = self.getCurProjectInfo()
+        WidgetUtil.showQuestionDialog(message=f"你确定需要删除 <span style='color:red;'>{projectInfo[KEY_NAME]}（{projectInfo[KEY_DESC]}）</span> 吗？",
+                                      acceptFunc=self.delProjectItem)
+        pass
+
+    def delProjectItem(self):
+        LogUtil.i("delProjectItem")
+        self.projects[KEY_LIST].remove(self.projects[KEY_LIST][self.curProjectIndex])
+        self.curProjectIndex = 0
+        self.updateProjectComboBox()
+        self.saveProjects()
         pass
 
     def saveAsProject(self):
         LogUtil.d("saveAsProject")
+        if self.curProjectIndex < 0:
+            WidgetUtil.showAboutDialog(text="请先选择一个工程")
+            return
         pass
 
     def importProject(self):
