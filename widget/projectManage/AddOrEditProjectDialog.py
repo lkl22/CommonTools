@@ -72,8 +72,7 @@ class AddOrEditProjectDialog(QtWidgets.QDialog):
         self.projectPathInputWidget = DragInputWidget(
             text=self.projectInfo[KEY_PATH] if self.projectInfo else "",
             dirParam=["请选择您工程工作目录", "./"], isReadOnly=True,
-            holderText="请拖动您工程的工作目录到此框或者点击右侧的按钮选择您的工程路径",
-            textChanged=self.dragInputTextChanged)
+            holderText="请拖动您工程的工作目录到此框或者点击右侧的按钮选择您的工程路径")
         hbox.addWidget(self.projectPathInputWidget)
         vbox.addLayout(hbox)
 
@@ -93,10 +92,6 @@ class AddOrEditProjectDialog(QtWidgets.QDialog):
 
         vbox.addItem(WidgetUtil.createVSpacerItem(1, 1))
         return box
-
-    def dragInputTextChanged(self):
-        LogUtil.d("dragInputTextChanged")
-        pass
 
     def addEvn(self):
         LogUtil.d("addEvn")

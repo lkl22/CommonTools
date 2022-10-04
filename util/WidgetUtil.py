@@ -875,8 +875,8 @@ class WidgetUtil:
 
     @staticmethod
     def createTableView(parent: QWidget, objectName="TreeWidget", toolTip=None, geometry: QRect = None,
-                        minSize: QSize = None, isEnable=True, sizePolicy: QSizePolicy = None, doubleClicked=None,
-                        isResizeToContents=False):
+                        minSize: QSize = None, isEnable=True, sizePolicy: QSizePolicy = None, clicked=None,
+                        doubleClicked=None, isResizeToContents=False):
         """
         创建一个QTableView
         :param parent: 父QWidget
@@ -886,6 +886,7 @@ class WidgetUtil:
         :param minSize: minSize
         :param isEnable: isEnable
         :param sizePolicy: 缩放策略
+        :param clicked: 单击回调函数
         :param doubleClicked: 双击回调函数
         :param isResizeToContents: 是否根据列内容来定列宽
         :return: QTableView
@@ -903,6 +904,8 @@ class WidgetUtil:
             # 水平方向，表格大小拓展到适当的尺寸 所有列都扩展自适应宽度，填充充满整个屏幕宽度
             widget.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
 
+        if clicked:
+            widget.clicked.connect(clicked)
         if doubleClicked:
             widget.doubleClicked.connect(doubleClicked)
         return widget
