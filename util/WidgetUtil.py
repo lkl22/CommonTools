@@ -827,7 +827,7 @@ class WidgetUtil:
             return jsonData
 
     @staticmethod
-    def createAction(parent: Union[QMenu, QMenuBar], icon: QIcon = None, text="添加", func=None,
+    def createAction(parent: Union[QMenu, QMenuBar, QWidget], icon: QIcon = None, text="添加", func=None,
                      shortcut: Union[QKeySequence, QKeySequence.StandardKey, str, int] = None,
                      statusTip: str = None):
         """

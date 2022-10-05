@@ -1,5 +1,20 @@
 # PyQt5使用指导
 
+## QWidget
+
+### 设置hover时背景色
+
+> .setStyleSheet("QWidget:hover{background-color:rgb(0,255,255)}")
+
+### 鼠标点击事件
+
+```python
+def mousePressEvent(self, ev: QMouseEvent):
+    super.mousePressEvent(ev)
+    LogUtil.d('mousePressEvent')
+    if ev.button() == Qt.RightButton:
+```
+
 ## QLineEdit
 
 ### 设置背景色

@@ -39,6 +39,12 @@ class DragInputWidget(QFrame):
         self.setAcceptDrops(True)
         pass
 
+    def setFileParam(self, fileParam):
+        self.fileParam = fileParam
+
+    def setDirParam(self, dirParam):
+        self.dirParam = dirParam
+
     # 鼠标拖入事件
     def dragEnterEvent(self, evn):
         text = evn.mimeData().text()

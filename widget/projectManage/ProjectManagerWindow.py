@@ -119,7 +119,7 @@ class ProjectManagerWindow(QMainWindow):
 
     def updateProjectDesc(self):
         projectInfo = self.getCurProjectInfo()
-        self.moduleManagerWidget.setProjectId(DictUtil.get(projectInfo, KEY_ID))
+        self.moduleManagerWidget.setProjectInfo(projectInfo)
         self.projectConfigInfoTextEdit.setText(self.genProjectDesc(projectInfo) if projectInfo else "")
 
     def updateProjectComboBox(self):
@@ -173,8 +173,14 @@ class ProjectManagerWindow(QMainWindow):
         projects = self.projects[KEY_LIST]
         if info:
             projects.append(info)
+        curProjectInfo = self.getCurProjectInfo()
         # 按项目名称重新排序
         self.projects[KEY_LIST] = sorted(projects, key=lambda x: x[KEY_NAME])
+        if curProjectInfo:
+            for index, item in enumerate(self.projects[KEY_LIST]):
+                if curProjectInfo == item:
+                    self.curProjectIndex = index
+                    break
         # 更新工程下拉选择框
         self.updateProjectComboBox()
         # 将工程信息保存到ini文件

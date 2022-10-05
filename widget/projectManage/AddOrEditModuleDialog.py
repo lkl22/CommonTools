@@ -13,12 +13,11 @@ from util.MD5Util import MD5Util
 from util.OperaIni import *
 from widget.custom.DragInputWidget import DragInputWidget
 from widget.projectManage.AddOrEditCmdDialog import AddOrEditCmdDialog
-from widget.projectManage.AddOrEditEvnDialog import AddOrEditEvnDialog
 from widget.projectManage.ProjectManager import *
 
 
 class AddOrEditModuleDialog(QtWidgets.QDialog):
-    def __init__(self, callback, default=None, moduleList=None, isDebug=False):
+    def __init__(self, callback, openDir=None, default=None, moduleList=None, isDebug=False):
         # 调用父类的构函
         QtWidgets.QDialog.__init__(self)
         self.currentRow = -1
@@ -29,6 +28,7 @@ class AddOrEditModuleDialog(QtWidgets.QDialog):
         self.default = default
         self.isAdd = default is None
         self.moduleList = moduleList
+        self.openDir = openDir if openDir else './'
 
         self.setWindowFlags(Qt.Dialog | Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint)
         AddOrEditModuleDialog.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.6)
@@ -73,8 +73,8 @@ class AddOrEditModuleDialog(QtWidgets.QDialog):
         hbox.addWidget(WidgetUtil.createLabel(box, text="模块路径：", minSize=QSize(labelWidth, const.HEIGHT)))
         self.pathInputWidget = DragInputWidget(
             text=DictUtil.get(self.default, KEY_PATH),
-            dirParam=["请选择您模块工作目录", "./"], isReadOnly=True,
-            holderText="请拖动您模块的工作目录到此框或者点击右侧的文件夹图标选择您的模块路径",
+            dirParam=["请选择您模块工作目录", self.openDir], isReadOnly=True,
+            holderText="请拖动您模块的工作目录到此框或者点击右侧的文件夹图标选择您的模块路径，默认使用工程的路径",
             toolTip="不设置的话，默认使用工程的路径")
         hbox.addWidget(self.pathInputWidget)
         vbox.addLayout(hbox)
@@ -190,10 +190,7 @@ class AddOrEditModuleDialog(QtWidgets.QDialog):
         pass
 
     def updateCmdTableView(self):
-        if not self.default or not self.default[KEY_CMD_LIST]:
-            cmdList = []
-        else:
-            cmdList = self.default[KEY_CMD_LIST]
+        cmdList = DictUtil.get(self.default, KEY_CMD_LIST, [])
         WidgetUtil.addTableViewData(self.cmdTableView, cmdList,
                                     headerLabels=["执行指令名", "描述", "指令", "工作空间", "指令参数"])
         # WidgetUtil.tableViewSetColumnWidth(self.cmdTableView, 0, 100)
@@ -211,8 +208,7 @@ class AddOrEditModuleDialog(QtWidgets.QDialog):
             return
         path = self.pathInputWidget.text().strip()
         if not path:
-            WidgetUtil.showErrorDialog(message="请选择模块路径")
-            return
+            path = self.openDir
 
         if self.isAdd:
             for item in self.moduleList:

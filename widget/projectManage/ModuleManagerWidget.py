@@ -14,16 +14,17 @@ class ModuleManagerWidget(QWidget):
         super(ModuleManagerWidget, self).__init__()
 
         self.projectManager = projectManager
-        self.projectId = None
+        self.projectInfo = None
         self.modules = []
         self.moduleWidgets: [ModuleWidget] = []
 
         # self.setWindowFlags(QtCore.Qt.SplashScreen | QtCore.Qt.FramelessWindowHint)
-        vbox = WidgetUtil.createVBoxLayout(self, margins=QMargins(0, 0, 0, 0), spacing=5)
+        vbox = WidgetUtil.createVBoxLayout(self, margins=QMargins(0, 0, 0, 0))
         vbox.addWidget(WidgetUtil.createLabel(self, text="模块管理"))
 
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
-        self.addModuleBtn = WidgetUtil.createPushButton(self, text="Add", toolTip="添加新的模块", isEnable=False, onClicked=self.addModule)
+        self.addModuleBtn = WidgetUtil.createPushButton(self, text="Add", toolTip="添加新的模块", isEnable=False,
+                                                        onClicked=self.addModule)
         hbox.addWidget(self.addModuleBtn)
         hbox.addItem(WidgetUtil.createHSpacerItem(1, 1))
         vbox.addLayout(hbox)
@@ -31,7 +32,7 @@ class ModuleManagerWidget(QWidget):
         box = WidgetUtil.createGroupBox(self, title="")
         vbox.addWidget(box, 1)
 
-        groupBoxlayout = WidgetUtil.createVBoxLayout(box, margins=QMargins(0, 0, 0, 0), spacing=5)
+        groupBoxlayout = WidgetUtil.createVBoxLayout(box, margins=QMargins(0, 0, 0, 0))
         scrollAres = QScrollArea(self)
         scrollAres.setWidgetResizable(True)
         scrollAreaWidget = WidgetUtil.createWidget(self, 'scrollAreaWidget')
@@ -44,17 +45,28 @@ class ModuleManagerWidget(QWidget):
         self.vLayout.addItem(self.spacerItem)
         pass
 
-    def setProjectId(self, projectId):
-        LogUtil.d("setProjectId", projectId)
+    def setProjectInfo(self, projectInfo):
+        LogUtil.d("setProjectInfo", projectInfo)
+        self.projectInfo = projectInfo
+        projectId = DictUtil.get(projectInfo, KEY_ID)
         self.addModuleBtn.setEnabled(projectId is not None)
-        self.projectId = projectId
-        self.modules = self.projectManager.getProjectModules(projectId)
+        self.modules = self.projectManager.getProjectModules(projectId) if projectId else []
         self.updateModuleList()
         pass
 
+    def getProjectPath(self):
+        return DictUtil.get(self.projectInfo, KEY_PATH)
+
     def addModule(self):
         LogUtil.d("addModule")
-        AddOrEditModuleDialog(callback=self.addOrEditModuleCallback, moduleList=self.modules)
+        AddOrEditModuleDialog(callback=self.addOrEditModuleCallback, openDir=self.getProjectPath(),
+                              moduleList=self.modules)
+        pass
+
+    def editModule(self, moduleInfo):
+        LogUtil.d("editModule", moduleInfo)
+        AddOrEditModuleDialog(callback=self.addOrEditModuleCallback, openDir=self.getProjectPath(), default=moduleInfo,
+                              moduleList=self.modules)
         pass
 
     def addOrEditModuleCallback(self, info):
@@ -63,13 +75,26 @@ class ModuleManagerWidget(QWidget):
             self.modules.append(info)
         self.modules = sorted(self.modules, key=lambda x: x[KEY_NAME])
         self.updateModuleList()
-        self.projectManager.saveProjectModulesInfo(self.projectId, self.modules)
+        self.projectManager.saveProjectModulesInfo(DictUtil.get(self.projectInfo, KEY_ID), self.modules)
+        pass
+
+    def delModule(self, moduleWidget, moduleInfo):
+        LogUtil.d("delModule", moduleInfo)
+        WidgetUtil.showQuestionDialog(
+            message=f"你确定需要删除 <span style='color:red;'>{moduleInfo[KEY_NAME]}（{moduleInfo[KEY_DESC]}）</span> 吗？",
+            acceptFunc=lambda: (
+                self.vLayout.removeWidget(moduleWidget),
+                moduleWidget.deleteLater(),
+                self.moduleWidgets.remove(moduleWidget),
+                self.modules.remove(moduleInfo),
+                self.projectManager.saveProjectModulesInfo(DictUtil.get(self.projectInfo, KEY_ID), self.modules)
+            ))
         pass
 
     def updateModuleItem(self, index, moduleInfo):
         LogUtil.d("updateModuleItem", index, moduleInfo)
         if index >= len(self.moduleWidgets):
-            moduleWidget = ModuleWidget(moduleInfo)
+            moduleWidget = ModuleWidget(moduleInfo=moduleInfo, editFunc=self.editModule, delFunc=self.delModule)
             self.moduleWidgets.append(moduleWidget)
             self.vLayout.addWidget(moduleWidget)
         else:
@@ -78,12 +103,12 @@ class ModuleManagerWidget(QWidget):
 
     def updateModuleList(self):
         LogUtil.d("updateModuleList")
-        if len(self.modules) < len(self.moduleWidgets):
-            for index in range(len(self.modules), len(self.moduleWidgets)):
-                widget = self.moduleWidgets[index]
-                self.vLayout.removeWidget(widget)
-                widget.deleteLater()
-                self.moduleWidgets.remove(widget)
+        moduleLen = len(self.modules)
+        while moduleLen < len(self.moduleWidgets):
+            widget = self.moduleWidgets[moduleLen]
+            self.vLayout.removeWidget(widget)
+            widget.deleteLater()
+            self.moduleWidgets.remove(widget)
         self.vLayout.removeItem(self.spacerItem)
         for index, item in enumerate(self.modules):
             self.updateModuleItem(index, item)
@@ -92,14 +117,22 @@ class ModuleManagerWidget(QWidget):
 
 
 class ModuleWidget(QWidget):
-    def __init__(self, moduleInfo):
+    def __init__(self, moduleInfo, editFunc, delFunc):
         super(ModuleWidget, self).__init__()
+        self.moduleInfo = moduleInfo
+
         hbox = WidgetUtil.createHBoxLayout(self)
         self.checkBox = WidgetUtil.createCheckBox(self, text=moduleInfo[KEY_NAME], toolTip=moduleInfo[KEY_DESC])
         hbox.addWidget(self.checkBox)
+        # 为窗口添加QActions
+        self.addAction(WidgetUtil.createAction(self, text="编辑", func=lambda: editFunc(self.moduleInfo)))
+        self.addAction(WidgetUtil.createAction(self, text="删除", func=lambda: delFunc(self, self.moduleInfo)))
+        self.setContextMenuPolicy(Qt.ActionsContextMenu)
+        self.setStyleSheet("QWidget:hover{background-color:rgb(0,255,255)}")
         pass
 
     def updateUi(self, moduleInfo):
+        self.moduleInfo = moduleInfo
         self.checkBox.setText(moduleInfo[KEY_NAME])
         self.checkBox.setToolTip(moduleInfo[KEY_DESC])
         self.checkBox.setChecked(False)
