@@ -2,9 +2,12 @@
 # python 3.x
 # Filename: ProjectManagerDialog.py
 # 定义一个ProjectManagerDialog类实现项目管理功能
+import threading
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from util.DictUtil import DictUtil
 from util.OperaIni import *
 from util.PlatformUtil import PlatformUtil
+from util.ProcessManager import ProcessManager
 from util.WidgetUtil import *
 from PyQt5.QtWidgets import *
 
@@ -35,6 +38,9 @@ class ProjectManagerWindow(QMainWindow):
             self.projects = {KEY_DEFAULT: -1, KEY_LIST: []}
         self.curProjectIndex = self.projects[KEY_DEFAULT]
         self.moduleManagerWidget = ModuleManagerWidget(projectManager=self.projectManager)
+        self.executor = ThreadPoolExecutor(thread_name_prefix="ProjectExecute_")
+        self.futureList = []
+        self.processManagers = []
 
         layoutWidget = QtWidgets.QWidget(self)
         layoutWidget.setObjectName("layoutWidget")
@@ -243,9 +249,39 @@ class ProjectManagerWindow(QMainWindow):
         if not modules:
             WidgetUtil.showAboutDialog(text="请先添加/选择一个模块")
             return
+
+        threading.Thread(target=self.executeModuleCmd, args=(projectInfo, modules)).start()
         dialog = LoadingDialog(isDebug=self.isDebug)
         if self.isDebug:
             dialog.exec_()
+        pass
+
+    def executeModuleCmd(self, projectInfo, modules):
+        self.futureList.clear()
+        self.processManagers.clear()
+        LogUtil.e(f"executeModuleCmd pid: {os.getpid()}")
+        for moduleInfo in modules:
+            processManager = ProcessManager(name=DictUtil.get(moduleInfo, KEY_NAME),
+                                            cmdList=DictUtil.get(moduleInfo, KEY_CMD_LIST, []),
+                                            workingDir=DictUtil.get(moduleInfo, KEY_PATH, DictUtil.get(projectInfo, KEY_PATH)),
+                                            standardOutput=self.standardOutput,
+                                            standardError=self.standardError)
+            self.processManagers.append(processManager)
+            future = self.executor.submit(processManager.run())
+            self.futureList.append(future)
+
+        for future in as_completed(self.futureList):
+            # data = future.result()
+            LogUtil.e(f"main:  pid: {os.getpid()}")
+        LogUtil.e(f"all finished:  pid: {os.getpid()}")
+        pass
+
+    def standardOutput(self, log):
+        LogUtil.e(f"standardOutput pid: {os.getpid()} log {log}")
+        pass
+
+    def standardError(self, log):
+        WidgetUtil.appendTextEdit(self.consoleTextEdit, text=log, color='#f00')
         pass
 
 
