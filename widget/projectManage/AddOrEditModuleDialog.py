@@ -214,8 +214,13 @@ class AddOrEditModuleDialog(QtWidgets.QDialog):
             WidgetUtil.showErrorDialog(message="请选择模块路径")
             return
 
+        if self.isAdd:
+            for item in self.moduleList:
+                if name == item[KEY_NAME]:
+                    WidgetUtil.showErrorDialog(message=f"请重新添加一个其他的模块，{name}已经存在了。")
+                    return
+
         id = MD5Util.md5(name)
-        # if id in self.projectList:
 
         if self.default is None:
             self.default = {}

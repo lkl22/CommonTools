@@ -8,6 +8,7 @@ from util.PlatformUtil import PlatformUtil
 from util.WidgetUtil import *
 from PyQt5.QtWidgets import *
 from widget.projectManage.AddOrEditProjectDialog import AddOrEditProjectDialog
+from widget.projectManage.ModuleManagerWidget import ModuleManagerWidget
 from widget.projectManage.ProjectManager import *
 
 
@@ -36,7 +37,7 @@ class ProjectManagerWindow(QMainWindow):
         layoutWidget.setObjectName("layoutWidget")
         self.setCentralWidget(layoutWidget)
 
-        hLayout = WidgetUtil.createHBoxLayout(self, margins=QMargins(10, 10, 10, 10), spacing=10)
+        hLayout = WidgetUtil.createHBoxLayout(margins=QMargins(10, 10, 10, 10), spacing=10)
         layoutWidget.setLayout(hLayout)
 
         self.projectManageGroupBox = self.createProjectManageGroupBox(self)
@@ -45,6 +46,8 @@ class ProjectManagerWindow(QMainWindow):
         self.consoleTextEdit = WidgetUtil.createTextEdit(self, isReadOnly=True)
         hLayout.addWidget(self.consoleTextEdit, 2)
         QtCore.QMetaObject.connectSlotsByName(self)
+
+        self.updateProjectComboBox()
         self.show()
 
     # 重写关闭事件，回到第一界面
@@ -62,15 +65,19 @@ class ProjectManagerWindow(QMainWindow):
     def center(self):  # 主窗口居中显示函数
         screen = QDesktopWidget().screenGeometry()
         size = self.geometry()
-        self.move(int((screen.width() - size.width()) / 2), int((screen.height() - size.height()) / (3 if PlatformUtil.isMac() else 2)))
+        self.move(int((screen.width() - size.width()) / 2),
+                  int((screen.height() - size.height()) / (3 if PlatformUtil.isMac() else 2)))
         pass
 
     def createProjectManageGroupBox(self, parent):
         box = WidgetUtil.createGroupBox(parent, title="")
-        vbox = WidgetUtil.createVBoxLayout(box, margins=QMargins(5, 5, 5, 5), spacing=5)
+        vbox = WidgetUtil.createVBoxLayout(box, margins=QMargins(0, 0, 0, 0), spacing=5)
         vbox.addWidget(self.createMainModuleGroupBox(box))
 
-        vbox.addItem(WidgetUtil.createVSpacerItem(1, 1))
+        hbox = WidgetUtil.createHBoxLayout(spacing=10)
+        self.moduleManagerWidget = ModuleManagerWidget(projectManager=self.projectManager)
+        hbox.addWidget(self.moduleManagerWidget)
+        vbox.addLayout(hbox, 5)
         return box
 
     def createMainModuleGroupBox(self, parent):
@@ -85,7 +92,8 @@ class ProjectManagerWindow(QMainWindow):
         hbox.addWidget(WidgetUtil.createPushButton(box, text="Add", toolTip="添加新项目", onClicked=self.addProject))
         hbox.addWidget(WidgetUtil.createPushButton(box, text="Modify", toolTip="修改项目配置", onClicked=self.modifyProject))
         hbox.addWidget(WidgetUtil.createPushButton(box, text="Del", toolTip="删除项目", onClicked=self.delProject))
-        hbox.addWidget(WidgetUtil.createPushButton(box, text="Save As", toolTip="导出该项目配置", onClicked=self.saveAsProject))
+        hbox.addWidget(
+            WidgetUtil.createPushButton(box, text="Save As", toolTip="导出该项目配置", onClicked=self.saveAsProject))
         hbox.addWidget(WidgetUtil.createPushButton(box, text="Import", toolTip="导入项目配置", onClicked=self.importProject))
         vbox.addLayout(hbox)
 
@@ -93,8 +101,6 @@ class ProjectManagerWindow(QMainWindow):
 
         self.projectConfigInfoTextEdit = WidgetUtil.createTextEdit(box, isReadOnly=True)
         vbox.addWidget(self.projectConfigInfoTextEdit)
-
-        self.updateProjectComboBox()
         box.setFixedHeight(int(ProjectManagerWindow.WINDOW_HEIGHT * 0.2))
         return box
 
@@ -113,6 +119,7 @@ class ProjectManagerWindow(QMainWindow):
 
     def updateProjectDesc(self):
         projectInfo = self.getCurProjectInfo()
+        self.moduleManagerWidget.setProjectId(DictUtil.get(projectInfo, KEY_ID))
         self.projectConfigInfoTextEdit.setText(self.genProjectDesc(projectInfo) if projectInfo else "")
 
     def updateProjectComboBox(self):
@@ -126,6 +133,11 @@ class ProjectManagerWindow(QMainWindow):
             self.projectComboBox.setCurrentText(f"{curProjectInfo[KEY_NAME]}（{curProjectInfo[KEY_DESC]}）")
             self.updateProjectDesc()
             LogUtil.d('updateFlavorComboBox setCurrentText', curProjectInfo[KEY_NAME])
+        else:
+            self.projectComboBox.clear()
+            self.curProjectIndex = -1
+            self.updateProjectDesc()
+            LogUtil.d("no project")
         pass
 
     def projectIndexChanged(self, index):
@@ -152,7 +164,8 @@ class ProjectManagerWindow(QMainWindow):
         if self.curProjectIndex < 0:
             WidgetUtil.showAboutDialog(text="请先选择一个工程")
             return
-        AddOrEditProjectDialog(callback=self.addOrEditProjectCallback, projectInfo=self.projects[KEY_LIST][self.curProjectIndex], projectList=self.projects)
+        AddOrEditProjectDialog(callback=self.addOrEditProjectCallback,
+                               projectInfo=self.projects[KEY_LIST][self.curProjectIndex], projectList=self.projects)
         pass
 
     def addOrEditProjectCallback(self, info):
@@ -169,7 +182,10 @@ class ProjectManagerWindow(QMainWindow):
         pass
 
     def getCurProjectInfo(self):
-        return self.projects[KEY_LIST][self.curProjectIndex]
+        if self.curProjectIndex >= 0:
+            return self.projects[KEY_LIST][self.curProjectIndex]
+        else:
+            return None
 
     def delProject(self):
         LogUtil.d("delProject")
@@ -177,15 +193,18 @@ class ProjectManagerWindow(QMainWindow):
             WidgetUtil.showAboutDialog(text="请先选择一个工程")
             return
         projectInfo = self.getCurProjectInfo()
-        WidgetUtil.showQuestionDialog(message=f"你确定需要删除 <span style='color:red;'>{projectInfo[KEY_NAME]}（{projectInfo[KEY_DESC]}）</span> 吗？",
-                                      acceptFunc=self.delProjectItem)
+        WidgetUtil.showQuestionDialog(
+            message=f"你确定需要删除 <span style='color:red;'>{projectInfo[KEY_NAME]}（{projectInfo[KEY_DESC]}）</span> 吗？",
+            acceptFunc=self.delProjectItem)
         pass
 
     def delProjectItem(self):
         LogUtil.i("delProjectItem")
-        self.projects[KEY_LIST].remove(self.projects[KEY_LIST][self.curProjectIndex])
-        self.curProjectIndex = 0
+        curProjectInfo = self.getCurProjectInfo()
+        self.projects[KEY_LIST].remove(curProjectInfo)
+        self.curProjectIndex = -1
         self.updateProjectComboBox()
+        self.projectManager.delProjectInfoById(curProjectInfo[KEY_ID])
         self.saveProjects()
         pass
 
