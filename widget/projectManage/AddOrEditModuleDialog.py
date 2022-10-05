@@ -132,6 +132,8 @@ class AddOrEditModuleDialog(QtWidgets.QDialog):
         LogUtil.d("addCmd")
         if self.default is None:
             self.default = {KEY_CMD_LIST: []}
+        elif KEY_CMD_LIST not in self.default:
+            self.default[KEY_CMD_LIST] = []
         cmdList = DictUtil.get(self.default, KEY_CMD_LIST)
         AddOrEditCmdDialog(callback=self.addOrEditCmdCallback, cmdList=cmdList)
         pass

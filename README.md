@@ -88,6 +88,10 @@ Working directory：$ProjectFileDir$
 
 [使用PYINSTALLER打包多文件和目录的PYTHON项目](https://www.cnblogs.com/shiyongge/p/10582552.html)
 
+[Python 教程](https://www.w3school.com.cn/python/index.asp)
+
+[Python 正则表达式](https://www.runoob.com/python/python-reg-expressions.html)
+
 [Python 3.6.12 文档](https://docs.python.org/zh-cn/3.6/)
 
 [Qt for Python](https://doc.qt.io/qtforpython/index.html)
