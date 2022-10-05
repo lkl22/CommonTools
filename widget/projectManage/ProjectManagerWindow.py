@@ -4,6 +4,7 @@
 # 定义一个ProjectManagerDialog类实现项目管理功能
 import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from PyQt5.QtCore import pyqtSignal
 from util.DictUtil import DictUtil
 from util.OperaIni import *
 from util.PlatformUtil import PlatformUtil
@@ -16,9 +17,12 @@ from widget.projectManage.AddOrEditProjectDialog import AddOrEditProjectDialog
 from widget.projectManage.ModuleManagerWidget import ModuleManagerWidget
 from widget.projectManage.ProjectManager import *
 
+TYPE_HIDE_LOADING_DIALOG = 1
+
 
 class ProjectManagerWindow(QMainWindow):
     windowList = []
+    execUi = pyqtSignal(int)
 
     def __init__(self, isDebug=False):
         # 调用父类的构函
@@ -37,10 +41,15 @@ class ProjectManagerWindow(QMainWindow):
         if not self.projects:
             self.projects = {KEY_DEFAULT: -1, KEY_LIST: []}
         self.curProjectIndex = self.projects[KEY_DEFAULT]
-        self.moduleManagerWidget = ModuleManagerWidget(projectManager=self.projectManager)
-        self.executor = ThreadPoolExecutor(thread_name_prefix="ProjectExecute_")
+
+        self.executor = ThreadPoolExecutor(max_workers=20, thread_name_prefix="ProjectExecute_")
         self.futureList = []
         self.processManagers = []
+
+        self.moduleManagerWidget = ModuleManagerWidget(projectManager=self.projectManager)
+        self.loadingDialog = LoadingDialog(showText="正在执行。。。", btnText="终止",
+                                           rejectedFunc=lambda: LogUtil.d("close loading"), isDebug=self.isDebug)
+        self.loadingDialog.hide()
 
         layoutWidget = QtWidgets.QWidget(self)
         layoutWidget.setObjectName("layoutWidget")
@@ -58,6 +67,12 @@ class ProjectManagerWindow(QMainWindow):
 
         self.updateProjectComboBox()
         self.show()
+        self.execUi.connect(self.updateUi)
+
+    def updateUi(self, type):
+        if type == TYPE_HIDE_LOADING_DIALOG:
+            self.loadingDialog.hide()
+        pass
 
     # 重写关闭事件，回到第一界面
     def closeEvent(self, event):
@@ -240,7 +255,7 @@ class ProjectManagerWindow(QMainWindow):
         pass
 
     def startExecute(self):
-        LogUtil.d("startExecute")
+        LogUtil.d(f"startExecute main pid: {os.getpid()}")
         projectInfo = self.getCurProjectInfo()
         if not projectInfo:
             WidgetUtil.showAboutDialog(text="请先添加/选择一个工程")
@@ -249,21 +264,20 @@ class ProjectManagerWindow(QMainWindow):
         if not modules:
             WidgetUtil.showAboutDialog(text="请先添加/选择一个模块")
             return
-
+        # 必须放到线程执行，否则加载框要等指令执行完才会弹
         threading.Thread(target=self.executeModuleCmd, args=(projectInfo, modules)).start()
-        dialog = LoadingDialog(isDebug=self.isDebug)
-        if self.isDebug:
-            dialog.exec_()
+        self.loadingDialog.show()
         pass
 
     def executeModuleCmd(self, projectInfo, modules):
         self.futureList.clear()
         self.processManagers.clear()
-        LogUtil.e(f"executeModuleCmd pid: {os.getpid()}")
+        LogUtil.e(f"executeModuleCmd start. pid: {os.getpid()}")
         for moduleInfo in modules:
             processManager = ProcessManager(name=DictUtil.get(moduleInfo, KEY_NAME),
                                             cmdList=DictUtil.get(moduleInfo, KEY_CMD_LIST, []),
-                                            workingDir=DictUtil.get(moduleInfo, KEY_PATH, DictUtil.get(projectInfo, KEY_PATH)),
+                                            workingDir=DictUtil.get(moduleInfo, KEY_PATH,
+                                                                    DictUtil.get(projectInfo, KEY_PATH)),
                                             standardOutput=self.standardOutput,
                                             standardError=self.standardError)
             self.processManagers.append(processManager)
@@ -272,12 +286,13 @@ class ProjectManagerWindow(QMainWindow):
 
         for future in as_completed(self.futureList):
             # data = future.result()
-            LogUtil.e(f"main:  pid: {os.getpid()}")
-        LogUtil.e(f"all finished:  pid: {os.getpid()}")
+            LogUtil.e(f"{os.getpid()}")
+        LogUtil.e(f"executeModuleCmd all finished. pid: {os.getpid()}")
+        self.execUi.emit(TYPE_HIDE_LOADING_DIALOG)
         pass
 
     def standardOutput(self, log):
-        LogUtil.e(f"standardOutput pid: {os.getpid()} log {log}")
+        WidgetUtil.appendTextEdit(self.consoleTextEdit, text=log)
         pass
 
     def standardError(self, log):

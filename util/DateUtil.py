@@ -94,6 +94,15 @@ class DateUtil:
         return DateUtil.timestamp2Time(DateUtil.nowTimestamp(), timeFormat)
 
     @staticmethod
+    def nowTimeMs():
+        """
+        获取当前的时间 "%Y-%m-%d %H:%M:%S.%s"
+        :return: 时间str
+        """
+        ms = DateUtil.nowTimestamp(isMilliSecond=True)
+        return "%s.%03d" % (DateUtil.timestamp2Time(ms / 1000, DATE_TIME), ms % 1000)
+
+    @staticmethod
     def timestampStr2Seconds(timestampStr):
         """
         将时间戳字符串转化为int型 (s, ms)
@@ -122,3 +131,4 @@ if __name__ == "__main__":
     # print(DateUtil.timestampStr2Seconds("1578740129"))
 
     print(DateUtil.isValidDate("12-12 12:23:12", '%m-%d %H:%M:%S'))
+    print(DateUtil.nowTimeMs())

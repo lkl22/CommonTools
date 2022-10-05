@@ -16,11 +16,10 @@ class LoadingDialog(QtWidgets.QDialog):
     WINDOW_WIDTH = 300
     WINDOW_HEIGHT = 150
 
-    def __init__(self, showText: str = '正在加载中。。。', rejectedFunc=None, isDebug=False):
+    def __init__(self, showText: str = '正在加载中。。。', btnText="Cancel", rejectedFunc=None, isDebug=False):
         # 调用父类的构函
         QtWidgets.QDialog.__init__(self)
         LogUtil.d("Init Loading Dialog")
-        self.rejectedFunc = rejectedFunc
 
         self.setFixedSize(LoadingDialog.WINDOW_WIDTH, LoadingDialog.WINDOW_HEIGHT)
         # 设置透明度
@@ -57,21 +56,17 @@ class LoadingDialog(QtWidgets.QDialog):
         vLayout.addItem(WidgetUtil.createVSpacerItem(1, 1))
 
         btnBox = WidgetUtil.createDialogButtonBox(standardButton=QDialogButtonBox.Cancel, parent=self,
-                                                  rejectedFunc=self.cancel)
+                                                  rejectedFunc=lambda: self.close())
+        btnBox.button(QDialogButtonBox.Cancel).setText(btnText)
         vLayout.addWidget(btnBox)
 
-        self.rejected.connect(self.cancel)
+        if rejectedFunc:
+            self.rejected.connect(rejectedFunc)
 
         self.setWindowModality(Qt.ApplicationModal)
         # 很关键，不加出不来
         if not isDebug:
             self.exec_()
-
-    def cancel(self):
-        LogUtil.d("cancel")
-        if self.rejectedFunc:
-            self.rejectedFunc()
-        self.close()
 
 
 if __name__ == '__main__':

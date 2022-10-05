@@ -2,9 +2,13 @@
 # python 3.x
 # Filename: ProcessManager.py
 # 定义一个ProcessManager工具类实现调用外部进程相关的功能
-from time import ctime
+import os
+import threading
+from time import sleep
+
 from PyQt5.QtCore import QProcess, QProcessEnvironment, QTextCodec, pyqtSignal, QObject
 
+from util.DateUtil import DateUtil
 from util.DictUtil import DictUtil
 from util.LogUtil import LogUtil
 
@@ -40,10 +44,12 @@ class ProcessManager(QObject):
         pass
 
     def run(self):
-        self.handleStandardOutput(f'开始执行 {self.name} 在：{ctime()}\n')
+        startTime = DateUtil.nowTimestamp(isMilliSecond=True)
+        self.handleStandardOutput(f'{self.name} 开始执行 {threading.currentThread().ident}\n')
+        # sleep(115)
         for cmd in self.cmdList:
             self.executeCmd(cmd)
-        self.handleStandardOutput(f"{self.name} 结束于：{ctime()}\n")
+        self.handleStandardOutput(f"{self.name} 执行结束。耗时：{DateUtil.nowTimestamp(isMilliSecond=True) - startTime} ms\n")
         return True
 
     def executeCmd(self, cmdInfo):
@@ -71,8 +77,7 @@ class ProcessManager(QObject):
 
     def handleStandardOutput(self, log):
         if log:
-            # LogUtil.d(log)
-            self.standardOutput.emit(log)
+            self.standardOutput.emit(f"{DateUtil.nowTimeMs()} {os.getpid()} {log}")
 
     def readStandardError(self):
         log = QTextCodec.codecForLocale().toUnicode(self.process.readAllStandardError())
@@ -80,8 +85,7 @@ class ProcessManager(QObject):
 
     def handleStandardError(self, log):
         if log:
-            # LogUtil.e(log)
-            self.standardError.emit(log)
+            self.standardError.emit(f"{DateUtil.nowTimeMs()} {os.getpid()} {log}")
 
     def kill(self):
         self.process.kill()
