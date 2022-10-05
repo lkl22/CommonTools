@@ -47,8 +47,8 @@ class MainWidget(QMainWindow):
         menuBar.setNativeMenuBar(False)
         sizeMenu = menuBar.addMenu('&Setting')
         sizeMenu.setStatusTip('配置备份与恢复')
-        sizeMenu.addAction(WidgetUtil.createAction(menuBar, '备份', self.backupConfig, statusTip='显示小图标'))
-        sizeMenu.addAction(WidgetUtil.createAction(menuBar, '恢复', self.restoreConfig, statusTip='显示中图标'))
+        sizeMenu.addAction(WidgetUtil.createAction(parent=menuBar, text='备份', func=self.backupConfig, statusTip='显示小图标'))
+        sizeMenu.addAction(WidgetUtil.createAction(parent=menuBar, text='恢复', func=self.restoreConfig, statusTip='显示中图标'))
 
     def backupConfig(self):
         configFp = FileUtil.getConfigFp("BaseConfig.ini")

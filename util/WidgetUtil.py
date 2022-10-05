@@ -866,11 +866,11 @@ class WidgetUtil:
         :return: QMenu
         """
         widget = QMenu()
-        widget.addAction(WidgetUtil.createAction(widget, action1, func1))
+        widget.addAction(WidgetUtil.createAction(parent=widget, text=action1, func=func1))
         if action2:
-            widget.addAction(WidgetUtil.createAction(widget, action2, func2))
+            widget.addAction(WidgetUtil.createAction(parent=widget, text=action2, func=func2))
         if action3:
-            widget.addAction(WidgetUtil.createAction(widget, action3, func3))
+            widget.addAction(WidgetUtil.createAction(parent=widget, text=action3, func=func3))
         return widget
 
     @staticmethod

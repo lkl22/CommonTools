@@ -57,6 +57,13 @@ class ModuleManagerWidget(QWidget):
     def getProjectPath(self):
         return DictUtil.get(self.projectInfo, KEY_PATH)
 
+    def getSelectedModules(self):
+        res = []
+        for item in self.moduleWidgets:
+            if item.isChecked():
+                res.append(item.getModuleInfo())
+        return res
+
     def addModule(self):
         LogUtil.d("addModule")
         AddOrEditModuleDialog(callback=self.addOrEditModuleCallback, openDir=self.getProjectPath(),
@@ -137,6 +144,12 @@ class ModuleWidget(QWidget):
         self.checkBox.setToolTip(moduleInfo[KEY_DESC])
         self.checkBox.setChecked(False)
         pass
+
+    def getModuleInfo(self):
+        return self.moduleInfo
+
+    def isChecked(self):
+        return self.checkBox.isChecked()
 
 
 if __name__ == "__main__":

@@ -7,6 +7,8 @@ from util.OperaIni import *
 from util.PlatformUtil import PlatformUtil
 from util.WidgetUtil import *
 from PyQt5.QtWidgets import *
+
+from widget.custom.LoadingDialog import LoadingDialog
 from widget.projectManage.AddOrEditProjectDialog import AddOrEditProjectDialog
 from widget.projectManage.ModuleManagerWidget import ModuleManagerWidget
 from widget.projectManage.ProjectManager import *
@@ -32,6 +34,7 @@ class ProjectManagerWindow(QMainWindow):
         if not self.projects:
             self.projects = {KEY_DEFAULT: -1, KEY_LIST: []}
         self.curProjectIndex = self.projects[KEY_DEFAULT]
+        self.moduleManagerWidget = ModuleManagerWidget(projectManager=self.projectManager)
 
         layoutWidget = QtWidgets.QWidget(self)
         layoutWidget.setObjectName("layoutWidget")
@@ -75,9 +78,14 @@ class ProjectManagerWindow(QMainWindow):
         vbox.addWidget(self.createMainModuleGroupBox(box))
 
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
-        self.moduleManagerWidget = ModuleManagerWidget(projectManager=self.projectManager)
         hbox.addWidget(self.moduleManagerWidget)
         vbox.addLayout(hbox, 5)
+
+        hbox = WidgetUtil.createHBoxLayout(spacing=10)
+        hbox.addItem(WidgetUtil.createHSpacerItem(1, 1))
+        hbox.addWidget(WidgetUtil.createPushButton(box, text="开始执行", onClicked=self.startExecute))
+        hbox.addItem(WidgetUtil.createHSpacerItem(1, 1))
+        vbox.addLayout(hbox)
         return box
 
     def createMainModuleGroupBox(self, parent):
@@ -223,6 +231,21 @@ class ProjectManagerWindow(QMainWindow):
 
     def importProject(self):
         LogUtil.d("importProject")
+        pass
+
+    def startExecute(self):
+        LogUtil.d("startExecute")
+        projectInfo = self.getCurProjectInfo()
+        if not projectInfo:
+            WidgetUtil.showAboutDialog(text="请先添加/选择一个工程")
+            return
+        modules = self.moduleManagerWidget.getSelectedModules()
+        if not modules:
+            WidgetUtil.showAboutDialog(text="请先添加/选择一个模块")
+            return
+        dialog = LoadingDialog(isDebug=self.isDebug)
+        if self.isDebug:
+            dialog.exec_()
         pass
 
 
