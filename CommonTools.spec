@@ -75,6 +75,7 @@ a = Analysis(['RunMain.py',
               'widget/projectManage/AddOrEditOptionGroupDialog.py',
               'widget/projectManage/AddOrEditProjectDialog.py',
               'widget/projectManage/ModuleManagerWidget.py',
+              'widget/projectManage/OptionManagerWidget.py',
               'widget/projectManage/ProjectManager.py',
               'widget/projectManage/ProjectManagerWindow.py',
 

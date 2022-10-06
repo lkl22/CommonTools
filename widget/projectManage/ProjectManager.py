@@ -12,6 +12,7 @@ KEY_SECTION = 'ProjectManager'
 ITEM_KEY_PROJECT = 'projects'
 
 KEY_MODULES = 'modules'
+KEY_OPTION_GROUPS = 'optionGroups'
 
 KEY_DEFAULT = 'default'
 KEY_LIST = 'list'
@@ -70,3 +71,16 @@ class ProjectManager:
     def getProjectModules(self, projectId):
         projectInfo = self.getProjectInfoById(projectId)
         return DictUtil.get(projectInfo, KEY_MODULES, [])
+
+    def saveProjectOptionGroups(self, projectId, optionGroups):
+        projectInfo = self.getProjectInfoById(projectId)
+        if projectInfo is None:
+            projectInfo = {}
+        projectInfo[KEY_OPTION_GROUPS] = optionGroups
+        self.operaIni.addItem(KEY_SECTION, projectId, JsonUtil.encode(projectInfo, ensureAscii=False))
+        self.operaIni.saveIni()
+        pass
+
+    def getProjectOptionGroups(self, projectId):
+        projectInfo = self.getProjectInfoById(projectId)
+        return DictUtil.get(projectInfo, KEY_OPTION_GROUPS, [])

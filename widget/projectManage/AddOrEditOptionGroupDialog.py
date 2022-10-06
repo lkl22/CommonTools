@@ -4,7 +4,7 @@
 # 定义一个AddOrEditOptionGroupDialog类实现添加、编辑指令参数配置功能
 import copy
 from PyQt5.QtCore import QModelIndex
-from PyQt5.QtWidgets import QAbstractItemView
+from PyQt5.QtWidgets import QAbstractItemView, QTableWidgetItem, QToolTip
 from constant.WidgetConst import *
 from util.DialogUtil import *
 from util.DictUtil import DictUtil
@@ -33,7 +33,7 @@ class AddOrEditOptionGroupDialog(QtWidgets.QDialog):
         self.default = default
         self.options = copy.deepcopy(default[KEY_OPTIONS])
 
-        self.setWindowFlags(Qt.Dialog | Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint)
+        self.setWindowFlags(Qt.Dialog | Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint | Qt.WindowStaysOnTopHint)
         AddOrEditOptionGroupDialog.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.6)
         AddOrEditOptionGroupDialog.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.5)
         LogUtil.d("Add Or Edit Option Group Dialog")
@@ -104,6 +104,7 @@ class AddOrEditOptionGroupDialog(QtWidgets.QDialog):
         # 设置自定义右键菜单
         self.tableView.setContextMenuPolicy(Qt.CustomContextMenu)
         self.tableView.customContextMenuRequested.connect(self.customRightMenu)
+        self.tableView.horizontalHeader().setSectionResizeMode(QHeaderView.Interactive)  # 列宽手动调整
         self.updateCmdTableView()
         vbox.addWidget(self.tableView, 1)
         return box

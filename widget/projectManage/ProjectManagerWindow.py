@@ -154,6 +154,7 @@ class ProjectManagerWindow(QMainWindow):
     def updateProjectDesc(self):
         projectInfo = self.getCurProjectInfo()
         self.moduleManagerWidget.setProjectInfo(projectInfo)
+        self.optionManagerWidget.setProjectInfo(projectInfo)
         self.projectConfigInfoTextEdit.setText(self.genProjectDesc(projectInfo) if projectInfo else "")
 
     def updateProjectComboBox(self):

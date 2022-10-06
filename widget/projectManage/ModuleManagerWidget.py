@@ -67,7 +67,7 @@ class ModuleManagerWidget(QFrame):
         res = []
         for item in self.moduleWidgets:
             if item.isChecked():
-                res.append(item.getModuleInfo())
+                res.append(item.getOptionGroupInfo())
         return res
 
     def addModule(self):
