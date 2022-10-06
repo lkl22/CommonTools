@@ -41,7 +41,7 @@ class OptionManagerWidget(QFrame):
         groupBoxlayout.addWidget(scrollAres, 1)
 
         # 进行垂直布局
-        self.vLayout = WidgetUtil.createVBoxLayout(scrollAreaWidget)
+        self.vLayout = WidgetUtil.createVBoxLayout(scrollAreaWidget, margins=QMargins(5, 5, 5, 5))
         self.spacerItem = WidgetUtil.createVSpacerItem(1, 1)
         self.vLayout.addItem(self.spacerItem)
         self.setStyleSheet("OptionManagerWidget{border:1px solid rgb(0,255,0)}")
@@ -63,7 +63,8 @@ class OptionManagerWidget(QFrame):
 
     def editOptionGroup(self, optionGroupInfo):
         LogUtil.d("editOptionGroup", optionGroupInfo)
-        AddOrEditOptionGroupDialog(callback=self.addOrEditOptionGroupCallback, default=optionGroupInfo, groupList=self.optionGroups)
+        AddOrEditOptionGroupDialog(callback=self.addOrEditOptionGroupCallback, default=optionGroupInfo,
+                                   groupList=self.optionGroups)
         pass
 
     def addOrEditOptionGroupCallback(self, info):
@@ -113,30 +114,69 @@ class OptionManagerWidget(QFrame):
         pass
 
 
-class OptionGroupWidget(QWidget):
+class OptionGroupWidget(QFrame):
     def __init__(self, info, editFunc, delFunc):
         super(OptionGroupWidget, self).__init__()
-        self.info = info
+        self.info = None
+        self.optionWidgets = []
+        self.setObjectName("OptionGroupWidget")
+        self.vbox = WidgetUtil.createVBoxLayout(self, margins=QMargins(5, 5, 5, 5))
+        self.optionGroupNameLabel = WidgetUtil.createLabel(self)
+        self.vbox.addWidget(self.optionGroupNameLabel)
 
-        hbox = WidgetUtil.createHBoxLayout(self)
-        self.checkBox = WidgetUtil.createCheckBox(self, text=info[KEY_NAME], toolTip=info[KEY_DESC])
-        hbox.addWidget(self.checkBox)
         # 为窗口添加QActions
         self.addAction(WidgetUtil.createAction(self, text="编辑", func=lambda: editFunc(self.info)))
         self.addAction(WidgetUtil.createAction(self, text="删除", func=lambda: delFunc(self, self.info)))
         self.setContextMenuPolicy(Qt.ActionsContextMenu)
-        self.setStyleSheet("QWidget:hover{background-color:rgb(0,255,255)}")
+        self.setStyleSheet("OptionGroupWidget{border:1px solid rgb(255,0,0)}")
+
+        self.updateUi(info)
         pass
 
-    def updateUi(self, moduleInfo):
-        self.info = moduleInfo
-        self.checkBox.setText(moduleInfo[KEY_NAME])
-        self.checkBox.setToolTip(moduleInfo[KEY_DESC])
-        self.checkBox.setChecked(False)
+    def updateUi(self, info):
+        self.info = info
+        self.optionGroupNameLabel.setText(f"{info[KEY_NAME]}（{info[KEY_DESC]}）")
+        options = DictUtil.get(info, KEY_OPTIONS)
+        optionsLen = len(options)
+        while optionsLen < len(self.optionWidgets):
+            widget = self.optionWidgets[optionsLen]
+            self.vbox.removeWidget(widget)
+            widget.deleteLater()
+            self.optionWidgets.remove(widget)
+        for index, option in enumerate(options):
+            if index >= len(self.optionWidgets):
+                widget = OptionWidget(option)
+                self.optionWidgets.append(widget)
+                self.vbox.addWidget(widget)
+            else:
+                self.optionWidgets[index].updateUi(option)
         pass
 
-    def getOptionGroupInfo(self):
-        return self.info
 
-    def isChecked(self):
-        return self.checkBox.isChecked()
+class OptionWidget(QWidget):
+    def __init__(self, info):
+        super(OptionWidget, self).__init__()
+        self.info = None
+
+        self.hbox = WidgetUtil.createHBoxLayout(self, margins=QMargins(0, 0, 0, 0))
+        self.optionNameLabel = WidgetUtil.createLabel(self)
+        self.hbox.addWidget(self.optionNameLabel)
+
+        self.optionValueComboBox = WidgetUtil.createComboBox(self)
+        self.hbox.addWidget(self.optionValueComboBox)
+
+        self.updateUi(info)
+        pass
+
+    def updateUi(self, info):
+        self.info = info
+        self.optionNameLabel.setText(f"{info[KEY_NAME]}（{info[KEY_DESC]}）")
+        self.optionValueComboBox.clear()
+        optionValues = DictUtil.get(info, KEY_OPTION_VALUES)
+        for index, item in enumerate(optionValues):
+            self.optionValueComboBox.addItem(f"{item[KEY_VALUE]}（{item[KEY_DESC]}）", item)
+
+        curInfo = optionValues[DictUtil.get(info, KEY_DEFAULT, 0)]
+        self.optionValueComboBox.setCurrentText(f"{curInfo[KEY_VALUE]}（{curInfo[KEY_DESC]}）")
+        pass
+

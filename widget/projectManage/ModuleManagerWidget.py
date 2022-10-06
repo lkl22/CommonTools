@@ -41,7 +41,7 @@ class ModuleManagerWidget(QFrame):
         groupBoxlayout.addWidget(scrollAres, 1)
 
         # 进行垂直布局
-        self.vLayout = WidgetUtil.createVBoxLayout(scrollAreaWidget)
+        self.vLayout = WidgetUtil.createVBoxLayout(scrollAreaWidget, margins=QMargins(5, 5, 5, 5))
         self.spacerItem = WidgetUtil.createVSpacerItem(1, 1)
         self.vLayout.addItem(self.spacerItem)
 
@@ -134,7 +134,7 @@ class ModuleWidget(QWidget):
         super(ModuleWidget, self).__init__()
         self.moduleInfo = moduleInfo
 
-        hbox = WidgetUtil.createHBoxLayout(self)
+        hbox = WidgetUtil.createHBoxLayout(self, margins=QMargins(0, 0, 0, 0))
         self.checkBox = WidgetUtil.createCheckBox(self, text=moduleInfo[KEY_NAME], toolTip=moduleInfo[KEY_DESC])
         hbox.addWidget(self.checkBox)
         # 为窗口添加QActions
