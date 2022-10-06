@@ -3,13 +3,13 @@
 # Filename: ModuleManagerWidget.py
 # 定义一个ModuleManagerWidget窗口类实现模块管理的功能
 import sys
-from PyQt5.QtWidgets import QScrollArea
+from PyQt5.QtWidgets import QScrollArea, QFrame
 from util.WidgetUtil import *
 from widget.projectManage.AddOrEditModuleDialog import AddOrEditModuleDialog
 from widget.projectManage.ProjectManager import *
 
 
-class ModuleManagerWidget(QWidget):
+class ModuleManagerWidget(QFrame):
     def __init__(self, projectManager: ProjectManager):
         super(ModuleManagerWidget, self).__init__()
 
@@ -18,12 +18,13 @@ class ModuleManagerWidget(QWidget):
         self.modules = []
         self.moduleWidgets: [ModuleWidget] = []
 
+        self.setObjectName("ModuleManagerWidget")
         # self.setWindowFlags(QtCore.Qt.SplashScreen | QtCore.Qt.FramelessWindowHint)
-        vbox = WidgetUtil.createVBoxLayout(self, margins=QMargins(0, 0, 0, 0))
+        vbox = WidgetUtil.createVBoxLayout(self, margins=QMargins(5, 5, 5, 5))
         vbox.addWidget(WidgetUtil.createLabel(self, text="模块管理"))
 
-        hbox = WidgetUtil.createHBoxLayout(spacing=10)
-        self.addModuleBtn = WidgetUtil.createPushButton(self, text="Add", toolTip="添加新的模块", isEnable=False,
+        hbox = WidgetUtil.createHBoxLayout(spacing=5)
+        self.addModuleBtn = WidgetUtil.createPushButton(self, text="Add", toolTip="添加新的选项配置", isEnable=False,
                                                         onClicked=self.addModule)
         hbox.addWidget(self.addModuleBtn)
         hbox.addItem(WidgetUtil.createHSpacerItem(1, 1))
@@ -43,6 +44,11 @@ class ModuleManagerWidget(QWidget):
         self.vLayout = WidgetUtil.createVBoxLayout(scrollAreaWidget)
         self.spacerItem = WidgetUtil.createVSpacerItem(1, 1)
         self.vLayout.addItem(self.spacerItem)
+
+        # self.setLineWidth(2)
+        # self.setFrameShadow(QFrame.Plain)
+        # self.setFrameShape(QFrame.Box)
+        self.setStyleSheet("ModuleManagerWidget{border:1px solid rgb(255,0,0)}")
         pass
 
     def setProjectInfo(self, projectInfo):

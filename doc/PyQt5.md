@@ -15,6 +15,25 @@ def mousePressEvent(self, ev: QMouseEvent):
     if ev.button() == Qt.RightButton:
 ```
 
+## QFrame
+
+相关API|	含义|	参数
+---|---|---
+setLineWidth(int width)|	设置外线宽度|	整型
+midLineWidth()|	设置中线宽度|	整型
+setFrameShape(QFrame.Shape)|	设置边框形状|	QFrame.Shape 枚举值
+setFrameShadow(QFrame.Shadow)|	设置边框阴影|	QFrame.Shadow 枚举值
+setFrameStyle(int style)|	设置边框样式|	枚举值
+setFrameRect(QRect)|	设置边框矩形|	整型
+
+[pyQt5 学习笔记（19）QFrame 边框设置](https://blog.csdn.net/qq_17351161/article/details/102987451)
+
+### 设置边框
+
+> .setStyleSheet("ObjectName{border:1px solid rgb(0,255,255)}")
+
+* ObjectName是对象名
+
 ## QLineEdit
 
 ### 设置背景色

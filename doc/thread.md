@@ -10,4 +10,4 @@
 
 ### 线程ID
 
-> threading.currentThread()
+> threading.currentThread().ident
