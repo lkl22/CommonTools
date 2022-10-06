@@ -4,7 +4,7 @@
 # 定义一个AddOrEditProjectDialog类实现添加、编辑项目配置功能
 from PyQt5.QtCore import QModelIndex
 from PyQt5.QtWidgets import QAbstractItemView
-
+import copy
 from constant.WidgetConst import *
 from util.DialogUtil import *
 from util.DictUtil import DictUtil
@@ -20,12 +20,17 @@ class AddOrEditProjectDialog(QtWidgets.QDialog):
         # 调用父类的构函
         QtWidgets.QDialog.__init__(self)
         self.isDebug = isDebug
+        self.callback = callback
         if projectList is None:
             projectList = []
-        self.callback = callback
-        self.projectInfo = projectInfo
-        self.isAdd = projectInfo is None
         self.projectList = projectList
+        self.isAdd = projectInfo is None
+        if projectInfo is None:
+            projectInfo = {KEY_EVN_LIST: []}
+        elif KEY_EVN_LIST not in projectInfo:
+            projectInfo[KEY_EVN_LIST] = []
+        self.projectInfo = projectInfo
+        self.evnList = copy.deepcopy(projectInfo[KEY_EVN_LIST])
 
         self.setWindowFlags(Qt.Dialog | Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint)
         AddOrEditProjectDialog.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.6)
@@ -94,20 +99,14 @@ class AddOrEditProjectDialog(QtWidgets.QDialog):
 
     def addEvn(self):
         LogUtil.d("addEvn")
-        if self.projectInfo is None:
-            self.projectInfo = {KEY_ENV_LIST: []}
-        elif KEY_ENV_LIST not in self.projectInfo:
-            self.projectInfo[KEY_ENV_LIST] = []
-        evnList = DictUtil.get(self.projectInfo, KEY_ENV_LIST)
-        AddOrEditEvnDialog(evnList=evnList, callback=self.addOrEditEvnCallback)
+        AddOrEditEvnDialog(evnList=self.evnList, callback=self.addOrEditEvnCallback)
         pass
 
-    def addOrEditEvnCallback(self, evnInfo):
-        LogUtil.d("addOrEditEvnCallback", evnInfo)
-        evnList = self.projectInfo[KEY_ENV_LIST]
-        if evnInfo:
-            evnList.append(evnInfo)
-        self.projectInfo[KEY_ENV_LIST] = sorted(evnList, key=lambda x: x[KEY_NAME])
+    def addOrEditEvnCallback(self, info):
+        LogUtil.d("addOrEditEvnCallback", info)
+        if info:
+            self.evnList.append(info)
+        self.evnList = sorted(self.evnList, key=lambda x: x[KEY_NAME])
         self.updateEvnTableView()
         pass
 
@@ -115,10 +114,8 @@ class AddOrEditProjectDialog(QtWidgets.QDialog):
         oldValue = index.data()
         row = index.row()
         LogUtil.d("双击的单元格：row ", row, ' col', index.column(), ' data ', oldValue)
-
-        evnInfo = self.projectInfo[KEY_ENV_LIST][row]
-        AddOrEditEvnDialog(evnList=self.projectInfo[KEY_ENV_LIST], callback=self.addOrEditEvnCallback,
-                           default=evnInfo)
+        AddOrEditEvnDialog(evnList=self.evnList, callback=self.addOrEditEvnCallback,
+                           default=self.evnList[row])
         pass
 
     def customRightMenu(self, pos):
@@ -129,7 +126,7 @@ class AddOrEditProjectDialog(QtWidgets.QDialog):
         pass
 
     def delProjectEvn(self):
-        evn = self.projectInfo[KEY_ENV_LIST][self.curDelRow][KEY_NAME]
+        evn = self.evnList[self.curDelRow][KEY_NAME]
         LogUtil.i(f"delAccount {evn}")
         WidgetUtil.showQuestionDialog(message=f"你确定需要删除 <span style='color:red;'>{evn}</span> 吗？",
                                       acceptFunc=self.delTableItem)
@@ -137,15 +134,14 @@ class AddOrEditProjectDialog(QtWidgets.QDialog):
 
     def delTableItem(self):
         LogUtil.i("delTreeWidgetItem")
-        self.projectInfo[KEY_ENV_LIST].remove(self.projectInfo[KEY_ENV_LIST][self.curDelRow])
+        self.evnList.remove(self.evnList[self.curDelRow])
         self.updateEvnTableView()
         pass
 
     def updateEvnTableView(self):
-        evnList = DictUtil.get(data=self.projectInfo, key=KEY_ENV_LIST, default=[])
-        WidgetUtil.addTableViewData(self.evnTableView, evnList,
+        WidgetUtil.addTableViewData(self.evnTableView, self.evnList,
                                     headerLabels=["环境变量名", "环境变量值", "环境变量描述", "Path环境变量"])
-        if len(evnList) > 0:
+        if len(self.evnList) > 0:
             WidgetUtil.tableViewSetColumnWidth(self.evnTableView, 0, 100)
         pass
 
@@ -177,6 +173,7 @@ class AddOrEditProjectDialog(QtWidgets.QDialog):
         self.projectInfo[KEY_NAME] = name
         self.projectInfo[KEY_DESC] = desc
         self.projectInfo[KEY_PATH] = path
+        self.projectInfo[KEY_EVN_LIST] = self.evnList
 
         self.callback(self.projectInfo if self.isAdd else None)
         self.close()

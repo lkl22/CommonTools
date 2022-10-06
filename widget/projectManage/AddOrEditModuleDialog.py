@@ -2,6 +2,7 @@
 # python 3.x
 # Filename: AddOrEditModuleDialog.py
 # 定义一个AddOrEditModuleDialog类实现添加、编辑模块配置功能
+import copy
 from PyQt5.QtCore import QModelIndex
 from PyQt5.QtWidgets import QAbstractItemView
 
@@ -25,8 +26,13 @@ class AddOrEditModuleDialog(QtWidgets.QDialog):
         if moduleList is None:
             moduleList = []
         self.callback = callback
-        self.default = default
         self.isAdd = default is None
+        if not default:
+            default = {KEY_CMD_LIST: []}
+        elif KEY_CMD_LIST not in default:
+            default[KEY_CMD_LIST] = []
+        self.default = default
+        self.cmdList = copy.deepcopy(default[KEY_CMD_LIST])
         self.moduleList = moduleList
         self.openDir = openDir if openDir else './'
 
@@ -110,19 +116,17 @@ class AddOrEditModuleDialog(QtWidgets.QDialog):
         self.cmdTableView.setContextMenuPolicy(Qt.CustomContextMenu)
         self.cmdTableView.customContextMenuRequested.connect(self.customRightMenu)
         self.updateCmdTableView()
-        vbox.addWidget(self.cmdTableView)
-
-        vbox.addItem(WidgetUtil.createVSpacerItem(1, 1))
+        vbox.addWidget(self.cmdTableView, 1)
         return box
 
     def moveCmdPosition(self, newPos):
         LogUtil.d("moveCmdPosition", newPos)
         # 交换数据
-        ListUtil.swap(self.default[KEY_CMD_LIST], self.currentRow, newPos)
+        ListUtil.insert(self.cmdList, self.currentRow, newPos)
         # 更新table表格数据
         self.updateCmdTableView()
         # 更新当前选择的行
-        self.currentRow = newPos if newPos >= 0 else len(self.default[KEY_CMD_LIST]) - 1
+        self.currentRow = newPos if newPos >= 0 else len(self.cmdList) - 1
         self.cmdTableView.selectRow(self.currentRow)
         # 更新调整位置按钮的状态
         self.updatePositionBtnStatus()
@@ -130,25 +134,19 @@ class AddOrEditModuleDialog(QtWidgets.QDialog):
 
     def addCmd(self):
         LogUtil.d("addCmd")
-        if self.default is None:
-            self.default = {KEY_CMD_LIST: []}
-        elif KEY_CMD_LIST not in self.default:
-            self.default[KEY_CMD_LIST] = []
-        cmdList = DictUtil.get(self.default, KEY_CMD_LIST)
-        AddOrEditCmdDialog(callback=self.addOrEditCmdCallback, cmdList=cmdList)
+        AddOrEditCmdDialog(callback=self.addOrEditCmdCallback, cmdList=self.cmdList)
         pass
 
-    def addOrEditCmdCallback(self, evnInfo):
-        LogUtil.d("addOrEditCmdCallback", evnInfo)
-        evnList = self.default[KEY_CMD_LIST]
-        if evnInfo:
-            evnList.append(evnInfo)
+    def addOrEditCmdCallback(self, info):
+        LogUtil.d("addOrEditCmdCallback", info)
+        if info:
+            self.cmdList.append(info)
         self.updateCmdTableView()
         pass
 
     def updatePositionBtnStatus(self):
         LogUtil.d("updatePositionBtnStatus")
-        size = len(self.default[KEY_CMD_LIST])
+        size = len(self.cmdList)
         self.topPostionBtn.setEnabled(self.currentRow > 0)
         self.upOnePostionBtn.setEnabled(self.currentRow > 0)
         self.downOnePostionBtn.setEnabled(0 <= self.currentRow < size - 1)
@@ -167,8 +165,7 @@ class AddOrEditModuleDialog(QtWidgets.QDialog):
         oldValue = index.data()
         row = index.row()
         LogUtil.d("双击的单元格：row ", row, ' col', index.column(), ' data ', oldValue)
-        evnInfo = self.default[KEY_CMD_LIST][row]
-        AddOrEditCmdDialog(callback=self.addOrEditCmdCallback, default=evnInfo, cmdList=self.default[KEY_CMD_LIST])
+        AddOrEditCmdDialog(callback=self.addOrEditCmdCallback, default=self.cmdList[row], cmdList=self.cmdList)
         pass
 
     def customRightMenu(self, pos):
@@ -179,7 +176,7 @@ class AddOrEditModuleDialog(QtWidgets.QDialog):
         pass
 
     def delCmd(self):
-        cmd = self.default[KEY_CMD_LIST][self.curDelRow][KEY_NAME]
+        cmd = self.cmdList[self.curDelRow][KEY_NAME]
         LogUtil.i(f"delCmd {cmd}")
         WidgetUtil.showQuestionDialog(message=f"你确定需要删除 <span style='color:red;'>{cmd}</span> 吗？",
                                       acceptFunc=self.delTableItem)
@@ -187,13 +184,12 @@ class AddOrEditModuleDialog(QtWidgets.QDialog):
 
     def delTableItem(self):
         LogUtil.i("delTableItem")
-        self.default[KEY_CMD_LIST].remove(self.default[KEY_CMD_LIST][self.curDelRow])
+        self.cmdList.remove(self.cmdList[self.curDelRow])
         self.updateCmdTableView()
         pass
 
     def updateCmdTableView(self):
-        cmdList = DictUtil.get(self.default, KEY_CMD_LIST, [])
-        WidgetUtil.addTableViewData(self.cmdTableView, cmdList,
+        WidgetUtil.addTableViewData(self.cmdTableView, self.cmdList,
                                     headerLabels=["执行指令名", "描述", "指令", "工作空间", "指令参数"])
         # WidgetUtil.tableViewSetColumnWidth(self.cmdTableView, 0, 100)
         pass
@@ -226,6 +222,7 @@ class AddOrEditModuleDialog(QtWidgets.QDialog):
         self.default[KEY_NAME] = name
         self.default[KEY_DESC] = desc
         self.default[KEY_PATH] = path
+        self.default[KEY_CMD_LIST] = self.cmdList
 
         self.callback(self.default if self.isAdd else None)
         self.close()

@@ -17,6 +17,7 @@ from PyQt5.QtWidgets import *
 from widget.custom.LoadingDialog import LoadingDialog
 from widget.projectManage.AddOrEditProjectDialog import AddOrEditProjectDialog
 from widget.projectManage.ModuleManagerWidget import ModuleManagerWidget
+from widget.projectManage.OptionManagerWidget import OptionManagerWidget
 from widget.projectManage.ProjectManager import *
 
 TYPE_HIDE_LOADING_DIALOG = 1
@@ -49,6 +50,7 @@ class ProjectManagerWindow(QMainWindow):
         self.processManagers = []
 
         self.moduleManagerWidget = ModuleManagerWidget(projectManager=self.projectManager)
+        self.optionManagerWidget = OptionManagerWidget(projectManager=self.projectManager)
         self.loadingDialog = LoadingDialog(showText="正在执行。。。", btnText="终止",
                                            rejectedFunc=lambda: LogUtil.d("close loading"), isDebug=self.isDebug)
         self.loadingDialog.hide()
@@ -101,7 +103,8 @@ class ProjectManagerWindow(QMainWindow):
         vbox.addWidget(self.createMainModuleGroupBox(box))
 
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
-        hbox.addWidget(self.moduleManagerWidget)
+        hbox.addWidget(self.moduleManagerWidget, 1)
+        hbox.addWidget(self.optionManagerWidget, 2)
         vbox.addLayout(hbox, 5)
 
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
@@ -136,7 +139,7 @@ class ProjectManagerWindow(QMainWindow):
         return box
 
     def genProjectDesc(self, projectInfo):
-        evnList = DictUtil.get(projectInfo, KEY_ENV_LIST)
+        evnList = DictUtil.get(projectInfo, KEY_EVN_LIST)
         evnDesc = ""
         if evnList:
             evnDesc = "<span style='color:green;'>环境变量：</span><br/>"

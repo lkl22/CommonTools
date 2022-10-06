@@ -21,7 +21,7 @@ KEY_DESC = 'desc'
 # 唯一标识，区分条目的
 KEY_ID = 'id'
 KEY_PATH = 'path'
-KEY_ENV_LIST = 'evnList'
+KEY_EVN_LIST = 'evnList'
 KEY_VALUE = 'value'
 KEY_PROGRAM = 'program'
 KEY_ARGUMENTS = 'arguments'

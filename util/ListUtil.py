@@ -9,13 +9,33 @@ class ListUtil:
     @staticmethod
     def swap(data: list, lIndex: int, rIndex: int):
         """
-        从字典中获取指定的数据
+        交换列表里两个数据的位置
         :param data: data
         :param lIndex: 需要交换数据的索引
         :param rIndex: 需要交换数据的索引
         """
         if data:
             data[lIndex], data[rIndex] = data[rIndex], data[lIndex]
+        pass
+
+    @staticmethod
+    def insert(data: list, oldIndex: int, newIndex: int):
+        """
+        将数据从 oldIndex 重新插入到指定的位置 newIndex
+        :param data: data
+        :param oldIndex: 旧的索引
+        :param newIndex: 新的索引
+        """
+        if data:
+            newIndex = (len(data) + newIndex) % len(data)
+            if newIndex == oldIndex:
+                return
+            oldData = data[oldIndex]
+            data.remove(oldData)
+            if newIndex < oldIndex:
+                data.insert(newIndex, oldData)
+            else:
+                data.insert(newIndex, oldData)
         pass
 
     @staticmethod
@@ -42,7 +62,24 @@ if __name__ == "__main__":
     ListUtil.swap(data, 1, -1)
     LogUtil.d(data)
 
+    data = ["ss", "dd", "ee", "ww", "ll"]
     ListUtil.swap(data, 0, -1)
+    LogUtil.d(data)
+
+    data = ["ss", "dd", "ee", "ww", "ll"]
+    ListUtil.insert(data, 2, 3)
+    LogUtil.d(data)
+
+    data = ["ss", "dd", "ee", "ww", "ll"]
+    ListUtil.insert(data, 3, 2)
+    LogUtil.d(data)
+
+    data = ["ss", "dd", "ee", "ww", "ll"]
+    ListUtil.insert(data, 3, 0)
+    LogUtil.d(data)
+
+    data = ["ss", "dd", "ee", "ww", "ll"]
+    ListUtil.insert(data, 3, -1)
     LogUtil.d(data)
 
     LogUtil.d(ListUtil.contain([{"dd": 12}, {"dd": 23}], 'dd', 35))
