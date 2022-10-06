@@ -30,6 +30,14 @@ KEY_EVN_IS_PATH = 'isPath'
 
 KEY_CMD_LIST = 'cmdList'
 
+KEY_OPTIONS = 'options'
+KEY_OPTION_VALUES = 'optionValues'
+
+# 执行指令输出的询问文本，等待用户输入进行下一步操作
+KEY_ECHO = 'echo'
+# 模拟用户输入的文本，对应于echo
+KEY_INPUT = 'input'
+
 
 class ProjectManager:
     def __init__(self, isDebug=False):
