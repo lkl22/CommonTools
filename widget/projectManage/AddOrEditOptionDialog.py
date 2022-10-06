@@ -2,11 +2,12 @@
 # python 3.x
 # Filename: AddOrEditOptionDialog.py
 # 定义一个AddOrEditOptionDialog类实现添加、编辑执行指令参数选项功能
+import copy
+
 from constant.WidgetConst import *
 from util.DialogUtil import *
 from util.DictUtil import DictUtil
 from util.OperaIni import *
-from widget.custom.DragInputWidget import DragInputWidget
 from widget.projectManage.ProjectManager import *
 
 
@@ -27,6 +28,7 @@ class AddOrEditOptionDialog(QtWidgets.QDialog):
         if not default:
             default = {KEY_DEFAULT: -1, KEY_OPTION_VALUES: []}
         self.default = default
+        self.optionValues = copy.deepcopy(default[KEY_OPTION_VALUES])
         self.curOptionValueIndex = self.default[KEY_DEFAULT]
 
         self.setObjectName("AddOrEditOptionDialog")
@@ -84,13 +86,13 @@ class AddOrEditOptionDialog(QtWidgets.QDialog):
         pass
 
     def updateOptionValuesComboBox(self):
-        if self.default and self.default[KEY_OPTION_VALUES]:
+        if self.optionValues:
             self.optionValuesComboBox.clear()
-            for index, item in enumerate(self.default[KEY_OPTION_VALUES]):
+            for index, item in enumerate(self.optionValues):
                 self.optionValuesComboBox.addItem(f"{item[KEY_DESC]}", item)
             if self.curOptionValueIndex < 0:
                 self.curOptionValueIndex = 0
-            curOptionValueInfo = self.default[KEY_OPTION_VALUES][self.curOptionValueIndex]
+            curOptionValueInfo = self.optionValues[self.curOptionValueIndex]
             self.optionValuesComboBox.setCurrentText(f"{curOptionValueInfo[KEY_DESC]}")
             LogUtil.d('updateOptionValuesComboBox setCurrentText', curOptionValueInfo[KEY_DESC])
         else:
@@ -101,7 +103,7 @@ class AddOrEditOptionDialog(QtWidgets.QDialog):
 
     def getCurOptionValueInfo(self):
         if self.curOptionValueIndex >= 0:
-            return self.default[KEY_OPTION_VALUES][self.curOptionValueIndex]
+            return self.optionValues[self.curOptionValueIndex]
         else:
             return None
 
@@ -113,7 +115,7 @@ class AddOrEditOptionDialog(QtWidgets.QDialog):
 
     def addOptionValue(self):
         LogUtil.d("addOptionValue")
-        AddOrEditOptionValueDialog(default=None, optionValues=self.default[KEY_OPTION_VALUES],
+        AddOrEditOptionValueDialog(default=None, optionValues=self.optionValues,
                                    callback=self.addOrEditOptionValueCallback)
         pass
 
@@ -122,21 +124,20 @@ class AddOrEditOptionDialog(QtWidgets.QDialog):
         if self.curOptionValueIndex < 0:
             WidgetUtil.showAboutDialog(text="请先选择一个参数选项")
             return
-        AddOrEditOptionValueDialog(default=self.default[KEY_OPTION_VALUES][self.curOptionValueIndex],
-                                   optionValues=self.default[KEY_OPTION_VALUES],
+        AddOrEditOptionValueDialog(default=self.optionValues[self.curOptionValueIndex],
+                                   optionValues=self.optionValues,
                                    callback=self.addOrEditOptionValueCallback)
         pass
 
     def addOrEditOptionValueCallback(self, info):
         LogUtil.d("addOrEditOptionValueCallback", info)
-        optionValues = self.default[KEY_OPTION_VALUES]
         if info:
-            optionValues.append(info)
+            self.optionValues.append(info)
         curOptionValueInfo = self.getCurOptionValueInfo()
         # 按项目名称重新排序
-        self.default[KEY_OPTION_VALUES] = sorted(optionValues, key=lambda x: x[KEY_DESC])
+        self.optionValues = sorted(self.optionValues, key=lambda x: x[KEY_DESC])
         if curOptionValueInfo:
-            for index, item in enumerate(self.default[KEY_OPTION_VALUES]):
+            for index, item in enumerate(self.optionValues):
                 if curOptionValueInfo == item:
                     self.curOptionValueIndex = index
                     break
@@ -158,7 +159,7 @@ class AddOrEditOptionDialog(QtWidgets.QDialog):
     def delOptionValueItem(self):
         LogUtil.i("delOptionValueItem")
         optionValueInfo = self.getCurOptionValueInfo()
-        self.default[KEY_OPTION_VALUES].remove(optionValueInfo)
+        self.optionValues.remove(optionValueInfo)
         self.curOptionValueIndex = -1
         self.updateOptionValuesComboBox()
         pass
@@ -168,7 +169,7 @@ class AddOrEditOptionDialog(QtWidgets.QDialog):
         if not name:
             WidgetUtil.showErrorDialog(message="请输入需要执行的命令行指令参数别名")
             return
-        if not self.default[KEY_OPTION_VALUES]:
+        if not self.optionValues:
             WidgetUtil.showErrorDialog(message="请添加参数选项列表")
             return
         if self.isAdd or self.default[KEY_NAME] != name:
@@ -183,6 +184,7 @@ class AddOrEditOptionDialog(QtWidgets.QDialog):
         self.default[KEY_DESC] = desc
         self.default[KEY_ECHO] = echo
         self.default[KEY_DEFAULT] = self.curOptionValueIndex
+        self.default[KEY_OPTION_VALUES] = self.optionValues
 
         self.callback(self.default if self.isAdd else None)
         self.close()
