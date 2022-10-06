@@ -41,6 +41,7 @@ class ProcessManager(QObject):
             self.standardOutput.connect(standardOutput)
         if standardError:
             self.standardError.connect(standardError)
+        self.isSuccess = True
         pass
 
     def run(self):
@@ -50,16 +51,16 @@ class ProcessManager(QObject):
         for cmd in self.cmdList:
             self.executeCmd(cmd)
         self.handleStandardOutput(f"{self.name} 执行结束。耗时：{DateUtil.nowTimestamp(isMilliSecond=True) - startTime} ms\n")
-        return True
+        return self.isSuccess
 
     def executeCmd(self, cmdInfo):
         workingDir = DictUtil.get(cmdInfo, KEY_WORKING_DIR)
         if not workingDir:
             workingDir = self.workingDir
-        self.handleStandardOutput(f"executeCmd start. workingDir: {workingDir}\n")
         self.process.setWorkingDirectory(workingDir)
         args = DictUtil.get(cmdInfo, KEY_ARGUMENTS)
         cmd = f"{DictUtil.get(cmdInfo, KEY_PROGRAM)} {args if args else ''}"
+        self.handleStandardOutput(f"executeCmd: {cmd} start. workingDir: {workingDir}\n")
         self.handleStandardOutput(f"执行指令：{cmd}\n")
         self.process.start(cmd)
         # self.process.start("lsss")
@@ -68,7 +69,7 @@ class ProcessManager(QObject):
         self.process.readyReadStandardError.connect(lambda: self.readStandardError())
         # self.process.waitForReadyRead()
         self.process.waitForFinished()
-        LogUtil.d("executeCmd end.", self.process.state(), self.process.exitCode(), self.process.exitStatus(),
+        LogUtil.d(f"executeCmd: {cmd} end.", self.process.state(), self.process.exitCode(), self.process.exitStatus(),
                   self.process.error())
 
     def readStandardOutput(self):
@@ -77,7 +78,7 @@ class ProcessManager(QObject):
 
     def handleStandardOutput(self, log):
         if log:
-            self.standardOutput.emit(f"{DateUtil.nowTimeMs()} {os.getpid()} {log}")
+            self.standardOutput.emit(f"{DateUtil.nowTimeMs()} {os.getpid()} {threading.currentThread().ident} {log}")
 
     def readStandardError(self):
         log = QTextCodec.codecForLocale().toUnicode(self.process.readAllStandardError())
@@ -85,7 +86,8 @@ class ProcessManager(QObject):
 
     def handleStandardError(self, log):
         if log:
-            self.standardError.emit(f"{DateUtil.nowTimeMs()} {os.getpid()} {log}")
+            self.standardError.emit(f"{DateUtil.nowTimeMs()} {os.getpid()} {threading.currentThread().ident} {log}")
+        self.isSuccess = False
 
     def kill(self):
         self.process.kill()

@@ -3,7 +3,9 @@
 # Filename: ProjectManagerDialog.py
 # 定义一个ProjectManagerDialog类实现项目管理功能
 import threading
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import as_completed
+from concurrent.futures.thread import ThreadPoolExecutor
+
 from PyQt5.QtCore import pyqtSignal
 from util.DictUtil import DictUtil
 from util.OperaIni import *
@@ -42,7 +44,7 @@ class ProjectManagerWindow(QMainWindow):
             self.projects = {KEY_DEFAULT: -1, KEY_LIST: []}
         self.curProjectIndex = self.projects[KEY_DEFAULT]
 
-        self.executor = ThreadPoolExecutor(max_workers=20, thread_name_prefix="ProjectExecute_")
+        self.executor = ThreadPoolExecutor(thread_name_prefix="ProjectExecute_")
         self.futureList = []
         self.processManagers = []
 
@@ -255,7 +257,7 @@ class ProjectManagerWindow(QMainWindow):
         pass
 
     def startExecute(self):
-        LogUtil.d(f"startExecute main pid: {os.getpid()}")
+        LogUtil.d(f"startExecute main pid: {os.getpid()} threadId: {threading.currentThread().ident}")
         projectInfo = self.getCurProjectInfo()
         if not projectInfo:
             WidgetUtil.showAboutDialog(text="请先添加/选择一个工程")
@@ -272,7 +274,7 @@ class ProjectManagerWindow(QMainWindow):
     def executeModuleCmd(self, projectInfo, modules):
         self.futureList.clear()
         self.processManagers.clear()
-        LogUtil.e(f"executeModuleCmd start. pid: {os.getpid()}")
+        LogUtil.e(f"executeModuleCmd start. pid: {os.getpid()} threadId: {threading.currentThread().ident}")
         for moduleInfo in modules:
             processManager = ProcessManager(name=DictUtil.get(moduleInfo, KEY_NAME),
                                             cmdList=DictUtil.get(moduleInfo, KEY_CMD_LIST, []),
@@ -281,12 +283,12 @@ class ProjectManagerWindow(QMainWindow):
                                             standardOutput=self.standardOutput,
                                             standardError=self.standardError)
             self.processManagers.append(processManager)
-            future = self.executor.submit(processManager.run())
+            future = self.executor.submit(processManager.run)
             self.futureList.append(future)
 
         for future in as_completed(self.futureList):
-            # data = future.result()
-            LogUtil.e(f"{os.getpid()}")
+            data = future.result()
+            LogUtil.d(future, data)
         LogUtil.e(f"executeModuleCmd all finished. pid: {os.getpid()}")
         self.execUi.emit(TYPE_HIDE_LOADING_DIALOG)
         pass
