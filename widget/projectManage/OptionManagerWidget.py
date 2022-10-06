@@ -73,7 +73,7 @@ class OptionManagerWidget(QFrame):
             self.optionGroups.append(info)
         self.optionGroups = sorted(self.optionGroups, key=lambda x: x[KEY_NAME])
         self.updateOptionGroupList()
-        self.projectManager.saveProjectOptionGroups(DictUtil.get(self.projectInfo, KEY_ID), self.optionGroups)
+        self.saveProjectOptionGroups()
         pass
 
     def delOptionGroup(self, optionGroupWidget, optionGroupInfo):
@@ -85,14 +85,19 @@ class OptionManagerWidget(QFrame):
                 optionGroupWidget.deleteLater(),
                 self.optionGroupWidgets.remove(optionGroupWidget),
                 self.optionGroups.remove(optionGroupInfo),
-                self.projectManager.saveProjectOptionGroups(DictUtil.get(self.projectInfo, KEY_ID), self.optionGroups)
+                self.saveProjectOptionGroups()
             ))
+        pass
+
+    def saveProjectOptionGroups(self):
+        self.projectManager.saveProjectOptionGroups(DictUtil.get(self.projectInfo, KEY_ID), self.optionGroups)
         pass
 
     def updateOptionGroupItem(self, index, optionGroupInfo):
         LogUtil.d("updateOptionGroupItem", index, optionGroupInfo)
         if index >= len(self.optionGroupWidgets):
-            widget = OptionGroupWidget(info=optionGroupInfo, editFunc=self.editOptionGroup, delFunc=self.delOptionGroup)
+            widget = OptionGroupWidget(info=optionGroupInfo, editFunc=self.editOptionGroup, delFunc=self.delOptionGroup,
+                                       selectedChanged=self.saveProjectOptionGroups)
             self.optionGroupWidgets.append(widget)
             self.vLayout.addWidget(widget)
         else:
@@ -115,9 +120,10 @@ class OptionManagerWidget(QFrame):
 
 
 class OptionGroupWidget(QFrame):
-    def __init__(self, info, editFunc, delFunc):
+    def __init__(self, info, editFunc, delFunc, selectedChanged):
         super(OptionGroupWidget, self).__init__()
         self.info = None
+        self.selectedChanged = selectedChanged
         self.optionWidgets = []
         self.setObjectName("OptionGroupWidget")
         self.vbox = WidgetUtil.createVBoxLayout(self, margins=QMargins(5, 5, 5, 5))
@@ -145,7 +151,7 @@ class OptionGroupWidget(QFrame):
             self.optionWidgets.remove(widget)
         for index, option in enumerate(options):
             if index >= len(self.optionWidgets):
-                widget = OptionWidget(option)
+                widget = OptionWidget(option, self.selectedChanged)
                 self.optionWidgets.append(widget)
                 self.vbox.addWidget(widget)
             else:
@@ -154,15 +160,16 @@ class OptionGroupWidget(QFrame):
 
 
 class OptionWidget(QWidget):
-    def __init__(self, info):
+    def __init__(self, info, selectedChanged):
         super(OptionWidget, self).__init__()
         self.info = None
+        self.selectedChanged = selectedChanged
 
         self.hbox = WidgetUtil.createHBoxLayout(self, margins=QMargins(0, 0, 0, 0))
         self.optionNameLabel = WidgetUtil.createLabel(self)
         self.hbox.addWidget(self.optionNameLabel)
 
-        self.optionValueComboBox = WidgetUtil.createComboBox(self)
+        self.optionValueComboBox = WidgetUtil.createComboBox(self, activated=self.optionValueChange)
         self.hbox.addWidget(self.optionValueComboBox)
 
         self.updateUi(info)
@@ -179,4 +186,10 @@ class OptionWidget(QWidget):
         curInfo = optionValues[DictUtil.get(info, KEY_DEFAULT, 0)]
         self.optionValueComboBox.setCurrentText(f"{curInfo[KEY_VALUE]}（{curInfo[KEY_DESC]}）")
         pass
+
+    def optionValueChange(self, index):
+        LogUtil.d("optionValueChange", index)
+        self.info[KEY_DEFAULT] = index
+        self.selectedChanged()
+
 

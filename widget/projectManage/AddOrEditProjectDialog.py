@@ -139,7 +139,15 @@ class AddOrEditProjectDialog(QtWidgets.QDialog):
         pass
 
     def updateEvnTableView(self):
-        WidgetUtil.addTableViewData(self.evnTableView, self.evnList,
+        tableData = []
+        for evn in self.evnList:
+            tableData.append({
+                KEY_NAME: evn[KEY_NAME],
+                KEY_VALUE: evn[KEY_VALUE],
+                KEY_DESC: evn[KEY_DESC],
+                KEY_EVN_IS_PATH: "Path环境变量" if evn[KEY_EVN_IS_PATH] else "普通环境变量"
+            })
+        WidgetUtil.addTableViewData(self.evnTableView, tableData,
                                     headerLabels=["环境变量名", "环境变量值", "环境变量描述", "Path环境变量"])
         if len(self.evnList) > 0:
             WidgetUtil.tableViewSetColumnWidth(self.evnTableView, 0, 100)

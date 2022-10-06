@@ -14,7 +14,7 @@ class AddOrEditCmdDialog(QtWidgets.QDialog):
     def __init__(self, callback, default=None, cmdList=None, isDebug=False):
         # 调用父类的构函
         QtWidgets.QDialog.__init__(self)
-        self.setWindowFlags(Qt.Dialog | Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint)
+        self.setWindowFlags(Qt.Dialog | Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint | Qt.WindowStaysOnTopHint)
         AddOrEditCmdDialog.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.6)
         AddOrEditCmdDialog.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.2)
         LogUtil.d("Add or Edit Cmd Dialog")
@@ -107,17 +107,16 @@ class AddOrEditCmdDialog(QtWidgets.QDialog):
         desc = self.descLineEdit.text().strip()
         workDir = self.workDirInputWidget.text().strip()
         arguments = self.argumentsLineEdit.text().strip()
-        if self.isAdd:
-            self.callback({KEY_NAME: name, KEY_DESC: desc, KEY_PROGRAM: program, KEY_WORKING_DIR: workDir,
-                           KEY_ARGUMENTS: arguments})
-        else:
-            self.default[KEY_NAME] = name
-            self.default[KEY_DESC] = desc
-            self.default[KEY_PROGRAM] = program
-            self.default[KEY_WORKING_DIR] = workDir
-            self.default[KEY_ARGUMENTS] = arguments
-            self.callback(None)
+        if not self.default:
+            self.default = {}
 
+        self.default[KEY_NAME] = name
+        self.default[KEY_DESC] = desc
+        self.default[KEY_PROGRAM] = program
+        self.default[KEY_WORKING_DIR] = workDir
+        self.default[KEY_ARGUMENTS] = arguments
+
+        self.callback(self.default if self.isAdd else None)
         self.close()
         pass
 

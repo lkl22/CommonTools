@@ -10,6 +10,8 @@
 
 ## deepcopy
 
+注意：字典的拷贝会改变其中数据的位置，如果依赖元素添加顺序显示，需要特殊处理。
+
 ## 参考文献
 
 [Python 直接赋值、浅拷贝和深度拷贝解析](https://www.runoob.com/w3cnote/python-understanding-dict-copy-shallow-or-deep.html)

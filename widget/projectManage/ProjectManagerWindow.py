@@ -145,7 +145,7 @@ class ProjectManagerWindow(QMainWindow):
             evnDesc = "<span style='color:green;'>环境变量：</span><br/>"
             for item in evnList:
                 evnDesc += f"<span style='color:red;'>变量名：{item[KEY_NAME]}<br/>变量值：{item[KEY_VALUE]}</span><br/>" \
-                           f"是否是Path环境变量：{item[KEY_EVN_IS_PATH]}<br/>描述：{item[KEY_DESC]}<br/><br/>"
+                           f"{'Path环境变量' if item[KEY_EVN_IS_PATH] else '普通环境变量'}<br/>描述：{item[KEY_DESC]}<br/><br/>"
 
         desc = f"<span style='color:green;'>工程路径：<br/></span><span style='color:red;'>{projectInfo[KEY_PATH]}</span>" \
                f"<br/><br/>{evnDesc}"

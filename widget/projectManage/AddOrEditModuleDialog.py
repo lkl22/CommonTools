@@ -36,7 +36,7 @@ class AddOrEditModuleDialog(QtWidgets.QDialog):
         self.moduleList = moduleList
         self.openDir = openDir if openDir else './'
 
-        self.setWindowFlags(Qt.Dialog | Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint)
+        self.setWindowFlags(Qt.Dialog | Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint | Qt.WindowStaysOnTopHint)
         AddOrEditModuleDialog.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.6)
         AddOrEditModuleDialog.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.5)
         LogUtil.d("Add Or Edit Module Dialog")
@@ -189,7 +189,16 @@ class AddOrEditModuleDialog(QtWidgets.QDialog):
         pass
 
     def updateCmdTableView(self):
-        WidgetUtil.addTableViewData(self.cmdTableView, self.cmdList,
+        tableData = []
+        for cmd in self.cmdList:
+            tableData.append({
+                KEY_NAME: cmd[KEY_NAME],
+                KEY_DESC: cmd[KEY_DESC],
+                KEY_PROGRAM: cmd[KEY_PROGRAM],
+                KEY_WORKING_DIR: cmd[KEY_WORKING_DIR],
+                KEY_ARGUMENTS: cmd[KEY_ARGUMENTS]
+            })
+        WidgetUtil.addTableViewData(self.cmdTableView, tableData,
                                     headerLabels=["执行指令名", "描述", "指令", "工作空间", "指令参数"])
         # WidgetUtil.tableViewSetColumnWidth(self.cmdTableView, 0, 100)
         pass

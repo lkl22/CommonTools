@@ -1,5 +1,9 @@
 # PyQt5使用指导
 
+## 窗口置顶
+
+> .setWindowFlags(Qt.WindowStaysOnTopHint)
+
 ## QWidget
 
 ### 设置hover时背景色
