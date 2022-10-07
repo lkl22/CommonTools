@@ -284,7 +284,7 @@ class AddOrEditCmdDialog(QtWidgets.QDialog):
             self.vLayout.removeWidget(widget)
             widget.deleteLater()
             self.dynamicArgumentWidgets.remove(widget)
-        self.vLayout.removeWidget(self.needSpaceCheckBox)
+        # self.vLayout.removeWidget(self.needSpaceCheckBox)
         self.vLayout.removeWidget(self.spacerItem)
         for index, option in enumerate(self.dynamicOptionGroup):
             optionNames = ListUtil.get(self.dynamicArguments, KEY_OPTION_GROUP_ID, option[KEY_ID], KEY_OPTION_NAMES, [])
@@ -295,7 +295,7 @@ class AddOrEditCmdDialog(QtWidgets.QDialog):
             else:
                 widget = self.dynamicArgumentWidgets[index]
                 widget.updateUi(option, optionNames)
-        self.vLayout.addWidget(self.needSpaceCheckBox)
+        # self.vLayout.addWidget(self.needSpaceCheckBox)
         self.vLayout.addWidget(self.spacerItem, 1)
 
     def delOptionGroupWidget(self, widget: OptionGroupWidget, optionGroupInfo):
