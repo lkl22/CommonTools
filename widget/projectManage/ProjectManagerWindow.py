@@ -57,7 +57,8 @@ class ProjectManagerWindow(QMainWindow):
         self.optionManagerWidget = OptionManagerWidget(projectManager=self.projectManager)
         self.cmdManagerWidget = CmdManagerWidget(projectManager=self.projectManager)
         self.moduleManagerWidget = ModuleManagerWidget(projectManager=self.projectManager,
-                                                       getOptionGroupsFunc=lambda: self.optionManagerWidget.getProjectOptionGroups())
+                                                       getOptionGroupsFunc=lambda: self.optionManagerWidget.getProjectOptionGroups(),
+                                                       getCmdGroupsFunc=lambda: self.cmdManagerWidget.getProjectCmdGroups())
         self.loadingDialog = LoadingDialog(showText="正在执行。。。", btnText="终止",
                                            rejectedFunc=lambda: LogUtil.d("close loading"), isDebug=self.isDebug)
         self.loadingDialog.hide()

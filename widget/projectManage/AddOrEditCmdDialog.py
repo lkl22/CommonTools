@@ -71,7 +71,7 @@ class OptionGroupWidget(QFrame):
 
 
 class AddOrEditCmdDialog(QtWidgets.QDialog):
-    def __init__(self, callback, default=None, cmdList=None, optionGroups=None, isDebug=False):
+    def __init__(self, callback, default=None, cmdList=None, optionGroups=None, cmdGroups=None, isDebug=False):
         # 调用父类的构函
         QtWidgets.QDialog.__init__(self)
         self.setWindowFlags(Qt.Dialog | Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint | Qt.WindowStaysOnTopHint)
@@ -92,12 +92,22 @@ class AddOrEditCmdDialog(QtWidgets.QDialog):
 
         self.isAdd = default is None
         if not default:
-            default = {KEY_DYNAMIC_ARGUMENTS: []}
-        elif KEY_DYNAMIC_ARGUMENTS not in default:
-            default[KEY_DYNAMIC_ARGUMENTS] = []
+            default = {KEY_DYNAMIC_ARGUMENTS: [], KEY_CMD_GROUPS: []}
+        else:
+            if KEY_DYNAMIC_ARGUMENTS not in default:
+                default[KEY_DYNAMIC_ARGUMENTS] = []
+            if KEY_CMD_GROUPS not in default:
+                default[KEY_CMD_GROUPS] = []
         self.dynamicArguments = copy.deepcopy(default[KEY_DYNAMIC_ARGUMENTS])
         self.dynamicOptionGroup = []
         self.default = default
+
+        if cmdGroups is None:
+            cmdGroups = []
+        self.cmdGroups = cmdGroups
+        self.cmdGroupWidgets = []
+        # 拷贝，避免影响原有数据
+        self.selectedCmdGroups = copy.deepcopy(default[KEY_CMD_GROUPS])
 
         self.dynamicArgumentWidgets = []
         self.isDebug = isDebug
@@ -157,6 +167,9 @@ class AddOrEditCmdDialog(QtWidgets.QDialog):
         hbox.addWidget(self.workDirInputWidget)
         self.vLayout.addLayout(hbox)
 
+        if self.cmdGroups:
+            self.createCmdGroupSelectedWidget()
+
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
         hbox.addWidget(WidgetUtil.createLabel(self, text="Arguments：", minSize=QSize(labelWidth, const.HEIGHT)))
         self.argumentsLineEdit = WidgetUtil.createLineEdit(self, text=DictUtil.get(default, KEY_ARGUMENTS),
@@ -164,18 +177,8 @@ class AddOrEditCmdDialog(QtWidgets.QDialog):
         hbox.addWidget(self.argumentsLineEdit)
         self.vLayout.addLayout(hbox)
 
-        hbox = WidgetUtil.createHBoxLayout(spacing=10)
-        hbox.addWidget(WidgetUtil.createLabel(self, text="Dynamic Arguments：", minSize=QSize(labelWidth, const.HEIGHT)))
-        self.dynamicArgumentsComboBox = WidgetUtil.createComboBox(self,
-                                                                  toolTip="需要执行的命令行指令参数，可以通过用户选择自动拼接，按照选项分组拼接命令参数",
-                                                                  activated=self.dynamicArgumentsChanged)
-        hbox.addWidget(self.dynamicArgumentsComboBox, 1)
-        self.vLayout.addLayout(hbox)
-
-        self.needSpaceCheckBox = WidgetUtil.createCheckBox(self, text="是否需要添加空格",
-                                                           toolTip="跟固定参数拼接时是否需要添加空格，默认需要添加",
-                                                           isChecked=DictUtil.get(default, KEY_NEED_SPACE, DEFAULT_VALUE_NEED_SPACE))
-        self.vLayout.addWidget(self.needSpaceCheckBox)
+        if self.optionGroups:
+            self.createOptionGroupSelectedWidget(labelWidth)
 
         self.spacerItem = WidgetUtil.createLabel(self)
         self.vLayout.addWidget(self.spacerItem, 1)
@@ -191,9 +194,52 @@ class AddOrEditCmdDialog(QtWidgets.QDialog):
             self.exec_()
         pass
 
+    def createCmdGroupSelectedWidget(self):
+        self.vLayout.addWidget(WidgetUtil.createLabel(self, text="选择指令所属分组："))
+
+        hbox = WidgetUtil.createHBoxLayout(spacing=10)
+        maxCol = 1
+        for index, item in enumerate(self.cmdGroups):
+            if index == maxCol:
+                self.vLayout.addLayout(hbox)
+                hbox = WidgetUtil.createHBoxLayout(spacing=10)
+            checkBox = WidgetUtil.createCheckBox(self, text=DictUtil.get(item, KEY_NAME), toolTip=DictUtil.get(item, KEY_DESC),
+                                                 isChecked=ListUtil.find(self.selectedCmdGroups, KEY_NAME, item[KEY_NAME]) is not None,
+                                                 clicked=self.cmdGroupSelectedChanged)
+            self.cmdGroupWidgets.append(checkBox)
+            hbox.addWidget(checkBox)
+        self.vLayout.addLayout(hbox)
+        pass
+
+    def cmdGroupSelectedChanged(self):
+        self.selectedCmdGroups.clear()
+        for index, widget in enumerate(self.cmdGroupWidgets):
+            if widget.isChecked():
+                self.selectedCmdGroups.append(widget.text())
+        LogUtil.d(TAG, "cmdGroupSelectedChanged", self.selectedCmdGroups)
+        pass
+
+    def createOptionGroupSelectedWidget(self, labelWidth):
+        hbox = WidgetUtil.createHBoxLayout(spacing=10)
+        hbox.addWidget(WidgetUtil.createLabel(self, text="Dynamic Arguments：", minSize=QSize(labelWidth, const.HEIGHT)))
+        self.dynamicArgumentsComboBox = WidgetUtil.createComboBox(self,
+                                                                  toolTip="需要执行的命令行指令参数，可以通过用户选择自动拼接，按照选项分组拼接命令参数",
+                                                                  activated=self.dynamicArgumentsChanged)
+        hbox.addWidget(self.dynamicArgumentsComboBox, 1)
+        self.vLayout.addLayout(hbox)
+
+        self.needSpaceCheckBox = WidgetUtil.createCheckBox(self, text="是否需要添加空格",
+                                                           toolTip="跟固定参数拼接时是否需要添加空格，默认需要添加",
+                                                           isChecked=DictUtil.get(self.default, KEY_NEED_SPACE,
+                                                                                  DEFAULT_VALUE_NEED_SPACE))
+        self.vLayout.addWidget(self.needSpaceCheckBox)
+        pass
+
     def handleDynamicArgumentsData(self):
         # 拷贝避免影响原始数据
         self.optionGroups = copy.deepcopy(self.srcOptionGroups)
+        if not self.optionGroups:
+            return
         self.dynamicOptionGroup.clear()
         needDelDynamicArguments = []
         for item in self.dynamicArguments:
@@ -283,6 +329,7 @@ class AddOrEditCmdDialog(QtWidgets.QDialog):
         self.default[KEY_DESC] = desc
         self.default[KEY_PROGRAM] = program
         self.default[KEY_WORKING_DIR] = workDir
+        self.default[KEY_CMD_GROUPS] = self.selectedCmdGroups
         self.default[KEY_ARGUMENTS] = arguments
         # 清除空的动态参数配置
         for item in self.dynamicArguments:
@@ -302,7 +349,6 @@ class AddOrEditCmdDialog(QtWidgets.QDialog):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    # window = AddOrEditCmdDialog(callback=lambda it: LogUtil.d("callback", it), isDebug=True)
     window = AddOrEditCmdDialog(callback=lambda it: LogUtil.d("callback", it),
                                 default={'name': 'ls操作', 'desc': 'ls -l', 'program': 'ls', 'workingDir': './',
                                          'arguments': '-l'},
@@ -352,6 +398,8 @@ if __name__ == '__main__':
                                                   'optionValues': [{'desc': 'debug包', 'input': 'A', 'value': 'debug'},
                                                                    {'desc': 'release包', 'input': 'B',
                                                                     'value': 'release'}]}]}],
+                                cmdGroups=[{"name": "dd", "desc": "dd"}, {"name": "eee", "desc": "dgggd"}],
                                 isDebug=True)
+    # window = AddOrEditCmdDialog(callback=lambda it: LogUtil.d("callback", it), isDebug=True)
     window.show()
     sys.exit(app.exec_())

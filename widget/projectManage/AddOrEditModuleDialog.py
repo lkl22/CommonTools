@@ -18,7 +18,8 @@ from widget.projectManage.ProjectManager import *
 
 
 class AddOrEditModuleDialog(QtWidgets.QDialog):
-    def __init__(self, callback, openDir=None, default=None, moduleList=None, optionGroups=None, isDebug=False):
+    def __init__(self, callback, openDir=None, default=None, moduleList=None, optionGroups=None, cmdGroups=None,
+                 isDebug=False):
         # 调用父类的构函
         QtWidgets.QDialog.__init__(self)
         self.currentRow = -1
@@ -30,6 +31,10 @@ class AddOrEditModuleDialog(QtWidgets.QDialog):
         if optionGroups is None:
             optionGroups = []
         self.optionGroups = optionGroups
+
+        if cmdGroups is None:
+            cmdGroups = []
+        self.cmdGroups = cmdGroups
 
         self.isAdd = default is None
         if not default:
@@ -139,7 +144,8 @@ class AddOrEditModuleDialog(QtWidgets.QDialog):
 
     def addCmd(self):
         LogUtil.d("addCmd")
-        AddOrEditCmdDialog(callback=self.addOrEditCmdCallback, cmdList=self.cmdList, optionGroups=self.optionGroups)
+        AddOrEditCmdDialog(callback=self.addOrEditCmdCallback, cmdList=self.cmdList, optionGroups=self.optionGroups,
+                           cmdGroups=self.cmdGroups)
         pass
 
     def addOrEditCmdCallback(self, info):
@@ -171,7 +177,7 @@ class AddOrEditModuleDialog(QtWidgets.QDialog):
         row = index.row()
         LogUtil.d("双击的单元格：row ", row, ' col', index.column(), ' data ', oldValue)
         AddOrEditCmdDialog(callback=self.addOrEditCmdCallback, default=self.cmdList[row], cmdList=self.cmdList,
-                           optionGroups=self.optionGroups)
+                           optionGroups=self.optionGroups, cmdGroups=self.cmdGroups)
         pass
 
     def customRightMenu(self, pos):
@@ -202,10 +208,11 @@ class AddOrEditModuleDialog(QtWidgets.QDialog):
                 KEY_DESC: cmd[KEY_DESC],
                 KEY_PROGRAM: cmd[KEY_PROGRAM],
                 KEY_WORKING_DIR: cmd[KEY_WORKING_DIR],
-                KEY_ARGUMENTS: cmd[KEY_ARGUMENTS]
+                KEY_ARGUMENTS: cmd[KEY_ARGUMENTS],
+                KEY_CMD_GROUPS: DictUtil.get(cmd, KEY_CMD_GROUPS, [])
             })
         WidgetUtil.addTableViewData(self.cmdTableView, tableData,
-                                    headerLabels=["执行指令名", "描述", "指令", "工作空间", "指令参数"])
+                                    headerLabels=["执行指令名", "描述", "指令", "工作空间", "指令参数", "指令所属群组"])
         # WidgetUtil.tableViewSetColumnWidth(self.cmdTableView, 0, 100)
         pass
 

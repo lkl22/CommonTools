@@ -10,11 +10,12 @@ from widget.projectManage.ProjectManager import *
 
 
 class ModuleManagerWidget(QFrame):
-    def __init__(self, projectManager: ProjectManager, getOptionGroupsFunc=None):
+    def __init__(self, projectManager: ProjectManager, getOptionGroupsFunc=None, getCmdGroupsFunc=None):
         super(ModuleManagerWidget, self).__init__()
 
         self.projectManager = projectManager
         self.getOptionGroupsFunc = getOptionGroupsFunc
+        self.getCmdGroupsFunc = getCmdGroupsFunc
         self.projectInfo = None
         self.modules = []
         self.moduleWidgets: [ModuleWidget] = []
@@ -77,16 +78,22 @@ class ModuleManagerWidget(QFrame):
         else:
             return []
 
+    def getCmdGroups(self):
+        if self.getCmdGroupsFunc:
+            return self.getCmdGroupsFunc()
+        else:
+            return []
+
     def addModule(self):
         LogUtil.d("addModule")
         AddOrEditModuleDialog(callback=self.addOrEditModuleCallback, openDir=self.getProjectPath(),
-                              moduleList=self.modules, optionGroups=self.getOptionGroups())
+                              moduleList=self.modules, optionGroups=self.getOptionGroups(), cmdGroups=self.getCmdGroups())
         pass
 
     def editModule(self, moduleInfo):
         LogUtil.d("editModule", moduleInfo)
         AddOrEditModuleDialog(callback=self.addOrEditModuleCallback, openDir=self.getProjectPath(), default=moduleInfo,
-                              moduleList=self.modules, optionGroups=self.getOptionGroups())
+                              moduleList=self.modules, optionGroups=self.getOptionGroups(), cmdGroups=self.getCmdGroups())
         pass
 
     def addOrEditModuleCallback(self, info):

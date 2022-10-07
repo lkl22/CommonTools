@@ -85,7 +85,7 @@ class CmdManagerWidget(QFrame):
             self.cmdGroups.append(info)
         self.cmdGroups = sorted(self.cmdGroups, key=lambda x: x[KEY_NAME])
         self.updateCmdGroupList()
-        self.projectManager.saveProjectCmdGroups(DictUtil.get(self.projectInfo, KEY_ID), self.cmdGroups)
+        self.saveProjectCmdGroups()
         pass
 
     def delCmdGroup(self, widget, info):
@@ -97,9 +97,16 @@ class CmdManagerWidget(QFrame):
                 widget.deleteLater(),
                 self.cmdGroupWidgets.remove(widget),
                 self.cmdGroups.remove(info),
-                self.projectManager.saveProjectCmdGroups(DictUtil.get(self.projectInfo, KEY_ID), self.cmdGroups)
+                self.saveProjectCmdGroups()
             ))
         pass
+
+    def saveProjectCmdGroups(self):
+        self.projectManager.saveProjectCmdGroups(DictUtil.get(self.projectInfo, KEY_ID), self.cmdGroups)
+        pass
+
+    def getProjectCmdGroups(self):
+        return self.cmdGroups
 
     def updateCmdGroupItem(self, index, info):
         LogUtil.d("updateCmdGroupItem", index, info)
