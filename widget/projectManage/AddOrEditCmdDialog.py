@@ -174,7 +174,7 @@ class AddOrEditCmdDialog(QtWidgets.QDialog):
 
         self.needSpaceCheckBox = WidgetUtil.createCheckBox(self, text="是否需要添加空格",
                                                            toolTip="跟固定参数拼接时是否需要添加空格，默认需要添加",
-                                                           isChecked=DictUtil.get(default, KEY_NEED_SPACE, True))
+                                                           isChecked=DictUtil.get(default, KEY_NEED_SPACE, DEFAULT_VALUE_NEED_SPACE))
         self.vLayout.addWidget(self.needSpaceCheckBox)
 
         self.spacerItem = WidgetUtil.createLabel(self)

@@ -44,6 +44,8 @@ KEY_ECHO = 'echo'
 # 模拟用户输入的文本，对应于echo
 KEY_INPUT = 'input'
 
+DEFAULT_VALUE_NEED_SPACE = True
+
 
 class ProjectManager:
     def __init__(self, isDebug=False):

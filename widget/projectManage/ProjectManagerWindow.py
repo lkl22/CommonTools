@@ -8,9 +8,11 @@ from concurrent.futures.thread import ThreadPoolExecutor
 
 from PyQt5.QtCore import pyqtSignal
 from util.DictUtil import DictUtil
+from util.ListUtil import ListUtil
 from util.OperaIni import *
 from util.PlatformUtil import PlatformUtil
 from util.ProcessManager import ProcessManager
+from util.StrUtil import StrUtil
 from util.WidgetUtil import *
 from PyQt5.QtWidgets import *
 
@@ -21,6 +23,8 @@ from widget.projectManage.OptionManagerWidget import OptionManagerWidget
 from widget.projectManage.ProjectManager import *
 
 TYPE_HIDE_LOADING_DIALOG = 1
+
+TAG = "ProjectManagerWindow"
 
 
 class ProjectManagerWindow(QMainWindow):
@@ -276,13 +280,49 @@ class ProjectManagerWindow(QMainWindow):
         self.loadingDialog.show()
         pass
 
+    def handleCmdArgs(self, cmdInfo):
+        args = DictUtil.get(cmdInfo, KEY_ARGUMENTS)
+        dynamicArguments = DictUtil.get(cmdInfo, KEY_DYNAMIC_ARGUMENTS, None)
+        if dynamicArguments:
+            needSpace = DictUtil.get(cmdInfo, KEY_NEED_SPACE, DEFAULT_VALUE_NEED_SPACE)
+            if needSpace:
+                args += " "
+            optionGroups = self.optionManagerWidget.getProjectOptionGroups()
+            for dynamicArgument in dynamicArguments:
+                tempDynamicArg = ""
+                options = ListUtil.get(optionGroups, KEY_ID, dynamicArgument[KEY_OPTION_GROUP_ID], KEY_OPTIONS)
+                for option in options:
+                    if option[KEY_NAME] not in dynamicArgument[KEY_OPTION_NAMES]:
+                        continue
+                    default = DictUtil.get(option, KEY_DEFAULT, -1)
+                    optionValues = DictUtil.get(option, KEY_OPTION_VALUES, [])
+                    if default == -1 or not optionValues:
+                        continue
+                    optionValue = optionValues[default]
+                    tempDynamicArg += StrUtil.capitalize(optionValue[KEY_VALUE])
+                args += StrUtil.decapitalize(tempDynamicArg) + " "
+
+        return args
+
+    def handleCmdList(self, srcCmdList):
+        cmdList = []
+        for item in srcCmdList:
+            cmdList.append({
+                KEY_PROGRAM: DictUtil.get(item, KEY_PROGRAM),
+                KEY_ARGUMENTS: self.handleCmdArgs(item),
+                KEY_WORKING_DIR: DictUtil.get(item, KEY_WORKING_DIR),
+            })
+        return cmdList
+
     def executeModuleCmd(self, projectInfo, modules):
         self.futureList.clear()
         self.processManagers.clear()
         LogUtil.e(f"executeModuleCmd start. pid: {os.getpid()} threadId: {threading.currentThread().ident}")
         for moduleInfo in modules:
+            cmdList = self.handleCmdList(DictUtil.get(moduleInfo, KEY_CMD_LIST, []))
+            LogUtil.d(TAG, f"executeModuleCmd cmdList {cmdList}")
             processManager = ProcessManager(name=DictUtil.get(moduleInfo, KEY_NAME),
-                                            cmdList=DictUtil.get(moduleInfo, KEY_CMD_LIST, []),
+                                            cmdList=cmdList,
                                             workingDir=DictUtil.get(moduleInfo, KEY_PATH,
                                                                     DictUtil.get(projectInfo, KEY_PATH)),
                                             standardOutput=self.standardOutput,
