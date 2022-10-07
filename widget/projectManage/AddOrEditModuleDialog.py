@@ -18,14 +18,19 @@ from widget.projectManage.ProjectManager import *
 
 
 class AddOrEditModuleDialog(QtWidgets.QDialog):
-    def __init__(self, callback, openDir=None, default=None, moduleList=None, isDebug=False):
+    def __init__(self, callback, openDir=None, default=None, moduleList=None, optionGroups=None, isDebug=False):
         # 调用父类的构函
         QtWidgets.QDialog.__init__(self)
         self.currentRow = -1
+        self.callback = callback
         self.isDebug = isDebug
         if moduleList is None:
             moduleList = []
-        self.callback = callback
+        self.moduleList = moduleList
+        if optionGroups is None:
+            optionGroups = []
+        self.optionGroups = optionGroups
+
         self.isAdd = default is None
         if not default:
             default = {KEY_CMD_LIST: []}
@@ -33,7 +38,7 @@ class AddOrEditModuleDialog(QtWidgets.QDialog):
             default[KEY_CMD_LIST] = []
         self.default = default
         self.cmdList = copy.deepcopy(default[KEY_CMD_LIST])
-        self.moduleList = moduleList
+
         self.openDir = openDir if openDir else './'
 
         self.setWindowFlags(Qt.Dialog | Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint | Qt.WindowStaysOnTopHint)
@@ -134,7 +139,7 @@ class AddOrEditModuleDialog(QtWidgets.QDialog):
 
     def addCmd(self):
         LogUtil.d("addCmd")
-        AddOrEditCmdDialog(callback=self.addOrEditCmdCallback, cmdList=self.cmdList)
+        AddOrEditCmdDialog(callback=self.addOrEditCmdCallback, cmdList=self.cmdList, optionGroups=self.optionGroups)
         pass
 
     def addOrEditCmdCallback(self, info):
@@ -165,7 +170,8 @@ class AddOrEditModuleDialog(QtWidgets.QDialog):
         oldValue = index.data()
         row = index.row()
         LogUtil.d("双击的单元格：row ", row, ' col', index.column(), ' data ', oldValue)
-        AddOrEditCmdDialog(callback=self.addOrEditCmdCallback, default=self.cmdList[row], cmdList=self.cmdList)
+        AddOrEditCmdDialog(callback=self.addOrEditCmdCallback, default=self.cmdList[row], cmdList=self.cmdList,
+                           optionGroups=self.optionGroups)
         pass
 
     def customRightMenu(self, pos):

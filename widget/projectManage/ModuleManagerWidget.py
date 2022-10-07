@@ -10,10 +10,11 @@ from widget.projectManage.ProjectManager import *
 
 
 class ModuleManagerWidget(QFrame):
-    def __init__(self, projectManager: ProjectManager):
+    def __init__(self, projectManager: ProjectManager, getOptionGroupsFunc=None):
         super(ModuleManagerWidget, self).__init__()
 
         self.projectManager = projectManager
+        self.getOptionGroupsFunc = getOptionGroupsFunc
         self.projectInfo = None
         self.modules = []
         self.moduleWidgets: [ModuleWidget] = []
@@ -70,16 +71,22 @@ class ModuleManagerWidget(QFrame):
                 res.append(item.getOptionGroupInfo())
         return res
 
+    def getOptionGroups(self):
+        if self.getOptionGroupsFunc:
+            return self.getOptionGroupsFunc()
+        else:
+            return []
+
     def addModule(self):
         LogUtil.d("addModule")
         AddOrEditModuleDialog(callback=self.addOrEditModuleCallback, openDir=self.getProjectPath(),
-                              moduleList=self.modules)
+                              moduleList=self.modules, optionGroups=self.getOptionGroups())
         pass
 
     def editModule(self, moduleInfo):
         LogUtil.d("editModule", moduleInfo)
         AddOrEditModuleDialog(callback=self.addOrEditModuleCallback, openDir=self.getProjectPath(), default=moduleInfo,
-                              moduleList=self.modules)
+                              moduleList=self.modules, optionGroups=self.getOptionGroups())
         pass
 
     def addOrEditModuleCallback(self, info):

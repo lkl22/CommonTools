@@ -53,6 +53,52 @@ class ListUtil:
                     return True
         return False
 
+    @staticmethod
+    def find(listData: [dict], findKey: str, findValue):
+        """
+        从字典列表数据里查找指定字典数据
+        :param listData: 源数据
+        :param findKey: 查找目标数据的key
+        :param findValue: 需要查找目标dict数据的判断数据值
+        :return: 找到的数据
+        """
+        if listData:
+            for item in listData:
+                if findKey in item and findValue == item[findKey]:
+                    return item
+        return None
+
+    @staticmethod
+    def get(listData: [dict], filterKey: str, filterValue, findKey: str, default=None):
+        """
+        从字典列表数据里查找指定字典数据的某个值
+        :param listData: 源数据
+        :param filterKey: 需要查找目标dict数据的判断key
+        :param filterValue: 需要查找目标dict数据的判断数据值
+        :param findKey: 查找目标数据的key
+        :param default: 查找失败，返回的默认值
+        :return: 找到的数据
+        """
+        if listData:
+            for item in listData:
+                if filterKey in item and filterValue == item[filterKey] and findKey in item:
+                    return item[findKey]
+        return default
+
+    @staticmethod
+    def update(listData: list, oldData, newData):
+        """
+        更新列表数据
+        :param listData: 源数据
+        :param oldData: 需要从列表里删除的数据
+        :param newData: 需要添加到列表里的数据
+        """
+        if listData:
+            if oldData in listData:
+                listData.remove(oldData)
+            listData.append(newData)
+        pass
+
 
 if __name__ == "__main__":
     data = ["ss", "dd", "ee", "ww", "ll"]

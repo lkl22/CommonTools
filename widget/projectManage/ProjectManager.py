@@ -27,6 +27,11 @@ KEY_VALUE = 'value'
 KEY_PROGRAM = 'program'
 KEY_ARGUMENTS = 'arguments'
 KEY_WORKING_DIR = 'workingDir'
+KEY_DYNAMIC_ARGUMENTS = 'dynamicArguments'
+KEY_NEED_SPACE = 'needSpace'
+KEY_OPTION_GROUP_ID = 'optionGroupId'
+KEY_OPTION_NAMES = 'optionNames'
+
 KEY_EVN_IS_PATH = 'isPath'
 
 KEY_CMD_LIST = 'cmdList'

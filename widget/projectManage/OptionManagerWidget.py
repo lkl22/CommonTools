@@ -93,6 +93,9 @@ class OptionManagerWidget(QFrame):
         self.projectManager.saveProjectOptionGroups(DictUtil.get(self.projectInfo, KEY_ID), self.optionGroups)
         pass
 
+    def getProjectOptionGroups(self):
+        return self.optionGroups
+
     def updateOptionGroupItem(self, index, optionGroupInfo):
         LogUtil.d("updateOptionGroupItem", index, optionGroupInfo)
         if index >= len(self.optionGroupWidgets):
