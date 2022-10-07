@@ -18,6 +18,7 @@ KEY_VALUE = 'value'
 KEY_PROGRAM = "program"
 KEY_ARGUMENTS = "arguments"
 KEY_WORKING_DIR = "workingDir"
+KEY_CONDITION_INPUT = 'conditionInput'
 
 
 class ProcessManager(QObject):
@@ -60,34 +61,46 @@ class ProcessManager(QObject):
         self.process.setWorkingDirectory(workingDir)
         args = DictUtil.get(cmdInfo, KEY_ARGUMENTS)
         cmd = f"{DictUtil.get(cmdInfo, KEY_PROGRAM)} {args if args else ''}"
-        self.handleStandardOutput(f"executeCmd: {cmd} start. workingDir: {workingDir}\n")
+        self.handleStandardOutput(f"executeCmd: {cmd} start. \nworkingDir: {workingDir}\n")
         self.handleStandardOutput(f"执行指令：{cmd}\n")
         self.process.start(cmd)
         # self.process.start("lsss")
         # 必须执行了程序后设置读取输出才有效
-        self.process.readyReadStandardOutput.connect(lambda: self.readStandardOutput())
-        self.process.readyReadStandardError.connect(lambda: self.readStandardError())
+        self.process.readyReadStandardOutput.connect(lambda: self.readStandardOutput(cmdInfo))
+        self.process.readyReadStandardError.connect(lambda: self.readStandardError(cmdInfo))
         # self.process.waitForReadyRead()
         self.process.waitForFinished()
         LogUtil.d(f"executeCmd: {cmd} end.", self.process.state(), self.process.exitCode(), self.process.exitStatus(),
                   self.process.error())
 
-    def readStandardOutput(self):
+    def readStandardOutput(self, cmdInfo):
         log = QTextCodec.codecForLocale().toUnicode(self.process.readAllStandardOutput())
-        self.handleStandardOutput(log)
+        if log:
+            self.handleConditionInput(cmdInfo, log)
+            self.handleStandardOutput(log)
 
     def handleStandardOutput(self, log):
-        if log:
-            self.standardOutput.emit(f"{DateUtil.nowTimeMs()} {os.getpid()} {threading.currentThread().ident} {log}")
+        self.standardOutput.emit(f"{DateUtil.nowTimeMs()} {os.getpid()} {threading.currentThread().ident} {log}")
 
-    def readStandardError(self):
+    def readStandardError(self, cmdInfo):
         log = QTextCodec.codecForLocale().toUnicode(self.process.readAllStandardError())
-        self.handleStandardError(log)
+        if log:
+            self.handleConditionInput(cmdInfo, log)
+            self.handleStandardError(log)
 
     def handleStandardError(self, log):
-        if log:
-            self.standardError.emit(f"{DateUtil.nowTimeMs()} {os.getpid()} {threading.currentThread().ident} {log}")
+        self.standardError.emit(f"{DateUtil.nowTimeMs()} {os.getpid()} {threading.currentThread().ident} {log}")
         self.isSuccess = False
+
+    def handleConditionInput(self, cmdInfo, log):
+        conditionInput = DictUtil.get(cmdInfo, KEY_CONDITION_INPUT, [])
+        for item in conditionInput:
+            for key in item:
+                if key in log:
+                    LogUtil.e("handleConditionInput", item[key])
+                    self.process.write(item[key].encode('utf-8'))
+                    self.handleStandardOutput(f"自动输入\n{key} ----> {item[key]}")
+        pass
 
     def kill(self):
         self.process.kill()

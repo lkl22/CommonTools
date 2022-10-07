@@ -291,6 +291,7 @@ class ProjectManagerWindow(QMainWindow):
 
     def handleCmdArgs(self, cmdInfo):
         args = DictUtil.get(cmdInfo, KEY_ARGUMENTS)
+        conditionInput = []
         dynamicArguments = DictUtil.get(cmdInfo, KEY_DYNAMIC_ARGUMENTS, None)
         if dynamicArguments:
             needSpace = DictUtil.get(cmdInfo, KEY_NEED_SPACE, DEFAULT_VALUE_NEED_SPACE)
@@ -304,14 +305,20 @@ class ProjectManagerWindow(QMainWindow):
                     if option[KEY_NAME] not in dynamicArgument[KEY_OPTION_NAMES]:
                         continue
                     default = DictUtil.get(option, KEY_DEFAULT, -1)
+                    echo = DictUtil.get(option, KEY_ECHO, "")
                     optionValues = DictUtil.get(option, KEY_OPTION_VALUES, [])
                     if default == -1 or not optionValues:
                         continue
                     optionValue = optionValues[default]
                     tempDynamicArg += StrUtil.capitalize(optionValue[KEY_VALUE])
+                    if echo:
+                        autoInput = DictUtil.get(optionValue, KEY_INPUT)
+                        if not autoInput:
+                            autoInput = optionValue[KEY_VALUE]
+                        conditionInput.append({echo: autoInput})
                 args += StrUtil.decapitalize(tempDynamicArg) + " "
 
-        return args
+        return args, conditionInput
 
     def handleCmdList(self, srcCmdList):
         cmdList = []
@@ -325,9 +332,11 @@ class ProjectManagerWindow(QMainWindow):
                     break
             if needIgnore:
                 continue
+            cmdArgs, conditionInput = self.handleCmdArgs(item)
             cmdList.append({
                 KEY_PROGRAM: DictUtil.get(item, KEY_PROGRAM),
-                KEY_ARGUMENTS: self.handleCmdArgs(item),
+                KEY_ARGUMENTS: cmdArgs,
+                KEY_CONDITION_INPUT: conditionInput,
                 KEY_WORKING_DIR: DictUtil.get(item, KEY_WORKING_DIR),
             })
         return cmdList

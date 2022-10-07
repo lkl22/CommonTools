@@ -204,7 +204,7 @@ class AddOrEditCmdDialog(QtWidgets.QDialog):
                 hbox = WidgetUtil.createHBoxLayout(spacing=10)
                 self.vLayout.addLayout(hbox)
             checkBox = WidgetUtil.createCheckBox(self, text=DictUtil.get(item, KEY_NAME), toolTip=DictUtil.get(item, KEY_DESC),
-                                                 isChecked=ListUtil.find(self.selectedCmdGroups, KEY_NAME, item[KEY_NAME]) is not None,
+                                                 isChecked=item[KEY_NAME] in self.selectedCmdGroups,
                                                  clicked=self.cmdGroupSelectedChanged)
             self.cmdGroupWidgets.append(checkBox)
             hbox.addWidget(checkBox)
