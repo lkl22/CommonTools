@@ -960,6 +960,7 @@ class WidgetUtil:
                 for key, value in data[row].items():
                     if not (key in ignoreCol):
                         item = QStandardItem(str(value))
+                        item.setToolTip(str(value))
                         # 设置每个位置的文本值
                         model.setItem(row, column, item)
                         column = column + 1

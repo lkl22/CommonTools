@@ -203,16 +203,21 @@ class AddOrEditModuleDialog(QtWidgets.QDialog):
     def updateCmdTableView(self):
         tableData = []
         for cmd in self.cmdList:
+            dynArgs = DictUtil.get(cmd, KEY_DYNAMIC_ARGUMENTS, [])
+            dynArgsShowTxt = []
+            for dynArg in dynArgs:
+                dynArgsShowTxt += dynArg[KEY_OPTION_NAMES]
             tableData.append({
                 KEY_NAME: cmd[KEY_NAME],
                 KEY_DESC: cmd[KEY_DESC],
                 KEY_PROGRAM: cmd[KEY_PROGRAM],
                 KEY_WORKING_DIR: cmd[KEY_WORKING_DIR],
                 KEY_ARGUMENTS: cmd[KEY_ARGUMENTS],
+                KEY_DYNAMIC_ARGUMENTS: dynArgsShowTxt,
                 KEY_CMD_GROUPS: DictUtil.get(cmd, KEY_CMD_GROUPS, [])
             })
         WidgetUtil.addTableViewData(self.cmdTableView, tableData,
-                                    headerLabels=["执行指令名", "描述", "指令", "工作空间", "指令参数", "指令所属群组"])
+                                    headerLabels=["执行指令名", "描述", "指令", "工作空间", "指令参数", "动态参数选项", "指令所属群组"])
         # WidgetUtil.tableViewSetColumnWidth(self.cmdTableView, 0, 100)
         pass
 
