@@ -37,7 +37,8 @@ class AddOrEditCmdGroupDialog(QtWidgets.QDialog):
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
         hbox.addWidget(WidgetUtil.createLabel(self, text="指令群组名：", minSize=QSize(labelWidth, const.HEIGHT)))
         self.nameLineEdit = WidgetUtil.createLineEdit(self, text=default[KEY_NAME] if default else "",
-                                                      holderText="指令分组组名，可以在模块设置指令里选择所属分组")
+                                                      holderText="指令分组组名，可以在模块设置指令里选择所属分组",
+                                                      isReadOnly=not self.isAdd)
         hbox.addWidget(self.nameLineEdit)
         vLayout.addLayout(hbox)
 

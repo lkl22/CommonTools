@@ -18,6 +18,7 @@ from PyQt5.QtWidgets import *
 
 from widget.custom.LoadingDialog import LoadingDialog
 from widget.projectManage.AddOrEditProjectDialog import AddOrEditProjectDialog
+from widget.projectManage.CmdManagerWidget import CmdManagerWidget
 from widget.projectManage.ModuleManagerWidget import ModuleManagerWidget
 from widget.projectManage.OptionManagerWidget import OptionManagerWidget
 from widget.projectManage.ProjectManager import *
@@ -54,6 +55,7 @@ class ProjectManagerWindow(QMainWindow):
         self.processManagers = []
 
         self.optionManagerWidget = OptionManagerWidget(projectManager=self.projectManager)
+        self.cmdManagerWidget = CmdManagerWidget(projectManager=self.projectManager)
         self.moduleManagerWidget = ModuleManagerWidget(projectManager=self.projectManager,
                                                        getOptionGroupsFunc=lambda: self.optionManagerWidget.getProjectOptionGroups())
         self.loadingDialog = LoadingDialog(showText="正在执行。。。", btnText="终止",
@@ -109,7 +111,10 @@ class ProjectManagerWindow(QMainWindow):
 
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
         hbox.addWidget(self.moduleManagerWidget, 1)
-        hbox.addWidget(self.optionManagerWidget, 2)
+        optionLayout = WidgetUtil.createVBoxLayout()
+        optionLayout.addWidget(self.optionManagerWidget, 2)
+        optionLayout.addWidget(self.cmdManagerWidget, 1)
+        hbox.addLayout(optionLayout, 2)
         vbox.addLayout(hbox, 5)
 
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
@@ -160,6 +165,7 @@ class ProjectManagerWindow(QMainWindow):
         projectInfo = self.getCurProjectInfo()
         self.moduleManagerWidget.setProjectInfo(projectInfo)
         self.optionManagerWidget.setProjectInfo(projectInfo)
+        self.cmdManagerWidget.setProjectInfo(projectInfo)
         self.projectConfigInfoTextEdit.setText(self.genProjectDesc(projectInfo) if projectInfo else "")
 
     def updateProjectComboBox(self):
@@ -275,6 +281,8 @@ class ProjectManagerWindow(QMainWindow):
         if not modules:
             WidgetUtil.showAboutDialog(text="请先添加/选择一个模块")
             return
+        self.consoleTextEdit.setText("")
+
         # 必须放到线程执行，否则加载框要等指令执行完才会弹
         threading.Thread(target=self.executeModuleCmd, args=(projectInfo, modules)).start()
         self.loadingDialog.show()
