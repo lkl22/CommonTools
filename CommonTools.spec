@@ -70,6 +70,7 @@ a = Analysis(['RunMain.py',
               'widget/photoWall/PicturePreviewDialog.py',
 
               'widget/projectManage/AddOrEditCmdDialog.py',
+              'widget/projectManage/AddOrEditCmdGroupDialog.py',
               'widget/projectManage/AddOrEditEvnDialog.py',
               'widget/projectManage/AddOrEditModuleDialog.py',
               'widget/projectManage/AddOrEditOptionDialog.py',

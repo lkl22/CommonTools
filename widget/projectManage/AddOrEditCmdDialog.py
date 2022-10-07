@@ -268,7 +268,7 @@ class AddOrEditCmdDialog(QtWidgets.QDialog):
         if not program:
             WidgetUtil.showErrorDialog(message="请输入需要执行的命令行指令")
             return
-        if not self.default or self.default[KEY_NAME] != name:
+        if DictUtil.get(self.default, KEY_NAME) != name:
             for item in self.cmdList:
                 if name == item[KEY_NAME]:
                     WidgetUtil.showErrorDialog(message=f"请重新添加一个其他的指令别名，{name}已经存在了，不能重复添加")

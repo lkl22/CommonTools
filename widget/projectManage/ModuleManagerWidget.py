@@ -22,9 +22,9 @@ class ModuleManagerWidget(QFrame):
         self.setObjectName("ModuleManagerWidget")
         # self.setWindowFlags(QtCore.Qt.SplashScreen | QtCore.Qt.FramelessWindowHint)
         vbox = WidgetUtil.createVBoxLayout(self, margins=QMargins(5, 5, 5, 5))
-        vbox.addWidget(WidgetUtil.createLabel(self, text="模块管理"))
 
-        hbox = WidgetUtil.createHBoxLayout(spacing=5)
+        hbox = WidgetUtil.createHBoxLayout(margins=QMargins(0, 0, 0, 0), spacing=0)
+        hbox.addWidget(WidgetUtil.createLabel(self, text="模块管理"))
         self.addModuleBtn = WidgetUtil.createPushButton(self, text="Add", toolTip="添加新的选项配置", isEnable=False,
                                                         onClicked=self.addModule)
         hbox.addWidget(self.addModuleBtn)
