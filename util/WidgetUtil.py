@@ -492,7 +492,7 @@ class WidgetUtil:
     @staticmethod
     def createCheckBox(parent: QWidget, objectName="RadioButton", text="RadioButton", toolTip=None, isEnable=True,
                        autoExclusive=False, isChecked=False, geometry: QRect = None, sizePolicy: QSizePolicy = None,
-                       stateChanged=None):
+                       stateChanged=None, clicked=None):
         """
         创建一个复选框
         :param parent: 父QWidget
@@ -504,7 +504,8 @@ class WidgetUtil:
         :param isChecked: isChecked 默认是否选中，true选中
         :param geometry: geometry
         :param sizePolicy: 缩放策略
-        :param stateChanged: toggled checked状态切换回调
+        :param stateChanged: toggled checked状态切换回调，不管是用户点击还是代码设置选中状态
+        :param clicked: 用户点击时触发
         :return: 复选框
         """
         widget = QCheckBox(parent)
@@ -514,6 +515,8 @@ class WidgetUtil:
         widget.setChecked(isChecked)
         if stateChanged:
             widget.stateChanged.connect(stateChanged)
+        if clicked:
+            widget.clicked.connect(clicked)
         return widget
 
     @staticmethod

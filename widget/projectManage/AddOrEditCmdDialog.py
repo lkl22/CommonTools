@@ -14,6 +14,8 @@ from util.OperaIni import *
 from widget.custom.DragInputWidget import DragInputWidget
 from widget.projectManage.ProjectManager import *
 
+TAG = "AddOrEditCmdDialog"
+
 
 class OptionGroupWidget(QFrame):
     def __init__(self, optionGroupInfo, optionNames, delFunc):
@@ -47,7 +49,7 @@ class OptionGroupWidget(QFrame):
             self.optionWidgets.remove(widget)
         for index, option in enumerate(options):
             if index >= len(self.optionWidgets):
-                widget = WidgetUtil.createCheckBox(self, stateChanged=self.selectedChanged)
+                widget = WidgetUtil.createCheckBox(self, clicked=self.selectedChanged)
                 self.optionWidgets.append(widget)
                 self.vbox.addWidget(widget)
             else:
@@ -293,6 +295,7 @@ class AddOrEditCmdDialog(QtWidgets.QDialog):
             self.callback(self.default)
         else:
             self.callback(self.default if self.isAdd else None)
+        LogUtil.d(TAG, "acceptFunc", self.default)
         self.close()
         pass
 
