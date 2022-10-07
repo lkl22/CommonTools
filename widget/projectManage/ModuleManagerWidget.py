@@ -18,6 +18,7 @@ class ModuleManagerWidget(QFrame):
         self.getCmdGroupsFunc = getCmdGroupsFunc
         self.projectInfo = None
         self.modules = []
+        self.defaultModules = []
         self.moduleWidgets: [ModuleWidget] = []
 
         self.setObjectName("ModuleManagerWidget")
@@ -59,6 +60,7 @@ class ModuleManagerWidget(QFrame):
         projectId = DictUtil.get(projectInfo, KEY_ID)
         self.addModuleBtn.setEnabled(projectId is not None)
         self.modules = self.projectManager.getProjectModules(projectId) if projectId else []
+        self.defaultModules = self.projectManager.getProjectDefaultModules(projectId) if projectId else []
         self.updateModuleList()
         pass
 
@@ -114,18 +116,25 @@ class ModuleManagerWidget(QFrame):
                 moduleWidget.deleteLater(),
                 self.moduleWidgets.remove(moduleWidget),
                 self.modules.remove(moduleInfo),
-                self.projectManager.saveProjectModulesInfo(DictUtil.get(self.projectInfo, KEY_ID), self.modules)
+                self.projectManager.saveProjectModulesInfo(DictUtil.get(self.projectInfo, KEY_ID), self.modules),
+                self.defaultModules.remove(DictUtil.get(moduleInfo, KEY_NAME)),
+                self.saveProjectDefaultModules()
             ))
+        pass
+
+    def saveProjectDefaultModules(self):
+        self.projectManager.saveProjectDefaultModules(DictUtil.get(self.projectInfo, KEY_ID), self.defaultModules)
         pass
 
     def updateModuleItem(self, index, moduleInfo):
         LogUtil.d("updateModuleItem", index, moduleInfo)
         if index >= len(self.moduleWidgets):
-            moduleWidget = ModuleWidget(moduleInfo=moduleInfo, editFunc=self.editModule, delFunc=self.delModule)
+            moduleWidget = ModuleWidget(moduleInfo=moduleInfo, defaultModules=self.defaultModules, editFunc=self.editModule,
+                                        delFunc=self.delModule, selectedChanged=self.saveProjectDefaultModules)
             self.moduleWidgets.append(moduleWidget)
             self.vLayout.addWidget(moduleWidget)
         else:
-            self.moduleWidgets[index].updateUi(moduleInfo)
+            self.moduleWidgets[index].updateUi(moduleInfo, self.defaultModules)
         pass
 
     def updateModuleList(self):
@@ -144,25 +153,40 @@ class ModuleManagerWidget(QFrame):
 
 
 class ModuleWidget(QWidget):
-    def __init__(self, moduleInfo, editFunc, delFunc):
+    def __init__(self, moduleInfo, defaultModules, editFunc, delFunc, selectedChanged):
         super(ModuleWidget, self).__init__()
         self.moduleInfo = moduleInfo
+        self.defaultModules = defaultModules
+        self.selectedChanged = selectedChanged
 
         hbox = WidgetUtil.createHBoxLayout(self, margins=QMargins(0, 0, 0, 0))
-        self.checkBox = WidgetUtil.createCheckBox(self, text=moduleInfo[KEY_NAME], toolTip=moduleInfo[KEY_DESC])
+        self.checkBox = WidgetUtil.createCheckBox(self, clicked=self.moduleSelectedChange)
         hbox.addWidget(self.checkBox)
         # 为窗口添加QActions
         self.addAction(WidgetUtil.createAction(self, text="编辑", func=lambda: editFunc(self.moduleInfo)))
         self.addAction(WidgetUtil.createAction(self, text="删除", func=lambda: delFunc(self, self.moduleInfo)))
         self.setContextMenuPolicy(Qt.ActionsContextMenu)
         self.setStyleSheet("QWidget:hover{background-color:rgb(0,255,255)}")
+
+        self.updateUi(moduleInfo, defaultModules)
         pass
 
-    def updateUi(self, moduleInfo):
+    def updateUi(self, moduleInfo, defaultModules):
         self.moduleInfo = moduleInfo
+        self.defaultModules = defaultModules
         self.checkBox.setText(moduleInfo[KEY_NAME])
         self.checkBox.setToolTip(moduleInfo[KEY_DESC])
-        self.checkBox.setChecked(False)
+        self.checkBox.setChecked(moduleInfo[KEY_NAME] in defaultModules)
+        pass
+
+    def moduleSelectedChange(self):
+        name = DictUtil.get(self.moduleInfo, KEY_NAME)
+        if self.isChecked():
+            self.defaultModules.append(name)
+        else:
+            self.defaultModules.remove(name)
+        LogUtil.d("moduleSelectedChange", self.defaultModules)
+        self.selectedChanged()
         pass
 
     def getModuleInfo(self):
