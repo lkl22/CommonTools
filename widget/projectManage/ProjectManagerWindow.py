@@ -58,7 +58,7 @@ class ProjectManagerWindow(QMainWindow):
         self.cmdManagerWidget = CmdManagerWidget(projectManager=self.projectManager)
         self.moduleManagerWidget = ModuleManagerWidget(projectManager=self.projectManager,
                                                        getOptionGroupsFunc=lambda: self.optionManagerWidget.getProjectOptionGroups(),
-                                                       getCmdGroupsFunc=lambda: self.cmdManagerWidget.getProjectCmdGroups())
+                                                       getCmdGroupsFunc=lambda: self.cmdManagerWidget.getProjectCmdGroupList())
         self.loadingDialog = LoadingDialog(showText="正在执行。。。", btnText="终止",
                                            rejectedFunc=lambda: LogUtil.d("close loading"), isDebug=self.isDebug)
         self.loadingDialog.hide()
@@ -316,6 +316,15 @@ class ProjectManagerWindow(QMainWindow):
     def handleCmdList(self, srcCmdList):
         cmdList = []
         for item in srcCmdList:
+            projectCmdGroups = self.cmdManagerWidget.getProjectCmdGroupInfo()
+            cmdGroups = DictUtil.get(item, KEY_CMD_GROUPS, [])
+            needIgnore = False
+            for cmdGroupName in cmdGroups:
+                if cmdGroupName in projectCmdGroups[KEY_LIST] and cmdGroupName not in projectCmdGroups[KEY_DEFAULT]:
+                    needIgnore = True
+                    break
+            if needIgnore:
+                continue
             cmdList.append({
                 KEY_PROGRAM: DictUtil.get(item, KEY_PROGRAM),
                 KEY_ARGUMENTS: self.handleCmdArgs(item),

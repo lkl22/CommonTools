@@ -197,12 +197,12 @@ class AddOrEditCmdDialog(QtWidgets.QDialog):
     def createCmdGroupSelectedWidget(self):
         self.vLayout.addWidget(WidgetUtil.createLabel(self, text="选择指令所属分组："))
 
-        hbox = WidgetUtil.createHBoxLayout(spacing=10)
+        hbox = None
         maxCol = 1
         for index, item in enumerate(self.cmdGroups):
-            if index == maxCol:
-                self.vLayout.addLayout(hbox)
+            if index % maxCol == 0:
                 hbox = WidgetUtil.createHBoxLayout(spacing=10)
+                self.vLayout.addLayout(hbox)
             checkBox = WidgetUtil.createCheckBox(self, text=DictUtil.get(item, KEY_NAME), toolTip=DictUtil.get(item, KEY_DESC),
                                                  isChecked=ListUtil.find(self.selectedCmdGroups, KEY_NAME, item[KEY_NAME]) is not None,
                                                  clicked=self.cmdGroupSelectedChanged)

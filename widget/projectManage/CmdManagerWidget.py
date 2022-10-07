@@ -16,7 +16,7 @@ class CmdManagerWidget(QFrame):
         self.projectManager = projectManager
         self.getOptionGroupsFunc = getOptionGroupsFunc
         self.projectInfo = None
-        self.cmdGroups = []
+        self.cmdGroups = {}
         self.cmdGroupWidgets: [CmdGroupWidget] = []
 
         self.setObjectName("CmdManagerWidget")
@@ -71,32 +71,35 @@ class CmdManagerWidget(QFrame):
 
     def addCmdGroup(self):
         LogUtil.d("addCmdGroup")
-        AddOrEditCmdGroupDialog(cmdGroupList=self.cmdGroups, callback=self.addOrEditCmdGroupCallback)
+        AddOrEditCmdGroupDialog(cmdGroupList=DictUtil.get(self.cmdGroups, KEY_LIST, []), callback=self.addOrEditCmdGroupCallback)
         pass
 
     def editCmdGroup(self, cmdGroup):
         LogUtil.d("editCmdGroup", cmdGroup)
-        AddOrEditCmdGroupDialog(cmdGroupList=self.cmdGroups, callback=self.addOrEditCmdGroupCallback, default=cmdGroup)
+        AddOrEditCmdGroupDialog(cmdGroupList=DictUtil.get(self.cmdGroups, KEY_LIST, []), callback=self.addOrEditCmdGroupCallback, default=cmdGroup)
         pass
 
     def addOrEditCmdGroupCallback(self, info):
         LogUtil.d("addOrEditCmdGroupCallback", info)
+        cmdGroupList = DictUtil.get(self.cmdGroups, KEY_LIST, [])
         if info:
-            self.cmdGroups.append(info)
-        self.cmdGroups = sorted(self.cmdGroups, key=lambda x: x[KEY_NAME])
+            cmdGroupList.append(info)
+        self.cmdGroups[KEY_LIST] = sorted(cmdGroupList, key=lambda x: x[KEY_NAME])
         self.updateCmdGroupList()
         self.saveProjectCmdGroups()
         pass
 
     def delCmdGroup(self, widget, info):
         LogUtil.d("delCmdGroup", info)
+        cmdGroupList = DictUtil.get(self.cmdGroups, KEY_LIST, [])
         WidgetUtil.showQuestionDialog(
             message=f"你确定需要删除 <span style='color:red;'>{info[KEY_NAME]}（{info[KEY_DESC]}）</span> 吗？",
             acceptFunc=lambda: (
                 self.vLayout.removeWidget(widget),
                 widget.deleteLater(),
                 self.cmdGroupWidgets.remove(widget),
-                self.cmdGroups.remove(info),
+                cmdGroupList.remove(info),
+                self.cmdGroups[KEY_DEFAULT].remove(info[KEY_NAME]),
                 self.saveProjectCmdGroups()
             ))
         pass
@@ -105,54 +108,80 @@ class CmdManagerWidget(QFrame):
         self.projectManager.saveProjectCmdGroups(DictUtil.get(self.projectInfo, KEY_ID), self.cmdGroups)
         pass
 
-    def getProjectCmdGroups(self):
-        return self.cmdGroups
+    def getProjectCmdGroupList(self):
+        return DictUtil.get(self.cmdGroups, KEY_LIST, [])
+
+    def getProjectCmdGroupInfo(self):
+        info = {KEY_DEFAULT: DictUtil.get(self.cmdGroups, KEY_DEFAULT, []), KEY_LIST: []}
+        cmdGroups = DictUtil.get(self.cmdGroups, KEY_LIST, [])
+        for item in cmdGroups:
+            info[KEY_LIST].append(item[KEY_NAME])
+        return info
 
     def updateCmdGroupItem(self, index, info):
         LogUtil.d("updateCmdGroupItem", index, info)
         if index >= len(self.cmdGroupWidgets):
-            moduleWidget = CmdGroupWidget(info=info, editFunc=self.editCmdGroup, delFunc=self.delCmdGroup)
+            moduleWidget = CmdGroupWidget(info=info, defaultSelected=DictUtil.get(self.cmdGroups, KEY_DEFAULT),
+                                          editFunc=self.editCmdGroup, delFunc=self.delCmdGroup,
+                                          selectedChanged=self.saveProjectCmdGroups)
             self.cmdGroupWidgets.append(moduleWidget)
             self.vLayout.addWidget(moduleWidget)
         else:
-            self.cmdGroupWidgets[index].updateUi(info)
+            self.cmdGroupWidgets[index].updateUi(info, DictUtil.get(self.cmdGroups, KEY_DEFAULT))
         pass
 
     def updateCmdGroupList(self):
-        LogUtil.d("updateModuleList")
-        moduleLen = len(self.cmdGroups)
-        while moduleLen < len(self.cmdGroupWidgets):
-            widget = self.cmdGroupWidgets[moduleLen]
+        LogUtil.d("updateCmdGroupList")
+        cmdGroupList = DictUtil.get(self.cmdGroups, KEY_LIST, [])
+        cmdGroupLen = len(cmdGroupList)
+        while cmdGroupLen < len(self.cmdGroupWidgets):
+            widget = self.cmdGroupWidgets[cmdGroupLen]
             self.vLayout.removeWidget(widget)
             widget.deleteLater()
             self.cmdGroupWidgets.remove(widget)
         self.vLayout.removeItem(self.spacerItem)
-        for index, item in enumerate(self.cmdGroups):
+        for index, item in enumerate(cmdGroupList):
             self.updateCmdGroupItem(index, item)
         self.vLayout.addItem(self.spacerItem)
         pass
 
 
 class CmdGroupWidget(QWidget):
-    def __init__(self, info, editFunc, delFunc):
+    def __init__(self, info, defaultSelected, editFunc, delFunc, selectedChanged):
         super(CmdGroupWidget, self).__init__()
         self.info = info
+        self.defaultSelected = defaultSelected
+        self.selectedChanged = selectedChanged
 
         hbox = WidgetUtil.createHBoxLayout(self, margins=QMargins(0, 0, 0, 0))
-        self.checkBox = WidgetUtil.createCheckBox(self, text=info[KEY_NAME], toolTip=info[KEY_DESC])
+        self.checkBox = WidgetUtil.createCheckBox(self, clicked=self.cmdGroupSelectedChange)
         hbox.addWidget(self.checkBox)
         # 为窗口添加QActions
         self.addAction(WidgetUtil.createAction(self, text="编辑", func=lambda: editFunc(self.info)))
         self.addAction(WidgetUtil.createAction(self, text="删除", func=lambda: delFunc(self, self.info)))
         self.setContextMenuPolicy(Qt.ActionsContextMenu)
         self.setStyleSheet("QWidget:hover{background-color:rgb(0,255,255)}")
+
+        self.updateUi(info, defaultSelected)
         pass
 
-    def updateUi(self, info):
+    def updateUi(self, info, defaultSelected):
+        LogUtil.d("CmdGroupWidget updateUi", info, defaultSelected)
         self.info = info
+        self.defaultSelected = defaultSelected
         self.checkBox.setText(info[KEY_NAME])
         self.checkBox.setToolTip(info[KEY_DESC])
-        self.checkBox.setChecked(False)
+        self.checkBox.setChecked(info[KEY_NAME] in defaultSelected)
+        pass
+
+    def cmdGroupSelectedChange(self):
+        name = DictUtil.get(self.info, KEY_NAME)
+        if self.isChecked():
+            self.defaultSelected.append(name)
+        else:
+            self.defaultSelected.remove(name)
+        LogUtil.d("cmdGroupSelectedChange", self.defaultSelected)
+        self.selectedChanged()
         pass
 
     def getInfo(self):
