@@ -87,8 +87,9 @@ class AddOrEditModuleDialog(QtWidgets.QDialog):
 
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
         hbox.addWidget(WidgetUtil.createLabel(box, text="模块路径：", minSize=QSize(labelWidth, const.HEIGHT)))
+        workDir = DictUtil.get(self.default, KEY_PATH, "")
         self.pathInputWidget = DragInputWidget(
-            text=DictUtil.get(self.default, KEY_PATH),
+            text=self.openDir + workDir if DictUtil.get(self.default, KEY_IS_RELATIVE_PATH, False) else workDir,
             dirParam=["请选择您模块工作目录", self.openDir], isReadOnly=True,
             holderText="请拖动您模块的工作目录到此框或者点击右侧的文件夹图标选择您的模块路径，默认使用工程的路径",
             toolTip="不设置的话，默认使用工程的路径")
@@ -232,8 +233,10 @@ class AddOrEditModuleDialog(QtWidgets.QDialog):
             WidgetUtil.showErrorDialog(message="请输入模块描述")
             return
         path = self.pathInputWidget.text().strip()
-        if not path:
-            path = self.openDir
+        isRelativePath = False
+        if path and self.openDir and path.startswith(self.openDir):
+            path = path.replace(self.openDir, "")
+            isRelativePath = True
 
         if self.isAdd:
             for item in self.moduleList:
@@ -249,6 +252,7 @@ class AddOrEditModuleDialog(QtWidgets.QDialog):
         self.default[KEY_NAME] = name
         self.default[KEY_DESC] = desc
         self.default[KEY_PATH] = path
+        self.default[KEY_IS_RELATIVE_PATH] = isRelativePath
         self.default[KEY_CMD_LIST] = self.cmdList
 
         self.callback(self.default if self.isAdd else None)

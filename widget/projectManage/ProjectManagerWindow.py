@@ -347,11 +347,13 @@ class ProjectManagerWindow(QMainWindow):
         LogUtil.e(f"executeModuleCmd start. pid: {os.getpid()} threadId: {threading.currentThread().ident}")
         for moduleInfo in modules:
             cmdList = self.handleCmdList(DictUtil.get(moduleInfo, KEY_CMD_LIST, []))
-            LogUtil.d(TAG, f"executeModuleCmd cmdList {cmdList}")
+            projectDir = DictUtil.get(projectInfo, KEY_PATH)
+            workingDir = DictUtil.get(moduleInfo, KEY_PATH, projectDir)
+            workingDir = projectDir + workingDir if DictUtil.get(moduleInfo, KEY_IS_RELATIVE_PATH, False) else workingDir
+            LogUtil.d(TAG, f"executeModuleCmd cmdList {cmdList} module work dir: {workingDir}")
             processManager = ProcessManager(name=DictUtil.get(moduleInfo, KEY_NAME),
                                             cmdList=cmdList,
-                                            workingDir=DictUtil.get(moduleInfo, KEY_PATH,
-                                                                    DictUtil.get(projectInfo, KEY_PATH)),
+                                            workingDir=workingDir,
                                             standardOutput=self.standardOutput,
                                             standardError=self.standardError)
             self.processManagers.append(processManager)

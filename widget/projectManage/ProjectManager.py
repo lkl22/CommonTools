@@ -34,6 +34,8 @@ KEY_DYNAMIC_ARGUMENTS = 'dynamicArguments'
 KEY_NEED_SPACE = 'needSpace'
 KEY_OPTION_GROUP_ID = 'optionGroupId'
 KEY_OPTION_NAMES = 'optionNames'
+# 是否是相对路径，主要用于模块路径
+KEY_IS_RELATIVE_PATH = 'isRelativePath'
 
 KEY_EVN_IS_PATH = 'isPath'
 
