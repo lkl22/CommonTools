@@ -68,6 +68,10 @@ class AddOrEditModuleDialog(QtWidgets.QDialog):
             # 很关键，不加出不来
             self.exec_()
 
+    def getModuleDir(self):
+        workDir = DictUtil.get(self.default, KEY_PATH, "")
+        return self.openDir + workDir if DictUtil.get(self.default, KEY_IS_RELATIVE_PATH, False) else workDir
+
     def createModuleConfigGroupBox(self, parent):
         box = WidgetUtil.createGroupBox(parent, title="")
         vbox = WidgetUtil.createVBoxLayout(box, margins=QMargins(5, 5, 5, 5), spacing=5)
@@ -87,9 +91,9 @@ class AddOrEditModuleDialog(QtWidgets.QDialog):
 
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
         hbox.addWidget(WidgetUtil.createLabel(box, text="模块路径：", minSize=QSize(labelWidth, const.HEIGHT)))
-        workDir = DictUtil.get(self.default, KEY_PATH, "")
+
         self.pathInputWidget = DragInputWidget(
-            text=self.openDir + workDir if DictUtil.get(self.default, KEY_IS_RELATIVE_PATH, False) else workDir,
+            text=self.getModuleDir(),
             dirParam=["请选择您模块工作目录", self.openDir], isReadOnly=True,
             holderText="请拖动您模块的工作目录到此框或者点击右侧的文件夹图标选择您的模块路径，默认使用工程的路径",
             toolTip="不设置的话，默认使用工程的路径")
@@ -143,10 +147,14 @@ class AddOrEditModuleDialog(QtWidgets.QDialog):
         self.updatePositionBtnStatus()
         pass
 
+    def getCurWorkingDir(self):
+        path = self.pathInputWidget.text().strip()
+        return path if path else self.openDir
+
     def addCmd(self):
         LogUtil.d("addCmd")
-        AddOrEditCmdDialog(callback=self.addOrEditCmdCallback, cmdList=self.cmdList, optionGroups=self.optionGroups,
-                           cmdGroups=self.cmdGroups)
+        AddOrEditCmdDialog(callback=self.addOrEditCmdCallback, moduleDir=self.getCurWorkingDir(), cmdList=self.cmdList,
+                           optionGroups=self.optionGroups, cmdGroups=self.cmdGroups)
         pass
 
     def addOrEditCmdCallback(self, info):
@@ -177,8 +185,8 @@ class AddOrEditModuleDialog(QtWidgets.QDialog):
         oldValue = index.data()
         row = index.row()
         LogUtil.d("双击的单元格：row ", row, ' col', index.column(), ' data ', oldValue)
-        AddOrEditCmdDialog(callback=self.addOrEditCmdCallback, default=self.cmdList[row], cmdList=self.cmdList,
-                           optionGroups=self.optionGroups, cmdGroups=self.cmdGroups)
+        AddOrEditCmdDialog(callback=self.addOrEditCmdCallback, moduleDir=self.getCurWorkingDir(), default=self.cmdList[row],
+                           cmdList=self.cmdList, optionGroups=self.optionGroups, cmdGroups=self.cmdGroups)
         pass
 
     def customRightMenu(self, pos):
@@ -236,6 +244,9 @@ class AddOrEditModuleDialog(QtWidgets.QDialog):
         isRelativePath = False
         if path and self.openDir and path.startswith(self.openDir):
             path = path.replace(self.openDir, "")
+            isRelativePath = True
+        if not path:
+            # 没有设置path，认为是相对路径，使用工程路径
             isRelativePath = True
 
         if self.isAdd:

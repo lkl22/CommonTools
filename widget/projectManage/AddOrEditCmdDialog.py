@@ -71,7 +71,7 @@ class OptionGroupWidget(QFrame):
 
 
 class AddOrEditCmdDialog(QtWidgets.QDialog):
-    def __init__(self, callback, default=None, cmdList=None, optionGroups=None, cmdGroups=None, isDebug=False):
+    def __init__(self, callback, moduleDir=None, default=None, cmdList=None, optionGroups=None, cmdGroups=None, isDebug=False):
         # 调用父类的构函
         QtWidgets.QDialog.__init__(self)
         self.setWindowFlags(Qt.Dialog | Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint | Qt.WindowStaysOnTopHint)
@@ -112,6 +112,8 @@ class AddOrEditCmdDialog(QtWidgets.QDialog):
         self.dynamicArgumentWidgets = []
         self.isDebug = isDebug
 
+        self.moduleDir = moduleDir if moduleDir else './'
+
         self.setObjectName("AddOrEditCmdDialog")
         self.resize(AddOrEditCmdDialog.WINDOW_WIDTH, AddOrEditCmdDialog.WINDOW_HEIGHT)
         # self.setFixedSize(AddOrEditCmdDialog.WINDOW_WIDTH, AddOrEditCmdDialog.WINDOW_HEIGHT)
@@ -148,8 +150,8 @@ class AddOrEditCmdDialog(QtWidgets.QDialog):
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
         hbox.addWidget(WidgetUtil.createLabel(self, text="Program：", minSize=QSize(labelWidth, const.HEIGHT)))
         self.programInputWidget = DragInputWidget(text=DictUtil.get(default, KEY_PROGRAM),
-                                                  fileParam=['', './', '', ''],
-                                                  dirParam=["", "./"],
+                                                  fileParam=['', self.moduleDir, '', ''],
+                                                  dirParam=["", self.moduleDir],
                                                   isReadOnly=False,
                                                   holderText="需要执行的命令行指令",
                                                   toolTip="您可以拖动文件或者文件夹到此或者点击右侧的图标")
@@ -158,9 +160,9 @@ class AddOrEditCmdDialog(QtWidgets.QDialog):
 
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
         hbox.addWidget(WidgetUtil.createLabel(self, text="Working directory：", minSize=QSize(labelWidth, const.HEIGHT)))
-        self.workDirInputWidget = DragInputWidget(text=DictUtil.get(default, KEY_WORKING_DIR),
-                                                  fileParam=['', './', '', ''],
-                                                  dirParam=["", "./"],
+        self.workDirInputWidget = DragInputWidget(text=self.getCmdDir(),
+                                                  fileParam=['', self.moduleDir, '', ''],
+                                                  dirParam=["", self.moduleDir],
                                                   isReadOnly=False,
                                                   holderText="执行命令行指令所在的工作空间，不填，默认跟随模块工作目录",
                                                   toolTip="您可以拖动文件或者文件夹到此或者点击右侧的图标")
@@ -193,6 +195,10 @@ class AddOrEditCmdDialog(QtWidgets.QDialog):
             # 很关键，不加出不来
             self.exec_()
         pass
+
+    def getCmdDir(self):
+        workingDir = DictUtil.get(self.default, KEY_WORKING_DIR, "")
+        return self.moduleDir + workingDir if DictUtil.get(self.default, KEY_IS_RELATIVE_PATH, False) else workingDir
 
     def createCmdGroupSelectedWidget(self):
         self.vLayout.addWidget(WidgetUtil.createLabel(self, text="选择指令所属分组："))
@@ -328,7 +334,16 @@ class AddOrEditCmdDialog(QtWidgets.QDialog):
         self.default[KEY_NAME] = name
         self.default[KEY_DESC] = desc
         self.default[KEY_PROGRAM] = program
+
+        isRelativePath = False
+        if workDir and self.moduleDir and workDir.startswith(self.moduleDir):
+            workDir = workDir.replace(self.moduleDir, "")
+            isRelativePath = True
+        if not workDir:
+            # 没有设置workDir，认为是相对路径，使用模块路径
+            isRelativePath = True
         self.default[KEY_WORKING_DIR] = workDir
+        self.default[KEY_IS_RELATIVE_PATH] = isRelativePath
         self.default[KEY_CMD_GROUPS] = self.selectedCmdGroups
         self.default[KEY_ARGUMENTS] = arguments
         # 清除空的动态参数配置
