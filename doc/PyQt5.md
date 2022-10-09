@@ -64,3 +64,7 @@ setFrameRect(QRect)|	设置边框矩形|	整型
 ### 去除外框
 
 > .setStyleSheet("border: none;")
+
+## 参考文献
+
+[pyqt5 隐藏任务栏图标](https://blog.csdn.net/marwenx/article/details/107226153)

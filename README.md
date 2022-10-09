@@ -44,7 +44,7 @@ Android color资源管理工具：
 pip install wheel PyQt5 PyQt5-tools PyQt5-stubs==5.15.6.0 Pyinstaller xlrd xlutils uiautomator2 numpy QScintilla tinify openpyxl python-docx pyperclip 
 --index-url https://pypi.tuna.tsinghua.edu.cn/simple/
 
-pip install weditor==0.6.3
+pip install weditor==0.6.3 matplotlib
 
 py -3.9 -m pip install pyqt5-tools --index-url https://pypi.tuna.tsinghua.edu.cn/simple/
 
@@ -87,6 +87,8 @@ Working directory：$ProjectFileDir$
 [pycharm如何设置python版本、设置国内pip镜像、添加第三方类库](https://www.cnblogs.com/yjmyzz/p/pycharm-add-third-package-and-add-domestic-mirror.html)
 
 [使用PYINSTALLER打包多文件和目录的PYTHON项目](https://www.cnblogs.com/shiyongge/p/10582552.html)
+
+[PyInstaller Manual](https://pyinstaller.org/en/stable/spec-files.html)
 
 [Python 教程](https://www.w3school.com.cn/python/index.asp)
 
