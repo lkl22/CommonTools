@@ -223,10 +223,11 @@ class AddOrEditModuleDialog(QtWidgets.QDialog):
                 KEY_WORKING_DIR: cmd[KEY_WORKING_DIR],
                 KEY_ARGUMENTS: cmd[KEY_ARGUMENTS],
                 KEY_DYNAMIC_ARGUMENTS: dynArgsShowTxt,
-                KEY_CMD_GROUPS: DictUtil.get(cmd, KEY_CMD_GROUPS, [])
+                KEY_CMD_GROUPS: DictUtil.get(cmd, KEY_CMD_GROUPS, []),
+                KEY_IGNORE_FAILED: DictUtil.get(cmd, KEY_IGNORE_FAILED, False)
             })
         WidgetUtil.addTableViewData(self.cmdTableView, tableData,
-                                    headerLabels=["执行指令名", "描述", "指令", "工作空间", "指令参数", "动态参数选项", "指令所属群组"])
+                                    headerLabels=["执行指令名", "描述", "指令", "工作空间", "指令参数", "动态参数选项", "指令所属群组", "执行失败可忽略"])
         # WidgetUtil.tableViewSetColumnWidth(self.cmdTableView, 0, 100)
         pass
 

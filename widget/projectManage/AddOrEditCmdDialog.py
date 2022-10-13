@@ -71,7 +71,8 @@ class OptionGroupWidget(QFrame):
 
 
 class AddOrEditCmdDialog(QtWidgets.QDialog):
-    def __init__(self, callback, moduleDir=None, default=None, cmdList=None, optionGroups=None, cmdGroups=None, isDebug=False):
+    def __init__(self, callback, moduleDir=None, default=None, cmdList=None, optionGroups=None, cmdGroups=None,
+                 isDebug=False):
         # 调用父类的构函
         QtWidgets.QDialog.__init__(self)
         self.setWindowFlags(Qt.Dialog | Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint | Qt.WindowStaysOnTopHint)
@@ -169,6 +170,11 @@ class AddOrEditCmdDialog(QtWidgets.QDialog):
         hbox.addWidget(self.workDirInputWidget)
         self.vLayout.addLayout(hbox)
 
+        self.ignoreFailedCheckBox = WidgetUtil.createCheckBox(self, text="忽略指令执行失败",
+                                                              toolTip="勾选了该指令失败了会继续执行后续的指令，否则直接终止该模块的执行，并标记为失败。",
+                                                              isChecked=DictUtil.get(default, KEY_IGNORE_FAILED, False))
+        self.vLayout.addWidget(self.ignoreFailedCheckBox)
+
         if self.cmdGroups:
             self.createCmdGroupSelectedWidget()
 
@@ -209,7 +215,8 @@ class AddOrEditCmdDialog(QtWidgets.QDialog):
             if index % maxCol == 0:
                 hbox = WidgetUtil.createHBoxLayout(spacing=10)
                 self.vLayout.addLayout(hbox)
-            checkBox = WidgetUtil.createCheckBox(self, text=DictUtil.get(item, KEY_NAME), toolTip=DictUtil.get(item, KEY_DESC),
+            checkBox = WidgetUtil.createCheckBox(self, text=DictUtil.get(item, KEY_NAME),
+                                                 toolTip=DictUtil.get(item, KEY_DESC),
                                                  isChecked=item[KEY_NAME] in self.selectedCmdGroups,
                                                  clicked=self.cmdGroupSelectedChanged)
             self.cmdGroupWidgets.append(checkBox)
@@ -346,6 +353,7 @@ class AddOrEditCmdDialog(QtWidgets.QDialog):
         self.default[KEY_IS_RELATIVE_PATH] = isRelativePath
         self.default[KEY_CMD_GROUPS] = self.selectedCmdGroups
         self.default[KEY_ARGUMENTS] = arguments
+        self.default[KEY_IGNORE_FAILED] = self.ignoreFailedCheckBox.isChecked()
         # 清除空的动态参数配置
         for item in self.dynamicArguments:
             if not item[KEY_OPTION_NAMES]:
