@@ -19,7 +19,7 @@ from widget.projectManage.ProjectManager import *
 
 class AddOrEditModuleDialog(QtWidgets.QDialog):
     def __init__(self, callback, openDir=None, default=None, moduleList=None, optionGroups=None, cmdGroups=None,
-                 isDebug=False):
+                 isCopyEdit=False, isDebug=False):
         # 调用父类的构函
         QtWidgets.QDialog.__init__(self)
         self.currentRow = -1
@@ -36,7 +36,7 @@ class AddOrEditModuleDialog(QtWidgets.QDialog):
             cmdGroups = []
         self.cmdGroups = cmdGroups
 
-        self.isAdd = default is None
+        self.isAdd = default is None or isCopyEdit
         if not default:
             default = {KEY_CMD_LIST: []}
         elif KEY_CMD_LIST not in default:

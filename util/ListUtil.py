@@ -39,6 +39,17 @@ class ListUtil:
         pass
 
     @staticmethod
+    def remove(listData: [], value):
+        """
+        从列表中删除指定数据
+        :param listData: 列表
+        :param value: 要删除的数据
+        """
+        if value in listData:
+            listData.remove(value)
+        pass
+
+    @staticmethod
     def contain(listData: [dict], key: str, value):
         """
         判断指定的数据是否在字典列表里

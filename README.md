@@ -119,3 +119,7 @@ Working directory：$ProjectFileDir$
 [使用Python 3从网上下载文件](https://blog.csdn.net/xfxf996/article/details/107784224)
 
 [subprocess --- 子进程管理](https://docs.python.org/zh-cn/3.7/library/subprocess.html)
+
+[这40个Python可视化图表案例，强烈建议收藏！](https://mp.weixin.qq.com/s?__biz=MzU5MjI3NzIxMw==&mid=2247503641&idx=1&sn=35507e72d14adb95884b8b29ca38e864&chksm=fe20b4abc9573dbdc384b25ef600466ae8b0f51fbe10cb5ac257915887832184f0d42e5dd621&scene=126&&sessionid=0)
+
+[Python之Networkx详解](https://blog.csdn.net/u012856866/article/details/116458059)

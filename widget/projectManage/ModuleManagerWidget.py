@@ -2,8 +2,11 @@
 # python 3.x
 # Filename: ModuleManagerWidget.py
 # 定义一个ModuleManagerWidget窗口类实现模块管理的功能
+import copy
 import sys
 from PyQt5.QtWidgets import QScrollArea, QFrame
+
+from util.ListUtil import ListUtil
 from util.WidgetUtil import *
 from widget.projectManage.AddOrEditModuleDialog import AddOrEditModuleDialog
 from widget.projectManage.ProjectManager import *
@@ -98,6 +101,12 @@ class ModuleManagerWidget(QFrame):
                               moduleList=self.modules, optionGroups=self.getOptionGroups(), cmdGroups=self.getCmdGroups())
         pass
 
+    def copyModule(self, moduleInfo):
+        LogUtil.d("copyModule", moduleInfo)
+        AddOrEditModuleDialog(callback=self.addOrEditModuleCallback, openDir=self.getProjectPath(), default=copy.deepcopy(moduleInfo),
+                              moduleList=self.modules, optionGroups=self.getOptionGroups(), cmdGroups=self.getCmdGroups(), isCopyEdit=True)
+        pass
+
     def addOrEditModuleCallback(self, info):
         LogUtil.d("addOrEditModuleCallback", info)
         if info:
@@ -117,7 +126,7 @@ class ModuleManagerWidget(QFrame):
                 self.moduleWidgets.remove(moduleWidget),
                 self.modules.remove(moduleInfo),
                 self.projectManager.saveProjectModulesInfo(DictUtil.get(self.projectInfo, KEY_ID), self.modules),
-                self.defaultModules.remove(DictUtil.get(moduleInfo, KEY_NAME)),
+                ListUtil.remove(self.defaultModules, DictUtil.get(moduleInfo, KEY_NAME)),
                 self.saveProjectDefaultModules()
             ))
         pass
@@ -130,7 +139,7 @@ class ModuleManagerWidget(QFrame):
         LogUtil.d("updateModuleItem", index, moduleInfo)
         if index >= len(self.moduleWidgets):
             moduleWidget = ModuleWidget(moduleInfo=moduleInfo, defaultModules=self.defaultModules, editFunc=self.editModule,
-                                        delFunc=self.delModule, selectedChanged=self.saveProjectDefaultModules)
+                                        copyFunc=self.copyModule, delFunc=self.delModule, selectedChanged=self.saveProjectDefaultModules)
             self.moduleWidgets.append(moduleWidget)
             self.vLayout.addWidget(moduleWidget)
         else:
@@ -153,7 +162,7 @@ class ModuleManagerWidget(QFrame):
 
 
 class ModuleWidget(QWidget):
-    def __init__(self, moduleInfo, defaultModules, editFunc, delFunc, selectedChanged):
+    def __init__(self, moduleInfo, defaultModules, editFunc, copyFunc, delFunc, selectedChanged):
         super(ModuleWidget, self).__init__()
         self.moduleInfo = moduleInfo
         self.defaultModules = defaultModules
@@ -164,6 +173,7 @@ class ModuleWidget(QWidget):
         hbox.addWidget(self.checkBox)
         # 为窗口添加QActions
         self.addAction(WidgetUtil.createAction(self, text="编辑", func=lambda: editFunc(self.moduleInfo)))
+        self.addAction(WidgetUtil.createAction(self, text="Copy", func=lambda: copyFunc(self.moduleInfo)))
         self.addAction(WidgetUtil.createAction(self, text="删除", func=lambda: delFunc(self, self.moduleInfo)))
         self.setContextMenuPolicy(Qt.ActionsContextMenu)
         self.setStyleSheet("QWidget:hover{background-color:rgb(0,255,255)}")
