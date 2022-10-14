@@ -47,7 +47,7 @@ class ProcessManager(QObject):
 
     def run(self):
         startTime = DateUtil.nowTimestamp(isMilliSecond=True)
-        self.handleStandardOutput(f'{self.name} 开始执行 {threading.currentThread().ident}\n')
+        self.handleStandardOutput(f'{self.name} 开始执行 {threading.current_thread().ident}\n')
         # sleep(115)
         for cmd in self.cmdList:
             self.executeCmd(cmd)
@@ -80,7 +80,7 @@ class ProcessManager(QObject):
             self.handleStandardOutput(log)
 
     def handleStandardOutput(self, log):
-        self.standardOutput.emit(f"{DateUtil.nowTimeMs()} {os.getpid()} {threading.currentThread().ident} {log}")
+        self.standardOutput.emit(f"{DateUtil.nowTimeMs()} {os.getpid()} {threading.current_thread().ident} {log}")
 
     def readStandardError(self, cmdInfo):
         log = QTextCodec.codecForLocale().toUnicode(self.process.readAllStandardError())
@@ -89,7 +89,7 @@ class ProcessManager(QObject):
             self.handleStandardError(log)
 
     def handleStandardError(self, log):
-        self.standardError.emit(f"{DateUtil.nowTimeMs()} {os.getpid()} {threading.currentThread().ident} {log}")
+        self.standardError.emit(f"{DateUtil.nowTimeMs()} {os.getpid()} {threading.current_thread().ident} {log}")
         self.isSuccess = False
 
     def handleConditionInput(self, cmdInfo, log):

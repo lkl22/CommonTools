@@ -273,7 +273,7 @@ class ProjectManagerWindow(QMainWindow):
         pass
 
     def startExecute(self):
-        LogUtil.d(f"startExecute main pid: {os.getpid()} threadId: {threading.currentThread().ident}")
+        LogUtil.d(f"startExecute main pid: {os.getpid()} threadId: {threading.current_thread().ident}")
         projectInfo = self.getCurProjectInfo()
         if not projectInfo:
             WidgetUtil.showAboutDialog(text="请先添加/选择一个工程")
@@ -348,7 +348,7 @@ class ProjectManagerWindow(QMainWindow):
     def executeModuleCmd(self, projectInfo, modules):
         self.futureList.clear()
         self.processManagers.clear()
-        LogUtil.e(f"executeModuleCmd start. pid: {os.getpid()} threadId: {threading.currentThread().ident}")
+        LogUtil.e(f"executeModuleCmd start. pid: {os.getpid()} threadId: {threading.current_thread().ident}")
         for moduleInfo in modules:
             projectDir = DictUtil.get(projectInfo, KEY_PATH)
             workingDir = DictUtil.get(moduleInfo, KEY_PATH, projectDir)
