@@ -176,6 +176,18 @@ class AdbUtil:
         return out
 
     @staticmethod
+    def getRunningServices(packageName=''):
+        """
+        查看正在运行的Services
+        :param packageName: 包名，不是必须的，指定 <packagename> 表示查看与某个包名相关的 Services，不指定表示查看所有 Services。不一定要给出完整的包名
+        :return: 正在运行的Services
+        """
+        out, err = ShellUtil.exec("adb shell dumpsys activity services {}".format(packageName))
+        if err or not out:
+            return ""
+        return out
+
+    @staticmethod
     def clearApkData(packageName: str):
         """
         清除apk的数据

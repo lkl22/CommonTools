@@ -31,7 +31,8 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
         self.hasCheckInstallFinish = False
         self.hasDownloadFinish = False
         self.notOftenUsedCmds = [
-            {"text": '查看运行的Activities', "func": self.getRunningActivities},
+            {"text": '查看正在运行的Activities', "func": self.getRunningActivities},
+            {"text": '查看正在运行的Services', "func": self.getRunningServices},
             {"text": '是否安装', "func": self.isInstalled},
             {"text": '获取apk版本信息', "func": self.getVersionInfo},
             {"text": '查看应用安装路径', "func": self.getApkPath},
@@ -261,6 +262,10 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
 
     def getRunningActivities(self):
         self.printRes('正在运行的Activities：\n{}'.format(AdbUtil.getRunningActivities()))
+        pass
+
+    def getRunningServices(self):
+        self.printRes('正在运行的Services：\n{}'.format(AdbUtil.getRunningServices(self.getPackageName())))
         pass
 
     def clearApkData(self):

@@ -41,7 +41,7 @@ Android color资源管理工具：
 3、pip安装需要的库
 
 ```
-pip install wheel PyQt5 PyQt5-tools PyQt5-stubs==5.15.6.0 Pyinstaller xlrd xlutils uiautomator2 numpy QScintilla tinify openpyxl python-docx pyperclip 
+pip install wheel PyQt5==5.15.7 PyQt5-tools PyQt5-stubs==5.15.6.0 Pyinstaller xlrd xlutils uiautomator2 numpy QScintilla tinify openpyxl python-docx pyperclip 
 --index-url https://pypi.tuna.tsinghua.edu.cn/simple/
 
 pip install weditor==0.6.3 matplotlib
@@ -49,6 +49,8 @@ pip install weditor==0.6.3 matplotlib
 py -3.9 -m pip install pyqt5-tools --index-url https://pypi.tuna.tsinghua.edu.cn/simple/
 
 pip install pycryptodomex -i https://pypi.douban.com/simple 
+
+pip install networkx==2.8.7 matplotlib==3.6.1
 ```
 
 4、PyCharm配置
@@ -122,4 +124,4 @@ Working directory：$ProjectFileDir$
 
 [这40个Python可视化图表案例，强烈建议收藏！](https://mp.weixin.qq.com/s?__biz=MzU5MjI3NzIxMw==&mid=2247503641&idx=1&sn=35507e72d14adb95884b8b29ca38e864&chksm=fe20b4abc9573dbdc384b25ef600466ae8b0f51fbe10cb5ac257915887832184f0d42e5dd621&scene=126&&sessionid=0)
 
-[Python之Networkx详解](https://blog.csdn.net/u012856866/article/details/116458059)
+
