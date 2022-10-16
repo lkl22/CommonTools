@@ -11,6 +11,7 @@ from util.DialogUtil import *
 from util.DictUtil import DictUtil
 from util.ListUtil import ListUtil
 from util.MD5Util import MD5Util
+from util.NetworkxUtil import NetworkxUtil
 from util.OperaIni import *
 from widget.custom.DragInputWidget import DragInputWidget
 from widget.projectManage.AddOrEditCmdDialog import AddOrEditCmdDialog
@@ -46,6 +47,12 @@ class AddOrEditModuleDialog(QtWidgets.QDialog):
 
         self.openDir = openDir if openDir else './'
 
+        self.nodes = [item[KEY_NAME] for item in self.moduleList]
+        self.G = ProjectManager.generateDiGraph(self.moduleList, self.nodes)
+        self.dependencies = DictUtil.get(self.default, KEY_MODULE_DEPENDENCIES, [])
+        self.updateDependenciesNodes()
+        self.dependencyWidgets = []
+
         self.setWindowFlags(Qt.Dialog | Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint | Qt.WindowStaysOnTopHint)
         AddOrEditModuleDialog.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.6)
         AddOrEditModuleDialog.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.5)
@@ -68,26 +75,38 @@ class AddOrEditModuleDialog(QtWidgets.QDialog):
             # 很关键，不加出不来
             self.exec_()
 
+    def updateDependenciesNodes(self):
+        curModuleName = DictUtil.get(self.default, KEY_NAME)
+        if curModuleName:
+            if curModuleName in self.nodes:
+                self.nodes.remove(curModuleName)
+            for node in self.nodes:
+                if NetworkxUtil.shortestPath(self.G, node, curModuleName):
+                    # 图中已经有一条通路从node到当前模块，不能循环依赖
+                    self.nodes.remove(node)
+        LogUtil.d("updateDependenciesNodes", self.nodes)
+        pass
+
     def getModuleDir(self):
         workDir = DictUtil.get(self.default, KEY_PATH, "")
         return self.openDir + workDir if DictUtil.get(self.default, KEY_IS_RELATIVE_PATH, False) else workDir
 
     def createModuleConfigGroupBox(self, parent):
         box = WidgetUtil.createGroupBox(parent, title="")
-        vbox = WidgetUtil.createVBoxLayout(box, margins=QMargins(5, 5, 5, 5), spacing=5)
+        self.vbox = WidgetUtil.createVBoxLayout(box, margins=QMargins(5, 5, 5, 5), spacing=5)
         labelWidth = 80
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
         hbox.addWidget(WidgetUtil.createLabel(box, text="模块名：", minSize=QSize(labelWidth, const.HEIGHT)))
         self.nameLineEdit = WidgetUtil.createLineEdit(box, text=DictUtil.get(self.default, KEY_NAME),
                                                       isReadOnly=not self.isAdd)
         hbox.addWidget(self.nameLineEdit)
-        vbox.addLayout(hbox)
+        self.vbox.addLayout(hbox)
 
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
         hbox.addWidget(WidgetUtil.createLabel(box, text="模块描述：", minSize=QSize(labelWidth, const.HEIGHT)))
         self.descLineEdit = WidgetUtil.createLineEdit(box, text=DictUtil.get(self.default, KEY_DESC))
         hbox.addWidget(self.descLineEdit)
-        vbox.addLayout(hbox)
+        self.vbox.addLayout(hbox)
 
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
         hbox.addWidget(WidgetUtil.createLabel(box, text="模块路径：", minSize=QSize(labelWidth, const.HEIGHT)))
@@ -98,7 +117,10 @@ class AddOrEditModuleDialog(QtWidgets.QDialog):
             holderText="请拖动您模块的工作目录到此框或者点击右侧的文件夹图标选择您的模块路径，默认使用工程的路径",
             toolTip="不设置的话，默认使用工程的路径")
         hbox.addWidget(self.pathInputWidget)
-        vbox.addLayout(hbox)
+        self.vbox.addLayout(hbox)
+
+        if self.nodes:
+            self.genDependenciesWidget()
 
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
         hbox.addWidget(WidgetUtil.createPushButton(box, text="添加执行指令", onClicked=self.addCmd))
@@ -117,7 +139,7 @@ class AddOrEditModuleDialog(QtWidgets.QDialog):
         self.bottomPostionBtn = WidgetUtil.createPushButton(box, text="⬇️️", toolTip="移动到末行", isEnable=False,
                                                             onClicked=lambda: self.moveCmdPosition(-1))
         hbox.addWidget(self.bottomPostionBtn)
-        vbox.addLayout(hbox)
+        self.vbox.addLayout(hbox)
 
         self.cmdTableView = WidgetUtil.createTableView(box, clicked=self.tableClicked,
                                                        doubleClicked=self.tableDoubleClicked)
@@ -131,8 +153,34 @@ class AddOrEditModuleDialog(QtWidgets.QDialog):
         self.cmdTableView.setContextMenuPolicy(Qt.CustomContextMenu)
         self.cmdTableView.customContextMenuRequested.connect(self.customRightMenu)
         self.updateCmdTableView()
-        vbox.addWidget(self.cmdTableView, 1)
+        self.vbox.addWidget(self.cmdTableView, 1)
         return box
+
+    def genDependenciesWidget(self):
+        LogUtil.d("genDependenciesWidget")
+        self.vbox.addWidget(WidgetUtil.createLabel(self, text="选择模块依赖的子模块："))
+
+        hbox = None
+        maxCol = 1
+        for index, node in enumerate(self.nodes):
+            if index % maxCol == 0:
+                hbox = WidgetUtil.createHBoxLayout(spacing=10)
+                self.vbox.addLayout(hbox)
+            checkBox = WidgetUtil.createCheckBox(self, text=node,
+                                                 isChecked=node in self.dependencies,
+                                                 clicked=self.dependenciesSelectedChanged)
+            self.dependencyWidgets.append(checkBox)
+            hbox.addWidget(checkBox)
+        self.vbox.addLayout(hbox)
+        pass
+
+    def dependenciesSelectedChanged(self):
+        self.dependencies.clear()
+        for index, widget in enumerate(self.dependencyWidgets):
+            if widget.isChecked():
+                self.dependencies.append(widget.text())
+        LogUtil.d("dependenciesSelectedChanged", self.dependencies)
+        pass
 
     def moveCmdPosition(self, newPos):
         LogUtil.d("moveCmdPosition", newPos)
@@ -266,6 +314,7 @@ class AddOrEditModuleDialog(QtWidgets.QDialog):
         self.default[KEY_PATH] = path
         self.default[KEY_IS_RELATIVE_PATH] = isRelativePath
         self.default[KEY_CMD_LIST] = self.cmdList
+        self.default[KEY_MODULE_DEPENDENCIES] = self.dependencies
 
         self.callback(self.default if self.isAdd else None)
         self.close()

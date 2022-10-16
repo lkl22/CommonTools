@@ -6,6 +6,7 @@ from util.DictUtil import DictUtil
 from util.LogUtil import *
 from util.OperaIni import OperaIni
 from util.JsonUtil import JsonUtil
+import networkx as nx
 
 KEY_SECTION = 'ProjectManager'
 
@@ -20,6 +21,8 @@ KEY_DEFAULT = 'default'
 KEY_LIST = 'list'
 KEY_NAME = 'name'
 KEY_DESC = 'desc'
+
+KEY_MODULE_DEPENDENCIES = 'moduleDependencies'
 
 # 唯一标识，区分条目的
 KEY_ID = 'id'
@@ -123,3 +126,16 @@ class ProjectManager:
     def getProjectCmdGroups(self, projectId):
         projectInfo = self.getProjectInfoById(projectId)
         return DictUtil.get(projectInfo, KEY_CMD_GROUPS, [])
+
+    @staticmethod
+    def generateDiGraph(moduleList, nodes=None):
+        G = nx.DiGraph()
+        if not nodes:
+            nodes = [item[KEY_NAME] for item in moduleList]
+        G.add_nodes_from(nodes)
+        for moduleInfo in moduleList:
+            dependencies = DictUtil.get(moduleInfo, KEY_MODULE_DEPENDENCIES, [])
+            for dependency in dependencies:
+                if dependency in nodes:
+                    G.add_edge(DictUtil.get(moduleInfo, KEY_NAME, ""), dependency)
+        return G
