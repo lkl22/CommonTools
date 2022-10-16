@@ -375,6 +375,7 @@ class ProjectManagerWindow(QMainWindow):
             processManager = ProcessManager(name=DictUtil.get(moduleInfo, KEY_NAME),
                                             cmdList=cmdList,
                                             workingDir=workingDir,
+                                            processEnv=DictUtil.get(projectInfo, KEY_EVN_LIST, []),
                                             standardOutput=self.standardOutput,
                                             standardError=self.standardError)
             self.processManagers.append({KEY_NAME: DictUtil.get(moduleInfo, KEY_NAME), "processManager": processManager})

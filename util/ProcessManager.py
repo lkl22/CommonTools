@@ -19,6 +19,7 @@ KEY_PROGRAM = "program"
 KEY_ARGUMENTS = "arguments"
 KEY_WORKING_DIR = "workingDir"
 KEY_CONDITION_INPUT = 'conditionInput'
+KEY_EVN_IS_PATH = 'isPath'
 
 
 class ProcessManager(QObject):
@@ -34,7 +35,10 @@ class ProcessManager(QObject):
         self.process = QProcess()
         env: QProcessEnvironment = self.process.processEnvironment()
         for item in processEnv:
-            env.insert(item[KEY_NAME], item[KEY_VALUE])
+            if DictUtil.get(item, KEY_EVN_IS_PATH, False):
+                env.insert("PATH", item[KEY_VALUE] + os.pathsep + env.value("PATH", ""))
+            else:
+                env.insert(item[KEY_NAME], item[KEY_VALUE])
         LogUtil.d("processEnvironment", env.toStringList())
         self.process.setProcessEnvironment(env)
 
@@ -116,7 +120,11 @@ if __name__ == "__main__":
             {KEY_PROGRAM: 'ls', KEY_WORKING_DIR: "../"},
             {KEY_PROGRAM: 'ls', KEY_ARGUMENTS: "-l", KEY_WORKING_DIR: "../"}
         ],
-        processEnv=[{KEY_NAME: "aa", KEY_VALUE: "dd"}],
+        processEnv=[
+            {KEY_NAME: "aa", KEY_VALUE: "aa"},
+            {KEY_NAME: "ddd", KEY_VALUE: "ddd", KEY_EVN_IS_PATH: True},
+            {KEY_NAME: "ccc", KEY_VALUE: "ccc", KEY_EVN_IS_PATH: True}
+        ],
         standardOutput=lambda log: LogUtil.d(log),
         standardError=lambda log: LogUtil.e(log))
     processThread.run()
