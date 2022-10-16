@@ -3,11 +3,14 @@
 # Filename: ProjectManagerDialog.py
 # 定义一个ProjectManagerDialog类实现项目管理功能
 import copy
+import os.path
 import threading
 from concurrent.futures import as_completed
 from concurrent.futures.thread import ThreadPoolExecutor
 
 from PyQt5.QtCore import pyqtSignal
+
+from util.DateUtil import DateUtil
 from util.DictUtil import DictUtil
 from util.ListUtil import ListUtil
 from util.OperaIni import *
@@ -267,10 +270,37 @@ class ProjectManagerWindow(QMainWindow):
         if self.curProjectIndex < 0:
             WidgetUtil.showAboutDialog(text="请先选择一个工程")
             return
+
+        curProjectInfo = self.getCurProjectInfo()
+        detailProjectInfo = self.projectManager.getProjectInfoById(curProjectInfo[KEY_ID])
+
+        saveData = {"simpleInfo": curProjectInfo, "detailInfo": detailProjectInfo if detailProjectInfo else {}}
+        fp = WidgetUtil.getExistingDirectory(caption="请选择要备份保存的路径，不选的话默认使用当前工程路径。", directory=DictUtil.get(curProjectInfo, KEY_PATH, "./"))
+        if not fp:
+            fp = DictUtil.get(curProjectInfo, KEY_PATH, "./")
+        saveFile = os.path.join(fp, f"{curProjectInfo[KEY_NAME]}_{DateUtil.nowTime(timeFormat='%Y-%m-%d_%H:%M:%S')}.json")
+        with open(saveFile, 'w', encoding="utf-8") as file:
+            file.write(JsonUtil.encode(saveData, ensureAscii=False))
+        WidgetUtil.showAboutDialog(text=f"你成功保存<span style='color:red;'>{curProjectInfo[KEY_NAME]}</span>工程信息到<span style='color:red;'>{saveFile}</span>")
         pass
 
     def importProject(self):
         LogUtil.d("importProject")
+        curProjectInfo = self.getCurProjectInfo()
+        directory = DictUtil.get(curProjectInfo, KEY_PATH, "./")
+        fp = WidgetUtil.getOpenFileName(caption='选择备份的工程配置文件', directory=directory, filter='*.json', initialFilter='*.json')
+        if not fp:
+            WidgetUtil.showAboutDialog(text="您未选择配置文件，导入工程配置失败。")
+            return
+
+        fileContent = FileUtil.readFile(fp)
+        if not fileContent:
+            WidgetUtil.showAboutDialog(text="您选择的配置文件没有内容，导入工程配置失败。")
+            return
+        projectInfo = JsonUtil.decode(fileContent)
+        if not DictUtil.get(DictUtil.get(projectInfo, "simpleInfo", {}), KEY_NAME):
+            WidgetUtil.showAboutDialog(text="您选择的配置文件格式错误，导入工程配置失败。")
+            return
         pass
 
     def startExecute(self):
