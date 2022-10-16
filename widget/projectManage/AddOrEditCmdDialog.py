@@ -241,6 +241,12 @@ class AddOrEditCmdDialog(QtWidgets.QDialog):
         hbox.addWidget(self.dynamicArgumentsComboBox, 1)
         self.vLayout.addLayout(hbox)
 
+        self.isDynArgsCheckBox = WidgetUtil.createCheckBox(self, text="拼接动态参数",
+                                                           toolTip="是否跟固定参数拼接，不拼接就只使用情景参数，默认拼接",
+                                                           isChecked=DictUtil.get(self.default, KEY_IS_DYNAMIC_ARGUMENTS,
+                                                                                  DEFAULT_VALUE_IS_DYN_ARGS))
+        self.vLayout.addWidget(self.isDynArgsCheckBox)
+
         self.needSpaceCheckBox = WidgetUtil.createCheckBox(self, text="是否需要添加空格",
                                                            toolTip="跟固定参数拼接时是否需要添加空格，默认需要添加",
                                                            isChecked=DictUtil.get(self.default, KEY_NEED_SPACE,
@@ -359,6 +365,7 @@ class AddOrEditCmdDialog(QtWidgets.QDialog):
             if not item[KEY_OPTION_NAMES]:
                 self.dynamicArguments.remove(item)
         self.default[KEY_DYNAMIC_ARGUMENTS] = self.dynamicArguments
+        self.default[KEY_IS_DYNAMIC_ARGUMENTS] = self.isDynArgsCheckBox.isChecked()
         self.default[KEY_NEED_SPACE] = self.needSpaceCheckBox.isChecked()
 
         if self.isDebug:

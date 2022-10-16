@@ -108,11 +108,16 @@ class ProcessManager(QObject):
 
 
 if __name__ == "__main__":
-    processThread = ProcessManager(name="test", cmdList=[
-        {KEY_PROGRAM: 'ls'},
-        {KEY_PROGRAM: 'ls', KEY_ARGUMENTS: "-l"},
-        {KEY_PROGRAM: 'ls', KEY_WORKING_DIR: "../"},
-        {KEY_PROGRAM: 'ls', KEY_ARGUMENTS: "-l", KEY_WORKING_DIR: "../"}
-    ], processEnv=[{KEY_NAME: "aa", KEY_VALUE: "dd"}])
+    processThread = ProcessManager(
+        name="test",
+        cmdList=[
+            {KEY_PROGRAM: 'ls'},
+            {KEY_PROGRAM: 'ls', KEY_ARGUMENTS: "-l"},
+            {KEY_PROGRAM: 'ls', KEY_WORKING_DIR: "../"},
+            {KEY_PROGRAM: 'ls', KEY_ARGUMENTS: "-l", KEY_WORKING_DIR: "../"}
+        ],
+        processEnv=[{KEY_NAME: "aa", KEY_VALUE: "dd"}],
+        standardOutput=lambda log: LogUtil.d(log),
+        standardError=lambda log: LogUtil.e(log))
     processThread.run()
     pass

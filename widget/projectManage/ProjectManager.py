@@ -35,6 +35,7 @@ KEY_CONDITION_INPUT = 'conditionInput'
 KEY_WORKING_DIR = 'workingDir'
 KEY_IGNORE_FAILED = 'ignoreFailed'
 KEY_DYNAMIC_ARGUMENTS = 'dynamicArguments'
+KEY_IS_DYNAMIC_ARGUMENTS = 'isDynamicArguments'
 KEY_NEED_SPACE = 'needSpace'
 KEY_OPTION_GROUP_ID = 'optionGroupId'
 KEY_OPTION_NAMES = 'optionNames'
@@ -54,6 +55,7 @@ KEY_ECHO = 'echo'
 KEY_INPUT = 'input'
 
 DEFAULT_VALUE_NEED_SPACE = True
+DEFAULT_VALUE_IS_DYN_ARGS = True
 
 
 class ProjectManager:

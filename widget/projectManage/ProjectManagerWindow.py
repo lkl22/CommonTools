@@ -317,7 +317,8 @@ class ProjectManagerWindow(QMainWindow):
                         if not autoInput:
                             autoInput = optionValue[KEY_VALUE]
                         conditionInput.append({echo: autoInput})
-                args += StrUtil.decapitalize(tempDynamicArg) + " "
+                if DictUtil.get(cmdInfo, KEY_IS_DYNAMIC_ARGUMENTS, DEFAULT_VALUE_IS_DYN_ARGS):
+                    args += StrUtil.decapitalize(tempDynamicArg) + " "
 
         return args, conditionInput
 
