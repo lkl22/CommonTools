@@ -66,7 +66,7 @@ if __name__ == "__main__":
     # nx.draw_networkx(G, pos=nx.spectral_layout(G))
     # nx.draw_networkx(G, pos=nx.spectral_layout(G))
     # nx.draw_networkx(G, pos=nx.shell_layout(G))
-    # nx.draw_networkx(G, pos=nx.planar_layout(G))
+    nx.draw_networkx(G, pos=nx.planar_layout(G))
     # nx.draw_networkx(G, pos=nx.spiral_layout(G))
 
     LogUtil.d(nx.shortest_path(G, 1, 5))

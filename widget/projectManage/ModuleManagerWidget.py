@@ -9,6 +9,7 @@ from PyQt5.QtWidgets import QScrollArea, QFrame
 from util.ListUtil import ListUtil
 from util.WidgetUtil import *
 from widget.projectManage.AddOrEditModuleDialog import AddOrEditModuleDialog
+from widget.projectManage.ModuleDependencyDialog import ModuleDependencyDialog
 from widget.projectManage.ProjectManager import *
 
 
@@ -33,6 +34,10 @@ class ModuleManagerWidget(QFrame):
         self.addModuleBtn = WidgetUtil.createPushButton(self, text="Add", toolTip="添加新的选项配置", isEnable=False,
                                                         onClicked=self.addModule)
         hbox.addWidget(self.addModuleBtn)
+        self.previewModuleDependencyBtn = WidgetUtil.createPushButton(self, text="预览模块间依赖", toolTip="预览模块之间依赖关系",
+                                                                      isEnable=False,
+                                                                      onClicked=self.previewModuleDependency)
+        hbox.addWidget(self.previewModuleDependencyBtn)
         hbox.addItem(WidgetUtil.createHSpacerItem(1, 1))
         vbox.addLayout(hbox)
 
@@ -62,6 +67,7 @@ class ModuleManagerWidget(QFrame):
         self.projectInfo = projectInfo
         projectId = DictUtil.get(projectInfo, KEY_ID)
         self.addModuleBtn.setEnabled(projectId is not None)
+        self.previewModuleDependencyBtn.setEnabled(projectId is not None)
         self.modules = self.projectManager.getProjectModules(projectId) if projectId else []
         self.defaultModules = self.projectManager.getProjectDefaultModules(projectId) if projectId else []
         self.updateModuleList()
@@ -92,19 +98,28 @@ class ModuleManagerWidget(QFrame):
     def addModule(self):
         LogUtil.d("addModule")
         AddOrEditModuleDialog(callback=self.addOrEditModuleCallback, openDir=self.getProjectPath(),
-                              moduleList=self.modules, optionGroups=self.getOptionGroups(), cmdGroups=self.getCmdGroups())
+                              moduleList=self.modules, optionGroups=self.getOptionGroups(),
+                              cmdGroups=self.getCmdGroups())
+        pass
+
+    def previewModuleDependency(self):
+        LogUtil.d("previewModuleDependency")
+        ModuleDependencyDialog(ProjectManager.generateDiGraph(self.modules))
         pass
 
     def editModule(self, moduleInfo):
         LogUtil.d("editModule", moduleInfo)
         AddOrEditModuleDialog(callback=self.addOrEditModuleCallback, openDir=self.getProjectPath(), default=moduleInfo,
-                              moduleList=self.modules, optionGroups=self.getOptionGroups(), cmdGroups=self.getCmdGroups())
+                              moduleList=self.modules, optionGroups=self.getOptionGroups(),
+                              cmdGroups=self.getCmdGroups())
         pass
 
     def copyModule(self, moduleInfo):
         LogUtil.d("copyModule", moduleInfo)
-        AddOrEditModuleDialog(callback=self.addOrEditModuleCallback, openDir=self.getProjectPath(), default=copy.deepcopy(moduleInfo),
-                              moduleList=self.modules, optionGroups=self.getOptionGroups(), cmdGroups=self.getCmdGroups(), isCopyEdit=True)
+        AddOrEditModuleDialog(callback=self.addOrEditModuleCallback, openDir=self.getProjectPath(),
+                              default=copy.deepcopy(moduleInfo),
+                              moduleList=self.modules, optionGroups=self.getOptionGroups(),
+                              cmdGroups=self.getCmdGroups(), isCopyEdit=True)
         pass
 
     def addOrEditModuleCallback(self, info):
@@ -138,8 +153,10 @@ class ModuleManagerWidget(QFrame):
     def updateModuleItem(self, index, moduleInfo):
         LogUtil.d("updateModuleItem", index, moduleInfo)
         if index >= len(self.moduleWidgets):
-            moduleWidget = ModuleWidget(moduleInfo=moduleInfo, defaultModules=self.defaultModules, editFunc=self.editModule,
-                                        copyFunc=self.copyModule, delFunc=self.delModule, selectedChanged=self.saveProjectDefaultModules)
+            moduleWidget = ModuleWidget(moduleInfo=moduleInfo, defaultModules=self.defaultModules,
+                                        editFunc=self.editModule,
+                                        copyFunc=self.copyModule, delFunc=self.delModule,
+                                        selectedChanged=self.saveProjectDefaultModules)
             self.moduleWidgets.append(moduleWidget)
             self.vLayout.addWidget(moduleWidget)
         else:
