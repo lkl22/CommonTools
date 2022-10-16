@@ -327,10 +327,10 @@ class ProjectManagerWindow(QMainWindow):
         for item in srcCmdList:
             projectCmdGroups = self.cmdManagerWidget.getProjectCmdGroupInfo()
             cmdGroups = DictUtil.get(item, KEY_CMD_GROUPS, [])
-            needIgnore = False
+            needIgnore = len(cmdGroups) > 0
             for cmdGroupName in cmdGroups:
-                if cmdGroupName in projectCmdGroups[KEY_LIST] and cmdGroupName not in projectCmdGroups[KEY_DEFAULT]:
-                    needIgnore = True
+                if cmdGroupName in projectCmdGroups[KEY_LIST] and cmdGroupName in projectCmdGroups[KEY_DEFAULT]:
+                    needIgnore = False
                     break
             if needIgnore:
                 continue
