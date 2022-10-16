@@ -52,7 +52,7 @@ class ProcessManager(QObject):
         for cmd in self.cmdList:
             self.executeCmd(cmd)
         self.handleStandardOutput(f"{self.name} 执行结束。耗时：{DateUtil.nowTimestamp(isMilliSecond=True) - startTime} ms\n")
-        return self.isSuccess
+        return self.isSuccess, self.name
 
     def executeCmd(self, cmdInfo):
         workingDir = DictUtil.get(cmdInfo, KEY_WORKING_DIR)

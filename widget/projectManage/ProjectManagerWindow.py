@@ -2,6 +2,7 @@
 # python 3.x
 # Filename: ProjectManagerDialog.py
 # 定义一个ProjectManagerDialog类实现项目管理功能
+import copy
 import threading
 from concurrent.futures import as_completed
 from concurrent.futures.thread import ThreadPoolExecutor
@@ -345,10 +346,24 @@ class ProjectManagerWindow(QMainWindow):
             })
         return cmdList
 
+    @staticmethod
+    def dependencyTasksAllFinished(dependencies, allExecuteModules, hasFinishedTasks):
+        dependencyTasksAllFinished = True
+        if dependencies:
+            for dependency in dependencies:
+                if dependency in allExecuteModules and dependency not in hasFinishedTasks:
+                    dependencyTasksAllFinished = False
+                    break
+        return dependencyTasksAllFinished
+
     def executeModuleCmd(self, projectInfo, modules):
         self.futureList.clear()
         self.processManagers.clear()
         LogUtil.e(f"executeModuleCmd start. pid: {os.getpid()} threadId: {threading.current_thread().ident}")
+
+        allTasks = copy.deepcopy(modules)
+        allExecuteModules = [item[KEY_NAME] for item in modules]
+        hasFinishedTasks = []
         for moduleInfo in modules:
             projectDir = DictUtil.get(projectInfo, KEY_PATH)
             workingDir = DictUtil.get(moduleInfo, KEY_PATH, projectDir)
@@ -361,19 +376,44 @@ class ProjectManagerWindow(QMainWindow):
                                             workingDir=workingDir,
                                             standardOutput=self.standardOutput,
                                             standardError=self.standardError)
-            self.processManagers.append(processManager)
-            future = self.executor.submit(processManager.run)
-            self.futureList.append(future)
+            self.processManagers.append({KEY_NAME: DictUtil.get(moduleInfo, KEY_NAME), "processManager": processManager})
+            dependencies = DictUtil.get(moduleInfo, KEY_MODULE_DEPENDENCIES, [])
+            dependencyTasksAllFinished = ProjectManagerWindow.dependencyTasksAllFinished(dependencies, allExecuteModules, hasFinishedTasks)
+            if dependencyTasksAllFinished:
+                future = self.executor.submit(processManager.run)
+                self.futureList.append(future)
+                allTasks.remove(ListUtil.find(allTasks, KEY_NAME, moduleInfo[KEY_NAME]))
 
-        for future in as_completed(self.futureList):
-            data = future.result()
-            LogUtil.d(future, data)
+        hasNewTaskAdd = False
+        while len(self.futureList) < len(modules) or hasNewTaskAdd:
+            hasNewTaskAdd = False
+            for future in as_completed(self.futureList):
+                isSuccess, taskName = future.result()
+                if taskName in hasFinishedTasks:
+                    continue
+                hasFinishedTasks.append(taskName)
+                LogUtil.d(future, isSuccess, taskName, "hasFinishedTasks", hasFinishedTasks)
+                copyAllTasks = copy.deepcopy(allTasks)
+                for moduleInfo in copyAllTasks:
+                    dependencies = DictUtil.get(moduleInfo, KEY_MODULE_DEPENDENCIES, [])
+                    dependencyTasksAllFinished = ProjectManagerWindow.dependencyTasksAllFinished(dependencies,
+                                                                                                 allExecuteModules,
+                                                                                                 hasFinishedTasks)
+                    if dependencyTasksAllFinished:
+                        future = self.executor.submit(ListUtil.find(self.processManagers, KEY_NAME, moduleInfo[KEY_NAME])["processManager"].run)
+                        self.futureList.append(future)
+                        hasNewTaskAdd = True
+                        allTasks.remove(ListUtil.find(allTasks, KEY_NAME, moduleInfo[KEY_NAME]))
+
         LogUtil.e(f"executeModuleCmd all finished. pid: {os.getpid()}")
         self.execUi.emit(TYPE_HIDE_LOADING_DIALOG)
         pass
 
     def standardOutput(self, log):
-        WidgetUtil.appendTextEdit(self.consoleTextEdit, text=log)
+        if "开始执行" in log or "执行结束" in log:
+            WidgetUtil.appendTextEdit(self.consoleTextEdit, text=log, color='#0f0')
+        else:
+            WidgetUtil.appendTextEdit(self.consoleTextEdit, text=log)
         pass
 
     def standardError(self, log):

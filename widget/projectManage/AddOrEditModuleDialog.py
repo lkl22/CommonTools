@@ -161,7 +161,10 @@ class AddOrEditModuleDialog(QtWidgets.QDialog):
         self.vbox.addWidget(WidgetUtil.createLabel(self, text="选择模块依赖的子模块："))
 
         hbox = None
-        maxCol = 1
+        if len(self.nodes) < 5:
+            maxCol = 1
+        else:
+            maxCol = 8
         for index, node in enumerate(self.nodes):
             if index % maxCol == 0:
                 hbox = WidgetUtil.createHBoxLayout(spacing=10)
