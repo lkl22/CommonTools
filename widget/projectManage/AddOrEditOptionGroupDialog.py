@@ -33,7 +33,10 @@ class AddOrEditOptionGroupDialog(QtWidgets.QDialog):
         self.default = default
         self.options = copy.deepcopy(default[KEY_OPTIONS])
 
-        self.setWindowFlags(Qt.Dialog | Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint | Qt.WindowStaysOnTopHint)
+        windowFlags = Qt.Dialog | Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint
+        if PlatformUtil.isMac():
+            windowFlags |= Qt.WindowStaysOnTopHint
+        self.setWindowFlags(windowFlags)
         AddOrEditOptionGroupDialog.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.6)
         AddOrEditOptionGroupDialog.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.5)
         LogUtil.d("Add Or Edit Option Group Dialog")

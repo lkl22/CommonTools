@@ -53,7 +53,10 @@ class AddOrEditModuleDialog(QtWidgets.QDialog):
         self.updateDependenciesNodes()
         self.dependencyWidgets = []
 
-        self.setWindowFlags(Qt.Dialog | Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint | Qt.WindowStaysOnTopHint)
+        windowFlags = Qt.Dialog | Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint
+        if PlatformUtil.isMac():
+            windowFlags |= Qt.WindowStaysOnTopHint
+        self.setWindowFlags(windowFlags)
         AddOrEditModuleDialog.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.6)
         AddOrEditModuleDialog.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.5)
         LogUtil.d("Add Or Edit Module Dialog")

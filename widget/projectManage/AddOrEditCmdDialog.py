@@ -75,7 +75,10 @@ class AddOrEditCmdDialog(QtWidgets.QDialog):
                  isDebug=False):
         # 调用父类的构函
         QtWidgets.QDialog.__init__(self)
-        self.setWindowFlags(Qt.Dialog | Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint | Qt.WindowStaysOnTopHint)
+        windowFlags = Qt.Dialog | Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint
+        if PlatformUtil.isMac():
+            windowFlags |= Qt.WindowStaysOnTopHint
+        self.setWindowFlags(windowFlags)
         AddOrEditCmdDialog.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.6)
         AddOrEditCmdDialog.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.5)
         LogUtil.d("Add or Edit Cmd Dialog")

@@ -10,6 +10,7 @@ import matplotlib
 from PyQt5.QtCore import Qt, QMargins
 from PyQt5.QtWidgets import QDialogButtonBox
 from util.LogUtil import LogUtil
+from util.PlatformUtil import PlatformUtil
 from util.WidgetUtil import WidgetUtil
 
 matplotlib.use('Qt5Agg')
@@ -54,7 +55,10 @@ class ModuleDependencyDialog(QtWidgets.QDialog):
         self.G = G
         self.isDebug = isDebug
 
-        self.setWindowFlags(Qt.Dialog | Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint | Qt.WindowStaysOnTopHint)
+        windowFlags = Qt.Dialog | Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint
+        if PlatformUtil.isMac():
+            windowFlags |= Qt.WindowStaysOnTopHint
+        self.setWindowFlags(windowFlags)
         ModuleDependencyDialog.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.6)
         ModuleDependencyDialog.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.5)
         LogUtil.d("Add Or Edit Module Dialog")

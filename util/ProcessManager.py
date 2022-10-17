@@ -4,7 +4,6 @@
 # 定义一个ProcessManager工具类实现调用外部进程相关的功能
 import os
 import threading
-from time import sleep
 
 from PyQt5.QtCore import QProcess, QProcessEnvironment, QTextCodec, pyqtSignal, QObject
 
@@ -21,6 +20,8 @@ KEY_WORKING_DIR = "workingDir"
 KEY_CONDITION_INPUT = 'conditionInput'
 KEY_EVN_IS_PATH = 'isPath'
 
+TAG = "ProcessManager"
+
 
 class ProcessManager(QObject):
     standardOutput = pyqtSignal(str)
@@ -31,31 +32,35 @@ class ProcessManager(QObject):
         self.name = name
         self.cmdList = cmdList
         self.workingDir = workingDir
+        self.processEnv = processEnv
+        self.process = None
 
-        self.process = QProcess()
-        env: QProcessEnvironment = self.process.processEnvironment()
-        for item in processEnv:
-            if DictUtil.get(item, KEY_EVN_IS_PATH, False):
-                env.insert("PATH", item[KEY_VALUE] + os.pathsep + env.value("PATH", ""))
-            else:
-                env.insert(item[KEY_NAME], item[KEY_VALUE])
-        LogUtil.d("processEnvironment", env.toStringList())
-        self.process.setProcessEnvironment(env)
-
+        LogUtil.d(TAG, name, cmdList, workingDir, processEnv)
         if standardOutput:
             self.standardOutput.connect(standardOutput)
         if standardError:
             self.standardError.connect(standardError)
         self.isSuccess = True
-        pass
 
     def run(self):
         startTime = DateUtil.nowTimestamp(isMilliSecond=True)
-        self.handleStandardOutput(f'{self.name} 开始执行 {threading.current_thread().ident}\n')
-        # sleep(115)
+        self.handleStandardOutput(f'开始执行 {threading.current_thread().ident}\n')
+        # 必须放到run方法里，不然多线程在构造函数里创建就会出现需要用户输入时一直没有StandardOutput
+        self.process = QProcess()
+        env: QProcessEnvironment = self.process.processEnvironment()
+        # 必须将系统环境变量也一起设置进去，不然会出现指令找不到的情况
+        env.insert("PATH", os.environ["PATH"])
+        for item in self.processEnv:
+            if DictUtil.get(item, KEY_EVN_IS_PATH, False):
+                env.insert("PATH", item[KEY_VALUE] + os.pathsep + env.value("PATH", ""))
+            else:
+                env.insert(item[KEY_NAME], item[KEY_VALUE])
+        LogUtil.d(TAG, "processEnvironment", env.toStringList())
+        self.process.setProcessEnvironment(env)
+
         for cmd in self.cmdList:
             self.executeCmd(cmd)
-        self.handleStandardOutput(f"{self.name} 执行结束。耗时：{DateUtil.nowTimestamp(isMilliSecond=True) - startTime} ms\n")
+        self.handleStandardOutput(f"执行结束。耗时：{DateUtil.nowTimestamp(isMilliSecond=True) - startTime} ms\n")
         return self.isSuccess, self.name
 
     def executeCmd(self, cmdInfo):
@@ -66,7 +71,6 @@ class ProcessManager(QObject):
         args = DictUtil.get(cmdInfo, KEY_ARGUMENTS)
         cmd = f"{DictUtil.get(cmdInfo, KEY_PROGRAM)} {args if args else ''}"
         self.handleStandardOutput(f"executeCmd: {cmd} start. \nworkingDir: {workingDir}\n")
-        self.handleStandardOutput(f"执行指令：{cmd}\n")
         self.process.start(cmd)
         # self.process.start("lsss")
         # 必须执行了程序后设置读取输出才有效
@@ -74,7 +78,7 @@ class ProcessManager(QObject):
         self.process.readyReadStandardError.connect(lambda: self.readStandardError(cmdInfo))
         # self.process.waitForReadyRead()
         self.process.waitForFinished()
-        LogUtil.d(f"executeCmd: {cmd} end.", self.process.state(), self.process.exitCode(), self.process.exitStatus(),
+        LogUtil.d(TAG, f"executeCmd: {cmd} end.", self.process.state(), self.process.exitCode(), self.process.exitStatus(),
                   self.process.error())
 
     def readStandardOutput(self, cmdInfo):
@@ -84,7 +88,7 @@ class ProcessManager(QObject):
             self.handleStandardOutput(log)
 
     def handleStandardOutput(self, log):
-        self.standardOutput.emit(f"{DateUtil.nowTimeMs()} {os.getpid()} {threading.current_thread().ident} {log}")
+        self.standardOutput.emit(f"{DateUtil.nowTimeMs()} {os.getpid()} {threading.current_thread().ident} {self.name} {log}")
 
     def readStandardError(self, cmdInfo):
         log = QTextCodec.codecForLocale().toUnicode(self.process.readAllStandardError())
@@ -93,7 +97,7 @@ class ProcessManager(QObject):
             self.handleStandardError(log)
 
     def handleStandardError(self, log):
-        self.standardError.emit(f"{DateUtil.nowTimeMs()} {os.getpid()} {threading.current_thread().ident} {log}")
+        self.standardError.emit(f"{DateUtil.nowTimeMs()} {os.getpid()} {threading.current_thread().ident} {self.name} {log}")
         self.isSuccess = False
 
     def handleConditionInput(self, cmdInfo, log):
@@ -101,7 +105,7 @@ class ProcessManager(QObject):
         for item in conditionInput:
             for key in item:
                 if key in log:
-                    LogUtil.e("handleConditionInput", item[key])
+                    LogUtil.e(TAG, "handleConditionInput", item[key])
                     self.process.write(item[key].encode('utf-8'))
                     self.handleStandardOutput(f"自动输入\n{key} ----> {item[key]}")
         pass
