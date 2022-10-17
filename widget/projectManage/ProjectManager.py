@@ -69,6 +69,11 @@ class ProjectManager:
         self.operaIni.saveIni()
         pass
 
+    def saveProjectInfoById(self, projectId, info):
+        self.operaIni.addItem(KEY_SECTION, projectId, JsonUtil.encode(info, ensureAscii=False))
+        self.operaIni.saveIni()
+        pass
+
     def delProjectInfoById(self, projectId):
         self.operaIni.removeItem(KEY_SECTION, projectId)
         self.operaIni.saveIni()

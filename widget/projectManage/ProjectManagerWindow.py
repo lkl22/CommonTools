@@ -301,6 +301,27 @@ class ProjectManagerWindow(QMainWindow):
         if not DictUtil.get(DictUtil.get(projectInfo, "simpleInfo", {}), KEY_NAME):
             WidgetUtil.showAboutDialog(text="您选择的配置文件格式错误，导入工程配置失败。")
             return
+        if ListUtil.contain(self.projects[KEY_LIST], KEY_NAME, projectInfo["simpleInfo"][KEY_NAME]):
+            WidgetUtil.showQuestionDialog(message=f"{projectInfo['simpleInfo'][KEY_NAME]}已经存在，是否继续，继续将覆盖现有的配置。",
+                                          acceptFunc=lambda: self.startImportProject(projectInfo, True))
+            return
+        self.startImportProject(projectInfo)
+        pass
+
+    def startImportProject(self, projectInfo, has=False):
+        LogUtil.d(TAG, "startImportProject", has)
+        projects = self.projects[KEY_LIST]
+        if has:
+            projects.remove(ListUtil.find(projects, KEY_NAME, projectInfo['simpleInfo'][KEY_NAME]))
+        projects.append(projectInfo['simpleInfo'])
+        # 按项目名称重新排序
+        self.projects[KEY_LIST] = sorted(projects, key=lambda x: x[KEY_NAME])
+        self.projectManager.saveProjectInfoById(projectInfo['simpleInfo'][KEY_ID], projectInfo['detailInfo'])
+        # 更新工程下拉选择框
+        self.updateProjectComboBox()
+        # 将工程信息保存到ini文件
+        self.saveProjects()
+        WidgetUtil.showAboutDialog(text=f"您成功导入<span style='color:red;'>{projectInfo['simpleInfo'][KEY_NAME]}</span>工程信息")
         pass
 
     def startExecute(self):
