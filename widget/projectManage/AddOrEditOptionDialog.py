@@ -224,7 +224,8 @@ class AddOrEditOptionValueDialog(QtWidgets.QDialog):
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
         hbox.addWidget(WidgetUtil.createLabel(self, text="请输入命令参数值：", minSize=QSize(labelWidth, 20)))
         self.valueLineEdit = WidgetUtil.createLineEdit(self, text=DictUtil.get(self.default, KEY_VALUE),
-                                                       holderText="命令参数值", isReadOnly=not self.isAdd)
+                                                       holderText="命令参数值", toolTip=f"输入{MACRO_REPEAT}表示跟前一个命令参数一致，其他按真实输入处理",
+                                                       isReadOnly=not self.isAdd)
         hbox.addWidget(self.valueLineEdit)
         vLayout.addLayout(hbox)
 
@@ -254,10 +255,11 @@ class AddOrEditOptionValueDialog(QtWidgets.QDialog):
         pass
 
     def acceptFunc(self):
+        # 允许输入空格，代表不输入内容
         value = self.valueLineEdit.text().strip()
-        if not value:
-            WidgetUtil.showAboutDialog(text="请输入命令参数值")
-            return
+        # if not value:
+        #     WidgetUtil.showAboutDialog(text="请输入命令参数值")
+        #     return
         desc = self.descLineEdit.text().strip()
         if not desc:
             WidgetUtil.showAboutDialog(text="请输入命令参数描述")

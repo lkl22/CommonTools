@@ -339,35 +339,46 @@ class ProjectManagerWindow(QMainWindow):
 
     def handleCmdArgs(self, cmdInfo):
         args = DictUtil.get(cmdInfo, KEY_ARGUMENTS)
-        conditionInput = []
+        conditionInputs = []
+        # 指令依赖的option选项群组
         dynamicArguments = DictUtil.get(cmdInfo, KEY_DYNAMIC_ARGUMENTS, None)
         if dynamicArguments:
             needSpace = DictUtil.get(cmdInfo, KEY_NEED_SPACE, DEFAULT_VALUE_NEED_SPACE)
             if needSpace:
                 args += " "
-            optionGroups = self.optionManagerWidget.getProjectOptionGroups()
+            # 工程的所有option选项群组
+            projectOptionGroups = self.optionManagerWidget.getProjectOptionGroups()
             for dynamicArgument in dynamicArguments:
-                tempDynamicArg = ""
-                options = ListUtil.get(optionGroups, KEY_ID, dynamicArgument[KEY_OPTION_GROUP_ID], KEY_OPTIONS)
-                for option in options:
+                tempDynamicArg = []
+                # 工程指定分组下的option选项配置
+                projectOptions = ListUtil.get(projectOptionGroups, KEY_ID, dynamicArgument[KEY_OPTION_GROUP_ID], KEY_OPTIONS)
+                for option in projectOptions:
                     if option[KEY_NAME] not in dynamicArgument[KEY_OPTION_NAMES]:
+                        # 当前的option不属于当前指令，直接跳过
                         continue
                     default = DictUtil.get(option, KEY_DEFAULT, -1)
                     echo = DictUtil.get(option, KEY_ECHO, "")
                     optionValues = DictUtil.get(option, KEY_OPTION_VALUES, [])
                     if default == -1 or not optionValues:
                         continue
+                    # 选项的信息
                     optionValue = optionValues[default]
-                    tempDynamicArg += StrUtil.capitalize(optionValue[KEY_VALUE])
                     if echo:
                         autoInput = DictUtil.get(optionValue, KEY_INPUT)
                         if not autoInput:
                             autoInput = optionValue[KEY_VALUE]
-                        conditionInput.append({echo: autoInput})
+                        conditionInput = ListUtil.findByKey(conditionInputs, echo)
+                        if conditionInput:
+                            conditionInput[echo] += conditionInput[echo] if autoInput == MACRO_REPEAT else autoInput
+                        else:
+                            conditionInputs.append({echo: autoInput})
+                    tempDynamicArg.append(tempDynamicArg[-1] if optionValue[KEY_VALUE] == MACRO_REPEAT else optionValue[KEY_VALUE])
                 if DictUtil.get(cmdInfo, KEY_IS_DYNAMIC_ARGUMENTS, DEFAULT_VALUE_IS_DYN_ARGS):
-                    args += StrUtil.decapitalize(tempDynamicArg) + " "
+                    for arg in tempDynamicArg:
+                        args += arg
+                    args += " "
 
-        return args, conditionInput
+        return args, conditionInputs
 
     def handleCmdList(self, moduleDir, srcCmdList):
         cmdList = []

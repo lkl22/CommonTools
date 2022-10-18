@@ -80,6 +80,20 @@ class ListUtil:
         return None
 
     @staticmethod
+    def findByKey(listData: [dict], findKey: str):
+        """
+        从字典列表数据里查找指定字典数据
+        :param listData: 源数据
+        :param findKey: 查找目标数据的key
+        :return: 找到的数据
+        """
+        if listData:
+            for item in listData:
+                if findKey in item:
+                    return item
+        return None
+
+    @staticmethod
     def get(listData: [dict], filterKey: str, filterValue, findKey: str, default=None):
         """
         从字典列表数据里查找指定字典数据的某个值

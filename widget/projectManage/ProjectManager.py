@@ -12,6 +12,8 @@ KEY_SECTION = 'ProjectManager'
 
 ITEM_KEY_PROJECT = 'projects'
 
+MACRO_REPEAT = "$repeat$"
+
 KEY_DEFAULT_MODULES = 'defaultModules'
 KEY_MODULES = 'modules'
 KEY_OPTION_GROUPS = 'optionGroups'
