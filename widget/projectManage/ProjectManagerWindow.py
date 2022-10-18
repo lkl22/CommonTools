@@ -64,9 +64,7 @@ class ProjectManagerWindow(QMainWindow):
         self.moduleManagerWidget = ModuleManagerWidget(projectManager=self.projectManager,
                                                        getOptionGroupsFunc=lambda: self.optionManagerWidget.getProjectOptionGroups(),
                                                        getCmdGroupsFunc=lambda: self.cmdManagerWidget.getProjectCmdGroupList())
-        self.loadingDialog = LoadingDialog(showText="正在执行。。。", btnText="终止",
-                                           rejectedFunc=lambda: LogUtil.d("close loading"), isDebug=self.isDebug)
-        self.loadingDialog.hide()
+        self.loadingDialog = None
 
         layoutWidget = QtWidgets.QWidget(self)
         layoutWidget.setObjectName("layoutWidget")
@@ -87,7 +85,7 @@ class ProjectManagerWindow(QMainWindow):
         self.execUi.connect(self.updateUi)
 
     def updateUi(self, type):
-        if type == TYPE_HIDE_LOADING_DIALOG:
+        if type == TYPE_HIDE_LOADING_DIALOG and self.loadingDialog is not None:
             self.loadingDialog.hide()
         pass
 
@@ -332,7 +330,11 @@ class ProjectManagerWindow(QMainWindow):
 
         # 必须放到线程执行，否则加载框要等指令执行完才会弹
         threading.Thread(target=self.executeModuleCmd, args=(projectInfo, modules)).start()
-        self.loadingDialog.show()
+        if self.loadingDialog is None:
+            self.loadingDialog = LoadingDialog(showText="正在执行。。。", btnText="终止",
+                                               rejectedFunc=lambda: LogUtil.d("close loading"), isDebug=self.isDebug)
+        else:
+            self.loadingDialog.show()
         pass
 
     def handleCmdArgs(self, cmdInfo):

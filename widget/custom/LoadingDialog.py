@@ -22,14 +22,14 @@ class LoadingDialog(QtWidgets.QDialog):
         LogUtil.d("Init Loading Dialog")
 
         self.setFixedSize(LoadingDialog.WINDOW_WIDTH, LoadingDialog.WINDOW_HEIGHT)
+        self.setObjectName("LoadingDialog")
+        self.setStyleSheet("LoadingDialog{background-color:rgb(0,255,255)}")
         # 设置透明度
-        self.setWindowOpacity(0.8)
-        self.setWindowFlags(Qt.Dialog or Qt.CustomizeWindowHint)
+        # self.setWindowOpacity(0.8)
 
         # 取消对话框标题
-        self.setWindowFlags(Qt.Dialog or Qt.FramelessWindowHint)
+        self.setWindowFlags(Qt.Dialog | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
 
-        # 取消对话框标题和边框
         self.setAutoFillBackground(True)
 
         layoutWidget = QtWidgets.QWidget(self)
@@ -63,10 +63,9 @@ class LoadingDialog(QtWidgets.QDialog):
         if rejectedFunc:
             self.rejected.connect(rejectedFunc)
 
-        self.setWindowModality(Qt.ApplicationModal)
-        # 很关键，不加出不来
-        if not isDebug:
-            self.exec_()
+        # 要使用非模态对话框
+        self.setModal(False)
+        self.show()
 
 
 if __name__ == '__main__':
