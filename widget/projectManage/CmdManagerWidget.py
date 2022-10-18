@@ -47,7 +47,7 @@ class CmdManagerWidget(QFrame):
         self.spacerItem = WidgetUtil.createVSpacerItem(1, 1)
         self.vLayout.addItem(self.spacerItem)
 
-        self.setStyleSheet("CmdManagerWidget{border:1px solid rgb(0,0,255)}")
+        # self.setStyleSheet("CmdManagerWidget{border:1px solid rgb(0,0,255)}")
         pass
 
     def setProjectInfo(self, projectInfo):

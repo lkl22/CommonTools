@@ -235,7 +235,6 @@ class MainWidget(QMainWindow):
         LogUtil.i("jumpProjectManagerWindow")
         from widget.projectManage.ProjectManagerWindow import ProjectManagerWindow
         window = ProjectManagerWindow()
-        window.center()
         # 注：没有这句，是不打开另一个主界面的
         self.windowList.append(window)
         self.close()

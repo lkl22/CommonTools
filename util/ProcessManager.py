@@ -72,12 +72,12 @@ class ProcessManager(QObject):
         cmd = f"{DictUtil.get(cmdInfo, KEY_PROGRAM)} {args if args else ''}"
         self.handleStandardOutput(f"executeCmd: {cmd} start. \nworkingDir: {workingDir}\n")
         self.process.start(cmd)
-        # self.process.start("lsss")
-        # 必须执行了程序后设置读取输出才有效
+
         self.process.readyReadStandardOutput.connect(lambda: self.readStandardOutput(cmdInfo))
         self.process.readyReadStandardError.connect(lambda: self.readStandardError(cmdInfo))
-        # self.process.waitForReadyRead()
-        self.process.waitForFinished()
+
+        self.process.waitForReadyRead()
+        self.process.waitForFinished(-1)
         LogUtil.d(TAG, f"executeCmd: {cmd} end.", self.process.state(), self.process.exitCode(), self.process.exitStatus(),
                   self.process.error())
 

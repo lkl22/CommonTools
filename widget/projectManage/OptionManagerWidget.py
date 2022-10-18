@@ -44,7 +44,7 @@ class OptionManagerWidget(QFrame):
         self.vLayout = WidgetUtil.createVBoxLayout(scrollAreaWidget, margins=QMargins(5, 5, 5, 5))
         self.spacerItem = WidgetUtil.createVSpacerItem(1, 1)
         self.vLayout.addItem(self.spacerItem)
-        self.setStyleSheet("OptionManagerWidget{border:1px solid rgb(0,255,0)}")
+        # self.setStyleSheet("OptionManagerWidget{border:1px solid rgb(0,255,0)}")
         pass
 
     def setProjectInfo(self, projectInfo):
@@ -137,7 +137,7 @@ class OptionGroupWidget(QFrame):
         self.addAction(WidgetUtil.createAction(self, text="编辑", func=lambda: editFunc(self.info)))
         self.addAction(WidgetUtil.createAction(self, text="删除", func=lambda: delFunc(self, self.info)))
         self.setContextMenuPolicy(Qt.ActionsContextMenu)
-        self.setStyleSheet("OptionGroupWidget{border:1px solid rgb(255,0,0)}")
+        self.setStyleSheet("OptionGroupWidget{border:1px solid rgb(123,123,123)}")
 
         self.updateUi(info)
         pass

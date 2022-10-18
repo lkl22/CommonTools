@@ -59,7 +59,7 @@ class ModuleManagerWidget(QFrame):
         # self.setLineWidth(2)
         # self.setFrameShadow(QFrame.Plain)
         # self.setFrameShape(QFrame.Box)
-        self.setStyleSheet("ModuleManagerWidget{border:1px solid rgb(255,0,0)}")
+        # self.setStyleSheet("ModuleManagerWidget{border:1px solid rgb(255,0,0)}")
         pass
 
     def setProjectInfo(self, projectInfo):

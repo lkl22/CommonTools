@@ -40,7 +40,8 @@ class ProjectManagerWindow(QMainWindow):
         # 调用父类的构函
         QMainWindow.__init__(self)
         # self.setWindowFlags(Qt.Dialog | Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint)
-        ProjectManagerWindow.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.9)
+        # 宽度不能设置太宽，设置太宽会显示在左上角不居中
+        ProjectManagerWindow.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.85)
         ProjectManagerWindow.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.8)
         LogUtil.d("Project Manage Window")
         self.setObjectName("ProjectManagerWindow")
@@ -102,13 +103,6 @@ class ProjectManagerWindow(QMainWindow):
         event.accept()
         pass
 
-    def center(self):  # 主窗口居中显示函数
-        screen = QDesktopWidget().screenGeometry()
-        size = self.geometry()
-        self.move(int((screen.width() - size.width()) / 2),
-                  int((screen.height() - size.height()) / (3 if PlatformUtil.isMac() else 2)))
-        pass
-
     def createProjectManageGroupBox(self, parent):
         box = WidgetUtil.createGroupBox(parent, title="")
         vbox = WidgetUtil.createVBoxLayout(box, margins=QMargins(0, 0, 0, 0), spacing=5)
@@ -157,12 +151,12 @@ class ProjectManagerWindow(QMainWindow):
         evnList = DictUtil.get(projectInfo, KEY_EVN_LIST)
         evnDesc = ""
         if evnList:
-            evnDesc = "<span style='color:green;'>环境变量：</span><br/>"
+            evnDesc = "<span style='color:blue;'>环境变量：</span><br/>"
             for item in evnList:
-                evnDesc += f"<span style='color:red;'>变量名：{item[KEY_NAME]}<br/>变量值：{item[KEY_VALUE]}</span><br/>" \
+                evnDesc += f"<span style='color:green;'>变量名：{item[KEY_NAME]}<br/>变量值：{item[KEY_VALUE]}</span><br/>" \
                            f"{'Path环境变量' if item[KEY_EVN_IS_PATH] else '普通环境变量'}<br/>描述：{item[KEY_DESC]}<br/><br/>"
 
-        desc = f"<span style='color:green;'>工程路径：<br/></span><span style='color:red;'>{projectInfo[KEY_PATH]}</span>" \
+        desc = f"<span style='color:blue;'>工程路径：<br/></span><span style='color:green;'>{projectInfo[KEY_PATH]}</span>" \
                f"<br/><br/>{evnDesc}"
         return desc
 
@@ -437,7 +431,7 @@ class ProjectManagerWindow(QMainWindow):
                 self.futureList.append(future)
                 allTasks.remove(ListUtil.find(allTasks, KEY_NAME, moduleInfo[KEY_NAME]))
 
-        hasNewTaskAdd = False
+        hasNewTaskAdd = True
         while len(self.futureList) < len(modules) or hasNewTaskAdd:
             hasNewTaskAdd = False
             for future in as_completed(self.futureList):
@@ -464,7 +458,7 @@ class ProjectManagerWindow(QMainWindow):
 
     def standardOutput(self, log):
         if "开始执行" in log or "执行结束" in log:
-            WidgetUtil.appendTextEdit(self.consoleTextEdit, text=log, color='#0f0')
+            WidgetUtil.appendTextEdit(self.consoleTextEdit, text=log, color='#000')
         else:
             WidgetUtil.appendTextEdit(self.consoleTextEdit, text=log)
         pass
@@ -477,6 +471,5 @@ class ProjectManagerWindow(QMainWindow):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     window = ProjectManagerWindow(isDebug=True)
-    window.center()
     window.show()
     sys.exit(app.exec_())
