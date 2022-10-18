@@ -38,6 +38,10 @@ class ModuleManagerWidget(QFrame):
                                                                       isEnable=False,
                                                                       onClicked=self.previewModuleDependency)
         hbox.addWidget(self.previewModuleDependencyBtn)
+        self.allSelectedCheckBox = WidgetUtil.createCheckBox(self, text="All", toolTip="☑️选中所有模块，否则取消全选。",
+                                                             isEnable=False,
+                                                             isChecked=False, clicked=self.allSelected)
+        hbox.addWidget(self.allSelectedCheckBox)
         hbox.addItem(WidgetUtil.createHSpacerItem(1, 1))
         vbox.addLayout(hbox)
 
@@ -68,6 +72,7 @@ class ModuleManagerWidget(QFrame):
         projectId = DictUtil.get(projectInfo, KEY_ID)
         self.addModuleBtn.setEnabled(projectId is not None)
         self.previewModuleDependencyBtn.setEnabled(projectId is not None)
+        self.allSelectedCheckBox.setEnabled(projectId is not None)
         self.modules = self.projectManager.getProjectModules(projectId) if projectId else []
         self.defaultModules = self.projectManager.getProjectDefaultModules(projectId) if projectId else []
         self.updateModuleList()
@@ -105,6 +110,14 @@ class ModuleManagerWidget(QFrame):
     def previewModuleDependency(self):
         LogUtil.d("previewModuleDependency")
         ModuleDependencyDialog(ProjectManager.generateDiGraph(self.modules))
+        pass
+
+    def allSelected(self):
+        allSelected = self.allSelectedCheckBox.isChecked()
+        LogUtil.d("allSelected", allSelected)
+        self.defaultModules = [item[KEY_NAME] for item in self.modules] if allSelected else ""
+        self.saveProjectDefaultModules()
+        self.updateModuleList()
         pass
 
     def editModule(self, moduleInfo):
