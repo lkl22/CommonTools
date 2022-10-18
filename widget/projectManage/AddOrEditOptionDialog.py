@@ -22,7 +22,7 @@ class AddOrEditOptionDialog(QtWidgets.QDialog):
         AddOrEditOptionDialog.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.6)
         AddOrEditOptionDialog.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.2)
         LogUtil.d("Add or Edit Option Dialog")
-        self.setWindowTitle(WidgetUtil.translate(text="添加/编辑执行指令参数选项"))
+        self.setWindowTitle(WidgetUtil.translate(text="添加/编辑工程选项"))
         if optionList is None:
             optionList = []
         self.optionList = optionList
@@ -46,27 +46,26 @@ class AddOrEditOptionDialog(QtWidgets.QDialog):
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
         hbox.addWidget(WidgetUtil.createLabel(self, text="Name：", minSize=QSize(labelWidth, const.HEIGHT)))
         self.nameLineEdit = WidgetUtil.createLineEdit(self, text=DictUtil.get(default, KEY_NAME),
-                                                      holderText="需要执行的命令行指令别名，唯一，用于区分多条指令",
-                                                      isReadOnly=not self.isAdd)
+                                                      toolTip="选项名称")
         hbox.addWidget(self.nameLineEdit)
         vLayout.addLayout(hbox)
 
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
         hbox.addWidget(WidgetUtil.createLabel(self, text="Description：", minSize=QSize(labelWidth, const.HEIGHT)))
         self.descLineEdit = WidgetUtil.createLineEdit(self, text=DictUtil.get(default, KEY_DESC),
-                                                      holderText="需要执行的命令行指令描述")
+                                                      toolTip="选项描述")
         hbox.addWidget(self.descLineEdit)
         vLayout.addLayout(hbox)
 
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
         hbox.addWidget(WidgetUtil.createLabel(self, text="情景文本：", minSize=QSize(labelWidth, const.HEIGHT)))
         self.echoLineEdit = WidgetUtil.createLineEdit(self, text=DictUtil.get(default, KEY_ECHO),
-                                                      toolTip="控制台输出的询问文本，等待用户输入，对应参数选项里的自动输入文本（可选）")
+                                                      toolTip="控制台输出的询问文本，等待用户输入，对应选项参数里的自动输入文本（可选）")
         hbox.addWidget(self.echoLineEdit)
         vLayout.addLayout(hbox)
 
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
-        hbox.addWidget(WidgetUtil.createLabel(self, text="参数选项：", minSize=QSize(labelWidth, const.HEIGHT)))
+        hbox.addWidget(WidgetUtil.createLabel(self, text="选项参数：", minSize=QSize(labelWidth, const.HEIGHT)))
         self.optionValuesComboBox = WidgetUtil.createComboBox(self, activated=self.optionValueIndexChanged)
         hbox.addWidget(self.optionValuesComboBox, 1)
         hbox.addWidget(WidgetUtil.createPushButton(self, text="Add", onClicked=self.addOptionValue))
@@ -125,7 +124,7 @@ class AddOrEditOptionDialog(QtWidgets.QDialog):
     def modifyOptionValue(self):
         LogUtil.d("modifyOptionValue")
         if self.curOptionValueIndex < 0:
-            WidgetUtil.showAboutDialog(text="请先选择一个参数选项")
+            WidgetUtil.showAboutDialog(text="请先选择一个选项参数")
             return
         AddOrEditOptionValueDialog(default=self.optionValues[self.curOptionValueIndex],
                                    optionValues=self.optionValues,
@@ -151,7 +150,7 @@ class AddOrEditOptionDialog(QtWidgets.QDialog):
     def delOptionValue(self):
         LogUtil.d("delOptionValue")
         if self.curOptionValueIndex < 0:
-            WidgetUtil.showAboutDialog(text="请先选择一个参数选项")
+            WidgetUtil.showAboutDialog(text="请先选择一个选项参数")
             return
         optionValueInfo = self.getCurOptionValueInfo()
         WidgetUtil.showQuestionDialog(
@@ -170,15 +169,15 @@ class AddOrEditOptionDialog(QtWidgets.QDialog):
     def acceptFunc(self):
         name = self.nameLineEdit.text().strip()
         if not name:
-            WidgetUtil.showErrorDialog(message="请输入需要执行的命令行指令参数别名")
+            WidgetUtil.showErrorDialog(message="请输入选项名")
             return
         if not self.optionValues:
-            WidgetUtil.showErrorDialog(message="请添加参数选项列表")
+            WidgetUtil.showErrorDialog(message="请添加选项列表")
             return
         if self.isAdd or self.default[KEY_NAME] != name:
             for item in self.optionList:
                 if name == item[KEY_NAME]:
-                    WidgetUtil.showErrorDialog(message=f"请重新添加一个其他的指令参数名，{name}已经存在了，不能重复添加")
+                    WidgetUtil.showErrorDialog(message=f"请重新添加一个其他的选项名，{name}已经存在了，不能重复添加")
                     return
         desc = self.descLineEdit.text().strip()
         echo = self.echoLineEdit.text().strip()
@@ -202,7 +201,7 @@ class AddOrEditOptionValueDialog(QtWidgets.QDialog):
         AddOrEditOptionValueDialog.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.3)
         AddOrEditOptionValueDialog.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.2)
         LogUtil.d("AddOrEditOptionValueDialog")
-        self.setWindowTitle(WidgetUtil.translate(text="添加/编辑参数选项"))
+        self.setWindowTitle(WidgetUtil.translate(text="添加/编辑选项参数"))
 
         self.callback = callback
         if optionValues is None:
@@ -222,25 +221,25 @@ class AddOrEditOptionValueDialog(QtWidgets.QDialog):
 
         labelWidth = 130
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
-        hbox.addWidget(WidgetUtil.createLabel(self, text="请输入命令参数值：", minSize=QSize(labelWidth, 20)))
+        hbox.addWidget(WidgetUtil.createLabel(self, text="请输入选项参数值：", minSize=QSize(labelWidth, 20)))
         self.valueLineEdit = WidgetUtil.createLineEdit(self, text=DictUtil.get(self.default, KEY_VALUE),
-                                                       holderText="命令参数值", toolTip=f"输入{MACRO_REPEAT}表示跟前一个命令参数一致，其他按真实输入处理",
-                                                       isReadOnly=not self.isAdd)
+                                                       holderText="选项参数值",
+                                                       toolTip=f"输入{MACRO_REPEAT}表示跟前一个选项参数一致，其他按真实输入处理")
         hbox.addWidget(self.valueLineEdit)
         vLayout.addLayout(hbox)
 
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
-        hbox.addWidget(WidgetUtil.createLabel(self, text="请输入命令参数描述：", minSize=QSize(labelWidth, 20)))
+        hbox.addWidget(WidgetUtil.createLabel(self, text="请输入选项参数描述：", minSize=QSize(labelWidth, 20)))
         self.descLineEdit = WidgetUtil.createLineEdit(self, text=DictUtil.get(self.default, KEY_DESC),
-                                                      holderText="命令参数值描述，用于说明该参数值作用")
+                                                      holderText="选项参数值描述，用于说明该选项值作用")
         hbox.addWidget(self.descLineEdit)
         vLayout.addLayout(hbox)
 
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
-        hbox.addWidget(WidgetUtil.createLabel(self, text="命令参数自动输入值：", minSize=QSize(labelWidth, 20)))
+        hbox.addWidget(WidgetUtil.createLabel(self, text="选项参数自动输入值：", minSize=QSize(labelWidth, 20)))
         self.inputLineEdit = WidgetUtil.createLineEdit(self, text=DictUtil.get(self.default, KEY_INPUT),
-                                                       holderText="可选，默认跟命令参数值一样",
-                                                       toolTip="可选，默认跟命令参数值一样，只有在设置了使用情景参数时有效")
+                                                       holderText="可选，默认跟选项参数值一样",
+                                                       toolTip="可选，默认跟选项参数值一样，只有在设置了使用情景参数时有效")
         hbox.addWidget(self.inputLineEdit)
         vLayout.addLayout(hbox)
 
@@ -257,22 +256,16 @@ class AddOrEditOptionValueDialog(QtWidgets.QDialog):
     def acceptFunc(self):
         # 允许输入空格，代表不输入内容
         value = self.valueLineEdit.text().strip()
-        # if not value:
-        #     WidgetUtil.showAboutDialog(text="请输入命令参数值")
-        #     return
         desc = self.descLineEdit.text().strip()
         if not desc:
-            WidgetUtil.showAboutDialog(text="请输入命令参数描述")
+            WidgetUtil.showAboutDialog(text="请输入选项参数描述")
             return
         for item in self.optionValues:
-            if value == item[KEY_VALUE]:
-                if self.isAdd:
-                    WidgetUtil.showAboutDialog(text=f"请重新添加一个其他的命令参数值，{value}已经存在了")
-                    return
-                elif desc == item[KEY_DESC]:
-                    break
-            if desc == item[KEY_DESC]:
-                WidgetUtil.showErrorDialog(message=f"请设置一个其他的描述，{desc}已经存在了，相同的描述会产生混淆")
+            if value == item[KEY_VALUE] and value != DictUtil.get(self.default, KEY_VALUE):
+                WidgetUtil.showAboutDialog(text=f"请重新添加一个其他的选项参数值，<span style='color:red;'>{value}</span>已经存在了")
+                return
+            if desc == item[KEY_DESC] and desc != DictUtil.get(self.default, KEY_DESC):
+                WidgetUtil.showErrorDialog(message=f"请设置一个其他的描述，<span style='color:red;'>{desc}</span>已经存在了，相同的描述会产生混淆")
                 return
         self.default[KEY_VALUE] = value
         self.default[KEY_DESC] = desc

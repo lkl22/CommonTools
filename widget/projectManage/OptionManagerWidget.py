@@ -23,8 +23,8 @@ class OptionManagerWidget(QFrame):
         vbox = WidgetUtil.createVBoxLayout(self, margins=QMargins(5, 5, 5, 5))
 
         hbox = WidgetUtil.createHBoxLayout(margins=QMargins(0, 0, 0, 0), spacing=0)
-        hbox.addWidget(WidgetUtil.createLabel(self, text="指令参数管理"))
-        self.addOptionGroupBtn = WidgetUtil.createPushButton(self, text="Add", toolTip="添加新的模块", isEnable=False,
+        hbox.addWidget(WidgetUtil.createLabel(self, text="工程配置管理"))
+        self.addOptionGroupBtn = WidgetUtil.createPushButton(self, text="Add", toolTip="添加新的工程配置选项", isEnable=False,
                                                              onClicked=self.addOptionGroup)
         hbox.addWidget(self.addOptionGroupBtn)
         hbox.addItem(WidgetUtil.createHSpacerItem(1, 1))

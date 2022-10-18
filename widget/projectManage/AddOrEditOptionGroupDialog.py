@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # python 3.x
 # Filename: AddOrEditOptionGroupDialog.py
-# 定义一个AddOrEditOptionGroupDialog类实现添加、编辑指令参数配置功能
+# 定义一个AddOrEditOptionGroupDialog类实现添加、编辑选项群组配置功能
 import copy
 from PyQt5.QtCore import QModelIndex
 from PyQt5.QtWidgets import QAbstractItemView, QTableWidgetItem, QToolTip
@@ -40,7 +40,7 @@ class AddOrEditOptionGroupDialog(QtWidgets.QDialog):
         AddOrEditOptionGroupDialog.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.6)
         AddOrEditOptionGroupDialog.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.5)
         LogUtil.d("Add Or Edit Option Group Dialog")
-        self.setWindowTitle(WidgetUtil.translate(text="添加/修改指令参数配置"))
+        self.setWindowTitle(WidgetUtil.translate(text="添加/修改选项群组配置"))
         self.setObjectName("AddOrEditOptionGroupDialog")
         self.resize(AddOrEditOptionGroupDialog.WINDOW_WIDTH, AddOrEditOptionGroupDialog.WINDOW_HEIGHT)
 
@@ -63,21 +63,20 @@ class AddOrEditOptionGroupDialog(QtWidgets.QDialog):
         vbox = WidgetUtil.createVBoxLayout(box, margins=QMargins(5, 5, 5, 5), spacing=5)
         labelWidth = 100
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
-        hbox.addWidget(WidgetUtil.createLabel(box, text="指令参数名：", minSize=QSize(labelWidth, const.HEIGHT)))
+        hbox.addWidget(WidgetUtil.createLabel(box, text="选项群组名：", minSize=QSize(labelWidth, const.HEIGHT)))
         self.nameLineEdit = WidgetUtil.createLineEdit(box, text=DictUtil.get(self.default, KEY_NAME),
-                                                      toolTip="指令参数可以由多个配置项拼接而成，强调一定的顺序，可以在table里调整",
-                                                      isReadOnly=not self.isAdd)
+                                                      toolTip="选项群组可以由多个配置项拼接而成，强调一定的顺序，可以在table里调整")
         hbox.addWidget(self.nameLineEdit)
         vbox.addLayout(hbox)
 
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
-        hbox.addWidget(WidgetUtil.createLabel(box, text="指令参数描述：", minSize=QSize(labelWidth, const.HEIGHT)))
+        hbox.addWidget(WidgetUtil.createLabel(box, text="选项群组描述：", minSize=QSize(labelWidth, const.HEIGHT)))
         self.descLineEdit = WidgetUtil.createLineEdit(box, text=DictUtil.get(self.default, KEY_DESC))
         hbox.addWidget(self.descLineEdit)
         vbox.addLayout(hbox)
 
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
-        hbox.addWidget(WidgetUtil.createPushButton(box, text="添加指令参数选项", onClicked=self.addOption))
+        hbox.addWidget(WidgetUtil.createPushButton(box, text="添加选项", onClicked=self.addOption))
         hbox.addItem(WidgetUtil.createHSpacerItem(1, 1))
         hbox.addWidget(WidgetUtil.createLabel(box, text="顺序调整:"))
         self.topPostionBtn = WidgetUtil.createPushButton(box, text="⬆️️", toolTip="移动到首行", isEnable=False,
@@ -201,24 +200,22 @@ class AddOrEditOptionGroupDialog(QtWidgets.QDialog):
         LogUtil.d("acceptFunc")
         name = self.nameLineEdit.text().strip()
         if not name:
-            WidgetUtil.showErrorDialog(message="请输入指令参数名")
+            WidgetUtil.showErrorDialog(message="请输入选项群组名")
             return
         desc = self.descLineEdit.text().strip()
         if not desc:
-            WidgetUtil.showErrorDialog(message="请输入指令参数描述")
+            WidgetUtil.showErrorDialog(message="请输入选项群组描述")
             return
 
-        if self.isAdd:
+        if self.isAdd or self.default[KEY_NAME] != name:
             for item in self.groupList:
                 if name == item[KEY_NAME]:
-                    WidgetUtil.showErrorDialog(message=f"请重新添加一个其他的指令参数，{name}已经存在了。")
+                    WidgetUtil.showErrorDialog(message=f"请重新添加一个其他的选项群组，{name}已经存在了。")
                     return
-
-        id = MD5Util.md5(name)
 
         if self.default is None:
             self.default = {}
-        self.default[KEY_ID] = id
+        self.default[KEY_ID] = MD5Util.md5(name)
         self.default[KEY_NAME] = name
         self.default[KEY_DESC] = desc
         self.default[KEY_OPTIONS] = self.options
