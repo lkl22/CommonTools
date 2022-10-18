@@ -363,16 +363,18 @@ class ProjectManagerWindow(QMainWindow):
                         continue
                     # 选项的信息
                     optionValue = optionValues[default]
+                    needCapitalize = DictUtil.get(option, KEY_NEED_CAPITALIZE, DEFAULT_VALUE_NEED_CAPITALIZE)
+                    value = StrUtil.capitalize(optionValue[KEY_VALUE]) if needCapitalize else optionValue[KEY_VALUE]
                     if echo:
                         autoInput = DictUtil.get(optionValue, KEY_INPUT)
                         if not autoInput:
-                            autoInput = optionValue[KEY_VALUE]
+                            autoInput = value
                         conditionInput = ListUtil.findByKey(conditionInputs, echo)
                         if conditionInput:
                             conditionInput[echo] += conditionInput[echo] if autoInput == MACRO_REPEAT else autoInput
                         else:
                             conditionInputs.append({echo: autoInput})
-                    tempDynamicArg.append(tempDynamicArg[-1] if optionValue[KEY_VALUE] == MACRO_REPEAT else optionValue[KEY_VALUE])
+                    tempDynamicArg.append(tempDynamicArg[-1] if optionValue[KEY_VALUE] == MACRO_REPEAT else value)
                 if DictUtil.get(cmdInfo, KEY_IS_DYNAMIC_ARGUMENTS, DEFAULT_VALUE_IS_DYN_ARGS):
                     for arg in tempDynamicArg:
                         args += arg

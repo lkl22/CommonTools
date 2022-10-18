@@ -37,8 +37,7 @@ class AddOrEditCmdGroupDialog(QtWidgets.QDialog):
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
         hbox.addWidget(WidgetUtil.createLabel(self, text="指令群组名：", minSize=QSize(labelWidth, const.HEIGHT)))
         self.nameLineEdit = WidgetUtil.createLineEdit(self, text=default[KEY_NAME] if default else "",
-                                                      holderText="指令分组组名，可以在模块设置指令里选择所属分组",
-                                                      isReadOnly=not self.isAdd)
+                                                      holderText="指令分组组名，可以在模块设置指令里选择所属分组")
         hbox.addWidget(self.nameLineEdit)
         vLayout.addLayout(hbox)
 
@@ -69,7 +68,7 @@ class AddOrEditCmdGroupDialog(QtWidgets.QDialog):
         if DictUtil.get(self.default, KEY_NAME) != name:
             for item in self.cmdGroupList:
                 if name == item[KEY_NAME]:
-                    WidgetUtil.showErrorDialog(message=f"请重新添加一个其他的指令群组，{name}已经存在了，不能重复添加")
+                    WidgetUtil.showErrorDialog(message=f"请重新添加一个其他的指令群组，<span style='color:red;'>{name}</span>已经存在了，不能重复添加")
                     return
         desc = self.descLineEdit.text().strip()
         if not self.default:

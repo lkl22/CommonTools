@@ -41,6 +41,7 @@ KEY_IS_DYNAMIC_ARGUMENTS = 'isDynamicArguments'
 KEY_NEED_SPACE = 'needSpace'
 KEY_OPTION_GROUP_ID = 'optionGroupId'
 KEY_OPTION_NAMES = 'optionNames'
+KEY_NEED_CAPITALIZE = 'needCapitalize'
 # 是否是相对路径，主要用于模块路径
 KEY_IS_RELATIVE_PATH = 'isRelativePath'
 
@@ -57,6 +58,7 @@ KEY_ECHO = 'echo'
 KEY_INPUT = 'input'
 
 DEFAULT_VALUE_NEED_SPACE = True
+DEFAULT_VALUE_NEED_CAPITALIZE = True
 DEFAULT_VALUE_IS_DYN_ARGS = True
 
 
