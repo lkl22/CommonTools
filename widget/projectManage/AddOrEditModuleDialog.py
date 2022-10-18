@@ -83,7 +83,8 @@ class AddOrEditModuleDialog(QtWidgets.QDialog):
         if curModuleName:
             if curModuleName in self.nodes:
                 self.nodes.remove(curModuleName)
-            for node in self.nodes:
+            nodes = copy.deepcopy(self.nodes)
+            for node in nodes:
                 if NetworkxUtil.shortestPath(self.G, node, curModuleName):
                     # 图中已经有一条通路从node到当前模块，不能循环依赖
                     self.nodes.remove(node)

@@ -34,7 +34,7 @@ class ModuleManagerWidget(QFrame):
         self.addModuleBtn = WidgetUtil.createPushButton(self, text="Add", toolTip="添加新的选项配置", isEnable=False,
                                                         onClicked=self.addModule)
         hbox.addWidget(self.addModuleBtn)
-        self.previewModuleDependencyBtn = WidgetUtil.createPushButton(self, text="预览模块间依赖", toolTip="预览模块之间依赖关系",
+        self.previewModuleDependencyBtn = WidgetUtil.createPushButton(self, text="Preview", toolTip="预览模块之间依赖关系",
                                                                       isEnable=False,
                                                                       onClicked=self.previewModuleDependency)
         hbox.addWidget(self.previewModuleDependencyBtn)
