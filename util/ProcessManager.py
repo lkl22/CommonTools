@@ -47,9 +47,8 @@ class ProcessManager(QObject):
         self.handleStandardOutput(f'开始执行 {threading.current_thread().ident}\n')
         # 必须放到run方法里，不然多线程在构造函数里创建就会出现需要用户输入时一直没有StandardOutput
         self.process = QProcess()
-        env: QProcessEnvironment = self.process.processEnvironment()
-        # 必须将系统环境变量也一起设置进去，不然会出现指令找不到的情况
-        env.insert("PATH", os.environ["PATH"])
+        # 必须将系统环境变量也一起设置进去，不然会出现指令找不到、没有操作路径权限的情况
+        env: QProcessEnvironment = QProcessEnvironment.systemEnvironment()
         for item in self.processEnv:
             if DictUtil.get(item, KEY_EVN_IS_PATH, False):
                 env.insert("PATH", item[KEY_VALUE] + os.pathsep + env.value("PATH", ""))
