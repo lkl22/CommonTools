@@ -13,6 +13,8 @@ class StrUtil:
         :param data: data
         :return: value
         """
+        if not data:
+            return ""
         return data[0].upper() + data[1:]
 
     @staticmethod
@@ -22,9 +24,17 @@ class StrUtil:
         :param data: data
         :return: value
         """
+        if not data:
+            return ""
         return data[0].lower() + data[1:]
 
 
 if __name__ == "__main__":
     LogUtil.d(StrUtil.capitalize("thank"))
     LogUtil.d(StrUtil.decapitalize("THANK"))
+
+    LogUtil.d(StrUtil.capitalize("t"))
+    LogUtil.d(StrUtil.decapitalize("T"))
+
+    LogUtil.d(StrUtil.capitalize(""))
+    LogUtil.d(StrUtil.decapitalize(""))

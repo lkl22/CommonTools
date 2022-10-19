@@ -115,7 +115,7 @@ class ModuleManagerWidget(QFrame):
     def allSelected(self):
         allSelected = self.allSelectedCheckBox.isChecked()
         LogUtil.d("allSelected", allSelected)
-        self.defaultModules = [item[KEY_NAME] for item in self.modules] if allSelected else ""
+        self.defaultModules = [item[KEY_NAME] for item in self.modules] if allSelected else []
         self.saveProjectDefaultModules()
         self.updateModuleList()
         pass
