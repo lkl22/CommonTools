@@ -4,6 +4,8 @@
 # 定义一个CmdManagerWidget窗口类实现执行指令管理的功能，可以控制一系列指令是否需要执行
 import sys
 from PyQt5.QtWidgets import QScrollArea, QFrame
+
+from util.ListUtil import ListUtil
 from util.WidgetUtil import *
 from widget.projectManage.AddOrEditCmdGroupDialog import AddOrEditCmdGroupDialog
 from widget.projectManage.ProjectManager import *
@@ -20,13 +22,15 @@ class CmdManagerWidget(QFrame):
         self.cmdGroupWidgets: [CmdGroupWidget] = []
 
         self.setObjectName("CmdManagerWidget")
-        self.setToolTip("支持模块指令分组，通过分组控制指令是否需要执行。不在分组里的指令是都会执行的，在分组里的根据用户的选择来控制是否执行。")
+        self.setToolTip(
+            "支持模块指令分组，通过分组控制指令是否需要执行。不在分组里的指令是都会执行的，在分组里的根据用户的选择来控制是否执行。")
         # self.setWindowFlags(QtCore.Qt.SplashScreen | QtCore.Qt.FramelessWindowHint)
         vbox = WidgetUtil.createVBoxLayout(self, margins=QMargins(5, 5, 5, 5))
 
         hbox = WidgetUtil.createHBoxLayout(margins=QMargins(0, 0, 0, 0), spacing=0)
         hbox.addWidget(WidgetUtil.createLabel(self, text="指令管理"))
-        self.addModuleBtn = WidgetUtil.createPushButton(self, text="Add", toolTip="添加新的指令分组配置", isEnable=False,
+        self.addModuleBtn = WidgetUtil.createPushButton(self, text="Add", toolTip="添加新的指令分组配置",
+                                                        isEnable=False,
                                                         onClicked=self.addCmdGroup)
         hbox.addWidget(self.addModuleBtn)
         hbox.addItem(WidgetUtil.createHSpacerItem(1, 1))
@@ -55,7 +59,9 @@ class CmdManagerWidget(QFrame):
         self.projectInfo = projectInfo
         projectId = DictUtil.get(projectInfo, KEY_ID)
         self.addModuleBtn.setEnabled(projectId is not None)
-        self.cmdGroups = self.projectManager.getProjectCmdGroups(projectId) if projectId else []
+        self.cmdGroups = self.projectManager.getProjectCmdGroups(projectId) if projectId else None
+        if not self.cmdGroups:
+            self.cmdGroups = {KEY_DEFAULT: [], KEY_LIST: []}
         self.updateCmdGroupList()
         pass
 
@@ -71,12 +77,14 @@ class CmdManagerWidget(QFrame):
 
     def addCmdGroup(self):
         LogUtil.d("addCmdGroup")
-        AddOrEditCmdGroupDialog(cmdGroupList=DictUtil.get(self.cmdGroups, KEY_LIST, []), callback=self.addOrEditCmdGroupCallback)
+        AddOrEditCmdGroupDialog(cmdGroupList=DictUtil.get(self.cmdGroups, KEY_LIST, []),
+                                callback=self.addOrEditCmdGroupCallback)
         pass
 
     def editCmdGroup(self, cmdGroup):
         LogUtil.d("editCmdGroup", cmdGroup)
-        AddOrEditCmdGroupDialog(cmdGroupList=DictUtil.get(self.cmdGroups, KEY_LIST, []), callback=self.addOrEditCmdGroupCallback, default=cmdGroup)
+        AddOrEditCmdGroupDialog(cmdGroupList=DictUtil.get(self.cmdGroups, KEY_LIST, []),
+                                callback=self.addOrEditCmdGroupCallback, default=cmdGroup)
         pass
 
     def addOrEditCmdGroupCallback(self, info):
@@ -99,7 +107,7 @@ class CmdManagerWidget(QFrame):
                 widget.deleteLater(),
                 self.cmdGroupWidgets.remove(widget),
                 cmdGroupList.remove(info),
-                self.cmdGroups[KEY_DEFAULT].remove(info[KEY_NAME]),
+                ListUtil.remove(self.cmdGroups[KEY_DEFAULT], info[KEY_NAME]),
                 self.saveProjectCmdGroups()
             ))
         pass

@@ -136,7 +136,7 @@ class ProjectManager:
 
     def getProjectCmdGroups(self, projectId):
         projectInfo = self.getProjectInfoById(projectId)
-        return DictUtil.get(projectInfo, KEY_CMD_GROUPS, [])
+        return DictUtil.get(projectInfo, KEY_CMD_GROUPS)
 
     @staticmethod
     def generateDiGraph(moduleList, nodes=None):
