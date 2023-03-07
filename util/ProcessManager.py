@@ -34,6 +34,8 @@ class ProcessManager(QObject):
         self.workingDir = workingDir
         self.processEnv = processEnv
         self.process = None
+        self.needFinished = False
+        self.lock = threading.RLock()
 
         LogUtil.d(TAG, name, cmdList, workingDir, processEnv)
         if standardOutput:
@@ -58,6 +60,11 @@ class ProcessManager(QObject):
         self.process.setProcessEnvironment(env)
 
         for cmd in self.cmdList:
+            self.lock.acquire()
+            if self.needFinished:
+                self.lock.release()
+                break
+            self.lock.release()
             self.executeCmd(cmd)
         self.handleStandardOutput(f"执行结束。耗时：{DateUtil.nowTimestamp(isMilliSecond=True) - startTime} ms\n")
         return self.isSuccess, self.name
@@ -70,6 +77,11 @@ class ProcessManager(QObject):
         args = DictUtil.get(cmdInfo, KEY_ARGUMENTS)
         cmd = f"{DictUtil.get(cmdInfo, KEY_PROGRAM)} {args if args else ''}"
         self.handleStandardOutput(f"executeCmd: {cmd} start. \nworkingDir: {workingDir}\n")
+        self.lock.acquire()
+        if self.needFinished:
+            self.lock.release()
+            return
+        self.lock.release()
         self.process.start(cmd)
 
         self.process.readyReadStandardOutput.connect(lambda: self.readStandardOutput(cmdInfo))
@@ -110,7 +122,15 @@ class ProcessManager(QObject):
         pass
 
     def kill(self):
-        self.process.kill()
+        self.lock.acquire()
+        self.needFinished = True
+        self.lock.release()
+        if self.process:
+            try:
+                self.process.kill()
+            except Exception as ex:
+                LogUtil.e(TAG, "kill process Exception", ex)
+        LogUtil.d(TAG, f"{self.name} kill process.")
         pass
 
 
@@ -128,7 +148,7 @@ if __name__ == "__main__":
             {KEY_NAME: "ddd", KEY_VALUE: "ddd", KEY_EVN_IS_PATH: True},
             {KEY_NAME: "ccc", KEY_VALUE: "ccc", KEY_EVN_IS_PATH: True}
         ],
-        standardOutput=lambda log: LogUtil.d(log),
-        standardError=lambda log: LogUtil.e(log))
+        standardOutput=lambda log: LogUtil.d(TAG, log),
+        standardError=lambda log: LogUtil.e(TAG, log))
     processThread.run()
     pass

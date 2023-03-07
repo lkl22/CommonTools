@@ -9,6 +9,8 @@ import zipfile
 from util.ReUtil import *
 from util.LogUtil import *
 
+TAG = "FileUtil"
+
 
 class FileUtil:
     @staticmethod
@@ -46,7 +48,7 @@ class FileUtil:
             if not os.path.exists(fp):
                 os.makedirs(fp)  # 创建路径
         except Exception as err:
-            LogUtil.e('mkFilePath 错误信息：', err)
+            LogUtil.e(TAG, 'mkFilePath 错误信息：', err)
 
     @staticmethod
     def mkDirs(dirPath):
@@ -58,7 +60,7 @@ class FileUtil:
             if not os.path.exists(dirPath):
                 os.makedirs(dirPath)  # 创建路径
         except Exception as err:
-            LogUtil.e('mkDirs 错误信息：', err)
+            LogUtil.e(TAG, 'mkDirs 错误信息：', err)
 
     @staticmethod
     def existsFile(fp):
@@ -81,20 +83,20 @@ class FileUtil:
         :param isCopy: True 复制 False 移动
         """
         if not os.path.isfile(srcFile):
-            LogUtil.e("modifyFilePath", "%s not exist!" % srcFile)
+            LogUtil.e(TAG, "modifyFilePath", "%s not exist!" % srcFile)
             return False
         else:
             FileUtil.mkFilePath(dstFile)
             try:
                 if isCopy:
                     shutil.copyfile(srcFile, dstFile)  # 复制文件
-                    LogUtil.w("copy %s ->\nto   %s" % (srcFile, dstFile))
+                    LogUtil.w(TAG, "copy %s ->\nto   %s" % (srcFile, dstFile))
                 else:
                     shutil.move(srcFile, dstFile)  # 移动文件
-                    LogUtil.w("move %s ->\nto   %s" % (srcFile, dstFile))
+                    LogUtil.w(TAG, "move %s ->\nto   %s" % (srcFile, dstFile))
                 return True
             except Exception as err:
-                LogUtil.e('modifyFilePath 错误信息：', err)
+                LogUtil.e(TAG, 'modifyFilePath 错误信息：', err)
                 return False
         pass
 
@@ -128,7 +130,7 @@ class FileUtil:
                 os.rename(srcFn, os.path.join(fp, dstFn))
             return True
         except Exception as err:
-            LogUtil.e('modifyFilesName 错误信息：', err)
+            LogUtil.e(TAG, 'modifyFilesName 错误信息：', err)
             return False
 
     @staticmethod
@@ -138,7 +140,7 @@ class FileUtil:
         :return: 项目根目录
         """
         path = os.getcwd().replace("\\", "/")
-        LogUtil.e("getProjectPath：", path)
+        LogUtil.e(TAG, "getProjectPath：", path)
         # os.path.split(path)[0].replace("\\", "/")
         return path
 
@@ -190,7 +192,7 @@ class FileUtil:
         try:
             shutil.rmtree(fp)
         except Exception as e:
-            LogUtil.e('FileUtil clearPath 错误信息：', e)
+            LogUtil.e(TAG, 'FileUtil clearPath 错误信息：', e)
 
     @staticmethod
     def removeFile(fp):
@@ -201,7 +203,7 @@ class FileUtil:
         try:
             os.remove(fp)
         except Exception as e:
-            LogUtil.e('FileUtil removeFile 错误信息：', e)
+            LogUtil.e(TAG, 'FileUtil removeFile 错误信息：', e)
 
     @staticmethod
     def zipDir(dirPath, outFullName):
@@ -255,7 +257,7 @@ class FileUtil:
             file = open(fp, encoding=encoding)
             return file.read()
         except Exception as e:
-            LogUtil.e('FileUtil readFile 错误信息：', e)
+            LogUtil.e(TAG, 'FileUtil readFile 错误信息：', e)
             return None
 
     @staticmethod
@@ -267,10 +269,10 @@ class FileUtil:
         """
         try:
             size = os.path.getsize(fn)
-            LogUtil.d("readFileSize", fn, size)
+            LogUtil.d(TAG, "readFileSize", fn, size)
             return size
         except Exception as e:
-            LogUtil.e('FileUtil readFileSize 错误信息：', e)
+            LogUtil.e(TAG, 'readFileSize 错误信息：', e)
             return -1
 
     @staticmethod
@@ -284,7 +286,7 @@ class FileUtil:
             name = os.path.basename(fp)
             return name
         except Exception as e:
-            LogUtil.e('FileUtil getFileName 错误信息：', e)
+            LogUtil.e(TAG, 'getFileName 错误信息：', e)
             return ''
 
 

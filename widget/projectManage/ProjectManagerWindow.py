@@ -5,7 +5,7 @@
 import copy
 import os.path
 import threading
-from concurrent.futures import as_completed
+from concurrent.futures import as_completed, CancelledError
 from concurrent.futures.thread import ThreadPoolExecutor
 
 from PyQt5.QtCore import pyqtSignal
@@ -30,6 +30,7 @@ from widget.projectManage.ProjectManager import *
 TYPE_HIDE_LOADING_DIALOG = 1
 
 TAG = "ProjectManagerWindow"
+PROCESS_MANAGER = "processManager"
 
 
 class ProjectManagerWindow(QMainWindow):
@@ -43,7 +44,7 @@ class ProjectManagerWindow(QMainWindow):
         # 宽度不能设置太宽，设置太宽会显示在左上角不居中
         ProjectManagerWindow.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.85)
         ProjectManagerWindow.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.8)
-        LogUtil.d("Project Manage Window")
+        LogUtil.d(TAG, "Project Manage Window")
         self.setObjectName("ProjectManagerWindow")
         self.setWindowTitle(WidgetUtil.translate(text="项目管理"))
         self.resize(ProjectManagerWindow.WINDOW_WIDTH, ProjectManagerWindow.WINDOW_HEIGHT)
@@ -65,6 +66,7 @@ class ProjectManagerWindow(QMainWindow):
                                                        getOptionGroupsFunc=lambda: self.optionManagerWidget.getProjectOptionGroups(),
                                                        getCmdGroupsFunc=lambda: self.cmdManagerWidget.getProjectCmdGroupList())
         self.loadingDialog = None
+        self.lock = threading.RLock()
 
         layoutWidget = QtWidgets.QWidget(self)
         layoutWidget.setObjectName("layoutWidget")
@@ -175,16 +177,16 @@ class ProjectManagerWindow(QMainWindow):
             curProjectInfo = self.projects[KEY_LIST][self.curProjectIndex]
             self.projectComboBox.setCurrentText(f"{curProjectInfo[KEY_NAME]}（{curProjectInfo[KEY_DESC]}）")
             self.updateProjectDesc()
-            LogUtil.d('updateFlavorComboBox setCurrentText', curProjectInfo[KEY_NAME])
+            LogUtil.d(TAG, 'updateFlavorComboBox setCurrentText', curProjectInfo[KEY_NAME])
         else:
             self.projectComboBox.clear()
             self.curProjectIndex = -1
             self.updateProjectDesc()
-            LogUtil.d("no project")
+            LogUtil.d(TAG, "no project")
         pass
 
     def projectIndexChanged(self, index):
-        LogUtil.d('projectIndexChanged', index)
+        LogUtil.d(TAG, 'projectIndexChanged', index)
         self.curProjectIndex = index
         self.updateProjectDesc()
         self.saveProjects()
@@ -198,12 +200,12 @@ class ProjectManagerWindow(QMainWindow):
         pass
 
     def addProject(self):
-        LogUtil.d("addProject")
+        LogUtil.d(TAG, "addProject")
         AddOrEditProjectDialog(callback=self.addOrEditProjectCallback)
         pass
 
     def modifyProject(self):
-        LogUtil.d("modifyProject")
+        LogUtil.d(TAG, "modifyProject")
         if self.curProjectIndex < 0:
             WidgetUtil.showAboutDialog(text="请先选择一个工程")
             return
@@ -212,7 +214,7 @@ class ProjectManagerWindow(QMainWindow):
         pass
 
     def addOrEditProjectCallback(self, info):
-        LogUtil.d("addOrEditProjectCallback", info)
+        LogUtil.d(TAG, "addOrEditProjectCallback", info)
         projects = self.projects[KEY_LIST]
         if info:
             projects.append(info)
@@ -237,7 +239,7 @@ class ProjectManagerWindow(QMainWindow):
             return None
 
     def delProject(self):
-        LogUtil.d("delProject")
+        LogUtil.d(TAG, "delProject")
         if self.curProjectIndex < 0:
             WidgetUtil.showAboutDialog(text="请先选择一个工程")
             return
@@ -248,7 +250,7 @@ class ProjectManagerWindow(QMainWindow):
         pass
 
     def delProjectItem(self):
-        LogUtil.i("delProjectItem")
+        LogUtil.i(TAG, "delProjectItem")
         curProjectInfo = self.getCurProjectInfo()
         self.projects[KEY_LIST].remove(curProjectInfo)
         self.curProjectIndex = -1
@@ -258,7 +260,7 @@ class ProjectManagerWindow(QMainWindow):
         pass
 
     def saveAsProject(self):
-        LogUtil.d("saveAsProject")
+        LogUtil.d(TAG, "saveAsProject")
         if self.curProjectIndex < 0:
             WidgetUtil.showAboutDialog(text="请先选择一个工程")
             return
@@ -277,7 +279,7 @@ class ProjectManagerWindow(QMainWindow):
         pass
 
     def importProject(self):
-        LogUtil.d("importProject")
+        LogUtil.d(TAG, "importProject")
         curProjectInfo = self.getCurProjectInfo()
         directory = DictUtil.get(curProjectInfo, KEY_PATH, "./")
         fp = WidgetUtil.getOpenFileName(caption='选择备份的工程配置文件', directory=directory, filter='*.json', initialFilter='*.json')
@@ -317,7 +319,7 @@ class ProjectManagerWindow(QMainWindow):
         pass
 
     def startExecute(self):
-        LogUtil.d(f"startExecute main pid: {os.getpid()} threadId: {threading.current_thread().ident}")
+        LogUtil.d(TAG, f"startExecute main pid: {os.getpid()} threadId: {threading.current_thread().ident}")
         projectInfo = self.getCurProjectInfo()
         if not projectInfo:
             WidgetUtil.showAboutDialog(text="请先添加/选择一个工程")
@@ -332,9 +334,14 @@ class ProjectManagerWindow(QMainWindow):
         threading.Thread(target=self.executeModuleCmd, args=(projectInfo, modules)).start()
         if self.loadingDialog is None:
             self.loadingDialog = LoadingDialog(showText="正在执行。。。", btnText="终止",
-                                               rejectedFunc=lambda: LogUtil.d("close loading"), isDebug=self.isDebug)
+                                               rejectedFunc=self.stopExecCmd, isDebug=self.isDebug)
         else:
             self.loadingDialog.show()
+        pass
+
+    def stopExecCmd(self):
+        threading.Thread(target=self.stopRun).start()
+        LogUtil.d(TAG, "stopExecCmd")
         pass
 
     def handleCmdArgs(self, cmdInfo):
@@ -418,9 +425,15 @@ class ProjectManagerWindow(QMainWindow):
         return dependencyTasksAllFinished
 
     def executeModuleCmd(self, projectInfo, modules):
+        if not self.lock.acquire(timeout=1):
+            self.lock.release()
+            LogUtil.d(TAG, "acquire lock failed.")
+            return
+        self.lock.release()
+
         self.futureList.clear()
         self.processManagers.clear()
-        LogUtil.e(f"executeModuleCmd start. pid: {os.getpid()} threadId: {threading.current_thread().ident}")
+        LogUtil.e(TAG, f"executeModuleCmd start. pid: {os.getpid()} threadId: {threading.current_thread().ident}")
 
         allTasks = copy.deepcopy(modules)
         allExecuteModules = [item[KEY_NAME] for item in modules]
@@ -438,7 +451,7 @@ class ProjectManagerWindow(QMainWindow):
                                             processEnv=DictUtil.get(projectInfo, KEY_EVN_LIST, []),
                                             standardOutput=self.standardOutput,
                                             standardError=self.standardError)
-            self.processManagers.append({KEY_NAME: DictUtil.get(moduleInfo, KEY_NAME), "processManager": processManager})
+            self.processManagers.append({KEY_NAME: DictUtil.get(moduleInfo, KEY_NAME), PROCESS_MANAGER: processManager})
             dependencies = DictUtil.get(moduleInfo, KEY_MODULE_DEPENDENCIES, [])
             dependencyTasksAllFinished = ProjectManagerWindow.dependencyTasksAllFinished(dependencies, allExecuteModules, hasFinishedTasks)
             if dependencyTasksAllFinished:
@@ -450,11 +463,15 @@ class ProjectManagerWindow(QMainWindow):
         while len(self.futureList) < len(modules) or hasNewTaskAdd:
             hasNewTaskAdd = False
             for future in as_completed(self.futureList):
-                isSuccess, taskName = future.result()
+                try:
+                    isSuccess, taskName = future.result()
+                except CancelledError as err:
+                    LogUtil.e(TAG, "CancelledError", err)
+                    break
                 if taskName in hasFinishedTasks:
                     continue
                 hasFinishedTasks.append(taskName)
-                LogUtil.d(future, isSuccess, taskName, "hasFinishedTasks", hasFinishedTasks)
+                LogUtil.d(TAG, future, isSuccess, taskName, "hasFinishedTasks", hasFinishedTasks)
                 copyAllTasks = copy.deepcopy(allTasks)
                 for moduleInfo in copyAllTasks:
                     dependencies = DictUtil.get(moduleInfo, KEY_MODULE_DEPENDENCIES, [])
@@ -462,13 +479,31 @@ class ProjectManagerWindow(QMainWindow):
                                                                                                  allExecuteModules,
                                                                                                  hasFinishedTasks)
                     if dependencyTasksAllFinished:
-                        future = self.executor.submit(ListUtil.find(self.processManagers, KEY_NAME, moduleInfo[KEY_NAME])["processManager"].run)
+                        future = self.executor.submit(ListUtil.find(self.processManagers, KEY_NAME, moduleInfo[KEY_NAME])[PROCESS_MANAGER].run)
                         self.futureList.append(future)
                         hasNewTaskAdd = True
                         allTasks.remove(ListUtil.find(allTasks, KEY_NAME, moduleInfo[KEY_NAME]))
 
-        LogUtil.e(f"executeModuleCmd all finished. pid: {os.getpid()}")
+        LogUtil.e(TAG, f"executeModuleCmd all finished. pid: {os.getpid()}")
         self.execUi.emit(TYPE_HIDE_LOADING_DIALOG)
+        pass
+
+    def stopRun(self):
+        self.lock.acquire()
+        try:
+            for item in self.processManagers:
+                item[PROCESS_MANAGER].kill()
+            self.processManagers.clear()
+
+            for future in self.futureList:
+                future.cancel()
+            self.futureList.clear()
+            self.executor.shutdown(wait=False, cancel_futures=True)
+            self.executor = ThreadPoolExecutor(thread_name_prefix="ProjectExecute_")
+        except Exception as err:
+            LogUtil.e(TAG, err)
+        self.lock.release()
+        LogUtil.d(TAG, "stopRun")
         pass
 
     def standardOutput(self, log):
