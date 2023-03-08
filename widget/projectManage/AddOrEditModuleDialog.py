@@ -17,6 +17,8 @@ from widget.custom.DragInputWidget import DragInputWidget
 from widget.projectManage.AddOrEditCmdDialog import AddOrEditCmdDialog
 from widget.projectManage.ProjectManager import *
 
+TAG = "AddOrEditModuleDialog"
+
 
 class AddOrEditModuleDialog(QtWidgets.QDialog):
     def __init__(self, callback, openDir=None, default=None, moduleList=None, optionGroups=None, cmdGroups=None,
@@ -59,7 +61,7 @@ class AddOrEditModuleDialog(QtWidgets.QDialog):
         self.setWindowFlags(windowFlags)
         AddOrEditModuleDialog.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.6)
         AddOrEditModuleDialog.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.5)
-        LogUtil.d("Add Or Edit Module Dialog")
+        LogUtil.d(TAG, "Add Or Edit Module Dialog")
         self.setWindowTitle(WidgetUtil.translate(text="添加/修改模块配置"))
         self.setObjectName("AddOrEditModuleDialog")
         self.resize(AddOrEditModuleDialog.WINDOW_WIDTH, AddOrEditModuleDialog.WINDOW_HEIGHT)
@@ -88,7 +90,7 @@ class AddOrEditModuleDialog(QtWidgets.QDialog):
                 if NetworkxUtil.shortestPath(self.G, node, curModuleName):
                     # 图中已经有一条通路从node到当前模块，不能循环依赖
                     self.nodes.remove(node)
-        LogUtil.d("updateDependenciesNodes", self.nodes)
+        LogUtil.d(TAG, "updateDependenciesNodes", self.nodes)
         pass
 
     def getModuleDir(self):
@@ -161,7 +163,7 @@ class AddOrEditModuleDialog(QtWidgets.QDialog):
         return box
 
     def genDependenciesWidget(self):
-        LogUtil.d("genDependenciesWidget")
+        LogUtil.d(TAG, "genDependenciesWidget")
         self.vbox.addWidget(WidgetUtil.createLabel(self, text="选择模块依赖的子模块："))
 
         hbox = None
@@ -186,11 +188,11 @@ class AddOrEditModuleDialog(QtWidgets.QDialog):
         for index, widget in enumerate(self.dependencyWidgets):
             if widget.isChecked():
                 self.dependencies.append(widget.text())
-        LogUtil.d("dependenciesSelectedChanged", self.dependencies)
+        LogUtil.d(TAG, "dependenciesSelectedChanged", self.dependencies)
         pass
 
     def moveCmdPosition(self, newPos):
-        LogUtil.d("moveCmdPosition", newPos)
+        LogUtil.d(TAG, "moveCmdPosition", newPos)
         # 交换数据
         ListUtil.insert(self.cmdList, self.currentRow, newPos)
         # 更新table表格数据
@@ -207,20 +209,20 @@ class AddOrEditModuleDialog(QtWidgets.QDialog):
         return path if path else self.openDir
 
     def addCmd(self):
-        LogUtil.d("addCmd")
+        LogUtil.d(TAG, "addCmd")
         AddOrEditCmdDialog(callback=self.addOrEditCmdCallback, moduleDir=self.getCurWorkingDir(), cmdList=self.cmdList,
                            optionGroups=self.optionGroups, cmdGroups=self.cmdGroups)
         pass
 
     def addOrEditCmdCallback(self, info):
-        LogUtil.d("addOrEditCmdCallback", info)
+        LogUtil.d(TAG, "addOrEditCmdCallback", info)
         if info:
             self.cmdList.append(info)
         self.updateCmdTableView()
         pass
 
     def updatePositionBtnStatus(self):
-        LogUtil.d("updatePositionBtnStatus")
+        LogUtil.d(TAG, "updatePositionBtnStatus")
         size = len(self.cmdList)
         self.topPostionBtn.setEnabled(self.currentRow > 0)
         self.upOnePostionBtn.setEnabled(self.currentRow > 0)
@@ -230,7 +232,7 @@ class AddOrEditModuleDialog(QtWidgets.QDialog):
 
     def tableClicked(self):
         currentRow = self.cmdTableView.currentIndex().row()
-        LogUtil.d("tableClicked", currentRow)
+        LogUtil.d(TAG, "tableClicked", currentRow)
         if currentRow != self.currentRow:
             self.currentRow = currentRow
             self.updatePositionBtnStatus()
@@ -239,27 +241,27 @@ class AddOrEditModuleDialog(QtWidgets.QDialog):
     def tableDoubleClicked(self, index: QModelIndex):
         oldValue = index.data()
         row = index.row()
-        LogUtil.d("双击的单元格：row ", row, ' col', index.column(), ' data ', oldValue)
+        LogUtil.d(TAG, "双击的单元格：row ", row, ' col', index.column(), ' data ', oldValue)
         AddOrEditCmdDialog(callback=self.addOrEditCmdCallback, moduleDir=self.getCurWorkingDir(), default=self.cmdList[row],
                            cmdList=self.cmdList, optionGroups=self.optionGroups, cmdGroups=self.cmdGroups)
         pass
 
     def customRightMenu(self, pos):
         self.curDelRow = self.cmdTableView.currentIndex().row()
-        LogUtil.i("customRightMenu", pos, ' row: ', self.curDelRow)
+        LogUtil.i(TAG, "customRightMenu", pos, ' row: ', self.curDelRow)
         menu = WidgetUtil.createMenu("删除", func1=self.delCmd)
         menu.exec(self.cmdTableView.mapToGlobal(pos))
         pass
 
     def delCmd(self):
         cmd = self.cmdList[self.curDelRow][KEY_NAME]
-        LogUtil.i(f"delCmd {cmd}")
+        LogUtil.i(TAG, f"delCmd {cmd}")
         WidgetUtil.showQuestionDialog(message=f"你确定需要删除 <span style='color:red;'>{cmd}</span> 吗？",
                                       acceptFunc=self.delTableItem)
         pass
 
     def delTableItem(self):
-        LogUtil.i("delTableItem")
+        LogUtil.i(TAG, "delTableItem")
         self.cmdList.remove(self.cmdList[self.curDelRow])
         self.updateCmdTableView()
         pass
@@ -287,7 +289,7 @@ class AddOrEditModuleDialog(QtWidgets.QDialog):
         pass
 
     def acceptFunc(self):
-        LogUtil.d("acceptFunc")
+        LogUtil.d(TAG, "acceptFunc")
         name = self.nameLineEdit.text().strip()
         if not name:
             WidgetUtil.showErrorDialog(message="请输入模块名")
@@ -330,8 +332,8 @@ class AddOrEditModuleDialog(QtWidgets.QDialog):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    # window = AddOrEditProjectDialog(callback=lambda it: LogUtil.d("callback", it), isDebug=True)
-    window = AddOrEditModuleDialog(callback=lambda it: LogUtil.d("callback", it),
+    # window = AddOrEditProjectDialog(callback=lambda it: LogUtil.d(TAG, "callback", it), isDebug=True)
+    window = AddOrEditModuleDialog(callback=lambda it: LogUtil.d(TAG, "callback", it),
                                    isDebug=True)
     window.show()
     sys.exit(app.exec_())

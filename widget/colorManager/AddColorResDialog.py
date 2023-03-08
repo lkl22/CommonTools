@@ -6,6 +6,8 @@ from constant.WidgetConst import *
 from util.DialogUtil import *
 from util.OperaIni import *
 
+TAG = "AddColorResDialog"
+
 
 class AddColorResDialog(QtWidgets.QDialog):
     WINDOW_WIDTH = 350
@@ -17,7 +19,7 @@ class AddColorResDialog(QtWidgets.QDialog):
         self.setWindowFlags(Qt.Dialog | Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint)
         AddColorResDialog.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.5)
         AddColorResDialog.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.3)
-        LogUtil.d("Init Add color Res Dialog")
+        LogUtil.d(TAG, "Init Add color Res Dialog")
         self.setObjectName("AddColorResDialog")
         self.resize(AddColorResDialog.WINDOW_WIDTH, AddColorResDialog.WINDOW_HEIGHT)
         # self.setFixedSize(AddColorResDialog.WINDOW_WIDTH, AddColorResDialog.WINDOW_HEIGHT)

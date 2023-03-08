@@ -6,6 +6,8 @@ import sys
 from util.DialogUtil import *
 from util.WeditorUtil import *
 
+TAG = "AlgorithmVisualizerManagerDialog"
+
 
 class AlgorithmVisualizerManagerDialog(QtWidgets.QDialog):
     def __init__(self, isDebug=False):
@@ -14,7 +16,7 @@ class AlgorithmVisualizerManagerDialog(QtWidgets.QDialog):
         self.setWindowFlags(Qt.Dialog | Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint)
         AlgorithmVisualizerManagerDialog.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.3)
         AlgorithmVisualizerManagerDialog.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.3)
-        LogUtil.d("Init Algorithm Visualizer Manager Dialog")
+        LogUtil.d(TAG, "Init Algorithm Visualizer Manager Dialog")
         self.setObjectName("AlgorithmVisualizerManagerDialog")
         self.resize(AlgorithmVisualizerManagerDialog.WINDOW_WIDTH, AlgorithmVisualizerManagerDialog.WINDOW_HEIGHT)
         # self.setFixedSize(AlgorithmVisualizerManagerDialog.WINDOW_WIDTH, AlgorithmVisualizerManagerDialog.WINDOW_HEIGHT)
@@ -38,7 +40,7 @@ class AlgorithmVisualizerManagerDialog(QtWidgets.QDialog):
         return box
 
     def selectionSortVisualizer(self):
-        LogUtil.i("selectionSortVisualizer")
+        LogUtil.i(TAG, "selectionSortVisualizer")
         from widget.algorithm.sort.SelectionSortDialog import SelectionSortDialog
         SelectionSortDialog()
         pass

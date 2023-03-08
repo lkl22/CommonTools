@@ -23,6 +23,7 @@ CONFIG_SECTION = 'PictureCompress'
 KEY_SRC_FILE_DIR_PATH = 'srcFileDirPath'
 KEY_DST_FILE_DIR_PATH = 'dstFileDirPath'
 KEY_MAX_WORKER_THREAD_COUNT = 'maxWorkerThreadCount'
+TAG = "CompressPicDialog"
 
 threadLock = threading.Lock()
 
@@ -34,7 +35,7 @@ class CompressPicDialog(QtWidgets.QDialog):
         self.setWindowFlags(Qt.Dialog | Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint)
         CompressPicDialog.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.7)
         CompressPicDialog.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.7)
-        LogUtil.d("Init Compress Pic Dialog")
+        LogUtil.d(TAG, "Init Compress Pic Dialog")
         self.setWindowTitle(WidgetUtil.translate(text="图片压缩工具"))
         self.setObjectName("CompressPicDialog")
         self.resize(CompressPicDialog.WINDOW_WIDTH, CompressPicDialog.WINDOW_HEIGHT)
@@ -91,7 +92,7 @@ class CompressPicDialog(QtWidgets.QDialog):
                 self.apiKeys.append(apiKey)
 
         self.setTinifyApiKeys(self.apiKeys)
-        LogUtil.d("addApiKeys", self.apiKeys)
+        LogUtil.d(TAG, "addApiKeys", self.apiKeys)
 
     def createPicCompressGroupBox(self, parent):
         sizePolicy = WidgetUtil.createSizePolicy()
@@ -240,7 +241,7 @@ class CompressPicDialog(QtWidgets.QDialog):
         for i in range(0, len(META_DATA_LIST)):
             if self.metaDataBtns[i].isChecked():
                 self.metaDataList.append(META_DATA_LIST[i])
-        LogUtil.d("metaDataCheckChanged", self.metaDataList)
+        LogUtil.d(TAG, "metaDataCheckChanged", self.metaDataList)
         pass
 
     def srcFnTextChanged(self, data):
@@ -259,7 +260,7 @@ class CompressPicDialog(QtWidgets.QDialog):
     def maxWorkerThreadCountChanged(self):
         maxWorkerThreadCount = self.maxWorkerThreadCountSpinBox.value()
         self.setConfig(KEY_MAX_WORKER_THREAD_COUNT, str(maxWorkerThreadCount))
-        LogUtil.d("maxWorkerThreadCountChanged", maxWorkerThreadCount)
+        LogUtil.d(TAG, "maxWorkerThreadCountChanged", maxWorkerThreadCount)
         pass
 
     def setCompressPicProgress(self, cur, totalCount):
@@ -279,15 +280,15 @@ class CompressPicDialog(QtWidgets.QDialog):
             dstFileDirPath = srcFileDirPath
         while dstFileDirPath.endswith("/") or dstFileDirPath.endswith("\\"):
             dstFileDirPath = dstFileDirPath[:len(dstFileDirPath) - 1]
-        LogUtil.d("目标目录：", dstFileDirPath)
+        LogUtil.d(TAG, "目标目录：", dstFileDirPath)
         srcFnPatterns = self.srcFnPatternsLineEdit.text().strip()
         if not srcFnPatterns:
             srcFnPatterns = ".*.((jpg)|(JPG)|(png)|(PNG)|(JPEG)|(jpeg))"
         srcFnPs = srcFnPatterns.split(";")
-        LogUtil.d("源图片文件名正则匹配表达式：", srcFnPs)
+        LogUtil.d(TAG, "源图片文件名正则匹配表达式：", srcFnPs)
 
         dstFnPs = self.dstFnPatternsLineEdit.text().strip()
-        LogUtil.d("目标图片文件名：", dstFnPs)
+        LogUtil.d(TAG, "目标图片文件名：", dstFnPs)
 
         # 查找需要修改的图片列表
         srcFiles = FileUtil.findFilePathList(srcFileDirPath, srcFnPs)
@@ -300,7 +301,7 @@ class CompressPicDialog(QtWidgets.QDialog):
         pass
 
     def compressPicByThread(self, srcFiles, srcFileDirPath, dstFileDirPath, dstFnPs):
-        LogUtil.d("compressPicByThread")
+        LogUtil.d(TAG, "compressPicByThread")
         with ThreadPoolExecutor(max_workers=self.maxWorkerThreadCount) as t:
             futureList = []
             for srcFile in srcFiles:
@@ -322,9 +323,9 @@ class CompressPicDialog(QtWidgets.QDialog):
                 compressFinishedCount += 1
                 self.setCompressPicProgress(compressFinishedCount, len(srcFiles))
                 data = future.result()
-                LogUtil.e(f"main: {data}")
+                LogUtil.e(TAG, f"main: {data}")
 
-            LogUtil.d("all pic compress finished", self.compressRes)
+            LogUtil.d(TAG, "all pic compress finished", self.compressRes)
             WidgetUtil.addTableViewData(self.compressResTableView, data=self.compressRes,
                                         ignoreCol=["srcFile", "dstFile", "msg"],
                                         headerLabels=["源文件", "源文件大小", "压缩文件", "压缩文件大小", "压缩比"])
@@ -333,7 +334,7 @@ class CompressPicDialog(QtWidgets.QDialog):
         (argRes, preserves) = args
         srcFp = argRes.get("srcFile")
         dstFp = argRes.get("dstFile")
-        LogUtil.d("picCompress start.", srcFp, dstFp, preserves)
+        LogUtil.d(TAG, "picCompress start.", srcFp, dstFp, preserves)
         if not self.apiKeys:
             # 子线程不能显示dialog
             # WidgetUtil.showErrorDialog(message="请添加tinypng API key。（https://tinypng.com/developers 可以注册）")
@@ -345,7 +346,7 @@ class CompressPicDialog(QtWidgets.QDialog):
             if self.apiKeyIndex == len(self.apiKeys) - 1:
                 # 子线程不能显示dialog
                 # WidgetUtil.showErrorDialog(message="请检查网络或是否API key有效。")
-                LogUtil.d("api keys all invalid or network invalid.")
+                LogUtil.d(TAG, "api keys all invalid or network invalid.")
                 threadLock.release()
                 return "invalid", "api keys all invalid or network invalid. "
             else:

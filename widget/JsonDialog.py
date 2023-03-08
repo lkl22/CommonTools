@@ -9,6 +9,8 @@ from util.JsonUtil import *
 from util.DialogUtil import *
 from util.LogUtil import *
 
+TAG = "JsonDialog"
+
 
 class JsonDialog(QtWidgets.QDialog):
     def __init__(self, isDebug=False):
@@ -17,7 +19,7 @@ class JsonDialog(QtWidgets.QDialog):
         self.setWindowFlags(Qt.Dialog | Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint)
         JsonDialog.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.7)
         JsonDialog.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.8)
-        LogUtil.d("Init Json Format Dialog")
+        LogUtil.d(TAG, "Init Json Format Dialog")
         self.setObjectName("JsonDialog")
         self.resize(JsonDialog.WINDOW_WIDTH, JsonDialog.WINDOW_HEIGHT)
         # self.setFixedSize(JsonDialog.WINDOW_WIDTH, JsonDialog.WINDOW_HEIGHT)

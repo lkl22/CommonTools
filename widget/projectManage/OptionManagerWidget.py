@@ -8,6 +8,8 @@ from util.WidgetUtil import *
 from widget.projectManage.AddOrEditOptionGroupDialog import AddOrEditOptionGroupDialog
 from widget.projectManage.ProjectManager import *
 
+TAG = "OptionManagerWidget"
+
 
 class OptionManagerWidget(QFrame):
     def __init__(self, projectManager: ProjectManager):
@@ -48,7 +50,7 @@ class OptionManagerWidget(QFrame):
         pass
 
     def setProjectInfo(self, projectInfo):
-        LogUtil.d("setProjectInfo", projectInfo)
+        LogUtil.d(TAG, "setProjectInfo", projectInfo)
         self.projectInfo = projectInfo
         projectId = DictUtil.get(projectInfo, KEY_ID)
         self.addOptionGroupBtn.setEnabled(projectId is not None)
@@ -57,18 +59,18 @@ class OptionManagerWidget(QFrame):
         pass
 
     def addOptionGroup(self):
-        LogUtil.d("addOptionGroup")
+        LogUtil.d(TAG, "addOptionGroup")
         AddOrEditOptionGroupDialog(callback=self.addOrEditOptionGroupCallback, groupList=self.optionGroups)
         pass
 
     def editOptionGroup(self, optionGroupInfo):
-        LogUtil.d("editOptionGroup", optionGroupInfo)
+        LogUtil.d(TAG, "editOptionGroup", optionGroupInfo)
         AddOrEditOptionGroupDialog(callback=self.addOrEditOptionGroupCallback, default=optionGroupInfo,
                                    groupList=self.optionGroups)
         pass
 
     def addOrEditOptionGroupCallback(self, info):
-        LogUtil.d("addOrEditOptionGroupCallback", info)
+        LogUtil.d(TAG, "addOrEditOptionGroupCallback", info)
         if info:
             self.optionGroups.append(info)
         self.optionGroups = sorted(self.optionGroups, key=lambda x: x[KEY_NAME])
@@ -77,7 +79,7 @@ class OptionManagerWidget(QFrame):
         pass
 
     def delOptionGroup(self, optionGroupWidget, optionGroupInfo):
-        LogUtil.d("delOptionGroup", optionGroupInfo)
+        LogUtil.d(TAG, "delOptionGroup", optionGroupInfo)
         WidgetUtil.showQuestionDialog(
             message=f"你确定需要删除 <span style='color:red;'>{optionGroupInfo[KEY_NAME]}（{optionGroupInfo[KEY_DESC]}）</span> 吗？",
             acceptFunc=lambda: (
@@ -97,7 +99,7 @@ class OptionManagerWidget(QFrame):
         return self.optionGroups
 
     def updateOptionGroupItem(self, index, optionGroupInfo):
-        LogUtil.d("updateOptionGroupItem", index, optionGroupInfo)
+        LogUtil.d(TAG, "updateOptionGroupItem", index, optionGroupInfo)
         if index >= len(self.optionGroupWidgets):
             widget = OptionGroupWidget(info=optionGroupInfo, editFunc=self.editOptionGroup, delFunc=self.delOptionGroup,
                                        selectedChanged=self.saveProjectOptionGroups)
@@ -108,7 +110,7 @@ class OptionManagerWidget(QFrame):
         pass
 
     def updateOptionGroupList(self):
-        LogUtil.d("updateModuleList")
+        LogUtil.d(TAG, "updateModuleList")
         moduleLen = len(self.optionGroups)
         while moduleLen < len(self.optionGroupWidgets):
             widget = self.optionGroupWidgets[moduleLen]
@@ -191,7 +193,7 @@ class OptionWidget(QWidget):
         pass
 
     def optionValueChange(self, index):
-        LogUtil.d("optionValueChange", index)
+        LogUtil.d(TAG, "optionValueChange", index)
         self.info[KEY_DEFAULT] = index
         self.selectedChanged()
 

@@ -60,13 +60,13 @@ class OptionGroupWidget(QFrame):
         pass
 
     def selectedChanged(self, status):
-        LogUtil.d("selectedChanged", status)
+        LogUtil.d(TAG, "selectedChanged", status)
         options = DictUtil.get(self.optionGroupInfo, KEY_OPTIONS)
         self.optionNames.clear()
         for index, widget in enumerate(self.optionWidgets):
             if widget.isChecked():
                 self.optionNames.append(options[index][KEY_NAME])
-        LogUtil.d("selectedChanged", self.optionNames)
+        LogUtil.d(TAG, "selectedChanged", self.optionNames)
         pass
 
 
@@ -81,7 +81,7 @@ class AddOrEditCmdDialog(QtWidgets.QDialog):
         self.setWindowFlags(windowFlags)
         AddOrEditCmdDialog.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.6)
         AddOrEditCmdDialog.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.5)
-        LogUtil.d("Add or Edit Cmd Dialog")
+        LogUtil.d(TAG, "Add or Edit Cmd Dialog")
         self.setWindowTitle(WidgetUtil.translate(text="添加/编辑执行指令"))
         self.callback = callback
         if cmdList is None:
@@ -291,7 +291,7 @@ class AddOrEditCmdDialog(QtWidgets.QDialog):
         pass
 
     def dynamicArgumentsChanged(self, index):
-        LogUtil.d("dynamicArgumentsChanged", index)
+        LogUtil.d(TAG, "dynamicArgumentsChanged", index)
         curOptionGroup = self.optionGroups[index]
         self.optionGroups.remove(curOptionGroup)
         self.updateDynamicArgumentsComboBox()
@@ -321,7 +321,7 @@ class AddOrEditCmdDialog(QtWidgets.QDialog):
         self.vLayout.addWidget(self.spacerItem, 1)
 
     def delOptionGroupWidget(self, widget: OptionGroupWidget, optionGroupInfo):
-        LogUtil.d("delOptionGroupWidget")
+        LogUtil.d(TAG, "delOptionGroupWidget")
         delDynArg = ListUtil.find(self.dynamicArguments, KEY_OPTION_GROUP_ID, optionGroupInfo[KEY_ID])
         self.dynamicArguments.remove(delDynArg)
         self.handleDynamicArgumentsData()
@@ -382,7 +382,7 @@ class AddOrEditCmdDialog(QtWidgets.QDialog):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    window = AddOrEditCmdDialog(callback=lambda it: LogUtil.d("callback", it),
+    window = AddOrEditCmdDialog(callback=lambda it: LogUtil.d(TAG, "callback", it),
                                 default={'name': 'ls操作', 'desc': 'ls -l', 'program': 'ls', 'workingDir': './',
                                          'arguments': '-l'},
                                 optionGroups=[
@@ -433,6 +433,6 @@ if __name__ == '__main__':
                                                                     'value': 'release'}]}]}],
                                 cmdGroups=[{"name": "dd", "desc": "dd"}, {"name": "eee", "desc": "dgggd"}],
                                 isDebug=True)
-    # window = AddOrEditCmdDialog(callback=lambda it: LogUtil.d("callback", it), isDebug=True)
+    # window = AddOrEditCmdDialog(callback=lambda it: LogUtil.d(TAG, "callback", it), isDebug=True)
     window.show()
     sys.exit(app.exec_())

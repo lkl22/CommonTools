@@ -10,6 +10,8 @@ from util.DialogUtil import *
 from util.DomXmlUtil import *
 from util.OperaIni import *
 
+TAG = "AndroidColorResDialog"
+
 
 class AndroidColorResDialog(QtWidgets.QDialog):
     KEY_FIND_EXCEL_FN = "findExcelFn"
@@ -29,7 +31,7 @@ class AndroidColorResDialog(QtWidgets.QDialog):
         self.setWindowFlags(Qt.Dialog | Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint)
         AndroidColorResDialog.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.7)
         AndroidColorResDialog.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.7)
-        LogUtil.d("Init Android color Res Dialog")
+        LogUtil.d(TAG, "Init Android color Res Dialog")
         self.setObjectName("AndroidColorResDialog")
         self.resize(AndroidColorResDialog.WINDOW_WIDTH, AndroidColorResDialog.WINDOW_HEIGHT)
         # self.setFixedSize(AndroidColorResDialog.WINDOW_WIDTH, AndroidColorResDialog.WINDOW_HEIGHT)
@@ -60,7 +62,7 @@ class AndroidColorResDialog(QtWidgets.QDialog):
         else:
             self.operaIni = OperaIni()
 
-        LogUtil.d(FileUtil.getProjectPath())
+        LogUtil.d(TAG, FileUtil.getProjectPath())
 
         findExcelFn = self.operaIni.getValue(AndroidColorResDialog.KEY_FIND_EXCEL_FN,
                                              AndroidColorResDialog.SECTION_ANDROID)
@@ -320,7 +322,7 @@ class AndroidColorResDialog(QtWidgets.QDialog):
         colorName = self.colorNameLineEdit.text().strip()
         res = []
         if colorName:
-            LogUtil.e("需要查找的color name：", colorName)
+            LogUtil.e(TAG, "需要查找的color name：", colorName)
             for colorRes in self.findColorRes:
                 if colorName in colorRes[AndroidColorResDialog.KEY_COLOR_NAME]:
                     res.append(colorRes)
@@ -328,31 +330,31 @@ class AndroidColorResDialog(QtWidgets.QDialog):
             normalColor = self.normalColorLineEdit.text().strip().upper()
             darkColor = self.darkColorLineEdit.text().strip().upper()
             if normalColor:
-                LogUtil.e("需要查找的normal color：", normalColor)
+                LogUtil.e(TAG, "需要查找的normal color：", normalColor)
             if darkColor:
-                LogUtil.e("需要查找的dark color：", darkColor)
+                LogUtil.e(TAG, "需要查找的dark color：", darkColor)
             for colorRes in self.findColorRes:
                 if normalColor in colorRes[AndroidColorResDialog.KEY_NORMAL_COLOR] and darkColor in colorRes[
                     AndroidColorResDialog.KEY_DARK_COLOR]:
                     res.append(colorRes)
             if not (normalColor or darkColor):
-                LogUtil.e("没有查询条件，查询所有数据")
+                LogUtil.e(TAG, "没有查询条件，查询所有数据")
                 res = self.findColorRes
-        LogUtil.e("查找到的资源：", res)
+        LogUtil.e(TAG, "查找到的资源：", res)
         self.findColorResResult = res
         WidgetUtil.addTableViewData(self.findResTableView, data=res, ignoreCol=[AndroidColorResDialog.KEY_ROW],
                                     itemChanged=self.tableItemChanged)
         pass
 
     def addColorRes(self):
-        LogUtil.i("jumpAddColorResDialog")
+        LogUtil.i(TAG, "jumpAddColorResDialog")
         from widget.colorManager.AddColorResDialog import AddColorResDialog
         dialog = AddColorResDialog(self.addColorHandle, self.findColorRes)
         # dialog.show()
         pass
 
     def addColorHandle(self, colorName, normalColor, darkColor):
-        LogUtil.e("新添加color资源：", colorName, "  ", normalColor, " dark: ", darkColor)
+        LogUtil.e(TAG, "新添加color资源：", colorName, "  ", normalColor, " dark: ", darkColor)
         fp = self.findExcelFnLineEdit.text().strip()
         oldBk = ExcelUtil.getBook(fp)
         nrows = oldBk.sheets()[0].nrows
@@ -372,7 +374,7 @@ class AndroidColorResDialog(QtWidgets.QDialog):
     def tableItemChanged(self, item: QStandardItem):
         newData = item.text().strip()
         col = item.column()
-        LogUtil.d("编辑的单元格：row ", item.row(), ' col', col, ' data ', newData)
+        LogUtil.d(TAG, "编辑的单元格：row ", item.row(), ' col', col, ' data ', newData)
         if AndroidColorResDialog.KEY_COLOR_NAME_COL_NUM == col:
             for colorRes in self.findColorRes:
                 if colorRes[AndroidColorResDialog.KEY_COLOR_NAME] == newData \
@@ -410,7 +412,7 @@ class AndroidColorResDialog(QtWidgets.QDialog):
         normalColor = self.curEditColorRes[AndroidColorResDialog.KEY_NORMAL_COLOR]
         darkColor = self.curEditColorRes[AndroidColorResDialog.KEY_DARK_COLOR]
         row = self.curEditColorRes[AndroidColorResDialog.KEY_ROW]
-        LogUtil.e("编辑color资源：", colorName, "  ", normalColor, " dark: ", darkColor, ' row ', row)
+        LogUtil.e(TAG, "编辑color资源：", colorName, "  ", normalColor, " dark: ", darkColor, ' row ', row)
         fp = self.findExcelFnLineEdit.text().strip()
         oldBk = ExcelUtil.getBook(fp)
         newBk: Workbook = ExcelUtil.copyBook(oldBk)
@@ -426,9 +428,9 @@ class AndroidColorResDialog(QtWidgets.QDialog):
     def tableDoubleClicked(self, index: QModelIndex):
         oldValue = index.data()
         row = index.row()
-        LogUtil.d("双击的单元格：row ", row, ' col', index.column(), ' data ', oldValue)
+        LogUtil.d(TAG, "双击的单元格：row ", row, ' col', index.column(), ' data ', oldValue)
         colorRes = self.findColorResResult[row]
-        LogUtil.d("Excel中源数据：row ", colorRes[AndroidColorResDialog.KEY_ROW], ' colorName ',
+        LogUtil.d(TAG, "Excel中源数据：row ", colorRes[AndroidColorResDialog.KEY_ROW], ' colorName ',
                   colorRes[AndroidColorResDialog.KEY_COLOR_NAME],
                   ' normalColor ', colorRes[AndroidColorResDialog.KEY_NORMAL_COLOR], ' darkColor ',
                   colorRes[AndroidColorResDialog.KEY_DARK_COLOR])

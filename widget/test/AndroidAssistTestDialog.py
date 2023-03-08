@@ -13,6 +13,7 @@ ANDROID_TEST_ASSIST_TOOL_PACKAGE_NAME = 'com.lkl.androidtestassisttool'
 ANDROID_TEST_ASSIST_TOOL_MAIN_ACTIVITY = '.MainActivity'
 ANDROID_TEST_ASSIST_TOOL_LOWEST_VERSION = 10002
 ANDROID_TEST_ASSIST_TOOL_LOWEST_VERSION_NAME = "1.0.2"
+TAG = "AndroidAssistTestDialog"
 
 
 class AndroidAssistTestDialog(QtWidgets.QDialog):
@@ -25,7 +26,7 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
         self.setWindowFlags(Qt.Dialog | Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint)
         AndroidAssistTestDialog.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.7)
         AndroidAssistTestDialog.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.7)
-        LogUtil.d("Init Android Assist Test Dialog")
+        LogUtil.d(TAG, "Init Android Assist Test Dialog")
         self.setObjectName("AndroidAssistTestDialog")
 
         self.hasCheckInstallFinish = False
@@ -183,7 +184,7 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
         return self.activityNameLineEdit.text().strip()
 
     def cmdComboBoxIndexChanged(self, index: int):
-        LogUtil.e("cmdComboBoxIndexChanged %d" % index)
+        LogUtil.e(TAG, "cmdComboBoxIndexChanged %d" % index)
         pass
 
     def execComboBoxCmd(self):
@@ -429,7 +430,7 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
         pass
 
     def execCmd(self, cmd: str):
-        LogUtil.d("exec cmd:", cmd)
+        LogUtil.d(TAG, "exec cmd:", cmd)
         if cmd:
             self.printRes('执行指令：')
             self.printRes(cmd + '\n')
@@ -453,7 +454,7 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
             self.printRes(err, '#f00')
 
     def printRes(self, res: str = '', color='#00f'):
-        LogUtil.i("printRes", res)
+        LogUtil.i(TAG, "printRes", res)
         WidgetUtil.appendTextEdit(self.execResTE, res, color)
         pass
 

@@ -14,6 +14,8 @@ from widget.custom.DragInputWidget import DragInputWidget
 from widget.projectManage.AddOrEditEvnDialog import AddOrEditEvnDialog
 from widget.projectManage.ProjectManager import *
 
+TAG = "AddOrEditProjectDialog"
+
 
 class AddOrEditProjectDialog(QtWidgets.QDialog):
     def __init__(self, callback, projectInfo=None, projectList=None, isDebug=False):
@@ -35,7 +37,7 @@ class AddOrEditProjectDialog(QtWidgets.QDialog):
         self.setWindowFlags(Qt.Dialog | Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint)
         AddOrEditProjectDialog.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.6)
         AddOrEditProjectDialog.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.5)
-        LogUtil.d("Add Or Edit Project Dialog")
+        LogUtil.d(TAG, "Add Or Edit Project Dialog")
         self.setWindowTitle(WidgetUtil.translate(text="添加/修改项目配置"))
         self.setObjectName("AddOrEditProjectDialog")
         self.resize(AddOrEditProjectDialog.WINDOW_WIDTH, AddOrEditProjectDialog.WINDOW_HEIGHT)
@@ -98,12 +100,12 @@ class AddOrEditProjectDialog(QtWidgets.QDialog):
         return box
 
     def addEvn(self):
-        LogUtil.d("addEvn")
+        LogUtil.d(TAG, "addEvn")
         AddOrEditEvnDialog(evnList=self.evnList, callback=self.addOrEditEvnCallback)
         pass
 
     def addOrEditEvnCallback(self, info):
-        LogUtil.d("addOrEditEvnCallback", info)
+        LogUtil.d(TAG, "addOrEditEvnCallback", info)
         if info:
             self.evnList.append(info)
         self.evnList = sorted(self.evnList, key=lambda x: x[KEY_NAME])
@@ -113,27 +115,27 @@ class AddOrEditProjectDialog(QtWidgets.QDialog):
     def tableDoubleClicked(self, index: QModelIndex):
         oldValue = index.data()
         row = index.row()
-        LogUtil.d("双击的单元格：row ", row, ' col', index.column(), ' data ', oldValue)
+        LogUtil.d(TAG, "双击的单元格：row ", row, ' col', index.column(), ' data ', oldValue)
         AddOrEditEvnDialog(evnList=self.evnList, callback=self.addOrEditEvnCallback,
                            default=self.evnList[row])
         pass
 
     def customRightMenu(self, pos):
         self.curDelRow = self.evnTableView.currentIndex().row()
-        LogUtil.i("customRightMenu", pos, ' row: ', self.curDelRow)
+        LogUtil.i(TAG, "customRightMenu", pos, ' row: ', self.curDelRow)
         menu = WidgetUtil.createMenu("删除", func1=self.delProjectEvn)
         menu.exec(self.evnTableView.mapToGlobal(pos))
         pass
 
     def delProjectEvn(self):
         evn = self.evnList[self.curDelRow][KEY_NAME]
-        LogUtil.i(f"delAccount {evn}")
+        LogUtil.i(TAG, f"delAccount {evn}")
         WidgetUtil.showQuestionDialog(message=f"你确定需要删除 <span style='color:red;'>{evn}</span> 吗？",
                                       acceptFunc=self.delTableItem)
         pass
 
     def delTableItem(self):
-        LogUtil.i("delTreeWidgetItem")
+        LogUtil.i(TAG, "delTreeWidgetItem")
         self.evnList.remove(self.evnList[self.curDelRow])
         self.updateEvnTableView()
         pass
@@ -154,7 +156,7 @@ class AddOrEditProjectDialog(QtWidgets.QDialog):
         pass
 
     def acceptFunc(self):
-        LogUtil.d("acceptFunc")
+        LogUtil.d(TAG, "acceptFunc")
         name = self.projectNameLineEdit.text().strip()
         if not name:
             WidgetUtil.showErrorDialog(message="请输入工程名")
@@ -190,8 +192,8 @@ class AddOrEditProjectDialog(QtWidgets.QDialog):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    window = AddOrEditProjectDialog(callback=lambda it: LogUtil.d("callback", it), isDebug=True)
-    # window = AddOrEditProjectDialog(callback=lambda it: LogUtil.d("callback", it),
+    window = AddOrEditProjectDialog(callback=lambda it: LogUtil.d(TAG, "callback", it), isDebug=True)
+    # window = AddOrEditProjectDialog(callback=lambda it: LogUtil.d(TAG, "callback", it),
     #                                 projectInfo={'evnList': [
     #                                     {'name': 'ss', 'value': 'dd', 'desc': 'ff', "isPath": True}],
     #                                              'id': '0cc175b9c0f1b6a831c399e269772661',

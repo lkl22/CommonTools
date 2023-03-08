@@ -8,6 +8,8 @@ from util.OperaIni import *
 from widget.custom.DragInputWidget import DragInputWidget
 from widget.projectManage.ProjectManager import *
 
+TAG = "AddOrEditEvnDialog"
+
 
 class AddOrEditEvnDialog(QtWidgets.QDialog):
     def __init__(self, evnList, callback, default=None, isDebug=False):
@@ -16,7 +18,7 @@ class AddOrEditEvnDialog(QtWidgets.QDialog):
         self.setWindowFlags(Qt.Dialog | Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint)
         AddOrEditEvnDialog.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.7)
         AddOrEditEvnDialog.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.2)
-        LogUtil.d("Add or Edit Evn Dialog")
+        LogUtil.d(TAG, "Add or Edit Evn Dialog")
         self.setWindowTitle(WidgetUtil.translate(text="添加/编辑环境变量"))
         if evnList is None:
             evnList = []
@@ -106,6 +108,6 @@ class AddOrEditEvnDialog(QtWidgets.QDialog):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    window = AddOrEditEvnDialog(evnList=[], callback=lambda it: LogUtil.d("callback", it), isDebug=True)
+    window = AddOrEditEvnDialog(evnList=[], callback=lambda it: LogUtil.d(TAG, "callback", it), isDebug=True)
     window.show()
     sys.exit(app.exec_())

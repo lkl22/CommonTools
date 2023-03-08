@@ -12,6 +12,8 @@ from widget.projectManage.AddOrEditModuleDialog import AddOrEditModuleDialog
 from widget.projectManage.ModuleDependencyDialog import ModuleDependencyDialog
 from widget.projectManage.ProjectManager import *
 
+TAG = "ModuleManagerWidget"
+
 
 class ModuleManagerWidget(QFrame):
     def __init__(self, projectManager: ProjectManager, getOptionGroupsFunc=None, getCmdGroupsFunc=None):
@@ -67,7 +69,7 @@ class ModuleManagerWidget(QFrame):
         pass
 
     def setProjectInfo(self, projectInfo):
-        LogUtil.d("setProjectInfo", projectInfo)
+        LogUtil.d(TAG, "setProjectInfo", projectInfo)
         self.projectInfo = projectInfo
         projectId = DictUtil.get(projectInfo, KEY_ID)
         self.addModuleBtn.setEnabled(projectId is not None)
@@ -101,34 +103,34 @@ class ModuleManagerWidget(QFrame):
             return []
 
     def addModule(self):
-        LogUtil.d("addModule")
+        LogUtil.d(TAG, "addModule")
         AddOrEditModuleDialog(callback=self.addOrEditModuleCallback, openDir=self.getProjectPath(),
                               moduleList=self.modules, optionGroups=self.getOptionGroups(),
                               cmdGroups=self.getCmdGroups())
         pass
 
     def previewModuleDependency(self):
-        LogUtil.d("previewModuleDependency")
+        LogUtil.d(TAG, "previewModuleDependency")
         ModuleDependencyDialog(ProjectManager.generateDiGraph(self.modules))
         pass
 
     def allSelected(self):
         allSelected = self.allSelectedCheckBox.isChecked()
-        LogUtil.d("allSelected", allSelected)
+        LogUtil.d(TAG, "allSelected", allSelected)
         self.defaultModules = [item[KEY_NAME] for item in self.modules] if allSelected else []
         self.saveProjectDefaultModules()
         self.updateModuleList()
         pass
 
     def editModule(self, moduleInfo):
-        LogUtil.d("editModule", moduleInfo)
+        LogUtil.d(TAG, "editModule", moduleInfo)
         AddOrEditModuleDialog(callback=self.addOrEditModuleCallback, openDir=self.getProjectPath(), default=moduleInfo,
                               moduleList=self.modules, optionGroups=self.getOptionGroups(),
                               cmdGroups=self.getCmdGroups())
         pass
 
     def copyModule(self, moduleInfo):
-        LogUtil.d("copyModule", moduleInfo)
+        LogUtil.d(TAG, "copyModule", moduleInfo)
         AddOrEditModuleDialog(callback=self.addOrEditModuleCallback, openDir=self.getProjectPath(),
                               default=copy.deepcopy(moduleInfo),
                               moduleList=self.modules, optionGroups=self.getOptionGroups(),
@@ -136,7 +138,7 @@ class ModuleManagerWidget(QFrame):
         pass
 
     def addOrEditModuleCallback(self, info):
-        LogUtil.d("addOrEditModuleCallback", info)
+        LogUtil.d(TAG, "addOrEditModuleCallback", info)
         if info:
             self.modules.append(info)
         self.modules = sorted(self.modules, key=lambda x: x[KEY_NAME])
@@ -145,7 +147,7 @@ class ModuleManagerWidget(QFrame):
         pass
 
     def delModule(self, moduleWidget, moduleInfo):
-        LogUtil.d("delModule", moduleInfo)
+        LogUtil.d(TAG, "delModule", moduleInfo)
         WidgetUtil.showQuestionDialog(
             message=f"你确定需要删除 <span style='color:red;'>{moduleInfo[KEY_NAME]}（{moduleInfo[KEY_DESC]}）</span> 吗？",
             acceptFunc=lambda: (
@@ -164,7 +166,7 @@ class ModuleManagerWidget(QFrame):
         pass
 
     def updateModuleItem(self, index, moduleInfo):
-        LogUtil.d("updateModuleItem", index, moduleInfo)
+        LogUtil.d(TAG, "updateModuleItem", index, moduleInfo)
         if index >= len(self.moduleWidgets):
             moduleWidget = ModuleWidget(moduleInfo=moduleInfo, defaultModules=self.defaultModules,
                                         editFunc=self.editModule,
@@ -177,7 +179,7 @@ class ModuleManagerWidget(QFrame):
         pass
 
     def updateModuleList(self):
-        LogUtil.d("updateModuleList")
+        LogUtil.d(TAG, "updateModuleList")
         moduleLen = len(self.modules)
         while moduleLen < len(self.moduleWidgets):
             widget = self.moduleWidgets[moduleLen]
@@ -225,7 +227,7 @@ class ModuleWidget(QWidget):
             self.defaultModules.append(name)
         else:
             self.defaultModules.remove(name)
-        LogUtil.d("moduleSelectedChange", self.defaultModules)
+        LogUtil.d(TAG, "moduleSelectedChange", self.defaultModules)
         self.selectedChanged()
         pass
 

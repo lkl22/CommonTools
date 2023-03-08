@@ -7,6 +7,8 @@ from constant.WidgetConst import *
 from util.AutoTestUtil import *
 from util.Uiautomator import *
 
+TAG = "EditTestStepDialog"
+
 
 class EditTestStepDialog(QtWidgets.QDialog):
     def __init__(self, callbackFunc, stepType=const.STEP_TYPE_SINGLE_CLICK, params={}, u: Uiautomator = None,
@@ -16,7 +18,7 @@ class EditTestStepDialog(QtWidgets.QDialog):
         self.setWindowFlags(Qt.Dialog | Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint)
         EditTestStepDialog.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.5)
         EditTestStepDialog.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.3)
-        LogUtil.d("Init edit test step Dialog")
+        LogUtil.d(TAG, "Init edit test step Dialog")
         self.setObjectName("EditTestStepDialog")
         self.resize(EditTestStepDialog.WINDOW_WIDTH, EditTestStepDialog.WINDOW_HEIGHT)
         # self.setFixedSize(EditTestStepDialog.WINDOW_WIDTH, EditTestStepDialog.WINDOW_HEIGHT)
@@ -121,7 +123,7 @@ class EditTestStepDialog(QtWidgets.QDialog):
     def superTestTypeToggled(self):
         index = self.superTestTypes.checkedId()
         self.stepType = index * 10
-        LogUtil.i("superTestTypeToggled", self.stepType, const.STEP_TYPE_NAMES[index])
+        LogUtil.i(TAG, "superTestTypeToggled", self.stepType, const.STEP_TYPE_NAMES[index])
         self.subTestTypeToggledVisible()
         self.setClickParam()
         self.setSwipeParam()
@@ -132,7 +134,7 @@ class EditTestStepDialog(QtWidgets.QDialog):
         superIndex = self.superTestTypes.checkedId()
         subIndex = self.subClickTestTypes.checkedId()
         self.stepType = superIndex * 10 + subIndex
-        LogUtil.i("subClickTestTypeToggled", self.stepType, const.STEP_TYPE_NAMES[superIndex],
+        LogUtil.i(TAG, "subClickTestTypeToggled", self.stepType, const.STEP_TYPE_NAMES[superIndex],
                   const.CLICK_TYPES[subIndex])
         pass
 
@@ -140,7 +142,7 @@ class EditTestStepDialog(QtWidgets.QDialog):
         superIndex = self.superTestTypes.checkedId()
         subIndex = self.subSwipeTestTypes.checkedId()
         self.stepType = superIndex * 10 + subIndex
-        LogUtil.i("subSwipeTestTypeToggled", self.stepType, const.STEP_TYPE_NAMES[superIndex],
+        LogUtil.i(TAG, "subSwipeTestTypeToggled", self.stepType, const.STEP_TYPE_NAMES[superIndex],
                   const.SWIPE_TYPES[subIndex])
         pass
 
@@ -318,7 +320,7 @@ class EditTestStepDialog(QtWidgets.QDialog):
             self.findDescLineEdit.setText('')
 
     def clickedFunc(self, btn: QAbstractButton):
-        LogUtil.d("clickedFunc", btn.text())
+        LogUtil.d(TAG, "clickedFunc", btn.text())
         if btn == self.testBtn:
             self.testStep()
         elif btn == self.cancelBtn:
@@ -328,10 +330,10 @@ class EditTestStepDialog(QtWidgets.QDialog):
         pass
 
     def acceptFunc(self):
-        LogUtil.i("acceptFunc")
+        LogUtil.i(TAG, "acceptFunc")
         self.getParams()
         if not self.checkParams():
-            LogUtil.i("testStep params check failed.")
+            LogUtil.i(TAG, "testStep params check failed.")
             return
         if self.callbackFunc:
             self.callbackFunc(self.stepType, self.params)
@@ -339,7 +341,7 @@ class EditTestStepDialog(QtWidgets.QDialog):
         pass
 
     def testStep(self):
-        LogUtil.i("testStep")
+        LogUtil.i(TAG, "testStep")
         if not self.u:
             self.u = Uiautomator()
         if not self.t:
@@ -351,10 +353,10 @@ class EditTestStepDialog(QtWidgets.QDialog):
                 return
         self.getParams()
         if not self.checkParams():
-            LogUtil.i("testStep params check failed.")
+            LogUtil.i(TAG, "testStep params check failed.")
             return
         res = self.t.startTestStep(stepType=self.stepType, params=self.params)
-        LogUtil.d('res:', res)
+        LogUtil.d(TAG, 'res:', res)
         pass
 
     def getParams(self):
@@ -400,7 +402,7 @@ class EditTestStepDialog(QtWidgets.QDialog):
                             self.params[const.KEY_INTERVAL_TIME], self.params[const.KEY_REPEAT_NUM])
             self.params[const.KEY_DESC] = desc
 
-        LogUtil.i("getParams", self.stepType, self.params)
+        LogUtil.i(TAG, "getParams", self.stepType, self.params)
         pass
 
     def checkParams(self):
@@ -420,7 +422,7 @@ class EditTestStepDialog(QtWidgets.QDialog):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     window = EditTestStepDialog(callbackFunc=lambda stepType, params: {
-        LogUtil.d("callback:", "stepType", stepType, "params", params)
+        LogUtil.d(TAG, "callback:", "stepType", stepType, "params", params)
     }, isDebug=True)
     window.show()
     sys.exit(app.exec_())

@@ -14,6 +14,8 @@ from util.ReUtil import ReUtil
 from util.CipherUtil import CipherUtil
 from widget.account.AccountManager import *
 
+TAG = "AccountManagerDialog"
+
 
 class AccountManagerDialog(QtWidgets.QDialog):
     AES_KEY = "1234567812345678"
@@ -24,7 +26,7 @@ class AccountManagerDialog(QtWidgets.QDialog):
         self.setWindowFlags(Qt.Dialog | Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint)
         AccountManagerDialog.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.7)
         AccountManagerDialog.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.7)
-        LogUtil.d("Account Manager Dialog")
+        LogUtil.d(TAG, "Account Manager Dialog")
         self.setWindowTitle(WidgetUtil.translate(text="账号管理"))
 
         self.setObjectName("AccountManagerDialog")
@@ -125,7 +127,7 @@ class AccountManagerDialog(QtWidgets.QDialog):
         pass
 
     def showOrHideAesKey(self):
-        LogUtil.d("showOrHideAesKey")
+        LogUtil.d(TAG, "showOrHideAesKey")
         if self.aesKeyLineEdit.echoMode() == QLineEdit.Password:
             self.aesKeyLineEdit.setEchoMode(QLineEdit.Normal)
             self.showOrHideAesKeyBtn.setText("隐藏")
@@ -135,7 +137,7 @@ class AccountManagerDialog(QtWidgets.QDialog):
         pass
 
     def copyAesKeyToClipboard(self):
-        LogUtil.d("copyAesKeyToClipboard")
+        LogUtil.d(TAG, "copyAesKeyToClipboard")
         ClipboardUtil.copyToClipboard(AccountManagerDialog.AES_KEY)
         pass
 
@@ -147,24 +149,24 @@ class AccountManagerDialog(QtWidgets.QDialog):
             if not self.curFlavorInfo:
                 self.curFlavorInfo = self.flavors[KEY_LIST][0]
             self.flavorsComboBox.setCurrentText(self.curFlavorInfo[KEY_DESC])
-            LogUtil.d('updateFlavorComboBox setCurrentText', self.curFlavorInfo)
+            LogUtil.d(TAG, 'updateFlavorComboBox setCurrentText', self.curFlavorInfo)
         pass
 
     def flavorIndexChanged(self, index):
         flavorInfo = self.flavorsComboBox.currentData()
         if flavorInfo:
             self.curFlavorInfo = flavorInfo
-        LogUtil.d('flavorIndexChanged', index, self.curFlavorInfo, flavorInfo)
+        LogUtil.d(TAG, 'flavorIndexChanged', index, self.curFlavorInfo, flavorInfo)
         self.updateFlavorInfo()
         pass
 
     def addFlavor(self):
-        LogUtil.d("addFlavor")
+        LogUtil.d(TAG, "addFlavor")
         AddFlavorDialog(flavorList=self.flavors[KEY_LIST], callback=self.addFlavorCallback, isDebug=self.isDebug).show()
         pass
 
     def addFlavorCallback(self, flavorName, flavorDesc):
-        LogUtil.d("addFlavorCallback", flavorName, flavorDesc)
+        LogUtil.d(TAG, "addFlavorCallback", flavorName, flavorDesc)
         flavorList = self.flavors[KEY_LIST]
 
         flavorList.append({KEY_FLAVOR_NAME: flavorName, KEY_DESC: flavorDesc})
@@ -187,25 +189,25 @@ class AccountManagerDialog(QtWidgets.QDialog):
             if not self.curCountryInfo:
                 self.curCountryInfo = self.countries[KEY_LIST][0]
             self.countriesComboBox.setCurrentText(self.curCountryInfo[KEY_DESC])
-            LogUtil.d('updateCountriesComboBox setCurrentText', self.curCountryInfo)
+            LogUtil.d(TAG, 'updateCountriesComboBox setCurrentText', self.curCountryInfo)
         pass
 
     def countryIndexChanged(self, index):
         countryInfo = self.countriesComboBox.currentData()
         if countryInfo:
             self.curCountryInfo = countryInfo
-        LogUtil.d('countryIndexChanged', index, self.curCountryInfo, countryInfo)
+        LogUtil.d(TAG, 'countryIndexChanged', index, self.curCountryInfo, countryInfo)
         self.updateCountryInfo()
         pass
 
     def addCountry(self):
-        LogUtil.d("addCountry")
+        LogUtil.d(TAG, "addCountry")
         AddCountryDialog(countryList=self.countries[KEY_LIST], callback=self.addCountryCallback,
                          isDebug=self.isDebug).show()
         pass
 
     def addCountryCallback(self, countryCode, countryDesc):
-        LogUtil.d("addCountryCallback", countryCode, countryDesc)
+        LogUtil.d(TAG, "addCountryCallback", countryCode, countryDesc)
         countryList = self.countries[KEY_LIST]
 
         countryList.append({KEY_COUNTRY_CODE: countryCode, KEY_DESC: countryDesc})
@@ -224,7 +226,7 @@ class AccountManagerDialog(QtWidgets.QDialog):
         if not self.curFlavorInfo or not self.curCountryInfo:
             return
         accountsInfoKey = self.curFlavorInfo[KEY_FLAVOR_NAME] + self.curCountryInfo[KEY_COUNTRY_CODE]
-        LogUtil.d("updateAccountInfo", accountsInfoKey, self.curAccountsInfoKey)
+        LogUtil.d(TAG, "updateAccountInfo", accountsInfoKey, self.curAccountsInfoKey)
         if self.curAccountsInfoKey != accountsInfoKey:
             self.curAccountsInfoKey = accountsInfoKey
             self.accounts = self.accountManager.getAccountInfos(accountsInfoKey)
@@ -245,7 +247,7 @@ class AccountManagerDialog(QtWidgets.QDialog):
 
     def inputData(self, isPwd):
         row = self.accountTableView.currentIndex().row()
-        LogUtil.d("inputData", "isPwd", isPwd, "row", row)
+        LogUtil.d(TAG, "inputData", "isPwd", isPwd, "row", row)
         if row < 0:
             WidgetUtil.showAboutDialog(text="请先选择需要传输数据的账号。")
             return
@@ -263,7 +265,7 @@ class AccountManagerDialog(QtWidgets.QDialog):
         pass
 
     def addAccount(self):
-        LogUtil.d("addAccount")
+        LogUtil.d(TAG, "addAccount")
         if not self.curFlavorInfo or not self.curCountryInfo:
             WidgetUtil.showErrorDialog(message="请先设置渠道和国家")
             return
@@ -275,7 +277,7 @@ class AccountManagerDialog(QtWidgets.QDialog):
         pass
 
     def addOrEditAccountCallback(self, accountInfo):
-        LogUtil.d("addAccountCallback", accountInfo)
+        LogUtil.d(TAG, "addAccountCallback", accountInfo)
         accountList = self.accounts[KEY_LIST]
         if accountInfo:
             accountList.append(accountInfo)
@@ -292,7 +294,7 @@ class AccountManagerDialog(QtWidgets.QDialog):
     def tableDoubleClicked(self, index: QModelIndex):
         oldValue = index.data()
         row = index.row()
-        LogUtil.d("双击的单元格：row ", row, ' col', index.column(), ' data ', oldValue)
+        LogUtil.d(TAG, "双击的单元格：row ", row, ' col', index.column(), ' data ', oldValue)
 
         accountInfo = self.accounts[KEY_LIST][row]
         AddOrEditAccountDialog(accountList=self.accounts[KEY_LIST], callback=self.addOrEditAccountCallback, default=accountInfo,
@@ -301,20 +303,20 @@ class AccountManagerDialog(QtWidgets.QDialog):
 
     def customRightMenu(self, pos):
         self.curDelRow = self.accountTableView.currentIndex().row()
-        LogUtil.i("customRightMenu", pos, ' row: ', self.curDelRow)
+        LogUtil.i(TAG, "customRightMenu", pos, ' row: ', self.curDelRow)
         menu = WidgetUtil.createMenu("删除", func1=self.delAccount)
         menu.exec(self.accountTableView.mapToGlobal(pos))
         pass
 
     def delAccount(self):
         account = self.accounts[KEY_LIST][self.curDelRow][KEY_ACCOUNT]
-        LogUtil.i(f"delAccount {account}")
+        LogUtil.i(TAG, f"delAccount {account}")
         WidgetUtil.showQuestionDialog(message=f"你确定需要删除 <span style='color:red;'>{account}</span> 吗？",
                                       acceptFunc=self.delTableItem)
         pass
 
     def delTableItem(self):
-        LogUtil.i("delTreeWidgetItem")
+        LogUtil.i(TAG, "delTreeWidgetItem")
         self.accounts[KEY_LIST].remove(self.accounts[KEY_LIST][self.curDelRow])
         self.updateAccountInfoTableView()
         self.updateAccountInfo()
@@ -328,7 +330,7 @@ class AddFlavorDialog(QtWidgets.QDialog):
         self.setWindowFlags(Qt.Dialog | Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint)
         AddFlavorDialog.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.3)
         AddFlavorDialog.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.2)
-        LogUtil.d("Add Flavor Dialog")
+        LogUtil.d(TAG, "Add Flavor Dialog")
         self.setWindowTitle(WidgetUtil.translate(text="添加渠道信息"))
 
         self.callback = callback
@@ -394,7 +396,7 @@ class AddCountryDialog(QtWidgets.QDialog):
         self.setWindowFlags(Qt.Dialog | Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint)
         AddCountryDialog.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.3)
         AddCountryDialog.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.2)
-        LogUtil.d("Add Country Dialog")
+        LogUtil.d(TAG, "Add Country Dialog")
         self.setWindowTitle(WidgetUtil.translate(text="添加国家"))
 
         self.callback = callback
@@ -457,7 +459,7 @@ class AddOrEditAccountDialog(QtWidgets.QDialog):
         self.setWindowFlags(Qt.Dialog | Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint)
         AddOrEditAccountDialog.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.3)
         AddOrEditAccountDialog.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.2)
-        LogUtil.d("Add or Edit Account Dialog")
+        LogUtil.d(TAG, "Add or Edit Account Dialog")
         self.setWindowTitle(WidgetUtil.translate(text="添加/编辑账号信息"))
 
         self.callback = callback

@@ -5,6 +5,8 @@
 from PyQt5.Qsci import QsciScintilla, QsciLexerPython, QsciLexer, QsciLexerJavaScript, QsciLexerJava, QsciLexerCPP
 from util.Uiautomator import *
 
+TAG = "AlgorithmDescDialog"
+
 
 class AlgorithmDescDialog(QtWidgets.QDialog):
     def __init__(self, title, descText, javaCode=None, javaScriptCode=None, pythonCode=None, cCode=None, cppCode=None,
@@ -14,7 +16,7 @@ class AlgorithmDescDialog(QtWidgets.QDialog):
         self.setWindowFlags(Qt.Dialog | Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint)
         AlgorithmDescDialog.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.8)
         AlgorithmDescDialog.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.8)
-        LogUtil.d("Init Algorithm Visualizer Dialog")
+        LogUtil.d(TAG, "Init Algorithm Visualizer Dialog")
         self.setObjectName("AlgorithmVisualizerDialog")
         self.resize(AlgorithmDescDialog.WINDOW_WIDTH, AlgorithmDescDialog.WINDOW_HEIGHT)
         # self.setFixedSize(AlgorithmDescDialog.WINDOW_WIDTH, AlgorithmDescDialog.WINDOW_HEIGHT)

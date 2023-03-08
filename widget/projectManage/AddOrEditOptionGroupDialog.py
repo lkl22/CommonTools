@@ -14,6 +14,8 @@ from util.OperaIni import *
 from widget.projectManage.AddOrEditOptionDialog import AddOrEditOptionDialog
 from widget.projectManage.ProjectManager import *
 
+TAG = "AddOrEditOptionGroupDialog"
+
 
 class AddOrEditOptionGroupDialog(QtWidgets.QDialog):
     def __init__(self, callback, default=None, groupList=None, isDebug=False):
@@ -39,7 +41,7 @@ class AddOrEditOptionGroupDialog(QtWidgets.QDialog):
         self.setWindowFlags(windowFlags)
         AddOrEditOptionGroupDialog.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.6)
         AddOrEditOptionGroupDialog.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.5)
-        LogUtil.d("Add Or Edit Option Group Dialog")
+        LogUtil.d(TAG, "Add Or Edit Option Group Dialog")
         self.setWindowTitle(WidgetUtil.translate(text="添加/修改选项群组配置"))
         self.setObjectName("AddOrEditOptionGroupDialog")
         self.resize(AddOrEditOptionGroupDialog.WINDOW_WIDTH, AddOrEditOptionGroupDialog.WINDOW_HEIGHT)
@@ -112,7 +114,7 @@ class AddOrEditOptionGroupDialog(QtWidgets.QDialog):
         return box
 
     def moveOptionPosition(self, newPos):
-        LogUtil.d("moveOptionPosition", newPos)
+        LogUtil.d(TAG, "moveOptionPosition", newPos)
         # 交换数据
         ListUtil.insert(self.options, self.currentRow, newPos)
         # 更新table表格数据
@@ -125,19 +127,19 @@ class AddOrEditOptionGroupDialog(QtWidgets.QDialog):
         pass
 
     def addOption(self):
-        LogUtil.d("addOption")
+        LogUtil.d(TAG, "addOption")
         AddOrEditOptionDialog(callback=self.addOrEditOptionCallback, optionList=self.options)
         pass
 
     def addOrEditOptionCallback(self, info):
-        LogUtil.d("addOrEditOptionCallback", info)
+        LogUtil.d(TAG, "addOrEditOptionCallback", info)
         if info:
             self.options.append(info)
         self.updateCmdTableView()
         pass
 
     def updatePositionBtnStatus(self):
-        LogUtil.d("updatePositionBtnStatus")
+        LogUtil.d(TAG, "updatePositionBtnStatus")
         size = len(self.options)
         self.topPostionBtn.setEnabled(self.currentRow > 0)
         self.upOnePostionBtn.setEnabled(self.currentRow > 0)
@@ -147,7 +149,7 @@ class AddOrEditOptionGroupDialog(QtWidgets.QDialog):
 
     def tableClicked(self):
         currentRow = self.tableView.currentIndex().row()
-        LogUtil.d("tableClicked", currentRow)
+        LogUtil.d(TAG, "tableClicked", currentRow)
         if currentRow != self.currentRow:
             self.currentRow = currentRow
             self.updatePositionBtnStatus()
@@ -156,27 +158,27 @@ class AddOrEditOptionGroupDialog(QtWidgets.QDialog):
     def tableDoubleClicked(self, index: QModelIndex):
         oldValue = index.data()
         row = index.row()
-        LogUtil.d("双击的单元格：row ", row, ' col', index.column(), ' data ', oldValue)
+        LogUtil.d(TAG, "双击的单元格：row ", row, ' col', index.column(), ' data ', oldValue)
         AddOrEditOptionDialog(callback=self.addOrEditOptionCallback, default=self.options[row],
                               optionList=self.options)
         pass
 
     def customRightMenu(self, pos):
         self.curDelRow = self.tableView.currentIndex().row()
-        LogUtil.i("customRightMenu", pos, ' row: ', self.curDelRow)
+        LogUtil.i(TAG, "customRightMenu", pos, ' row: ', self.curDelRow)
         menu = WidgetUtil.createMenu("删除", func1=self.delOption)
         menu.exec(self.tableView.mapToGlobal(pos))
         pass
 
     def delOption(self):
         option = self.options[self.curDelRow][KEY_NAME]
-        LogUtil.i(f"delOption {option}")
+        LogUtil.i(TAG, f"delOption {option}")
         WidgetUtil.showQuestionDialog(message=f"你确定需要删除 <span style='color:red;'>{option}</span> 吗？",
                                       acceptFunc=self.delTableItem)
         pass
 
     def delTableItem(self):
-        LogUtil.i("delTableItem")
+        LogUtil.i(TAG, "delTableItem")
         self.options.remove(self.options[self.curDelRow])
         self.updateCmdTableView()
         pass
@@ -197,7 +199,7 @@ class AddOrEditOptionGroupDialog(QtWidgets.QDialog):
         pass
 
     def acceptFunc(self):
-        LogUtil.d("acceptFunc")
+        LogUtil.d(TAG, "acceptFunc")
         name = self.nameLineEdit.text().strip()
         if not name:
             WidgetUtil.showErrorDialog(message="请输入选项群组名")
@@ -227,9 +229,9 @@ class AddOrEditOptionGroupDialog(QtWidgets.QDialog):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    # window = AddOrEditOptionGroupDialog(callback=lambda it: LogUtil.d("callback", it),
+    # window = AddOrEditOptionGroupDialog(callback=lambda it: LogUtil.d(TAG, "callback", it),
     #                                     isDebug=True)
-    window = AddOrEditOptionGroupDialog(callback=lambda it: LogUtil.d("callback", it),
+    window = AddOrEditOptionGroupDialog(callback=lambda it: LogUtil.d(TAG, "callback", it),
                                         default={'options': [
                                             {'default': 0,
                                              'optionValues': [{'value': 'product', 'desc': '现网环境', 'input': 'A'}],

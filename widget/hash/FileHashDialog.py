@@ -9,6 +9,7 @@ from widget.custom.DragInputWidget import DragInputWidget
 from widget.mockExam.Excel2Word import *
 
 HASH_ALGORITHM = ['MD5', 'SHA1', 'SHA256', 'CRC32']
+TAG = "FileHashDialog"
 
 
 class FileHashDialog(QtWidgets.QDialog):
@@ -18,7 +19,7 @@ class FileHashDialog(QtWidgets.QDialog):
         self.setWindowFlags(Qt.Dialog | Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint)
         FileHashDialog.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.5)
         FileHashDialog.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.3)
-        LogUtil.d("File Hash Dialog")
+        LogUtil.d(TAG, "File Hash Dialog")
         self.setWindowTitle(WidgetUtil.translate(text="计算文件Hash"))
         self.setObjectName("FileHashDialog")
 
@@ -79,7 +80,7 @@ class FileHashDialog(QtWidgets.QDialog):
         return box
 
     def dragInputTextChanged(self, fp):
-        LogUtil.d("dragInputTextChanged", fp)
+        LogUtil.d(TAG, "dragInputTextChanged", fp)
         if not FileUtil.existsFile(fp):
             WidgetUtil.showErrorDialog(message="请拖动一个文件或者选择一个文件")
             return
@@ -89,7 +90,7 @@ class FileHashDialog(QtWidgets.QDialog):
 
     def hashAlgorithmToggled(self):
         self.curHashAlgorithm = HASH_ALGORITHM[self.hashAlgorithmGroup.checkedId()]
-        LogUtil.d('hashAlgorithmToggled', self.curHashAlgorithm)
+        LogUtil.d(TAG, 'hashAlgorithmToggled', self.curHashAlgorithm)
         self.calcFileHash()
         pass
 
@@ -104,14 +105,14 @@ class FileHashDialog(QtWidgets.QDialog):
         pass
 
     def yourHashTextChanged(self, hashData):
-        LogUtil.d("yourHashTextChanged", hashData)
+        LogUtil.d(TAG, "yourHashTextChanged", hashData)
         self.yourHashData = hashData
         if hashData:
             self.compareHashDataDiff()
         pass
 
     def compareHashDataDiff(self):
-        LogUtil.d("compareHashDataDiff")
+        LogUtil.d(TAG, "compareHashDataDiff")
         if self.yourHashData == self.curFileHash:
             self.yourHashLineEdit.setStyleSheet("QLineEdit{ background:rgb(0,255,0);}")
         else:

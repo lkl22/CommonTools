@@ -18,6 +18,7 @@ from widget.mockExam.Excel2Word import *
 OPTION_CHAR = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 ANSWER_CARD_MAX_COL = 20
+TAG = "MockExamDialog"
 
 
 def delDictData(key, dicts):
@@ -39,7 +40,7 @@ class MockExamDialog(QtWidgets.QDialog):
         self.setWindowFlags(Qt.Dialog | Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint)
         MockExamDialog.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.7)
         MockExamDialog.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.7)
-        LogUtil.d("Mock Exam Dialog")
+        LogUtil.d(TAG, "Mock Exam Dialog")
         self.setWindowTitle(WidgetUtil.translate(text="模拟考试"))
 
         self.examFilePath = None
@@ -122,7 +123,7 @@ class MockExamDialog(QtWidgets.QDialog):
             self.exec_()
 
     def closeEvent(self, event):
-        LogUtil.d("MockExamDialog", "closeEvent")
+        LogUtil.d(TAG, "MockExamDialog", "closeEvent")
         if self.mockExamUtil:
             self.mockExamUtil.close()
         pass
@@ -234,7 +235,7 @@ class MockExamDialog(QtWidgets.QDialog):
         if not excelExamFp.endswith(".xlsx"):
             FileUtil.mkFilePath(excelExamFp)
             excelExamFp = os.path.join(excelExamFp, "题库.xlsx")
-        LogUtil.d("Word题库路径", wordFp, "\n保存路径", excelExamFp, "\n科目名称", examName, "scoreLine", scoreLine,
+        LogUtil.d(TAG, "Word题库路径", wordFp, "\n保存路径", excelExamFp, "\n科目名称", examName, "scoreLine", scoreLine,
                   "考试时长", examTime, "\n判断题分值", judgmentScore, "判断题个数", judgmentNums, "\n单选题分值", oneChoiceScore,
                   "单选题个数", oneChoiceNums, "\n多选题分值", multiChoiceScore, "多选题个数", multiChoiceNums)
         try:
@@ -245,10 +246,10 @@ class MockExamDialog(QtWidgets.QDialog):
                 "multiChoiceScore": multiChoiceScore
             })
         except Exception as e:
-            LogUtil.e('Word2Excel init 错误信息：', e)
+            LogUtil.e(TAG, 'Word2Excel init 错误信息：', e)
             WidgetUtil.showErrorDialog(message="请选择正确格式的题库文档")
         self.startWord2ExcelBtn.setEnabled(True)
-        LogUtil.d("Word2Excel finished.")
+        LogUtil.d(TAG, "Word2Excel finished.")
         pass
 
     def createExcel2WordGroupBox(self, parent):
@@ -310,7 +311,7 @@ class MockExamDialog(QtWidgets.QDialog):
         pass
 
     def startExcel2Word(self, isAllMock):
-        LogUtil.d("startExcel2Word", isAllMock)
+        LogUtil.d(TAG, "startExcel2Word", isAllMock)
         excelFp = self.excelExamFilePathLineEdit.text().strip()
         if not excelFp:
             WidgetUtil.showErrorDialog(message="请优先选择您的Excel题库文件")
@@ -328,7 +329,7 @@ class MockExamDialog(QtWidgets.QDialog):
         Excel2Word.genWord(excelFp, wordExamFp, isAllMock)
         self.startExcel2WordByRealBtn.setEnabled(True)
         self.startExcel2WordByAllBtn.setEnabled(True)
-        LogUtil.d("startExcel2Word", "finished.")
+        LogUtil.d(TAG, "startExcel2Word", "finished.")
         pass
 
     def createGenMockExamGroupBox(self, parent):
@@ -475,7 +476,7 @@ class MockExamDialog(QtWidgets.QDialog):
             self.examFilePath = self.examFilePathLineEdit.text()
             self.genExamPaperMethod(isAll)
         except Exception as err:
-            LogUtil.e('mkDirs 错误信息：', err)
+            LogUtil.e(TAG, 'mkDirs 错误信息：', err)
             self.examFilePath = None
             WidgetUtil.showErrorDialog(message="请选择正确的模拟考试的题库文件（按照指定规范提供）")
             return
@@ -558,7 +559,7 @@ class MockExamDialog(QtWidgets.QDialog):
         pass
 
     def startMockExam(self):
-        LogUtil.e("startMockExam")
+        LogUtil.e(TAG, "startMockExam")
         self.genExamPaperByRealBtn.setEnabled(False)
         self.genExamPaperByAllBtn.setEnabled(False)
         self.startMockExamBtn.setEnabled(False)
@@ -624,7 +625,7 @@ class MockExamDialog(QtWidgets.QDialog):
         pass
 
     def choiceButtonToggled(self, id):
-        LogUtil.d("choiceButtonToggled", id)
+        LogUtil.d(TAG, "choiceButtonToggled", id)
         if self.choiceBtnList[id].getMode() == ChoiceButton.Radio:
             self.oneChoiceToggled(id)
         else:
@@ -639,11 +640,11 @@ class MockExamDialog(QtWidgets.QDialog):
         else:
             self.errAnswers[self.curQuestionNo] = option
         self.updateAnswerCardColor(self.curQuestionNo - 1, "green")
-        LogUtil.e("oneChoiceToggled", self.yourAnswers, self.errAnswers)
+        LogUtil.e(TAG, "oneChoiceToggled", self.yourAnswers, self.errAnswers)
         pass
 
     def multiChoiceToggled(self):
-        LogUtil.e("multiChoiceToggled")
+        LogUtil.e(TAG, "multiChoiceToggled")
         checkedOptions = []
         for index, checkBox in enumerate(self.choiceBtnList):
             if checkBox.isChecked():
@@ -666,7 +667,7 @@ class MockExamDialog(QtWidgets.QDialog):
             self.errAnswers[self.curQuestionNo] = None
             delDictData(self.curQuestionNo, self.yourAnswers)
             self.updateAnswerCardColor(self.curQuestionNo - 1)
-        LogUtil.e("multiChoiceToggled", self.yourAnswers, self.errAnswers)
+        LogUtil.e(TAG, "multiChoiceToggled", self.yourAnswers, self.errAnswers)
         pass
 
     def hideOptionBtn(self):
@@ -715,7 +716,7 @@ class MockExamDialog(QtWidgets.QDialog):
         pass
 
     def clickedFunc(self, btn: QAbstractButton):
-        LogUtil.d("clickedFunc", btn.text())
+        LogUtil.d(TAG, "clickedFunc", btn.text())
         if btn == self.preBtn:
             self.preQuestionFunc()
         elif btn == self.nextBtn:
@@ -725,7 +726,7 @@ class MockExamDialog(QtWidgets.QDialog):
         pass
 
     def preQuestionFunc(self):
-        LogUtil.d("preQuestionFunc")
+        LogUtil.d(TAG, "preQuestionFunc")
         if self.curQuestionNo < 2:
             return False
         self.curQuestionNo -= 1
@@ -734,7 +735,7 @@ class MockExamDialog(QtWidgets.QDialog):
         return False
 
     def nextQuestionFunc(self):
-        LogUtil.d("nextQuestionFunc")
+        LogUtil.d(TAG, "nextQuestionFunc")
         if self.curQuestionNo >= self.mockExamUtil.totalQuestionNums:
             return False
         self.curQuestionNo += 1
@@ -743,14 +744,14 @@ class MockExamDialog(QtWidgets.QDialog):
         return False
 
     def answerCardClicked(self, no):
-        LogUtil.d("answerCardClicked", no)
+        LogUtil.d(TAG, "answerCardClicked", no)
         self.curQuestionNo = no
         self.curQuestionObj = self.mockExamUtil.getQuestion(no - 1)
         self.renderQuestion(self.curQuestionObj, getDictData(self.curQuestionNo, self.yourAnswers))
         pass
 
     def submitFunc(self):
-        LogUtil.d("submitFunc")
+        LogUtil.d(TAG, "submitFunc")
         if len(self.yourAnswers) < self.mockExamUtil.totalQuestionNums:
             WidgetUtil.showQuestionDialog(
                 message=f"您还有{self.mockExamUtil.totalQuestionNums - len(self.yourAnswers)}道题未做，确认提交？",
@@ -776,7 +777,7 @@ class MockExamDialog(QtWidgets.QDialog):
 
         errNo, score = self.mockExamUtil.calculateResults(self.errAnswers)
         isPassExam = self.mockExamUtil.isPassExam(score)
-        LogUtil.d("submitExam", "做错：", errNo, "分数：", score, "通过：", isPassExam)
+        LogUtil.d(TAG, "submitExam", "做错：", errNo, "分数：", score, "通过：", isPassExam)
         if errNo > 0:
             if isPassExam:
                 WidgetUtil.showQuestionDialog(message=f"恭喜您通过本轮考试，获得 {score} 分的好成绩，是否查看结果分析？",
@@ -790,7 +791,7 @@ class MockExamDialog(QtWidgets.QDialog):
                                           acceptFunc=self.seeErrQuestions)
 
     def seeErrQuestions(self):
-        LogUtil.d("seeErrQuestions")
+        LogUtil.d(TAG, "seeErrQuestions")
         self.isShowErrQuestion = True
         self.curQuestionNo = 1
         self.curQuestionObj = self.mockExamUtil.getQuestion(0)
@@ -839,7 +840,7 @@ class CustomPushButton(QPushButton):
     clicked = pyqtSignal(int)
 
     def mousePressEvent(self, ev: QMouseEvent):
-        LogUtil.d('mousePressEvent')
+        LogUtil.d(TAG, 'mousePressEvent')
         if ev.button() == Qt.LeftButton:
             # 鼠标左击
             self.clicked.emit(self.no)

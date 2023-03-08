@@ -19,6 +19,8 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.pyplot as plt
 import networkx as nx
 
+TAG = "ModuleDependencyDialog"
+
 
 class MyMplCanvas(FigureCanvas):
     """Ultimately, this is a QWidget (as well as a FigureCanvasAgg, etc.)."""
@@ -60,7 +62,7 @@ class ModuleDependencyDialog(QtWidgets.QDialog):
         self.setWindowFlags(windowFlags)
         ModuleDependencyDialog.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.6)
         ModuleDependencyDialog.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.5)
-        LogUtil.d("Add Or Edit Module Dialog")
+        LogUtil.d(TAG, "Add Or Edit Module Dialog")
         self.setWindowTitle(WidgetUtil.translate(text="添加/修改模块配置"))
         self.setObjectName("AddOrEditModuleDialog")
         self.resize(ModuleDependencyDialog.WINDOW_WIDTH, ModuleDependencyDialog.WINDOW_HEIGHT)

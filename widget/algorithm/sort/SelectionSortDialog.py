@@ -11,6 +11,7 @@ from util.RandomUtil import RandomUtil
 from util.Uiautomator import *
 from constant.WidgetConst import *
 
+TAG = "SelectionSortDialog"
 legendTextList = ["未排序的元素", "排完序的元素", "当前比较的元素", "当前最小的元素"]
 legendColorList = [ColorConst.Grey, ColorConst.Red, ColorConst.LightBlue, ColorConst.Indigo]
 
@@ -22,7 +23,7 @@ class SelectionSortDialog(QtWidgets.QDialog):
         self.setWindowFlags(Qt.Dialog | Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint)
         SelectionSortDialog.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.8)
         SelectionSortDialog.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.8)
-        LogUtil.d("Init Algorithm Visualizer Dialog")
+        LogUtil.d(TAG, "Init Algorithm Visualizer Dialog")
         self.setObjectName("AlgorithmVisualizerDialog")
         self.resize(SelectionSortDialog.WINDOW_WIDTH, SelectionSortDialog.WINDOW_HEIGHT)
         # self.setFixedSize(SelectionSortDialog.WINDOW_WIDTH, SelectionSortDialog.WINDOW_HEIGHT)
@@ -96,7 +97,7 @@ class SelectionSortDialog(QtWidgets.QDialog):
         self.maxValue = self.maxValueSpinBox.value()
         self.count = self.numberCountSpinBox.value()
         self.delay = self.delaySpinBox.value() / 1000
-        LogUtil.d("count: {} minValue: {} maxValue: {} ".format(self.count, self.minValue, self.maxValue))
+        LogUtil.d(TAG, "count: {} minValue: {} maxValue: {} ".format(self.count, self.minValue, self.maxValue))
         return RandomUtil.randIntArray(self.count, self.minValue, self.maxValue)
 
     def resetNumbers(self):
@@ -171,7 +172,7 @@ class SelectionSortDialog(QtWidgets.QDialog):
                 self.scene.addItem(textItem)
                 self.legendItems.append(textItem)
 
-            LogUtil.d("scene size", sceneW, sceneH)
+            LogUtil.d(TAG, "scene size", sceneW, sceneH)
 
         if isReset:
             # 清空上次的数据
@@ -188,12 +189,12 @@ class SelectionSortDialog(QtWidgets.QDialog):
         # 绘制的最大高度，最小值占据一个固定高度
         drawH = self.sceneH - const.PADDING * 5
         if isReset:
-            LogUtil.e("w -> {} maxOffset -> {} sceneH -> {} drawH -> {}".format(w, maxOffset, self.sceneH, drawH))
+            LogUtil.e(TAG, "w -> {} maxOffset -> {} sceneH -> {} drawH -> {}".format(w, maxOffset, self.sceneH, drawH))
 
         for i in range(0, self.count):
             h = (self.numbers[i] - self.minValue) / maxOffset * drawH + const.PADDING
             if isReset:
-                LogUtil.e("i -> {} number -> {} h -> {}".format(i, self.numbers[i], h))
+                LogUtil.e(TAG, "i -> {} number -> {} h -> {}".format(i, self.numbers[i], h))
                 rectItem = GraphicsUtil.createGraphicsRectItem(QRectF(i * w, self.sceneH - h, w / 2, h),
                                                                brush=QBrush(ColorConst.Grey))
                 self.scene.addItem(rectItem)
@@ -213,7 +214,7 @@ class SelectionSortDialog(QtWidgets.QDialog):
 
     def swap(self, i: int, j: int):
         if i < 0 or i >= len(self.numbers) or j < 0 or j >= len(self.numbers):
-            LogUtil.e("Invalid index to access Sort Data.")
+            LogUtil.e(TAG, "Invalid index to access Sort Data.")
             return
         t = self.numbers[i]
         self.numbers[i] = self.numbers[j]
@@ -224,11 +225,11 @@ class SelectionSortDialog(QtWidgets.QDialog):
         time.sleep(delay)
 
     def jumpAlgoDesc(self):
-        LogUtil.i("jumpAlgoDesc")
+        LogUtil.i(TAG, "jumpAlgoDesc")
         from widget.algorithm.AlgorithmDescDialog import AlgorithmDescDialog
         basePath = "../../../resources/algorithm/SelectionSort/" if self.isDebug else FileUtil.getAlgorithmFp(
             "SelectionSort/")
-        LogUtil.e("basePath:", basePath)
+        LogUtil.e(TAG, "basePath:", basePath)
         AlgorithmDescDialog("选择排序算法描述", FileUtil.readFile(basePath + "SelectionSort.html"),
                             FileUtil.readFile(basePath + "SelectionSort.java"),
                             FileUtil.readFile(basePath + "SelectionSort.js"),

@@ -7,6 +7,8 @@ from util.DialogUtil import *
 from util.OperaIni import *
 from widget.projectManage.ProjectManager import *
 
+TAG = "AddOrEditCmdGroupDialog"
+
 
 class AddOrEditCmdGroupDialog(QtWidgets.QDialog):
     def __init__(self, cmdGroupList, callback, default=None, isDebug=False):
@@ -15,7 +17,7 @@ class AddOrEditCmdGroupDialog(QtWidgets.QDialog):
         self.setWindowFlags(Qt.Dialog | Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint)
         AddOrEditCmdGroupDialog.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.3)
         AddOrEditCmdGroupDialog.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.1)
-        LogUtil.d("Add or Edit Cmd Group Dialog")
+        LogUtil.d(TAG, "Add or Edit Cmd Group Dialog")
         self.setWindowTitle(WidgetUtil.translate(text="添加/编辑指令群组"))
         if cmdGroupList is None:
             cmdGroupList = []
@@ -84,6 +86,6 @@ class AddOrEditCmdGroupDialog(QtWidgets.QDialog):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    window = AddOrEditCmdGroupDialog(cmdGroupList=[], callback=lambda it: LogUtil.d("callback", it), isDebug=True)
+    window = AddOrEditCmdGroupDialog(cmdGroupList=[], callback=lambda it: LogUtil.d(TAG, "callback", it), isDebug=True)
     window.show()
     sys.exit(app.exec_())

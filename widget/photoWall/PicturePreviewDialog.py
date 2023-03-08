@@ -8,6 +8,8 @@ import sys
 from util.DialogUtil import *
 from util.FileUtil import *
 
+TAG = "PicturePreviewDialog"
+
 
 def getIconFp(iconName, isDebug=False):
     if isDebug:
@@ -26,7 +28,7 @@ class PicturePreviewDialog(QtWidgets.QDialog):
         QtWidgets.QDialog.__init__(self)
         PicturePreviewDialog.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.8)
         PicturePreviewDialog.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.8)
-        LogUtil.d("Init picture preview Dialog")
+        LogUtil.d(TAG, "Init picture preview Dialog")
         self.setObjectName("PicturePreviewDialog")
         self.resize(self.WINDOW_WIDTH, self.WINDOW_HEIGHT)
         self.setFixedSize(self.WINDOW_WIDTH, self.WINDOW_HEIGHT)
@@ -112,24 +114,24 @@ class PicturePreviewDialog(QtWidgets.QDialog):
         self.box.zoomOut()
 
     def rotateLeftClick(self):
-        LogUtil.d('rotateLeftClick')
+        LogUtil.d(TAG, 'rotateLeftClick')
         self.box.rotateLeft()
         pass
 
     def rotateRightClick(self):
-        LogUtil.d('rotateRightClick')
+        LogUtil.d(TAG, 'rotateRightClick')
         self.box.rotateRight()
         pass
 
     def backClick(self):
-        LogUtil.d('backClick')
+        LogUtil.d(TAG, 'backClick')
         self.index -= 1 + len(self.filePathList)
         self.index %= len(self.filePathList)
         self.openNextImage()
         pass
 
     def nextClick(self):
-        LogUtil.d('nextClick')
+        LogUtil.d(TAG, 'nextClick')
         self.index += 1
         self.index %= len(self.filePathList)
         self.openNextImage()
@@ -156,7 +158,7 @@ class ImageBox(QWidget):
         self.setWindowTitle("ImageBox")
         # 控件开始捕获键盘，只有控件开始捕获键盘，控件的键盘事件才能收到消息
         self.grabKeyboard()
-        LogUtil.d('ImageBox size {}'.format(self.size()))
+        LogUtil.d(TAG, 'ImageBox size {}'.format(self.size()))
         # self.setContentsMargins(2, 2, 2, 2)
         # self.setStyleSheet("border:2px solid #f00")
 
@@ -178,7 +180,7 @@ class ImageBox(QWidget):
         scaledWidth = self.scaledImg.width()
         scaledHeight = self.scaledImg.height()
         self.point = QPoint(boxWidth, boxHeight)
-        LogUtil.d('setImage image size ({}, {}) box size {} scaledImg size ({}, {})'
+        LogUtil.d(TAG, 'setImage image size ({}, {}) box size {} scaledImg size ({}, {})'
                   .format(ow, oh, self.size(), scaledWidth, scaledHeight))
         self.update()
 
@@ -188,7 +190,7 @@ class ImageBox(QWidget):
             self.point = self.point * (self.scale - 0.2) / self.scale
             self.adjustSize()
             self.update()
-            LogUtil.d('zoomIn box size {}', self.size())
+            LogUtil.d(TAG, 'zoomIn box size {}', self.size())
 
     def zoomOut(self):
         if self.scale > PicturePreviewDialog.MIN_SCALE:
@@ -196,7 +198,7 @@ class ImageBox(QWidget):
             self.point = self.point * (self.scale + 0.1) / self.scale
             self.adjustSize()
             self.update()
-            LogUtil.d('zoomOut box size {}', self.size())
+            LogUtil.d(TAG, 'zoomOut box size {}', self.size())
 
     def rotateLeft(self):
         self.rotateAngle -= 90
@@ -255,15 +257,15 @@ class ImageBox(QWidget):
             self.leftClick = False
 
     def keyPressEvent(self, e: QKeyEvent):
-        LogUtil.d('keyPressEvent', e.key())
+        LogUtil.d(TAG, 'keyPressEvent', e.key())
         if e.key() == Qt.Key_Control:
-            LogUtil.d('Control press')
+            LogUtil.d(TAG, 'Control press')
             self.controlPress = True
 
     def keyReleaseEvent(self, e: QKeyEvent):
-        LogUtil.d('keyReleaseEvent', e.key())
+        LogUtil.d(TAG, 'keyReleaseEvent', e.key())
         if e.key() == Qt.Key_Control:
-            LogUtil.d('Control release')
+            LogUtil.d(TAG, 'Control release')
             self.controlPress = False
 
     def wheelEvent(self, e: QtGui.QWheelEvent):
@@ -271,7 +273,7 @@ class ImageBox(QWidget):
             # if event.delta() > 0:  # 滚轮上滚,PyQt4
             # This function has been deprecated, use pixelDelta() or angleDelta() instead.
             angle = e.angleDelta() / 8  # 返回QPoint对象，为滚轮转过的数值，单位为1/8度
-            LogUtil.d('wheelEvent', e.pos(), e.x(), e.y())
+            LogUtil.d(TAG, 'wheelEvent', e.pos(), e.x(), e.y())
             angleX = angle.x()  # 水平滚过的距离(此处用不上)
             angleY = angle.y()  # 竖直滚过的距离
             step = 0.005
@@ -287,7 +289,7 @@ class ImageBox(QWidget):
                     self.scale -= step
                     self.point = self.point * (self.scale + step) / self.scale
                     self.update()
-        LogUtil.d('wheelEvent', e.pos(), e.x(), e.y())
+        LogUtil.d(TAG, 'wheelEvent', e.pos(), e.x(), e.y())
 
 
 if __name__ == '__main__':

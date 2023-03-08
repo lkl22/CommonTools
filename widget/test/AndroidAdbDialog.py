@@ -7,6 +7,8 @@ from PyQt5.QtWidgets import QAbstractItemView
 from util.WeditorUtil import *
 from widget.test.EditTestStepDialog import *
 
+TAG = "AndroidAdbDialog"
+
 
 class AndroidAdbDialog(QtWidgets.QDialog):
     TABLE_KEY_TYPE = '操作类型'
@@ -18,7 +20,7 @@ class AndroidAdbDialog(QtWidgets.QDialog):
         self.setWindowFlags(Qt.Dialog | Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint)
         AndroidAdbDialog.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.7)
         AndroidAdbDialog.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.7)
-        LogUtil.d("Init Android adb Dialog")
+        LogUtil.d(TAG, "Init Android adb Dialog")
         self.setObjectName("AndroidAdbDialog")
         self.resize(AndroidAdbDialog.WINDOW_WIDTH, AndroidAdbDialog.WINDOW_HEIGHT)
         # self.setFixedSize(AndroidAdbDialog.WINDOW_WIDTH, AndroidAdbDialog.WINDOW_HEIGHT)
@@ -107,7 +109,7 @@ class AndroidAdbDialog(QtWidgets.QDialog):
         return box
 
     def execCmd(self, cmd: str):
-        LogUtil.d("exec cmd:", cmd)
+        LogUtil.d(TAG, "exec cmd:", cmd)
         if cmd:
             self.printRes('执行指令：')
             self.printRes(cmd + '\n')
@@ -136,7 +138,7 @@ class AndroidAdbDialog(QtWidgets.QDialog):
 
     def connectDevice(self):
         addr = self.devAddrEdit.text().strip()
-        LogUtil.d("要连接的设备addr：", addr)
+        LogUtil.d(TAG, "要连接的设备addr：", addr)
         if self.u:
             self.u.reConnect(addr)
         else:
@@ -153,19 +155,19 @@ class AndroidAdbDialog(QtWidgets.QDialog):
         pass
 
     def updateTableData(self):
-        LogUtil.i("updateTableData")
+        LogUtil.i(TAG, "updateTableData")
         self.src2TableDatas()
         WidgetUtil.addTableViewData(self.stepsTableView, data=self.execTestStepTableDatas)
         WidgetUtil.tableViewSetColumnWidth(self.stepsTableView)
         pass
 
     def addStep(self):
-        LogUtil.d("add step")
+        LogUtil.d(TAG, "add step")
         EditTestStepDialog(self.addStepCallback, u=self.u)
         pass
 
     def addStepCallback(self, stepType, params):
-        LogUtil.i('addStepCallback', stepType, params)
+        LogUtil.i(TAG, 'addStepCallback', stepType, params)
         self.execTestSteps.append({const.KEY_STEP_TYPE: stepType, const.KEY_STEP_PARAMS: params})
         self.printRes('add step ' + AutoTestUtil.stepName(stepType) + ' params: ' + str(params))
         self.updateTableData()
@@ -174,14 +176,14 @@ class AndroidAdbDialog(QtWidgets.QDialog):
     def tableDoubleClicked(self, index: QModelIndex):
         oldValue = index.data()
         row = index.row()
-        LogUtil.d("双击的单元格：row ", row, ' col', index.column(), ' data ', oldValue)
+        LogUtil.d(TAG, "双击的单元格：row ", row, ' col', index.column(), ' data ', oldValue)
         self.curEditData = self.execTestSteps[row]
         EditTestStepDialog(self.editStepCallback, self.curEditData[const.KEY_STEP_TYPE],
                            self.curEditData[const.KEY_STEP_PARAMS], self.u)
         pass
 
     def editStepCallback(self, stepType, params):
-        LogUtil.i('editStepCallback', stepType, params)
+        LogUtil.i(TAG, 'editStepCallback', stepType, params)
         self.printRes('edit step ' + AutoTestUtil.stepName(stepType) + ' params: ' + str(params))
         self.curEditData[const.KEY_STEP_TYPE] = stepType
         self.curEditData[const.KEY_STEP_PARAMS] = params
@@ -190,18 +192,18 @@ class AndroidAdbDialog(QtWidgets.QDialog):
 
     def customRightMenu(self, pos):
         self.curDelRow = self.stepsTableView.currentIndex().row()
-        LogUtil.i("customRightMenu", pos, ' row: ', self.curDelRow)
+        LogUtil.i(TAG, "customRightMenu", pos, ' row: ', self.curDelRow)
         menu = WidgetUtil.createMenu("删除", func1=self.delItem)
         menu.exec_(self.stepsTableView.mapToGlobal(pos))
         pass
 
     def delItem(self):
-        LogUtil.i("delItem")
+        LogUtil.i(TAG, "delItem")
         WidgetUtil.showQuestionDialog(message="你确定需要删除吗？", acceptFunc=self.delTableItem)
         pass
 
     def delTableItem(self):
-        LogUtil.i("delTreeWidgetItem")
+        LogUtil.i(TAG, "delTreeWidgetItem")
         self.execTestSteps.remove(self.execTestSteps[self.curDelRow])
         self.printRes('del No.' + str(self.curDelRow + 1) + ' step')
         self.updateTableData()
@@ -218,7 +220,7 @@ class AndroidAdbDialog(QtWidgets.QDialog):
         return {AndroidAdbDialog.TABLE_KEY_TYPE: name, AndroidAdbDialog.TABLE_KEY_DESC: value}
 
     def execSteps(self):
-        LogUtil.d("exec steps")
+        LogUtil.d(TAG, "exec steps")
         if not self.execTestSteps:
             WidgetUtil.showErrorDialog(message="请先添加要执行的操作")
             return
@@ -241,7 +243,7 @@ class AndroidAdbDialog(QtWidgets.QDialog):
         pass
 
     def acceptFunc(self):
-        LogUtil.d('acceptFunc')
+        LogUtil.d(TAG, 'acceptFunc')
         if self.callback:
             self.callback(self.execTestSteps)
         self.close()
@@ -254,7 +256,7 @@ if __name__ == '__main__':
     window = AndroidAdbDialog(execSteps=[{'type': 0, 'params': {'xpath': '', 'x': 0.5, 'y': 0.5, 'desc': ""}},
                                          {'type': 1, 'params': {'xpath': '', 'x': 0.5, 'y': 0.5, 'desc': ""}}],
                               callback=lambda aa: {
-                                  LogUtil.d("callback:", str(aa))
+                                  LogUtil.d(TAG, "callback:", str(aa))
                               }, isDebug=True)
     window.show()
     sys.exit(app.exec_())

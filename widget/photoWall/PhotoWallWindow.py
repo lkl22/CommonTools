@@ -11,6 +11,8 @@ from util.FileUtil import *
 from util.WidgetUtil import *
 from constant.WidgetConst import *
 
+TAG = "PhotoWallWindow"
+
 
 class PhotoWallWindow(QMainWindow):
     DISPLAYED_PHOTO_SIZES = [100, 150, 200]
@@ -67,12 +69,12 @@ class PhotoWallWindow(QMainWindow):
         pass
 
     def changeEvent(self, event):
-        LogUtil.d("changeEvent", event)
+        LogUtil.d(TAG, "changeEvent", event)
         if event.type() == QtCore.QEvent.WindowStateChange:
             if self.isMinimized():
-                LogUtil.d("窗口最小化")
+                LogUtil.d(TAG, "窗口最小化")
             elif self.isActiveWindow() or self.isFullScreen() or self.isMaximized():
-                LogUtil.d("活动窗口 or 全屏显示 or 窗口最大化")
+                LogUtil.d(TAG, "活动窗口 or 全屏显示 or 窗口最大化")
                 if self.filePath:
                     self.startPhotoViewer()
         pass
@@ -147,17 +149,17 @@ class PhotoWallWindow(QMainWindow):
         self.clearGridLayout()
         if self.filePath:
             filePath = self.filePath
-            LogUtil.d('file path为{}'.format(filePath))
+            LogUtil.d(TAG, 'file path为{}'.format(filePath))
 
             self.photoFps = FileUtil.findFilePathList(filePath, [self.photoType])
-            LogUtil.d('预览图片path', self.photoFps)
+            LogUtil.d(TAG, '预览图片path', self.photoFps)
 
             if len(self.photoFps) > 0:
                 for fp in self.photoFps:
                     if self.isClosed:
                         # 窗口关掉了需要结束循环
                         break
-                    LogUtil.d('photo file path: ', fp)
+                    LogUtil.d(TAG, 'photo file path: ', fp)
                     pixmap = QPixmap(fp)
                     self.addImage(pixmap, fp.replace(os.path.join(filePath, ''), ''))
                     # 触发实时显示数据
@@ -172,7 +174,7 @@ class PhotoWallWindow(QMainWindow):
         row = self.showCount // self.maxColumns
         col = self.showCount % self.maxColumns
 
-        LogUtil.d('行数: {} 列数: {} displayedPhotoSize: {}'.format(row, col, self.displayedPhotoSize))
+        LogUtil.d(TAG, '行数: {} 列数: {} displayedPhotoSize: {}'.format(row, col, self.displayedPhotoSize))
 
         clickablePhoto = QClickableImage(self.showCount, self.displayedPhotoSize, self.displayedPhotoSize, pixmap, fp)
         clickablePhoto.clicked.connect(self.onLeftClicked)
@@ -181,16 +183,16 @@ class PhotoWallWindow(QMainWindow):
         self.gridLayout.addWidget(clickablePhoto, row, col)
 
     def onLeftClicked(self, index, photoFp):
-        LogUtil.d('left clicked - index {} photoFp {}'.format(index, photoFp))
+        LogUtil.d(TAG, 'left clicked - index {} photoFp {}'.format(index, photoFp))
         self.statusBar().showMessage(photoFp)
 
     def onLeftDoubleClicked(self, index, photoFp):
-        LogUtil.d('left double clicked - index {} photoFp {}'.format(index, photoFp))
+        LogUtil.d(TAG, 'left double clicked - index {} photoFp {}'.format(index, photoFp))
         from widget.photoWall.PicturePreviewDialog import PicturePreviewDialog
         PicturePreviewDialog(self.photoFps, index)
 
     def onRightClicked(self, index, photoFp):
-        LogUtil.d('right clicked - index {} photoFp {}'.format(index, photoFp))
+        LogUtil.d(TAG, 'right clicked - index {} photoFp {}'.format(index, photoFp))
 
     def getMaxColumns(self):
         # 展示图片的区域
@@ -201,7 +203,7 @@ class PhotoWallWindow(QMainWindow):
             picOfColumns = scrollAreaPhotoWidth // itemWidth
         else:
             picOfColumns = 1
-        LogUtil.e('scrollAreaPhotoWidth: {} itemWidth: {} max col: {}'
+        LogUtil.e(TAG, 'scrollAreaPhotoWidth: {} itemWidth: {} max col: {}'
                   .format(scrollAreaPhotoWidth, itemWidth, picOfColumns))
         return picOfColumns
 
@@ -244,14 +246,14 @@ class QClickableImage(QFrame):
         # self.adjustSize()
         # self.setContentsMargins(1, 1, 1, 1)
         # self.setStyleSheet("border:1px solid #f00")
-        LogUtil.d('size: {}'.format(self.size()))
+        LogUtil.d(TAG, 'size: {}'.format(self.size()))
 
     clicked = pyqtSignal(int, str)
     leftDoubleClicked = pyqtSignal(int, str)
     rightClicked = pyqtSignal(int, str)
 
     def mousePressEvent(self, ev: QMouseEvent):
-        LogUtil.d('mousePressEvent')
+        LogUtil.d(TAG, 'mousePressEvent')
         if ev.button() == Qt.RightButton:
             # 鼠标右击
             self.rightClicked.emit(self.index, self.photoFp)
@@ -260,7 +262,7 @@ class QClickableImage(QFrame):
         # super().mousePressEvent(ev)
 
     def mouseDoubleClickEvent(self, ev: QMouseEvent):
-        LogUtil.d('mouseDoubleClickEvent')
+        LogUtil.d(TAG, 'mouseDoubleClickEvent')
         if ev.button() == Qt.LeftButton:
             self.leftDoubleClicked.emit(self.index, self.photoFp)
 
@@ -269,7 +271,7 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     # window = PhotoWallWindow()
     window = PhotoWallWindow('/Users/likunlun/Pictures/生活照/Macao', None, lambda: {
-        LogUtil.d('preview finished')
+        LogUtil.d(TAG, 'preview finished')
     })
     window.show()
     sys.exit(app.exec_())

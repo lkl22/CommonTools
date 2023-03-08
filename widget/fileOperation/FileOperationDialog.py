@@ -6,6 +6,8 @@ from util.FileUtil import *
 from util.DialogUtil import *
 from util.LogUtil import *
 
+TAG = "FileOperationDialog"
+
 
 class FileOperationDialog(QtWidgets.QDialog):
     def __init__(self):
@@ -14,7 +16,7 @@ class FileOperationDialog(QtWidgets.QDialog):
         self.setWindowFlags(Qt.Dialog | Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint)
         FileOperationDialog.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.7)
         FileOperationDialog.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.7)
-        LogUtil.d("Init File Operation Dialog")
+        LogUtil.d(TAG, "Init File Operation Dialog")
         self.setObjectName("FileOperationDialog")
         self.resize(FileOperationDialog.WINDOW_WIDTH, FileOperationDialog.WINDOW_HEIGHT)
         # self.setFixedSize(FileOperationDialog.WINDOW_WIDTH, FileOperationDialog.WINDOW_HEIGHT)
@@ -114,13 +116,13 @@ class FileOperationDialog(QtWidgets.QDialog):
             return
         while dstFileDirPath.endswith("/") or dstFileDirPath.endswith("\\"):
             dstFileDirPath = dstFileDirPath[:len(dstFileDirPath) - 1]
-        LogUtil.d("目标目录：", dstFileDirPath)
+        LogUtil.d(TAG, "目标目录：", dstFileDirPath)
         srcFnPatterns = self.srcFnPatternsLineEdit.text().strip()
         if not srcFnPatterns:
             WidgetUtil.showErrorDialog(message="请输入文件名匹配正则表达式")
             return
         srcFnPs = srcFnPatterns.split(";")
-        LogUtil.d("源文件名匹配正则表达式：", srcFnPs)
+        LogUtil.d(TAG, "源文件名匹配正则表达式：", srcFnPs)
         # ic_launch.*png;strings.xml
         WidgetUtil.showQuestionDialog(message="你确认需要复制/移动文件吗？",
                                       acceptFunc=lambda: FileUtil.modifyFilesPath(srcFnPs, srcFileDirPath,
@@ -146,7 +148,7 @@ class FileOperationDialog(QtWidgets.QDialog):
         if not afterFn:
             WidgetUtil.showErrorDialog(message="请输入修改后文件名称")
             return
-        LogUtil.d("将指定目录：", changeFileDirPath, " 下的所有文件 ", beforeFn, " 修改为 ", afterFn)
+        LogUtil.d(TAG, "将指定目录：", changeFileDirPath, " 下的所有文件 ", beforeFn, " 修改为 ", afterFn)
         # 查找需要修改名称的文件列表
         srcFiles = FileUtil.findFilePathList(changeFileDirPath, [beforeFn])
         if srcFiles:

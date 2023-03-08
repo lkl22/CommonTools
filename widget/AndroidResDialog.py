@@ -12,6 +12,7 @@ from util.LogUtil import *
 
 RES_TYPE_LIST = ['无', 'string', 'color', 'style', 'dimen', 'plurals', 'declare-styleable', 'array', 'string-array',
                  'integer-array', 'attr']
+TAG = "AndroidResDialog"
 
 
 class AndroidResDialog(QtWidgets.QDialog):
@@ -21,7 +22,7 @@ class AndroidResDialog(QtWidgets.QDialog):
         self.setWindowFlags(Qt.Dialog | Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint)
         AndroidResDialog.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.7)
         AndroidResDialog.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.35)
-        LogUtil.d("Init Android Res Dialog")
+        LogUtil.d(TAG, "Init Android Res Dialog")
         self.setObjectName("AndroidResDialog")
         self.resize(AndroidResDialog.WINDOW_WIDTH, AndroidResDialog.WINDOW_HEIGHT)
         # self.setFixedSize(AndroidResDialog.WINDOW_WIDTH, AndroidResDialog.WINDOW_HEIGHT)
@@ -151,7 +152,7 @@ class AndroidResDialog(QtWidgets.QDialog):
 
     def resTypeToggled(self, radioButton):
         self.resType = RES_TYPE_LIST[self.resTypeBg.checkedId()]
-        LogUtil.i("选择的资源类型：", self.resType)
+        LogUtil.i(TAG, "选择的资源类型：", self.resType)
         if self.resTypeBg.checkedId() == 0:
             self.resNamesLineEdit.setEnabled(False)
         else:
@@ -187,22 +188,22 @@ class AndroidResDialog(QtWidgets.QDialog):
             return
         while dstFileDirPath.endswith("/") or dstFileDirPath.endswith("\\"):
             dstFileDirPath = dstFileDirPath[:len(dstFileDirPath) - 1]
-        LogUtil.d("目标目录：", dstFileDirPath)
+        LogUtil.d(TAG, "目标目录：", dstFileDirPath)
         srcFnPatterns = self.srcFnPatternsLineEdit.text().strip()
         if not srcFnPatterns:
             WidgetUtil.showErrorDialog(message="请输入资源文件名")
             return
         srcFnPs = srcFnPatterns.split(";")
-        LogUtil.d("源资源文件名：", srcFnPs)
+        LogUtil.d(TAG, "源资源文件名：", srcFnPs)
 
         dstFnPs = self.dstFnPatternsLineEdit.text().strip()
-        LogUtil.d("目标资源文件名：", dstFnPs)
+        LogUtil.d(TAG, "目标资源文件名：", dstFnPs)
 
         resNamesStr = self.resNamesLineEdit.text().strip()
         attrValues = ''
         if resNamesStr:
             attrValues = resNamesStr.split(';')
-            LogUtil.d('资源attr名称：', attrValues)
+            LogUtil.d(TAG, '资源attr名称：', attrValues)
         attrName = 'name'
         if self.resType == RES_TYPE_LIST[0]:
             self.resType = ''

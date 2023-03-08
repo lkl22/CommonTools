@@ -10,6 +10,8 @@ from util.DictUtil import DictUtil
 from util.OperaIni import *
 from widget.projectManage.ProjectManager import *
 
+TAG = "AddOrEditOptionDialog"
+
 
 class AddOrEditOptionDialog(QtWidgets.QDialog):
     def __init__(self, callback, default=None, optionList=None, isDebug=False):
@@ -21,7 +23,7 @@ class AddOrEditOptionDialog(QtWidgets.QDialog):
         self.setWindowFlags(windowFlags)
         AddOrEditOptionDialog.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.6)
         AddOrEditOptionDialog.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.2)
-        LogUtil.d("Add or Edit Option Dialog")
+        LogUtil.d(TAG, "Add or Edit Option Dialog")
         self.setWindowTitle(WidgetUtil.translate(text="添加/编辑工程选项"))
         if optionList is None:
             optionList = []
@@ -103,11 +105,11 @@ class AddOrEditOptionDialog(QtWidgets.QDialog):
                 self.curOptionValueIndex = 0
             curOptionValueInfo = self.optionValues[self.curOptionValueIndex]
             self.optionValuesComboBox.setCurrentText(f"{curOptionValueInfo[KEY_DESC]}")
-            LogUtil.d('updateOptionValuesComboBox setCurrentText', curOptionValueInfo[KEY_DESC])
+            LogUtil.d(TAG, 'updateOptionValuesComboBox setCurrentText', curOptionValueInfo[KEY_DESC])
         else:
             self.optionValuesComboBox.clear()
             self.curOptionValueIndex = -1
-            LogUtil.d("no option value")
+            LogUtil.d(TAG, "no option value")
         pass
 
     def getCurOptionValueInfo(self):
@@ -117,19 +119,19 @@ class AddOrEditOptionDialog(QtWidgets.QDialog):
             return None
 
     def optionValueIndexChanged(self, index):
-        LogUtil.d('optionValueIndexChanged', index)
+        LogUtil.d(TAG, 'optionValueIndexChanged', index)
         self.curOptionValueIndex = index
         self.default[KEY_DEFAULT] = index
         pass
 
     def addOptionValue(self):
-        LogUtil.d("addOptionValue")
+        LogUtil.d(TAG, "addOptionValue")
         AddOrEditOptionValueDialog(default=None, optionValues=self.optionValues,
                                    callback=self.addOrEditOptionValueCallback)
         pass
 
     def modifyOptionValue(self):
-        LogUtil.d("modifyOptionValue")
+        LogUtil.d(TAG, "modifyOptionValue")
         if self.curOptionValueIndex < 0:
             WidgetUtil.showAboutDialog(text="请先选择一个选项参数")
             return
@@ -139,7 +141,7 @@ class AddOrEditOptionDialog(QtWidgets.QDialog):
         pass
 
     def addOrEditOptionValueCallback(self, info):
-        LogUtil.d("addOrEditOptionValueCallback", info)
+        LogUtil.d(TAG, "addOrEditOptionValueCallback", info)
         if info:
             self.optionValues.append(info)
         curOptionValueInfo = self.getCurOptionValueInfo()
@@ -155,7 +157,7 @@ class AddOrEditOptionDialog(QtWidgets.QDialog):
         pass
 
     def delOptionValue(self):
-        LogUtil.d("delOptionValue")
+        LogUtil.d(TAG, "delOptionValue")
         if self.curOptionValueIndex < 0:
             WidgetUtil.showAboutDialog(text="请先选择一个选项参数")
             return
@@ -166,7 +168,7 @@ class AddOrEditOptionDialog(QtWidgets.QDialog):
         pass
 
     def delOptionValueItem(self):
-        LogUtil.i("delOptionValueItem")
+        LogUtil.i(TAG, "delOptionValueItem")
         optionValueInfo = self.getCurOptionValueInfo()
         self.optionValues.remove(optionValueInfo)
         self.curOptionValueIndex = -1
@@ -208,7 +210,7 @@ class AddOrEditOptionValueDialog(QtWidgets.QDialog):
         self.setWindowFlags(Qt.Dialog | Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint)
         AddOrEditOptionValueDialog.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.3)
         AddOrEditOptionValueDialog.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.2)
-        LogUtil.d("AddOrEditOptionValueDialog")
+        LogUtil.d(TAG, "AddOrEditOptionValueDialog")
         self.setWindowTitle(WidgetUtil.translate(text="添加/编辑选项参数"))
 
         self.callback = callback
@@ -286,8 +288,8 @@ class AddOrEditOptionValueDialog(QtWidgets.QDialog):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    # window = AddOrEditOptionDialog(callback=lambda it: LogUtil.d("callback", it), isDebug=True)
-    window = AddOrEditOptionDialog(callback=lambda it: LogUtil.d("callback", it),
+    # window = AddOrEditOptionDialog(callback=lambda it: LogUtil.d(TAG, "callback", it), isDebug=True)
+    window = AddOrEditOptionDialog(callback=lambda it: LogUtil.d(TAG, "callback", it),
                                    default={'default': 1, 'optionValues': [
                                        {'value': 'dev', 'desc': '开发环境', 'input': '1'},
                                        {'value': 'product', 'desc': '现网环境', 'input': '0'}

@@ -7,6 +7,8 @@ from util.WidgetUtil import *
 from util.DateUtil import *
 from util.FileUtil import *
 
+TAG = "MainWidget"
+
 
 class MainWidget(QMainWindow):
     windowList = []
@@ -52,7 +54,7 @@ class MainWidget(QMainWindow):
 
     def backupConfig(self):
         configFp = FileUtil.getConfigFp("BaseConfig.ini")
-        LogUtil.d("backupConfig", configFp)
+        LogUtil.d(TAG, "backupConfig", configFp)
         fp = WidgetUtil.getExistingDirectory(caption="请选择要备份保存的路径", directory="./")
         if not fp:
             WidgetUtil.showAboutDialog(text="您未选择备份路径，备份失败。")
@@ -62,7 +64,7 @@ class MainWidget(QMainWindow):
         pass
 
     def restoreConfig(self):
-        LogUtil.d("restoreConfig")
+        LogUtil.d(TAG, "restoreConfig")
         fp = WidgetUtil.getOpenFileName(caption='选择备份的配置文件', filter='*.ini', initialFilter='*.ini')
         if not fp:
             WidgetUtil.showAboutDialog(text="您未选择配置文件，恢复失败。")
@@ -156,31 +158,31 @@ class MainWidget(QMainWindow):
         return box
 
     def jumpAndroidAssistTestDialog(self):
-        LogUtil.i("jumpAndroidAdbDialog")
+        LogUtil.i(TAG, "jumpAndroidAdbDialog")
         from widget.test.AndroidAssistTestDialog import AndroidAssistTestDialog
         AndroidAssistTestDialog()
         pass
 
     def jumpFileOperationDialog(self):
-        LogUtil.i("jumpAndroidAdbDialog")
+        LogUtil.i(TAG, "jumpAndroidAdbDialog")
         from widget.fileOperation.FileOperationDialog import FileOperationDialog
         FileOperationDialog()
         pass
 
     def jumpAndroidResDialog(self):
-        LogUtil.i("jumpAndroidResDialog")
+        LogUtil.i(TAG, "jumpAndroidResDialog")
         from widget.AndroidResDialog import AndroidResDialog
         AndroidResDialog()
         pass
 
     def jumpAndroidColorResDialog(self):
-        LogUtil.i("jumpAndroidColorResDialog")
+        LogUtil.i(TAG, "jumpAndroidColorResDialog")
         from widget.colorManager.AndroidColorResDialog import AndroidColorResDialog
         AndroidColorResDialog()
         pass
 
     def jumpPhotoWall(self, filePath=None, photoType=None, previewFinishedFunc=None):
-        LogUtil.i("jumpPhotoWall")
+        LogUtil.i(TAG, "jumpPhotoWall")
         from widget.photoWall.PhotoWallWindow import PhotoWallWindow
         window = PhotoWallWindow(filePath, photoType, previewFinishedFunc)
         # 注：没有这句，是不打开另一个主界面的
@@ -190,49 +192,49 @@ class MainWidget(QMainWindow):
         pass
 
     def jumpCompressPicDialog(self):
-        LogUtil.i("jumpCompressPicDialog")
+        LogUtil.i(TAG, "jumpCompressPicDialog")
         from widget.compressPicture.CompressPicDialog import CompressPicDialog
         CompressPicDialog()
         pass
 
     def jumpJsonDialog(self):
-        LogUtil.i("jumpJsonDialog")
+        LogUtil.i(TAG, "jumpJsonDialog")
         from widget.JsonDialog import JsonDialog
         JsonDialog()
         pass
 
     def jumpAndroidAdbDialog(self):
-        LogUtil.i("jumpAndroidAdbDialog")
+        LogUtil.i(TAG, "jumpAndroidAdbDialog")
         from widget.test.AndroidAdbDialog import AndroidAdbDialog
         AndroidAdbDialog()
         pass
 
     def jumpAlgorithmVisualizer(self):
-        LogUtil.i("jumpAlgorithmVisualizer")
+        LogUtil.i(TAG, "jumpAlgorithmVisualizer")
         from widget.algorithm.AlgorithmVisualizerManagerDialog import AlgorithmVisualizerManagerDialog
         AlgorithmVisualizerManagerDialog()
         pass
 
     def jumpMockExamDialog(self):
-        LogUtil.i("jumpAlgorithmVisualizer")
+        LogUtil.i(TAG, "jumpAlgorithmVisualizer")
         from widget.mockExam.MockExamDialog import MockExamDialog
         MockExamDialog()
         pass
 
     def jumpFileHashDialog(self):
-        LogUtil.i("jumpFileHashDialog")
+        LogUtil.i(TAG, "jumpFileHashDialog")
         from widget.hash.FileHashDialog import FileHashDialog
         FileHashDialog()
         pass
 
     def jumpAccountManagerDialog(self):
-        LogUtil.i("jumpAccountManagerDialog")
+        LogUtil.i(TAG, "jumpAccountManagerDialog")
         from widget.account.AccountManagerDialog import AccountManagerDialog
         AccountManagerDialog()
         pass
 
     def jumpProjectManagerWindow(self):
-        LogUtil.i("jumpProjectManagerWindow")
+        LogUtil.i(TAG, "jumpProjectManagerWindow")
         from widget.projectManage.ProjectManagerWindow import ProjectManagerWindow
         window = ProjectManagerWindow()
         # 注：没有这句，是不打开另一个主界面的
