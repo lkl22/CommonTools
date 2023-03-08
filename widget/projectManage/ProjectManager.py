@@ -17,6 +17,7 @@ MACRO_REPEAT = "$repeat$"
 KEY_DEFAULT_MODULES = 'defaultModules'
 KEY_MODULES = 'modules'
 KEY_OPTION_GROUPS = 'optionGroups'
+KEY_OPTION_GROUP = 'optionGroup'
 KEY_CMD_GROUPS = 'cmdGroups'
 
 KEY_DEFAULT = 'default'
@@ -50,6 +51,7 @@ KEY_EVN_IS_PATH = 'isPath'
 KEY_CMD_LIST = 'cmdList'
 
 KEY_OPTIONS = 'options'
+KEY_OPTION = 'option'
 KEY_OPTION_VALUES = 'optionValues'
 
 # 执行指令输出的询问文本，等待用户输入进行下一步操作
