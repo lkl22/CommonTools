@@ -4,70 +4,20 @@
 # 定义一个AddOrEditCmdDialog类实现添加、编辑执行指令功能
 import copy
 
-from PyQt5.QtWidgets import QScrollArea, QFrame
+from PyQt5.QtCore import QModelIndex
+from PyQt5.QtWidgets import QScrollArea, QFrame, QAbstractItemView
 
 from constant.WidgetConst import *
+from util.ClipboardUtil import ClipboardUtil
 from util.DialogUtil import *
 from util.DictUtil import DictUtil
 from util.ListUtil import ListUtil
 from util.OperaIni import *
 from widget.custom.DragInputWidget import DragInputWidget
+from widget.projectManage.AddOrEditDynamicParamDialog import AddOrEditDynamicParamDialog
 from widget.projectManage.ProjectManager import *
 
 TAG = "AddOrEditCmdDialog"
-
-
-class OptionGroupWidget(QFrame):
-    def __init__(self, optionGroupInfo, optionNames, delFunc):
-        super(OptionGroupWidget, self).__init__()
-        self.optionGroupInfo = None
-        self.optionNames = None
-        self.optionWidgets = []
-        self.setObjectName("OptionGroupWidget")
-        self.vbox = WidgetUtil.createVBoxLayout(self, margins=QMargins(5, 5, 5, 5))
-        self.optionGroupNameLabel = WidgetUtil.createLabel(self)
-        self.vbox.addWidget(self.optionGroupNameLabel)
-
-        # 为窗口添加QActions
-        self.addAction(WidgetUtil.createAction(self, text="删除", func=lambda: delFunc(self, self.optionGroupInfo)))
-        self.setContextMenuPolicy(Qt.ActionsContextMenu)
-        self.setStyleSheet("OptionGroupWidget{border:1px solid rgb(255,0,0)}")
-
-        self.updateUi(optionGroupInfo, optionNames)
-        pass
-
-    def updateUi(self, optionGroupInfo, optionNames):
-        self.optionGroupInfo = optionGroupInfo
-        self.optionNames = optionNames
-        self.optionGroupNameLabel.setText(f"{optionGroupInfo[KEY_NAME]}（{optionGroupInfo[KEY_DESC]}）")
-        options = DictUtil.get(optionGroupInfo, KEY_OPTIONS)
-        optionsLen = len(options)
-        while optionsLen < len(self.optionWidgets):
-            widget = self.optionWidgets[optionsLen]
-            self.vbox.removeWidget(widget)
-            widget.deleteLater()
-            self.optionWidgets.remove(widget)
-        for index, option in enumerate(options):
-            if index >= len(self.optionWidgets):
-                widget = WidgetUtil.createCheckBox(self, clicked=self.selectedChanged)
-                self.optionWidgets.append(widget)
-                self.vbox.addWidget(widget)
-            else:
-                widget = self.optionWidgets[index]
-            widget.setText(f"{DictUtil.get(option, KEY_NAME)}（{DictUtil.get(option, KEY_DESC)}）")
-            widget.setToolTip(f"支持的选项：{DictUtil.get(option, KEY_OPTION_VALUES)}")
-            widget.setChecked(option[KEY_NAME] in optionNames)
-        pass
-
-    def selectedChanged(self, status):
-        LogUtil.d(TAG, "selectedChanged", status)
-        options = DictUtil.get(self.optionGroupInfo, KEY_OPTIONS)
-        self.optionNames.clear()
-        for index, widget in enumerate(self.optionWidgets):
-            if widget.isChecked():
-                self.optionNames.append(options[index][KEY_NAME])
-        LogUtil.d(TAG, "selectedChanged", self.optionNames)
-        pass
 
 
 class AddOrEditCmdDialog(QtWidgets.QDialog):
@@ -103,7 +53,6 @@ class AddOrEditCmdDialog(QtWidgets.QDialog):
             if KEY_CMD_GROUPS not in default:
                 default[KEY_CMD_GROUPS] = []
         self.dynamicArguments = copy.deepcopy(default[KEY_DYNAMIC_ARGUMENTS])
-        self.dynamicOptionGroup = []
         self.default = default
 
         if cmdGroups is None:
@@ -189,17 +138,15 @@ class AddOrEditCmdDialog(QtWidgets.QDialog):
         self.vLayout.addLayout(hbox)
 
         if self.optionGroups:
-            self.createOptionGroupSelectedWidget(labelWidth)
-
-        self.spacerItem = WidgetUtil.createLabel(self)
-        self.vLayout.addWidget(self.spacerItem, 1)
+            self.createAddDynParamWidget()
+        else:
+            self.spacerItem = WidgetUtil.createLabel(self)
+            self.vLayout.addWidget(self.spacerItem, 1)
 
         btnBox = WidgetUtil.createDialogButtonBox(parent=self, acceptedFunc=self.acceptFunc,
                                                   rejectedFunc=lambda: self.close())
         vLayout.addWidget(btnBox)
         self.setWindowModality(Qt.WindowModal)
-
-        self.handleDynamicArgumentsData()
         if not isDebug:
             # 很关键，不加出不来
             self.exec_()
@@ -235,96 +182,87 @@ class AddOrEditCmdDialog(QtWidgets.QDialog):
         LogUtil.d(TAG, "cmdGroupSelectedChanged", self.selectedCmdGroups)
         pass
 
-    def createOptionGroupSelectedWidget(self, labelWidth):
+    def createAddDynParamWidget(self):
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
-        hbox.addWidget(WidgetUtil.createLabel(self, text="Dynamic Arguments：", minSize=QSize(labelWidth, const.HEIGHT)))
-        self.dynamicArgumentsComboBox = WidgetUtil.createComboBox(self,
-                                                                  toolTip="需要执行的命令行指令参数，可以通过用户选择自动拼接，按照选项分组拼接命令参数",
-                                                                  activated=self.dynamicArgumentsChanged)
-        hbox.addWidget(self.dynamicArgumentsComboBox, 1)
+        hbox.addWidget(WidgetUtil.createPushButton(self, text="添加动态参数", onClicked=self.addDynParam))
+        hbox.addItem(WidgetUtil.createHSpacerItem(1, 1))
         self.vLayout.addLayout(hbox)
 
-        self.isDynArgsCheckBox = WidgetUtil.createCheckBox(self, text="拼接动态参数",
-                                                           toolTip="是否跟固定参数拼接，不拼接就只使用情景参数，默认拼接",
-                                                           isChecked=DictUtil.get(self.default, KEY_IS_DYNAMIC_ARGUMENTS,
-                                                                                  DEFAULT_VALUE_IS_DYN_ARGS))
-        self.vLayout.addWidget(self.isDynArgsCheckBox)
-
-        self.needSpaceCheckBox = WidgetUtil.createCheckBox(self, text="是否需要添加空格",
-                                                           toolTip="跟固定参数拼接时是否需要添加空格，默认需要添加",
-                                                           isChecked=DictUtil.get(self.default, KEY_NEED_SPACE,
-                                                                                  DEFAULT_VALUE_NEED_SPACE))
-        self.vLayout.addWidget(self.needSpaceCheckBox)
+        self.cmdTableView = WidgetUtil.createTableView(self, doubleClicked=self.tableDoubleClicked)
+        # 设为不可编辑
+        self.cmdTableView.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        # 设置选中模式为选中行
+        self.cmdTableView.setSelectionBehavior(QAbstractItemView.SelectRows)
+        # 设置选中单个
+        self.cmdTableView.setSelectionMode(QAbstractItemView.SingleSelection)
+        # 设置自定义右键菜单
+        self.cmdTableView.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.cmdTableView.customContextMenuRequested.connect(self.customRightMenu)
+        self.updateCmdTableView()
+        self.vLayout.addWidget(self.cmdTableView, 1)
         pass
 
-    def handleDynamicArgumentsData(self):
-        # 拷贝避免影响原始数据
-        self.optionGroups = copy.deepcopy(self.srcOptionGroups)
-        if not self.optionGroups:
-            return
-        self.dynamicOptionGroup.clear()
-        needDelDynamicArguments = []
-        for item in self.dynamicArguments:
-            optionGroup = ListUtil.find(self.optionGroups, KEY_ID, item[KEY_OPTION_GROUP_ID])
-            if optionGroup:
-                # 工程的选项群组里包含该动态参数配置项
-                self.dynamicOptionGroup.append(optionGroup)
-                # 已经在下面显示里从下拉选择框里移除
-                self.optionGroups.remove(optionGroup)
-            else:
-                # 之前的配置项已经删除
-                needDelDynamicArguments.append(item)
-        for item in needDelDynamicArguments:
-            self.dynamicArguments.remove(item)
-
-        self.updateDynamicArgumentsComboBox()
-        self.updateDynamicOptionWidget()
+    def addDynParam(self):
+        LogUtil.d(TAG, "addDynParam")
+        AddOrEditDynamicParamDialog(callback=self.addOrEditDynParamCallback,
+                                    dynParamList=self.dynamicArguments,
+                                    optionGroups=self.optionGroups)
         pass
 
-    def updateDynamicArgumentsComboBox(self):
-        self.dynamicArgumentsComboBox.clear()
-        # self.dynamicArgumentsComboBox.addItem("", -1)
-        for index, item in enumerate(self.optionGroups):
-            self.dynamicArgumentsComboBox.addItem(
-                f"{DictUtil.get(item, KEY_NAME)}（{DictUtil.get(item, KEY_DESC)}）", userData=index)
-        self.dynamicArgumentsComboBox.setCurrentIndex(-1)
+    def addOrEditDynParamCallback(self, info):
+        LogUtil.d(TAG, "addOrEditDynParamCallback", info)
+        if info:
+            self.dynamicArguments.append(info)
+        self.updateCmdTableView()
         pass
 
-    def dynamicArgumentsChanged(self, index):
-        LogUtil.d(TAG, "dynamicArgumentsChanged", index)
-        curOptionGroup = self.optionGroups[index]
-        self.optionGroups.remove(curOptionGroup)
-        self.updateDynamicArgumentsComboBox()
-        self.dynamicOptionGroup.append(curOptionGroup)
-        self.dynamicArguments.append({KEY_OPTION_GROUP_ID: curOptionGroup[KEY_ID], KEY_OPTION_NAMES: []})
-        self.updateDynamicOptionWidget()
+    def tableDoubleClicked(self, index: QModelIndex):
+        oldValue = index.data()
+        row = index.row()
+        LogUtil.d(TAG, "双击的单元格：row ", row, ' col', index.column(), ' data ', oldValue)
+        AddOrEditDynamicParamDialog(callback=self.addOrEditDynParamCallback,
+                                    default=self.dynamicArguments[row],
+                                    dynParamList=self.dynamicArguments,
+                                    optionGroups=self.optionGroups)
+        pass
 
-    def updateDynamicOptionWidget(self):
-        dynamicArgumentLen = len(self.dynamicOptionGroup)
-        while dynamicArgumentLen < len(self.dynamicArgumentWidgets):
-            widget = self.dynamicArgumentWidgets[dynamicArgumentLen]
-            self.vLayout.removeWidget(widget)
-            widget.deleteLater()
-            self.dynamicArgumentWidgets.remove(widget)
-        # self.vLayout.removeWidget(self.needSpaceCheckBox)
-        self.vLayout.removeWidget(self.spacerItem)
-        for index, option in enumerate(self.dynamicOptionGroup):
-            optionNames = ListUtil.get(self.dynamicArguments, KEY_OPTION_GROUP_ID, option[KEY_ID], KEY_OPTION_NAMES, [])
-            if index >= len(self.dynamicArgumentWidgets):
-                widget = OptionGroupWidget(option, optionNames, delFunc=self.delOptionGroupWidget)
-                self.dynamicArgumentWidgets.append(widget)
-                self.vLayout.addWidget(widget)
-            else:
-                widget = self.dynamicArgumentWidgets[index]
-                widget.updateUi(option, optionNames)
-        # self.vLayout.addWidget(self.needSpaceCheckBox)
-        self.vLayout.addWidget(self.spacerItem, 1)
+    def customRightMenu(self, pos):
+        self.curRow = self.cmdTableView.currentIndex().row()
+        LogUtil.i(TAG, "customRightMenu", pos, ' row: ', self.curRow)
+        menu = WidgetUtil.createMenu("删除", func1=self.delDynParam, action2="Copy", func2=self.copyToClipboard)
+        menu.exec(self.cmdTableView.mapToGlobal(pos))
+        pass
 
-    def delOptionGroupWidget(self, widget: OptionGroupWidget, optionGroupInfo):
-        LogUtil.d(TAG, "delOptionGroupWidget")
-        delDynArg = ListUtil.find(self.dynamicArguments, KEY_OPTION_GROUP_ID, optionGroupInfo[KEY_ID])
-        self.dynamicArguments.remove(delDynArg)
-        self.handleDynamicArgumentsData()
+    def delDynParam(self):
+        dynParamName = self.dynamicArguments[self.curRow][KEY_NAME]
+        LogUtil.i(TAG, f"delDynParam {dynParamName}")
+        WidgetUtil.showQuestionDialog(message=f"你确定需要删除 <span style='color:red;'>{dynParamName}</span> 吗？",
+                                      acceptFunc=self.delTableItem)
+        pass
+
+    def copyToClipboard(self):
+        ClipboardUtil.copyToClipboard("{" + self.dynamicArguments[self.curRow][KEY_NAME] + "}")
+        pass
+
+    def delTableItem(self):
+        LogUtil.i(TAG, "delTableItem")
+        self.dynamicArguments.remove(self.dynamicArguments[self.curRow])
+        self.updateCmdTableView()
+        pass
+
+    def updateCmdTableView(self):
+        tableData = []
+        for dynParam in self.dynamicArguments:
+            tableData.append({
+                KEY_NAME: dynParam[KEY_NAME],
+                KEY_DESC: DictUtil.get(dynParam, KEY_DESC, ""),
+                KEY_OPTION_GROUP: dynParam[KEY_OPTION_GROUP],
+                KEY_OPTION: dynParam[KEY_OPTION],
+                KEY_NEED_CAPITALIZE: DictUtil.get(dynParam, KEY_NEED_CAPITALIZE, DEFAULT_VALUE_NEED_CAPITALIZE)
+            })
+        WidgetUtil.addTableViewData(self.cmdTableView, tableData,
+                                    headerLabels=["动态参数名称", "动态参数描述", "选项所属群组", "选项", "是否需要添加空格"])
+        # WidgetUtil.tableViewSetColumnWidth(self.cmdTableView, 0, 100)
         pass
 
     def acceptFunc(self):
@@ -363,13 +301,7 @@ class AddOrEditCmdDialog(QtWidgets.QDialog):
         self.default[KEY_CMD_GROUPS] = self.selectedCmdGroups
         self.default[KEY_ARGUMENTS] = arguments
         self.default[KEY_IGNORE_FAILED] = self.ignoreFailedCheckBox.isChecked()
-        # 清除空的动态参数配置
-        for item in self.dynamicArguments:
-            if not item[KEY_OPTION_NAMES]:
-                self.dynamicArguments.remove(item)
         self.default[KEY_DYNAMIC_ARGUMENTS] = self.dynamicArguments
-        self.default[KEY_IS_DYNAMIC_ARGUMENTS] = self.isDynArgsCheckBox.isChecked()
-        self.default[KEY_NEED_SPACE] = self.needSpaceCheckBox.isChecked()
 
         if self.isDebug:
             self.callback(self.default)
