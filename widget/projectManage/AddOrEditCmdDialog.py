@@ -55,7 +55,7 @@ class AddOrEditCmdDialog(QtWidgets.QDialog):
                 default[KEY_CMD_GROUPS] = []
         # 删除无效的动态参数
         ProjectManagerUtil.delInvalidDynParam(dynParams=default[KEY_DYNAMIC_ARGUMENTS], optionGroups=self.optionGroups)
-        self.dynamicArguments = copy.deepcopy(default[KEY_DYNAMIC_ARGUMENTS])
+        self.dynArgs = copy.deepcopy(default[KEY_DYNAMIC_ARGUMENTS])
         self.default = default
 
         if cmdGroups is None:
@@ -135,8 +135,19 @@ class AddOrEditCmdDialog(QtWidgets.QDialog):
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
         hbox.addWidget(WidgetUtil.createLabel(self, text="Arguments：", minSize=QSize(labelWidth, const.HEIGHT)))
         self.argumentsLineEdit = WidgetUtil.createLineEdit(self, text=DictUtil.get(default, KEY_ARGUMENTS),
-                                                           holderText="需要执行的命令行指令参数，多个参数使用空格分隔")
+                                                           holderText="需要执行的命令行指令参数，如果需要使用动态参数，可以从动态参数列表中选择需要的参数右键copy，复制到该编辑框里，也可以按指定的格式手动输入",
+                                                           editingFinished=self.updateRealArgs)
         hbox.addWidget(self.argumentsLineEdit)
+        self.vLayout.addLayout(hbox)
+
+        hbox = WidgetUtil.createHBoxLayout(spacing=10)
+        hbox.addWidget(WidgetUtil.createLabel(self, text="真实参数示例：", minSize=QSize(labelWidth, const.HEIGHT)))
+        self.realArgsLabel = WidgetUtil.createLabel(self, text=ProjectManagerUtil.transformCmdParams(
+            params=DictUtil.get(default, KEY_ARGUMENTS),
+            dynParams=self.dynArgs,
+            optionGroups=self.optionGroups))
+        hbox.addWidget(self.realArgsLabel)
+        hbox.addItem(WidgetUtil.createHSpacerItem(1, 1))
         self.vLayout.addLayout(hbox)
 
         if self.optionGroups:
@@ -187,6 +198,13 @@ class AddOrEditCmdDialog(QtWidgets.QDialog):
         LogUtil.d(TAG, "cmdGroupSelectedChanged", self.selectedCmdGroups)
         pass
 
+    def updateRealArgs(self):
+        args = self.argumentsLineEdit.text().strip()
+        self.realArgsLabel.setText(ProjectManagerUtil.transformCmdParams(params=args,
+                                                                         dynParams=self.dynArgs,
+                                                                         optionGroups=self.optionGroups))
+        pass
+
     def createAddDynParamWidget(self):
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
         hbox.addWidget(WidgetUtil.createPushButton(self, text="添加动态参数", onClicked=self.addDynParam))
@@ -210,14 +228,14 @@ class AddOrEditCmdDialog(QtWidgets.QDialog):
     def addDynParam(self):
         LogUtil.d(TAG, "addDynParam")
         AddOrEditDynamicParamDialog(callback=self.addOrEditDynParamCallback,
-                                    dynParamList=self.dynamicArguments,
+                                    dynParamList=self.dynArgs,
                                     optionGroups=self.optionGroups)
         pass
 
     def addOrEditDynParamCallback(self, info):
         LogUtil.d(TAG, "addOrEditDynParamCallback", info)
         if info:
-            self.dynamicArguments.append(info)
+            self.dynArgs.append(info)
         self.updateCmdTableView()
         pass
 
@@ -226,8 +244,8 @@ class AddOrEditCmdDialog(QtWidgets.QDialog):
         row = index.row()
         LogUtil.d(TAG, "双击的单元格：row ", row, ' col', index.column(), ' data ', oldValue)
         AddOrEditDynamicParamDialog(callback=self.addOrEditDynParamCallback,
-                                    default=self.dynamicArguments[row],
-                                    dynParamList=self.dynamicArguments,
+                                    default=self.dynArgs[row],
+                                    dynParamList=self.dynArgs,
                                     optionGroups=self.optionGroups)
         pass
 
@@ -239,25 +257,25 @@ class AddOrEditCmdDialog(QtWidgets.QDialog):
         pass
 
     def delDynParam(self):
-        dynParamName = self.dynamicArguments[self.curRow][KEY_NAME]
+        dynParamName = self.dynArgs[self.curRow][KEY_NAME]
         LogUtil.i(TAG, f"delDynParam {dynParamName}")
         WidgetUtil.showQuestionDialog(message=f"你确定需要删除 <span style='color:red;'>{dynParamName}</span> 吗？",
                                       acceptFunc=self.delTableItem)
         pass
 
     def copyToClipboard(self):
-        ClipboardUtil.copyToClipboard("{" + self.dynamicArguments[self.curRow][KEY_NAME] + "}")
+        ClipboardUtil.copyToClipboard("{" + self.dynArgs[self.curRow][KEY_NAME] + "}")
         pass
 
     def delTableItem(self):
         LogUtil.i(TAG, "delTableItem")
-        self.dynamicArguments.remove(self.dynamicArguments[self.curRow])
+        self.dynArgs.remove(self.dynArgs[self.curRow])
         self.updateCmdTableView()
         pass
 
     def updateCmdTableView(self):
         tableData = []
-        for dynParam in self.dynamicArguments:
+        for dynParam in self.dynArgs:
             tableData.append({
                 KEY_NAME: dynParam[KEY_NAME],
                 KEY_DESC: DictUtil.get(dynParam, KEY_DESC, ""),
@@ -268,6 +286,7 @@ class AddOrEditCmdDialog(QtWidgets.QDialog):
         WidgetUtil.addTableViewData(self.cmdTableView, tableData,
                                     headerLabels=["动态参数名称", "动态参数描述", "选项所属群组", "选项", "是否需要添加空格"])
         # WidgetUtil.tableViewSetColumnWidth(self.cmdTableView, 0, 100)
+        self.updateRealArgs()
         pass
 
     def acceptFunc(self):
@@ -306,7 +325,7 @@ class AddOrEditCmdDialog(QtWidgets.QDialog):
         self.default[KEY_CMD_GROUPS] = self.selectedCmdGroups
         self.default[KEY_ARGUMENTS] = arguments
         self.default[KEY_IGNORE_FAILED] = self.ignoreFailedCheckBox.isChecked()
-        self.default[KEY_DYNAMIC_ARGUMENTS] = self.dynamicArguments
+        self.default[KEY_DYNAMIC_ARGUMENTS] = self.dynArgs
 
         if self.isDebug:
             self.callback(self.default)
