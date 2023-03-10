@@ -26,6 +26,7 @@ from widget.projectManage.CmdManagerWidget import CmdManagerWidget
 from widget.projectManage.ModuleManagerWidget import ModuleManagerWidget
 from widget.projectManage.OptionManagerWidget import OptionManagerWidget
 from widget.projectManage.ProjectManager import *
+from widget.projectManage.ProjectManagerUtil import ProjectManagerUtil
 
 TYPE_HIDE_LOADING_DIALOG = 1
 
@@ -348,45 +349,12 @@ class ProjectManagerWindow(QMainWindow):
         args = DictUtil.get(cmdInfo, KEY_ARGUMENTS)
         conditionInputs = []
         # 指令依赖的option选项群组
-        dynamicArguments = DictUtil.get(cmdInfo, KEY_DYNAMIC_ARGUMENTS, None)
-        if dynamicArguments:
-            needSpace = DictUtil.get(cmdInfo, KEY_NEED_SPACE, DEFAULT_VALUE_NEED_SPACE)
-            if needSpace:
-                args += " "
+        dynArgs = DictUtil.get(cmdInfo, KEY_DYNAMIC_ARGUMENTS, None)
+        if dynArgs:
             # 工程的所有option选项群组
             projectOptionGroups = self.optionManagerWidget.getProjectOptionGroups()
-            for dynamicArgument in dynamicArguments:
-                tempDynamicArg = []
-                # 工程指定分组下的option选项配置
-                projectOptions = ListUtil.get(projectOptionGroups, KEY_ID, dynamicArgument[KEY_OPTION_GROUP_ID], KEY_OPTIONS)
-                for option in projectOptions:
-                    if option[KEY_NAME] not in dynamicArgument[KEY_OPTION_NAMES]:
-                        # 当前的option不属于当前指令，直接跳过
-                        continue
-                    default = DictUtil.get(option, KEY_DEFAULT, -1)
-                    echo = DictUtil.get(option, KEY_ECHO, "")
-                    optionValues = DictUtil.get(option, KEY_OPTION_VALUES, [])
-                    if default == -1 or not optionValues:
-                        continue
-                    # 选项的信息
-                    optionValue = optionValues[default]
-                    needCapitalize = DictUtil.get(option, KEY_NEED_CAPITALIZE, DEFAULT_VALUE_NEED_CAPITALIZE)
-                    value = StrUtil.capitalize(optionValue[KEY_VALUE]) if needCapitalize else optionValue[KEY_VALUE]
-                    if echo:
-                        autoInput = DictUtil.get(optionValue, KEY_INPUT)
-                        if not autoInput:
-                            autoInput = value
-                        conditionInput = ListUtil.findByKey(conditionInputs, echo)
-                        if conditionInput:
-                            conditionInput[echo] += conditionInput[echo] if autoInput == MACRO_REPEAT else autoInput
-                        else:
-                            conditionInputs.append({echo: autoInput})
-                    tempDynamicArg.append(tempDynamicArg[-1] if optionValue[KEY_VALUE] == MACRO_REPEAT else value)
-                if DictUtil.get(cmdInfo, KEY_IS_DYNAMIC_ARGUMENTS, DEFAULT_VALUE_IS_DYN_ARGS):
-                    for arg in tempDynamicArg:
-                        args += arg
-                    args += " "
-
+            conditionInputs = ProjectManagerUtil.extractConditionInputs(dynParams=dynArgs, optionGroups=projectOptionGroups)
+            args = ProjectManagerUtil.transformCmdParams(params=args, dynParams=dynArgs, optionGroups=projectOptionGroups)
         return args, conditionInputs
 
     def handleCmdList(self, moduleDir, srcCmdList):

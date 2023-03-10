@@ -75,14 +75,6 @@ class AddOrEditOptionDialog(QtWidgets.QDialog):
         hbox.addWidget(WidgetUtil.createPushButton(self, text="Del", onClicked=self.delOptionValue))
         vLayout.addLayout(hbox)
 
-        hbox = WidgetUtil.createHBoxLayout(spacing=10)
-        self.capitalizeCheckBox = WidgetUtil.createCheckBox(self, text="首字母是否大写",
-                                                            toolTip="默认首字母大写，会在拼接时将首字母转为大写。",
-                                                            isChecked=DictUtil.get(self.default, KEY_NEED_CAPITALIZE, DEFAULT_VALUE_NEED_CAPITALIZE))
-        hbox.addWidget(self.capitalizeCheckBox)
-        vLayout.addLayout(hbox)
-
-        # vLayout.addWidget(WidgetUtil.createLabel(self), 1)
         vLayout.addItem(WidgetUtil.createVSpacerItem(1, 1))
 
         btnBox = WidgetUtil.createDialogButtonBox(parent=self, acceptedFunc=self.acceptFunc,
@@ -196,7 +188,6 @@ class AddOrEditOptionDialog(QtWidgets.QDialog):
         self.default[KEY_ECHO] = echo
         self.default[KEY_DEFAULT] = self.curOptionValueIndex
         self.default[KEY_OPTION_VALUES] = self.optionValues
-        self.default[KEY_NEED_CAPITALIZE] = self.capitalizeCheckBox.isChecked()
 
         self.callback(self.default if self.isAdd else None)
         self.close()

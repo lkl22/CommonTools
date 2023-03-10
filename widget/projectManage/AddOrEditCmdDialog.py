@@ -16,6 +16,7 @@ from util.OperaIni import *
 from widget.custom.DragInputWidget import DragInputWidget
 from widget.projectManage.AddOrEditDynamicParamDialog import AddOrEditDynamicParamDialog
 from widget.projectManage.ProjectManager import *
+from widget.projectManage.ProjectManagerUtil import ProjectManagerUtil
 
 TAG = "AddOrEditCmdDialog"
 
@@ -30,7 +31,7 @@ class AddOrEditCmdDialog(QtWidgets.QDialog):
             windowFlags |= Qt.WindowStaysOnTopHint
         self.setWindowFlags(windowFlags)
         AddOrEditCmdDialog.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.6)
-        AddOrEditCmdDialog.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.5)
+        AddOrEditCmdDialog.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.6)
         LogUtil.d(TAG, "Add or Edit Cmd Dialog")
         self.setWindowTitle(WidgetUtil.translate(text="添加/编辑执行指令"))
         self.callback = callback
@@ -40,9 +41,9 @@ class AddOrEditCmdDialog(QtWidgets.QDialog):
 
         if optionGroups is None:
             optionGroups = []
-        self.srcOptionGroups = optionGroups
         # 拷贝，避免影响原有数据
-        self.optionGroups = copy.deepcopy(optionGroups)
+        # self.optionGroups = copy.deepcopy(optionGroups)
+        self.optionGroups = optionGroups
 
         self.isAdd = default is None
         if not default:
@@ -52,6 +53,8 @@ class AddOrEditCmdDialog(QtWidgets.QDialog):
                 default[KEY_DYNAMIC_ARGUMENTS] = []
             if KEY_CMD_GROUPS not in default:
                 default[KEY_CMD_GROUPS] = []
+        # 删除无效的动态参数
+        ProjectManagerUtil.delInvalidDynParam(dynParams=default[KEY_DYNAMIC_ARGUMENTS], optionGroups=self.optionGroups)
         self.dynamicArguments = copy.deepcopy(default[KEY_DYNAMIC_ARGUMENTS])
         self.default = default
 
@@ -62,7 +65,6 @@ class AddOrEditCmdDialog(QtWidgets.QDialog):
         # 拷贝，避免影响原有数据
         self.selectedCmdGroups = copy.deepcopy(default[KEY_CMD_GROUPS])
 
-        self.dynamicArgumentWidgets = []
         self.isDebug = isDebug
 
         self.moduleDir = moduleDir if moduleDir else './'
@@ -160,7 +162,10 @@ class AddOrEditCmdDialog(QtWidgets.QDialog):
         self.vLayout.addWidget(WidgetUtil.createLabel(self, text="选择指令所属分组："))
 
         hbox = None
-        maxCol = 1
+        if len(self.cmdGroups) < 3:
+            maxCol = 1
+        else:
+            maxCol = 6
         for index, item in enumerate(self.cmdGroups):
             if index % maxCol == 0:
                 hbox = WidgetUtil.createHBoxLayout(spacing=10)

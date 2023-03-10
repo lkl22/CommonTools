@@ -16,6 +16,7 @@ from util.OperaIni import *
 from widget.custom.DragInputWidget import DragInputWidget
 from widget.projectManage.AddOrEditCmdDialog import AddOrEditCmdDialog
 from widget.projectManage.ProjectManager import *
+from widget.projectManage.ProjectManagerUtil import ProjectManagerUtil
 
 TAG = "AddOrEditModuleDialog"
 
@@ -242,7 +243,8 @@ class AddOrEditModuleDialog(QtWidgets.QDialog):
         oldValue = index.data()
         row = index.row()
         LogUtil.d(TAG, "双击的单元格：row ", row, ' col', index.column(), ' data ', oldValue)
-        AddOrEditCmdDialog(callback=self.addOrEditCmdCallback, moduleDir=self.getCurWorkingDir(), default=self.cmdList[row],
+        AddOrEditCmdDialog(callback=self.addOrEditCmdCallback, moduleDir=self.getCurWorkingDir(),
+                           default=self.cmdList[row],
                            cmdList=self.cmdList, optionGroups=self.optionGroups, cmdGroups=self.cmdGroups)
         pass
 
@@ -269,22 +271,21 @@ class AddOrEditModuleDialog(QtWidgets.QDialog):
     def updateCmdTableView(self):
         tableData = []
         for cmd in self.cmdList:
-            dynArgs = DictUtil.get(cmd, KEY_DYNAMIC_ARGUMENTS, [])
-            dynArgsShowTxt = []
-            for dynArg in dynArgs:
-                dynArgsShowTxt += dynArg[KEY_OPTION_NAMES]
+            params = DictUtil.get(cmd, KEY_ARGUMENTS, "")
+            params = ProjectManagerUtil.transformCmdParams(params=params,
+                                                           dynParams=DictUtil.get(cmd, KEY_DYNAMIC_ARGUMENTS),
+                                                           optionGroups=self.optionGroups)
             tableData.append({
                 KEY_NAME: cmd[KEY_NAME],
                 KEY_DESC: cmd[KEY_DESC],
                 KEY_PROGRAM: cmd[KEY_PROGRAM],
                 KEY_WORKING_DIR: cmd[KEY_WORKING_DIR],
-                KEY_ARGUMENTS: cmd[KEY_ARGUMENTS],
-                KEY_DYNAMIC_ARGUMENTS: dynArgsShowTxt,
+                KEY_ARGUMENTS: params,
                 KEY_CMD_GROUPS: DictUtil.get(cmd, KEY_CMD_GROUPS, []),
                 KEY_IGNORE_FAILED: DictUtil.get(cmd, KEY_IGNORE_FAILED, False)
             })
         WidgetUtil.addTableViewData(self.cmdTableView, tableData,
-                                    headerLabels=["执行指令名", "描述", "指令", "工作空间", "指令参数", "动态参数选项", "指令所属群组", "执行失败可忽略"])
+                                    headerLabels=["执行指令名", "描述", "指令", "工作空间", "指令参数", "指令所属群组", "执行失败可忽略"])
         # WidgetUtil.tableViewSetColumnWidth(self.cmdTableView, 0, 100)
         pass
 

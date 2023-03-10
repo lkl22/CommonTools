@@ -83,6 +83,7 @@ a = Analysis(['RunMain.py',
               'widget/projectManage/ModuleManagerWidget.py',
               'widget/projectManage/OptionManagerWidget.py',
               'widget/projectManage/ProjectManager.py',
+              'widget/projectManage/ProjectManagerUtil.py',
               'widget/projectManage/ProjectManagerWindow.py',
 
               'widget/test/AndroidAdbDialog.py',
