@@ -80,6 +80,21 @@ class ListUtil:
         return None
 
     @staticmethod
+    def findIndex(listData: [dict], findKey: str, findValue):
+        """
+        从字典列表数据里查找指定字典数据的下标索引
+        :param listData: 源数据
+        :param findKey: 查找目标数据的key
+        :param findValue: 需要查找目标dict数据的判断数据值
+        :return: 找到的数据下标索引，找不到返回-1
+        """
+        if listData:
+            for index, item in enumerate(listData):
+                if findKey in item and findValue == item[findKey]:
+                    return index
+        return -1
+
+    @staticmethod
     def findByKey(listData: [dict], findKey: str):
         """
         从字典列表数据里查找指定字典数据

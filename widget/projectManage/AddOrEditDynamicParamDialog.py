@@ -64,9 +64,9 @@ class AddOrEditDynamicParamDialog(QtWidgets.QDialog):
         hBox = WidgetUtil.createHBoxLayout(spacing=10)
         hBox.addWidget(WidgetUtil.createLabel(self, text="选项所属群组：", minSize=QSize(labelWidth, const.HEIGHT)))
         self.optionGroupComboBox = WidgetUtil.createComboBox(self, activated=self.optionGroupChanged)
-        self.optionGroupComboBox.addItem("")
+        self.optionGroupComboBox.addItem("", "")
         for index, item in enumerate(self.optionGroups):
-            self.optionGroupComboBox.addItem(f"{item[KEY_NAME]}", item)
+            self.optionGroupComboBox.addItem(f"{item[KEY_NAME]}（{item[KEY_DESC]}）", item[KEY_NAME])
         hBox.addWidget(self.optionGroupComboBox, 1)
         vLayout.addLayout(hBox)
 
@@ -107,7 +107,8 @@ class AddOrEditDynamicParamDialog(QtWidgets.QDialog):
     def updateOptionGroupComboBox(self):
         defaultGroup = DictUtil.get(self.default, KEY_OPTION_GROUP)
         if defaultGroup:
-            self.optionGroupComboBox.setCurrentText(ListUtil.get(self.optionGroups, KEY_NAME, defaultGroup, KEY_NAME, ""))
+            index = ListUtil.findIndex(self.optionGroups, KEY_NAME, defaultGroup)
+            self.optionGroupComboBox.setCurrentIndex(index + 1)
         else:
             self.optionGroupComboBox.setCurrentText("")
         pass
@@ -115,16 +116,16 @@ class AddOrEditDynamicParamDialog(QtWidgets.QDialog):
     def updateOptionComboBox(self, needDefaultValue=False):
         self.optionComboBox.clear()
 
-        optionGroup = self.optionGroupComboBox.currentText()
+        optionGroup = self.optionGroupComboBox.currentData()
         if optionGroup:
             options = ListUtil.get(self.optionGroups, KEY_NAME, optionGroup, KEY_OPTIONS)
             if options:
-                self.optionComboBox.addItem("")
+                self.optionComboBox.addItem("", "")
                 for index, item in enumerate(options):
-                    self.optionComboBox.addItem(f"{item[KEY_NAME]}", item)
+                    self.optionComboBox.addItem(f"{item[KEY_NAME]}（{item[KEY_DESC]}）", item[KEY_NAME])
                 if needDefaultValue:
                     defaultOption = DictUtil.get(self.default, KEY_OPTION)
-                    self.optionComboBox.setCurrentText(ListUtil.get(options, KEY_NAME, defaultOption, KEY_NAME, ""))
+                    self.optionComboBox.setCurrentIndex(ListUtil.findIndex(options, KEY_NAME, defaultOption) + 1)
                     return
             self.optionComboBox.setCurrentText("")
         pass
@@ -141,12 +142,12 @@ class AddOrEditDynamicParamDialog(QtWidgets.QDialog):
                     WidgetUtil.showErrorDialog(message=f"请重新添加一个其他的动态参数名，{name}已经存在了，不能重复添加")
                     return
 
-        optionGroup = self.optionGroupComboBox.currentText()
+        optionGroup = self.optionGroupComboBox.currentData()
         if not optionGroup:
             WidgetUtil.showErrorDialog(message="请选择选项所属群组")
             return
 
-        option = self.optionComboBox.currentText()
+        option = self.optionComboBox.currentData()
         if not option:
             WidgetUtil.showErrorDialog(message="请选择选项")
             return
@@ -167,7 +168,7 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     # window = AddOrEditDynamicParamDialog(callback=lambda it: LogUtil.d(TAG, "callback", it), isDebug=True)
     window = AddOrEditDynamicParamDialog(callback=lambda it: LogUtil.d(TAG, "callback", it),
-                                         default={KEY_OPTION_GROUP: "buildParams", KEY_OPTION: "packageType", KEY_NAME: 'productFlavor',
+                                         default={KEY_OPTION_GROUP: "buildParams1", KEY_OPTION: "packageType1", KEY_NAME: 'productFlavor',
                                                   KEY_DESC: '产品渠道信息'},
                                          optionGroups=[
                                              {'desc': '构建参数', 'id': '25ce396132a320ac6fb53346ab7d450f',
