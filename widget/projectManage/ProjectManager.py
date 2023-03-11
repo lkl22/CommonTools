@@ -43,8 +43,11 @@ KEY_DYNAMIC_ARGUMENTS = 'dynamicArguments'
 KEY_NEED_CAPITALIZE = 'needCapitalize'
 DEFAULT_VALUE_NEED_CAPITALIZE = True
 
-# 前置条件选项
+# 指令执行前置条件列表
 KEY_PRECONDITIONS = 'preconditions'
+KEY_PRECONDITIONS_LOGIC = 'preconditionsLogic'
+PRECONDITIONS_LOGIC_ALL = 'all'
+PRECONDITIONS_LOGIC_ANY = 'any'
 
 KEY_OPTION_GROUP_ID = 'optionGroupId'
 KEY_OPTION_NAMES = 'optionNames'

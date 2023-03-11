@@ -224,8 +224,17 @@ class AddOrEditCmdDialog(QtWidgets.QDialog):
 
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
         hbox.addWidget(
-            WidgetUtil.createPushButton(self, text="添加指令执行前置条件", toolTip="设置了，就必须满足设置的条件才会执行该指令\n1、设置的选项已经不存在则忽略该前置条件\n2、选项存在则检查当前的值是否等于前置条件设置的值\n3、存在多条条件时，根据配置是同时满足还是一个满足就行",
+            WidgetUtil.createPushButton(self, text="添加指令执行前置条件",
+                                        toolTip="设置了，就必须满足设置的条件才会执行该指令\n1、设置的选项已经不存在则忽略该前置条件\n2、选项存在则检查当前的值是否等于前置条件设置的值\n3、存在多条条件时，根据配置是同时满足还是一个满足就行",
                                         onClicked=self.addPrecondition))
+        self.allConditionCheckBox = WidgetUtil.createRadioButton(self, text="条件同时满足才执行", autoExclusive=True,
+                                                                 isChecked=DictUtil.get(self.default,
+                                                                                        KEY_PRECONDITIONS_LOGIC) == PRECONDITIONS_LOGIC_ALL)
+        self.anyConditionCheckBox = WidgetUtil.createRadioButton(self, text="条件任一满足就执行", autoExclusive=True,
+                                                                 isChecked=DictUtil.get(self.default,
+                                                                                        KEY_PRECONDITIONS_LOGIC) == PRECONDITIONS_LOGIC_ANY)
+        hbox.addWidget(self.allConditionCheckBox)
+        hbox.addWidget(self.anyConditionCheckBox)
         hbox.addItem(WidgetUtil.createHSpacerItem(1, 1))
         self.vLayout.addLayout(hbox)
 
@@ -404,6 +413,11 @@ class AddOrEditCmdDialog(QtWidgets.QDialog):
         self.default[KEY_ARGUMENTS] = arguments
         self.default[KEY_IGNORE_FAILED] = self.ignoreFailedCheckBox.isChecked()
         self.default[KEY_DYNAMIC_ARGUMENTS] = self.dynArgs
+        self.default[KEY_PRECONDITIONS] = self.preconditions
+        if self.allConditionCheckBox and self.allConditionCheckBox.isChecked():
+            self.default[KEY_PRECONDITIONS_LOGIC] = PRECONDITIONS_LOGIC_ALL
+        if self.anyConditionCheckBox and self.anyConditionCheckBox.isChecked():
+            self.default[KEY_PRECONDITIONS_LOGIC] = PRECONDITIONS_LOGIC_ANY
 
         if self.isDebug:
             self.callback(self.default)
