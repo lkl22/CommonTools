@@ -13,9 +13,9 @@ from util.DialogUtil import *
 from util.DictUtil import DictUtil
 from util.ListUtil import ListUtil
 from util.OperaIni import *
-from widget.custom.ClickLabel import ClickableLabel
 from widget.custom.DragInputWidget import DragInputWidget
 from widget.projectManage.AddOrEditDynamicParamDialog import AddOrEditDynamicParamDialog
+from widget.projectManage.AddOrEditPreconditionDialog import AddOrEditPreconditionDialog
 from widget.projectManage.ProjectManager import *
 from widget.projectManage.ProjectManagerUtil import ProjectManagerUtil
 
@@ -32,7 +32,7 @@ class AddOrEditCmdDialog(QtWidgets.QDialog):
             windowFlags |= Qt.WindowStaysOnTopHint
         self.setWindowFlags(windowFlags)
         AddOrEditCmdDialog.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.6)
-        AddOrEditCmdDialog.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.6)
+        AddOrEditCmdDialog.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.8)
         LogUtil.d(TAG, "Add or Edit Cmd Dialog")
         self.setWindowTitle(WidgetUtil.translate(text="添加/编辑执行指令"))
         self.callback = callback
@@ -48,15 +48,13 @@ class AddOrEditCmdDialog(QtWidgets.QDialog):
 
         self.isAdd = default is None
         if not default:
-            default = {KEY_DYNAMIC_ARGUMENTS: [], KEY_CMD_GROUPS: []}
-        else:
-            if KEY_DYNAMIC_ARGUMENTS not in default:
-                default[KEY_DYNAMIC_ARGUMENTS] = []
-            if KEY_CMD_GROUPS not in default:
-                default[KEY_CMD_GROUPS] = []
+            default = {}
         # 删除无效的动态参数
-        ProjectManagerUtil.delInvalidDynParam(dynParams=default[KEY_DYNAMIC_ARGUMENTS], optionGroups=self.optionGroups)
-        self.dynArgs = copy.deepcopy(default[KEY_DYNAMIC_ARGUMENTS])
+        ProjectManagerUtil.delInvalidDynParam(dynParams=DictUtil.get(default, KEY_DYNAMIC_ARGUMENTS),
+                                              optionGroups=self.optionGroups)
+        self.dynArgs = copy.deepcopy(DictUtil.get(default, KEY_DYNAMIC_ARGUMENTS, []))
+
+        self.preconditions = copy.deepcopy(DictUtil.get(default, KEY_PRECONDITIONS, []))
         self.default = default
 
         if cmdGroups is None:
@@ -64,8 +62,7 @@ class AddOrEditCmdDialog(QtWidgets.QDialog):
         self.cmdGroups = cmdGroups
         self.cmdGroupWidgets = []
         # 拷贝，避免影响原有数据
-        self.selectedCmdGroups = copy.deepcopy(default[KEY_CMD_GROUPS])
-        self.needPreconditions = DictUtil.get(self.default, KEY_NEED_PRECONDITIONS, DEFAULT_VALUE_NEED_PRECONDITIONS)
+        self.selectedCmdGroups = copy.deepcopy(DictUtil.get(default, KEY_CMD_GROUPS, []))
         self.isDebug = isDebug
 
         self.moduleDir = moduleDir if moduleDir else './'
@@ -136,7 +133,7 @@ class AddOrEditCmdDialog(QtWidgets.QDialog):
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
         hbox.addWidget(WidgetUtil.createLabel(self, text="Arguments：", minSize=QSize(labelWidth, const.HEIGHT)))
         self.argumentsLineEdit = WidgetUtil.createLineEdit(self, text=DictUtil.get(default, KEY_ARGUMENTS),
-                                                           holderText="需要执行的命令行指令参数，如果需要使用动态参数，可以从动态参数列表中选择需要的参数右键copy，复制到该编辑框里，也可以按指定的格式手动输入",
+                                                           toolTip="需要执行的命令行指令参数，如果需要使用动态参数，可以从动态参数列表中选择需要的参数右键copy，复制到该编辑框里，也可以按指定的格式手动输入",
                                                            editingFinished=self.updateRealArgs)
         hbox.addWidget(self.argumentsLineEdit)
         self.vLayout.addLayout(hbox)
@@ -208,52 +205,102 @@ class AddOrEditCmdDialog(QtWidgets.QDialog):
 
     def createAddDynParamWidget(self):
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
-        self.preconditionsCheckBox = WidgetUtil.createCheckBox(self, text="需要前置条件",
-                                                               toolTip="勾选☑️时必须满足指定的选项参数条件才会执行该条指令",
-                                                               isChecked=self.needPreconditions,
-                                                               clicked=self.preconditionsCheckBoxClicked)
-        hbox.addWidget(self.preconditionsCheckBox)
+        hbox.addWidget(WidgetUtil.createPushButton(self, text="添加指令所需动态参数", onClicked=self.addDynParam))
         hbox.addItem(WidgetUtil.createHSpacerItem(1, 1))
         self.vLayout.addLayout(hbox)
 
-        hbox = WidgetUtil.createHBoxLayout(spacing=10)
-        self.preconditionsLabel = ClickableLabel(parent=self, toolTip="双击鼠标左键可以编辑前置条件", leftDoubleClicked=self.editPreconditions)
-        hbox.addWidget(self.preconditionsLabel, 1)
-        self.vLayout.addLayout(hbox)
-
-        hbox = WidgetUtil.createHBoxLayout(spacing=10)
-        hbox.addWidget(WidgetUtil.createPushButton(self, text="添加动态参数", onClicked=self.addDynParam))
-        hbox.addItem(WidgetUtil.createHSpacerItem(1, 1))
-        self.vLayout.addLayout(hbox)
-
-        self.cmdTableView = WidgetUtil.createTableView(self, doubleClicked=self.tableDoubleClicked)
+        self.dynParamsTableView = WidgetUtil.createTableView(self, doubleClicked=self.dynParamsTableDoubleClicked)
         # 设为不可编辑
-        self.cmdTableView.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        self.dynParamsTableView.setEditTriggers(QAbstractItemView.NoEditTriggers)
         # 设置选中模式为选中行
-        self.cmdTableView.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.dynParamsTableView.setSelectionBehavior(QAbstractItemView.SelectRows)
         # 设置选中单个
-        self.cmdTableView.setSelectionMode(QAbstractItemView.SingleSelection)
+        self.dynParamsTableView.setSelectionMode(QAbstractItemView.SingleSelection)
         # 设置自定义右键菜单
-        self.cmdTableView.setContextMenuPolicy(Qt.CustomContextMenu)
-        self.cmdTableView.customContextMenuRequested.connect(self.customRightMenu)
-        self.updateCmdTableView()
-        self.vLayout.addWidget(self.cmdTableView, 1)
+        self.dynParamsTableView.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.dynParamsTableView.customContextMenuRequested.connect(self.dynParamsCustomRightMenu)
+        self.updateDynParamsTableView()
+        self.vLayout.addWidget(self.dynParamsTableView, 1)
+
+        hbox = WidgetUtil.createHBoxLayout(spacing=10)
+        hbox.addWidget(
+            WidgetUtil.createPushButton(self, text="添加指令执行前置条件", toolTip="设置了，就必须满足设置的条件才会执行该指令\n1、设置的选项已经不存在则忽略该前置条件\n2、选项存在则检查当前的值是否等于前置条件设置的值\n3、存在多条条件时，根据配置是同时满足还是一个满足就行",
+                                        onClicked=self.addPrecondition))
+        hbox.addItem(WidgetUtil.createHSpacerItem(1, 1))
+        self.vLayout.addLayout(hbox)
+
+        self.preconditionsTableView = WidgetUtil.createTableView(self,
+                                                                 doubleClicked=self.preconditionsTableDoubleClicked)
+        # 设为不可编辑
+        self.preconditionsTableView.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        # 设置选中模式为选中行
+        self.preconditionsTableView.setSelectionBehavior(QAbstractItemView.SelectRows)
+        # 设置选中单个
+        self.preconditionsTableView.setSelectionMode(QAbstractItemView.SingleSelection)
+        # 设置自定义右键菜单
+        self.preconditionsTableView.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.preconditionsTableView.customContextMenuRequested.connect(self.preconditionsCustomRightMenu)
+        self.updatePreconditionsTableView()
+        self.vLayout.addWidget(self.preconditionsTableView, 1)
         pass
 
-    def preconditionsCheckBoxClicked(self):
-        LogUtil.d(TAG, "preconditionsCheckBoxClicked")
-        if self.preconditionsCheckBox.isChecked():
-            self.preconditionsLabel.setText("前置条件：")
-        else:
-            self.preconditionsLabel.setText("")
+    def addPrecondition(self):
+        LogUtil.d(TAG, "addPrecondition")
+        AddOrEditPreconditionDialog(callback=self.addOrEditPreconditionCallback,
+                                    preconditionList=self.preconditions,
+                                    optionGroups=self.optionGroups)
         pass
 
-    def addPreconditions(self):
-        LogUtil.d(TAG, "addPreconditions")
+    def addOrEditPreconditionCallback(self, info):
+        LogUtil.d(TAG, "addOrEditPreconditionCallback", info)
+        if info:
+            self.preconditions.append(info)
+        self.updatePreconditionsTableView()
         pass
 
-    def editPreconditions(self):
-        LogUtil.d(TAG, "editPreconditions")
+    def preconditionsTableDoubleClicked(self, index: QModelIndex):
+        oldValue = index.data()
+        row = index.row()
+        LogUtil.d(TAG, "preconditionsTableDoubleClicked：row ", row, ' col', index.column(), ' data ', oldValue)
+        AddOrEditPreconditionDialog(callback=self.addOrEditPreconditionCallback,
+                                    default=self.preconditions[row],
+                                    preconditionList=self.preconditions,
+                                    optionGroups=self.optionGroups)
+        pass
+
+    def preconditionsCustomRightMenu(self, pos):
+        self.curPreconditionRow = self.preconditionsTableView.currentIndex().row()
+        LogUtil.i(TAG, "preconditionsCustomRightMenu", pos, ' row: ', self.curPreconditionRow)
+        menu = WidgetUtil.createMenu("删除", func1=self.delPrecondition)
+        menu.exec(self.preconditionsTableView.mapToGlobal(pos))
+        pass
+
+    def delPrecondition(self):
+        preconditionName = self.preconditions[self.curPreconditionRow][KEY_NAME]
+        LogUtil.i(TAG, f"delPrecondition {preconditionName}")
+        WidgetUtil.showQuestionDialog(message=f"你确定需要删除 <span style='color:red;'>{preconditionName}</span> 吗？",
+                                      acceptFunc=self.delPreconditionTableItem)
+        pass
+
+    def delPreconditionTableItem(self):
+        LogUtil.i(TAG, "delPreconditionTableItem")
+        self.preconditions.remove(self.preconditions[self.curPreconditionRow])
+        self.updatePreconditionsTableView()
+        pass
+
+    def updatePreconditionsTableView(self):
+        tableData = []
+        for precondition in self.preconditions:
+            tableData.append({
+                KEY_NAME: DictUtil.get(precondition, KEY_NAME),
+                KEY_DESC: DictUtil.get(precondition, KEY_DESC),
+                KEY_OPTION_GROUP: DictUtil.get(precondition, KEY_OPTION_GROUP),
+                KEY_OPTION: DictUtil.get(precondition, KEY_OPTION),
+                KEY_OPTION_VALUE: DictUtil.get(precondition, KEY_OPTION_VALUE)
+            })
+        WidgetUtil.addTableViewData(self.preconditionsTableView, tableData,
+                                    headerLabels=["条件名称", "条件描述", "选项所属群组", "选项", "选项值"])
+        # WidgetUtil.tableViewSetColumnWidth(self.cmdTableView, 0, 100)
         pass
 
     def addDynParam(self):
@@ -267,44 +314,44 @@ class AddOrEditCmdDialog(QtWidgets.QDialog):
         LogUtil.d(TAG, "addOrEditDynParamCallback", info)
         if info:
             self.dynArgs.append(info)
-        self.updateCmdTableView()
+        self.updateDynParamsTableView()
         pass
 
-    def tableDoubleClicked(self, index: QModelIndex):
+    def dynParamsTableDoubleClicked(self, index: QModelIndex):
         oldValue = index.data()
         row = index.row()
-        LogUtil.d(TAG, "双击的单元格：row ", row, ' col', index.column(), ' data ', oldValue)
+        LogUtil.d(TAG, "dynParamsTableDoubleClicked：row ", row, ' col', index.column(), ' data ', oldValue)
         AddOrEditDynamicParamDialog(callback=self.addOrEditDynParamCallback,
                                     default=self.dynArgs[row],
                                     dynParamList=self.dynArgs,
                                     optionGroups=self.optionGroups)
         pass
 
-    def customRightMenu(self, pos):
-        self.curRow = self.cmdTableView.currentIndex().row()
-        LogUtil.i(TAG, "customRightMenu", pos, ' row: ', self.curRow)
+    def dynParamsCustomRightMenu(self, pos):
+        self.curDynParamRow = self.dynParamsTableView.currentIndex().row()
+        LogUtil.i(TAG, "dynParamsCustomRightMenu", pos, ' row: ', self.curDynParamRow)
         menu = WidgetUtil.createMenu("删除", func1=self.delDynParam, action2="Copy", func2=self.copyToClipboard)
-        menu.exec(self.cmdTableView.mapToGlobal(pos))
+        menu.exec(self.dynParamsTableView.mapToGlobal(pos))
         pass
 
     def delDynParam(self):
-        dynParamName = self.dynArgs[self.curRow][KEY_NAME]
+        dynParamName = self.dynArgs[self.curDynParamRow][KEY_NAME]
         LogUtil.i(TAG, f"delDynParam {dynParamName}")
         WidgetUtil.showQuestionDialog(message=f"你确定需要删除 <span style='color:red;'>{dynParamName}</span> 吗？",
-                                      acceptFunc=self.delTableItem)
+                                      acceptFunc=self.delDynParamTableItem)
         pass
 
     def copyToClipboard(self):
-        ClipboardUtil.copyToClipboard("{" + self.dynArgs[self.curRow][KEY_NAME] + "}")
+        ClipboardUtil.copyToClipboard("{" + self.dynArgs[self.curDynParamRow][KEY_NAME] + "}")
         pass
 
-    def delTableItem(self):
-        LogUtil.i(TAG, "delTableItem")
-        self.dynArgs.remove(self.dynArgs[self.curRow])
-        self.updateCmdTableView()
+    def delDynParamTableItem(self):
+        LogUtil.i(TAG, "delDynParamTableItem")
+        self.dynArgs.remove(self.dynArgs[self.curDynParamRow])
+        self.updateDynParamsTableView()
         pass
 
-    def updateCmdTableView(self):
+    def updateDynParamsTableView(self):
         tableData = []
         for dynParam in self.dynArgs:
             tableData.append({
@@ -314,8 +361,8 @@ class AddOrEditCmdDialog(QtWidgets.QDialog):
                 KEY_OPTION: dynParam[KEY_OPTION],
                 KEY_NEED_CAPITALIZE: DictUtil.get(dynParam, KEY_NEED_CAPITALIZE, DEFAULT_VALUE_NEED_CAPITALIZE)
             })
-        WidgetUtil.addTableViewData(self.cmdTableView, tableData,
-                                    headerLabels=["动态参数名称", "动态参数描述", "选项所属群组", "选项", "是否需要添加空格"])
+        WidgetUtil.addTableViewData(self.dynParamsTableView, tableData,
+                                    headerLabels=["动态参数名称", "动态参数描述", "选项所属群组", "选项", "需要首字母大写"])
         # WidgetUtil.tableViewSetColumnWidth(self.cmdTableView, 0, 100)
         self.updateRealArgs()
         pass

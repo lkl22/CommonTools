@@ -45,9 +45,6 @@ DEFAULT_VALUE_NEED_CAPITALIZE = True
 
 # 前置条件选项
 KEY_PRECONDITIONS = 'preconditions'
-# 指令执行是否需要前置条件 True 需要前置条件
-KEY_NEED_PRECONDITIONS = 'needPreconditions'
-DEFAULT_VALUE_NEED_PRECONDITIONS = False
 
 KEY_OPTION_GROUP_ID = 'optionGroupId'
 KEY_OPTION_NAMES = 'optionNames'
@@ -62,6 +59,7 @@ KEY_CMD_LIST = 'cmdList'
 KEY_OPTIONS = 'options'
 KEY_OPTION = 'option'
 KEY_OPTION_VALUES = 'optionValues'
+KEY_OPTION_VALUE = 'optionValue'
 
 # 执行指令输出的询问文本，等待用户输入进行下一步操作
 KEY_ECHO = 'echo'
