@@ -408,13 +408,14 @@ class WidgetUtil:
         return widget
 
     @staticmethod
-    def createLabel(parent: QWidget, objectName="Label", text="", alignment=Qt.AlignVCenter | Qt.AlignLeft,
+    def createLabel(parent: QWidget, objectName="Label", text="", toolTip=None, alignment=Qt.AlignVCenter | Qt.AlignLeft,
                     geometry: QRect = None, minSize: QSize = None, sizePolicy: QSizePolicy = None):
         """
         创建一个Label标签
         :param parent: 父QWidget
         :param objectName: objectName
         :param text: text
+        :param toolTip: toolTip
         :param alignment: 文本对其方式，默认左居中
         :param geometry: geometry
         :param minSize: minSize
@@ -422,7 +423,7 @@ class WidgetUtil:
         :return: QLabel
         """
         widget = QtWidgets.QLabel(parent)
-        widgetSetAttrs(widget, objectName, geometry=geometry, minSize=minSize, sizePolicy=sizePolicy)
+        widgetSetAttrs(widget, objectName, toolTip=toolTip, geometry=geometry, minSize=minSize, sizePolicy=sizePolicy)
         widget.setAlignment(alignment)
         widget.setText(_translate(contextName, text))
         return widget

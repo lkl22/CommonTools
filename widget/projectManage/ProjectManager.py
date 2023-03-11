@@ -38,11 +38,20 @@ KEY_CONDITION_INPUT = 'conditionInput'
 KEY_WORKING_DIR = 'workingDir'
 KEY_IGNORE_FAILED = 'ignoreFailed'
 KEY_DYNAMIC_ARGUMENTS = 'dynamicArguments'
-KEY_IS_DYNAMIC_ARGUMENTS = 'isDynamicArguments'
-KEY_NEED_SPACE = 'needSpace'
+
+# 选项值在作为该指令的动态参数时是否需要将首字母转换为大写 True 首字母转大写
+KEY_NEED_CAPITALIZE = 'needCapitalize'
+DEFAULT_VALUE_NEED_CAPITALIZE = True
+
+# 前置条件选项
+KEY_PRECONDITIONS = 'preconditions'
+# 指令执行是否需要前置条件 True 需要前置条件
+KEY_NEED_PRECONDITIONS = 'needPreconditions'
+DEFAULT_VALUE_NEED_PRECONDITIONS = False
+
 KEY_OPTION_GROUP_ID = 'optionGroupId'
 KEY_OPTION_NAMES = 'optionNames'
-KEY_NEED_CAPITALIZE = 'needCapitalize'
+
 # 是否是相对路径，主要用于模块路径
 KEY_IS_RELATIVE_PATH = 'isRelativePath'
 
@@ -58,10 +67,6 @@ KEY_OPTION_VALUES = 'optionValues'
 KEY_ECHO = 'echo'
 # 模拟用户输入的文本，对应于echo
 KEY_INPUT = 'input'
-
-DEFAULT_VALUE_NEED_SPACE = True
-DEFAULT_VALUE_NEED_CAPITALIZE = True
-DEFAULT_VALUE_IS_DYN_ARGS = True
 
 
 class ProjectManager:

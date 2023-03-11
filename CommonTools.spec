@@ -58,6 +58,7 @@ a = Analysis(['RunMain.py',
 
               'widget/custom/progressBar/RoundProgressBar.py',
               'widget/custom/ChoiceButton.py',
+              'widget/custom/ClickLabel.py',
               'widget/custom/DragInputWidget.py',
               'widget/custom/LoadingDialog.py',
 

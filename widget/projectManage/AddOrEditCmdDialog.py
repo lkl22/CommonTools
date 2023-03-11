@@ -13,6 +13,7 @@ from util.DialogUtil import *
 from util.DictUtil import DictUtil
 from util.ListUtil import ListUtil
 from util.OperaIni import *
+from widget.custom.ClickLabel import ClickableLabel
 from widget.custom.DragInputWidget import DragInputWidget
 from widget.projectManage.AddOrEditDynamicParamDialog import AddOrEditDynamicParamDialog
 from widget.projectManage.ProjectManager import *
@@ -64,7 +65,7 @@ class AddOrEditCmdDialog(QtWidgets.QDialog):
         self.cmdGroupWidgets = []
         # 拷贝，避免影响原有数据
         self.selectedCmdGroups = copy.deepcopy(default[KEY_CMD_GROUPS])
-
+        self.needPreconditions = DictUtil.get(self.default, KEY_NEED_PRECONDITIONS, DEFAULT_VALUE_NEED_PRECONDITIONS)
         self.isDebug = isDebug
 
         self.moduleDir = moduleDir if moduleDir else './'
@@ -207,6 +208,20 @@ class AddOrEditCmdDialog(QtWidgets.QDialog):
 
     def createAddDynParamWidget(self):
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
+        self.preconditionsCheckBox = WidgetUtil.createCheckBox(self, text="需要前置条件",
+                                                               toolTip="勾选☑️时必须满足指定的选项参数条件才会执行该条指令",
+                                                               isChecked=self.needPreconditions,
+                                                               clicked=self.preconditionsCheckBoxClicked)
+        hbox.addWidget(self.preconditionsCheckBox)
+        hbox.addItem(WidgetUtil.createHSpacerItem(1, 1))
+        self.vLayout.addLayout(hbox)
+
+        hbox = WidgetUtil.createHBoxLayout(spacing=10)
+        self.preconditionsLabel = ClickableLabel(parent=self, toolTip="双击鼠标左键可以编辑前置条件", leftDoubleClicked=self.editPreconditions)
+        hbox.addWidget(self.preconditionsLabel, 1)
+        self.vLayout.addLayout(hbox)
+
+        hbox = WidgetUtil.createHBoxLayout(spacing=10)
         hbox.addWidget(WidgetUtil.createPushButton(self, text="添加动态参数", onClicked=self.addDynParam))
         hbox.addItem(WidgetUtil.createHSpacerItem(1, 1))
         self.vLayout.addLayout(hbox)
@@ -223,6 +238,22 @@ class AddOrEditCmdDialog(QtWidgets.QDialog):
         self.cmdTableView.customContextMenuRequested.connect(self.customRightMenu)
         self.updateCmdTableView()
         self.vLayout.addWidget(self.cmdTableView, 1)
+        pass
+
+    def preconditionsCheckBoxClicked(self):
+        LogUtil.d(TAG, "preconditionsCheckBoxClicked")
+        if self.preconditionsCheckBox.isChecked():
+            self.preconditionsLabel.setText("前置条件：")
+        else:
+            self.preconditionsLabel.setText("")
+        pass
+
+    def addPreconditions(self):
+        LogUtil.d(TAG, "addPreconditions")
+        pass
+
+    def editPreconditions(self):
+        LogUtil.d(TAG, "editPreconditions")
         pass
 
     def addDynParam(self):
