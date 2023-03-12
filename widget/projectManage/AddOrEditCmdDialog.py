@@ -133,7 +133,7 @@ class AddOrEditCmdDialog(QtWidgets.QDialog):
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
         hbox.addWidget(WidgetUtil.createLabel(self, text="Arguments：", minSize=QSize(labelWidth, const.HEIGHT)))
         self.argumentsLineEdit = WidgetUtil.createLineEdit(self, text=DictUtil.get(default, KEY_ARGUMENTS),
-                                                           toolTip="需要执行的命令行指令参数，如果需要使用动态参数，可以从动态参数列表中选择需要的参数右键copy，复制到该编辑框里，也可以按指定的格式手动输入",
+                                                           toolTip=f"需要执行的命令行指令参数\n\n动态参数：可以从动态参数列表中选择需要的参数右键copy，复制到该编辑框里，也可以按指定的格式手动输入\n\n宏参数，目前支持如下宏：\n1、{MACRO_DATE}替换为当前日期（%Y%m%d）\n2、{MACRO_DATETIME}替换为当前日期时间（%Y%m%d%H%M%S）",
                                                            editingFinished=self.updateRealArgs)
         hbox.addWidget(self.argumentsLineEdit)
         self.vLayout.addLayout(hbox)

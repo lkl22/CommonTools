@@ -55,13 +55,11 @@ class ProjectManagerUtil:
             option = ListUtil.find(options, KEY_NAME, DictUtil.get(dynParam, KEY_OPTION))
             if option:
                 value = option[KEY_OPTION_VALUES][option[KEY_DEFAULT]][KEY_VALUE]
-                if value == MACRO_DATE:
-                    value = DateUtil.nowTime(DATE)
-                elif value == MACRO_DATETIME:
-                    value = DateUtil.nowTime(DATE_TIME_COMPACT)
                 if DictUtil.get(dynParam, KEY_NEED_CAPITALIZE, DEFAULT_VALUE_NEED_CAPITALIZE):
                     value = StrUtil.capitalize(value)
                 realParams = realParams.replace(f"{{{dynParam[KEY_NAME]}}}", value)
+        realParams = realParams.replace(f"{MACRO_DATE}", DateUtil.nowTime(DATE))
+        realParams = realParams.replace(f"{MACRO_DATETIME}", DateUtil.nowTime(DATE_TIME_COMPACT))
         return realParams
 
     @staticmethod
