@@ -2,6 +2,7 @@
 # python 3.x
 # Filename: ProjectManagerUtil.py
 # 定义一个ProjectManagerUtil类实现项目管理相关的工具方法
+from util.DateUtil import DateUtil, DATE, DATE_TIME_COMPACT
 from util.DictUtil import DictUtil
 from util.ListUtil import ListUtil
 from util.StrUtil import StrUtil
@@ -54,6 +55,10 @@ class ProjectManagerUtil:
             option = ListUtil.find(options, KEY_NAME, DictUtil.get(dynParam, KEY_OPTION))
             if option:
                 value = option[KEY_OPTION_VALUES][option[KEY_DEFAULT]][KEY_VALUE]
+                if value == MACRO_DATE:
+                    value = DateUtil.nowTime(DATE)
+                elif value == MACRO_DATETIME:
+                    value = DateUtil.nowTime(DATE_TIME_COMPACT)
                 if DictUtil.get(dynParam, KEY_NEED_CAPITALIZE, DEFAULT_VALUE_NEED_CAPITALIZE):
                     value = StrUtil.capitalize(value)
                 realParams = realParams.replace(f"{{{dynParam[KEY_NAME]}}}", value)
@@ -88,6 +93,10 @@ class ProjectManagerUtil:
                 optionValue = optionValues[default]
                 needCapitalize = DictUtil.get(dynParam, KEY_NEED_CAPITALIZE, DEFAULT_VALUE_NEED_CAPITALIZE)
                 value = StrUtil.capitalize(optionValue[KEY_VALUE]) if needCapitalize else optionValue[KEY_VALUE]
+                if value == MACRO_DATE:
+                    value = DateUtil.nowTime(DATE)
+                elif value == MACRO_DATETIME:
+                    value = DateUtil.nowTime(DATE_TIME_COMPACT)
                 if echo:
                     autoInput = DictUtil.get(optionValue, KEY_INPUT)
                     if not autoInput:

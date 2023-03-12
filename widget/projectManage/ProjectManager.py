@@ -13,6 +13,8 @@ KEY_SECTION = 'ProjectManager'
 ITEM_KEY_PROJECT = 'projects'
 
 MACRO_REPEAT = "$repeat$"
+MACRO_DATE = "$date$"
+MACRO_DATETIME = "$datetime$"
 
 KEY_DEFAULT_MODULES = 'defaultModules'
 KEY_MODULES = 'modules'
@@ -41,7 +43,7 @@ KEY_DYNAMIC_ARGUMENTS = 'dynamicArguments'
 
 # 选项值在作为该指令的动态参数时是否需要将首字母转换为大写 True 首字母转大写
 KEY_NEED_CAPITALIZE = 'needCapitalize'
-DEFAULT_VALUE_NEED_CAPITALIZE = True
+DEFAULT_VALUE_NEED_CAPITALIZE = False
 
 # 指令执行前置条件列表
 KEY_PRECONDITIONS = 'preconditions'

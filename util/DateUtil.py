@@ -6,6 +6,8 @@ import time
 from util.LogUtil import *
 
 DATE_TIME = "%Y-%m-%d %H:%M:%S"
+DATE_TIME_COMPACT = "%Y%m%d%H%M%S"
+DATE = "%Y%m%d"
 
 
 class DateUtil:

@@ -225,7 +225,7 @@ class AddOrEditOptionValueDialog(QtWidgets.QDialog):
         hbox.addWidget(WidgetUtil.createLabel(self, text="请输入选项参数值：", minSize=QSize(labelWidth, 20)))
         self.valueLineEdit = WidgetUtil.createLineEdit(self, text=DictUtil.get(self.default, KEY_VALUE),
                                                        holderText="选项参数值",
-                                                       toolTip=f"输入{MACRO_REPEAT}表示跟前一个选项参数一致，其他按真实输入处理")
+                                                       toolTip=f"输入宏参数代码会自动转换宏为指定类型的数据，其他按真实输入处理\n\n目前支持如下宏：\n1、{MACRO_DATE}替换为当前日期（%Y%m%d）\n2、{MACRO_DATETIME}替换为当前日期时间（%Y%m%d%H%M%S）")
         hbox.addWidget(self.valueLineEdit)
         vLayout.addLayout(hbox)
 
@@ -240,7 +240,7 @@ class AddOrEditOptionValueDialog(QtWidgets.QDialog):
         hbox.addWidget(WidgetUtil.createLabel(self, text="选项参数自动输入值：", minSize=QSize(labelWidth, 20)))
         self.inputLineEdit = WidgetUtil.createLineEdit(self, text=DictUtil.get(self.default, KEY_INPUT),
                                                        holderText="可选，默认跟选项参数值一样",
-                                                       toolTip="可选，默认跟选项参数值一样，只有在设置了使用情景参数时有效")
+                                                       toolTip="可选，默认跟选项参数值一样，只有在设置了使用情景参数时有效\n输入宏参数代码会自动转换宏为指定类型的数据，其他按真实输入处理\n\n目前支持如下宏：\n1、{MACRO_REPEAT}表示跟前一个选项参数一致")
         hbox.addWidget(self.inputLineEdit)
         vLayout.addLayout(hbox)
 
