@@ -60,8 +60,8 @@ class AddOrEditModuleDialog(QtWidgets.QDialog):
         if PlatformUtil.isMac():
             windowFlags |= Qt.WindowStaysOnTopHint
         self.setWindowFlags(windowFlags)
-        AddOrEditModuleDialog.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.6)
-        AddOrEditModuleDialog.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.5)
+        AddOrEditModuleDialog.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.8)
+        AddOrEditModuleDialog.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.6)
         LogUtil.d(TAG, "Add Or Edit Module Dialog")
         self.setWindowTitle(WidgetUtil.translate(text="添加/修改模块配置"))
         self.setObjectName("AddOrEditModuleDialog")
@@ -275,17 +275,20 @@ class AddOrEditModuleDialog(QtWidgets.QDialog):
             params = ProjectManagerUtil.transformCmdParams(params=params,
                                                            dynParams=DictUtil.get(cmd, KEY_DYNAMIC_ARGUMENTS),
                                                            optionGroups=self.optionGroups)
+            tooltip = ProjectManagerUtil.transformPreconditionsTooltip(preconditionsLogic=DictUtil.get(cmd, KEY_PRECONDITIONS_LOGIC),
+                                                                       preconditions=DictUtil.get(cmd, KEY_PRECONDITIONS))
             tableData.append({
                 KEY_NAME: cmd[KEY_NAME],
                 KEY_DESC: cmd[KEY_DESC],
-                KEY_PROGRAM: cmd[KEY_PROGRAM],
                 KEY_WORKING_DIR: cmd[KEY_WORKING_DIR],
+                KEY_PRECONDITIONS: tooltip,
+                KEY_PROGRAM: cmd[KEY_PROGRAM],
                 KEY_ARGUMENTS: params,
                 KEY_CMD_GROUPS: DictUtil.get(cmd, KEY_CMD_GROUPS, []),
                 KEY_IGNORE_FAILED: DictUtil.get(cmd, KEY_IGNORE_FAILED, False)
             })
         WidgetUtil.addTableViewData(self.cmdTableView, tableData,
-                                    headerLabels=["执行指令名", "描述", "指令", "工作空间", "指令参数", "指令所属群组", "执行失败可忽略"])
+                                    headerLabels=["执行指令名", "描述", "工作空间", "前置条件", "指令", "参数", "所属群组", "忽略执行失败"])
         # WidgetUtil.tableViewSetColumnWidth(self.cmdTableView, 0, 100)
         pass
 

@@ -43,8 +43,8 @@ class ProjectManagerWindow(QMainWindow):
         QMainWindow.__init__(self)
         # self.setWindowFlags(Qt.Dialog | Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint)
         # 宽度不能设置太宽，设置太宽会显示在左上角不居中
-        ProjectManagerWindow.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.85)
-        ProjectManagerWindow.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.8)
+        ProjectManagerWindow.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.8)
+        ProjectManagerWindow.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.7)
         LogUtil.d(TAG, "Project Manage Window")
         self.setObjectName("ProjectManagerWindow")
         self.setWindowTitle(WidgetUtil.translate(text="项目管理"))
@@ -270,20 +270,24 @@ class ProjectManagerWindow(QMainWindow):
         detailProjectInfo = self.projectManager.getProjectInfoById(curProjectInfo[KEY_ID])
 
         saveData = {"simpleInfo": curProjectInfo, "detailInfo": detailProjectInfo if detailProjectInfo else {}}
-        fp = WidgetUtil.getExistingDirectory(caption="请选择要备份保存的路径，不选的话默认使用当前工程路径。", directory=DictUtil.get(curProjectInfo, KEY_PATH, "./"))
+        fp = WidgetUtil.getExistingDirectory(caption="请选择要备份保存的路径，不选的话默认使用当前工程路径。",
+                                             directory=DictUtil.get(curProjectInfo, KEY_PATH, "./"))
         if not fp:
             fp = DictUtil.get(curProjectInfo, KEY_PATH, "./")
-        saveFile = os.path.join(fp, f"{curProjectInfo[KEY_NAME]}_{DateUtil.nowTime(timeFormat='%Y-%m-%d_%H:%M:%S')}.json")
+        saveFile = os.path.join(fp,
+                                f"{curProjectInfo[KEY_NAME]}_{DateUtil.nowTime(timeFormat='%Y-%m-%d_%H:%M:%S')}.json")
         with open(saveFile, 'w', encoding="utf-8") as file:
             file.write(JsonUtil.encode(saveData, ensureAscii=False))
-        WidgetUtil.showAboutDialog(text=f"你成功保存<span style='color:red;'>{curProjectInfo[KEY_NAME]}</span>工程信息到<span style='color:red;'>{saveFile}</span>")
+        WidgetUtil.showAboutDialog(
+            text=f"你成功保存<span style='color:red;'>{curProjectInfo[KEY_NAME]}</span>工程信息到<span style='color:red;'>{saveFile}</span>")
         pass
 
     def importProject(self):
         LogUtil.d(TAG, "importProject")
         curProjectInfo = self.getCurProjectInfo()
         directory = DictUtil.get(curProjectInfo, KEY_PATH, "./")
-        fp = WidgetUtil.getOpenFileName(caption='选择备份的工程配置文件', directory=directory, filter='*.json', initialFilter='*.json')
+        fp = WidgetUtil.getOpenFileName(caption='选择备份的工程配置文件', directory=directory, filter='*.json',
+                                        initialFilter='*.json')
         if not fp:
             WidgetUtil.showAboutDialog(text="您未选择配置文件，导入工程配置失败。")
             return
@@ -316,7 +320,8 @@ class ProjectManagerWindow(QMainWindow):
         self.updateProjectComboBox()
         # 将工程信息保存到ini文件
         self.saveProjects()
-        WidgetUtil.showAboutDialog(text=f"您成功导入<span style='color:red;'>{projectInfo['simpleInfo'][KEY_NAME]}</span>工程信息")
+        WidgetUtil.showAboutDialog(
+            text=f"您成功导入<span style='color:red;'>{projectInfo['simpleInfo'][KEY_NAME]}</span>工程信息")
         pass
 
     def startExecute(self):
@@ -345,16 +350,16 @@ class ProjectManagerWindow(QMainWindow):
         LogUtil.d(TAG, "stopExecCmd")
         pass
 
-    def handleCmdArgs(self, cmdInfo):
+    def handleCmdArgs(self, cmdInfo, optionGroups):
         args = DictUtil.get(cmdInfo, KEY_ARGUMENTS)
         conditionInputs = []
         # 指令依赖的option选项群组
         dynArgs = DictUtil.get(cmdInfo, KEY_DYNAMIC_ARGUMENTS, None)
         if dynArgs:
-            # 工程的所有option选项群组
-            projectOptionGroups = self.optionManagerWidget.getProjectOptionGroups()
-            conditionInputs = ProjectManagerUtil.extractConditionInputs(dynParams=dynArgs, optionGroups=projectOptionGroups)
-            args = ProjectManagerUtil.transformCmdParams(params=args, dynParams=dynArgs, optionGroups=projectOptionGroups)
+            conditionInputs = ProjectManagerUtil.extractConditionInputs(dynParams=dynArgs,
+                                                                        optionGroups=optionGroups)
+            args = ProjectManagerUtil.transformCmdParams(params=args, dynParams=dynArgs,
+                                                         optionGroups=optionGroups)
         return args, conditionInputs
 
     def handleCmdList(self, moduleDir, srcCmdList):
@@ -369,10 +374,18 @@ class ProjectManagerWindow(QMainWindow):
                     break
             if needIgnore:
                 continue
-            cmdArgs, conditionInput = self.handleCmdArgs(item)
+            # 工程的所有option选项群组
+            projectOptionGroups = self.optionManagerWidget.getProjectOptionGroups()
+            if not ProjectManagerUtil.isPreconditionsMatch(
+                    preconditionsLogic=DictUtil.get(item, KEY_PRECONDITIONS_LOGIC),
+                    preconditions=DictUtil.get(item, KEY_PRECONDITIONS, []),
+                    optionGroups=projectOptionGroups):
+                continue
+            cmdArgs, conditionInput = self.handleCmdArgs(cmdInfo=item, optionGroups=projectOptionGroups)
 
             cmdWorkingDir = DictUtil.get(item, KEY_WORKING_DIR, moduleDir)
-            cmdWorkingDir = moduleDir + cmdWorkingDir if DictUtil.get(item, KEY_IS_RELATIVE_PATH, False) else cmdWorkingDir
+            cmdWorkingDir = moduleDir + cmdWorkingDir if DictUtil.get(item, KEY_IS_RELATIVE_PATH,
+                                                                      False) else cmdWorkingDir
 
             cmdList.append({
                 KEY_PROGRAM: DictUtil.get(item, KEY_PROGRAM),
@@ -409,7 +422,8 @@ class ProjectManagerWindow(QMainWindow):
         for moduleInfo in modules:
             projectDir = DictUtil.get(projectInfo, KEY_PATH)
             workingDir = DictUtil.get(moduleInfo, KEY_PATH, projectDir)
-            workingDir = projectDir + workingDir if DictUtil.get(moduleInfo, KEY_IS_RELATIVE_PATH, False) else workingDir
+            workingDir = projectDir + workingDir if DictUtil.get(moduleInfo, KEY_IS_RELATIVE_PATH,
+                                                                 False) else workingDir
 
             cmdList = self.handleCmdList(workingDir, DictUtil.get(moduleInfo, KEY_CMD_LIST, []))
             LogUtil.d(TAG, f"executeModuleCmd cmdList {cmdList} module work dir: {workingDir}")
@@ -421,7 +435,9 @@ class ProjectManagerWindow(QMainWindow):
                                             standardError=self.standardError)
             self.processManagers.append({KEY_NAME: DictUtil.get(moduleInfo, KEY_NAME), PROCESS_MANAGER: processManager})
             dependencies = DictUtil.get(moduleInfo, KEY_MODULE_DEPENDENCIES, [])
-            dependencyTasksAllFinished = ProjectManagerWindow.dependencyTasksAllFinished(dependencies, allExecuteModules, hasFinishedTasks)
+            dependencyTasksAllFinished = ProjectManagerWindow.dependencyTasksAllFinished(dependencies,
+                                                                                         allExecuteModules,
+                                                                                         hasFinishedTasks)
             if dependencyTasksAllFinished:
                 future = self.executor.submit(processManager.run)
                 self.futureList.append(future)
@@ -447,7 +463,8 @@ class ProjectManagerWindow(QMainWindow):
                                                                                                  allExecuteModules,
                                                                                                  hasFinishedTasks)
                     if dependencyTasksAllFinished:
-                        future = self.executor.submit(ListUtil.find(self.processManagers, KEY_NAME, moduleInfo[KEY_NAME])[PROCESS_MANAGER].run)
+                        future = self.executor.submit(
+                            ListUtil.find(self.processManagers, KEY_NAME, moduleInfo[KEY_NAME])[PROCESS_MANAGER].run)
                         self.futureList.append(future)
                         hasNewTaskAdd = True
                         allTasks.remove(ListUtil.find(allTasks, KEY_NAME, moduleInfo[KEY_NAME]))

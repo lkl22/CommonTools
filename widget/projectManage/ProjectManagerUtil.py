@@ -99,6 +99,89 @@ class ProjectManagerUtil:
                         conditionInputs.append({echo: autoInput})
         return conditionInputs
 
+    @staticmethod
+    def delInvalidPrecondition(preconditions: [], optionGroups: [] = None):
+        """
+        删除无效的前置条件（选项列表中已经不存在了的）
+        :param preconditions: 指令的前置条件列表
+        :param optionGroups: 选项配置信息
+        """
+        if not preconditions:
+            return
+        if not optionGroups:
+            preconditions.clear()
+            return
+        needDelPreconditions = []
+        for precondition in preconditions:
+            options = ListUtil.get(optionGroups, KEY_NAME, DictUtil.get(precondition, KEY_OPTION_GROUP), KEY_OPTIONS)
+            if options:
+                if ListUtil.find(options, KEY_NAME, precondition[KEY_OPTION]):
+                    continue
+            needDelPreconditions.append(precondition)
+        if needDelPreconditions:
+            for item in needDelPreconditions:
+                ListUtil.remove(preconditions, item)
+        pass
+
+    @staticmethod
+    def transformPreconditionsTooltip(preconditionsLogic: str, preconditions: []):
+        """
+        转换前置条件tooltip显示
+        :param preconditionsLogic: 前置条件间的逻辑关系
+        :param preconditions: 指令的前置条件列表
+        :return: 转换后的toolTip
+        """
+        toolTip = ""
+        if not preconditions:
+            return toolTip
+        if preconditionsLogic == PRECONDITIONS_LOGIC_ALL:
+            logic = "and"
+        else:
+            logic = "or"
+        for index, precondition in enumerate(preconditions):
+            if index == 0:
+                toolTip += f"{precondition[KEY_OPTION_GROUP]}-{precondition[KEY_OPTION]} == {precondition[KEY_OPTION_VALUE]}"
+            else:
+                toolTip += f" {logic} {precondition[KEY_OPTION_GROUP]}-{precondition[KEY_OPTION]} == {precondition[KEY_OPTION_VALUE]}"
+        return toolTip
+
+    @staticmethod
+    def isPreconditionsMatch(preconditionsLogic: str, preconditions: [], optionGroups: [] = None):
+        """
+        前置条件是否满足
+        :param preconditionsLogic: 前置条件间的逻辑关系
+        :param preconditions: 指令的前置条件列表
+        :param optionGroups: 选项配置信息
+        :return: True 执行该指令
+        """
+        match = True
+        if not optionGroups:
+            # 没有选项配置，前置条件无效
+            preconditions.clear()
+            return match
+        # 删除已经失效的选项前置条件
+        ProjectManagerUtil.delInvalidPrecondition(preconditions=preconditions, optionGroups=optionGroups)
+        if not preconditions:
+            return match
+
+        matchResults = []
+        for precondition in preconditions:
+            options = ListUtil.get(optionGroups, KEY_NAME, DictUtil.get(precondition, KEY_OPTION_GROUP), KEY_OPTIONS)
+            option = ListUtil.find(options, KEY_NAME, DictUtil.get(precondition, KEY_OPTION))
+            if option:
+                value = option[KEY_OPTION_VALUES][option[KEY_DEFAULT]][KEY_VALUE]
+                matchResults.append(DictUtil.get(precondition, KEY_OPTION_VALUE, "") == value)
+        if preconditionsLogic == PRECONDITIONS_LOGIC_ALL:
+            match = True
+        else:
+            match = False
+        for index, item in enumerate(matchResults):
+            if preconditionsLogic == PRECONDITIONS_LOGIC_ALL:
+                match = match and item
+            else:
+                match = match or item
+        return match
+
 
 if __name__ == '__main__':
     srcOptionGroups = [
