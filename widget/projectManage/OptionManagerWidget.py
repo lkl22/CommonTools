@@ -2,6 +2,7 @@
 # python 3.x
 # Filename: OptionManagerWidget.py
 # 定义一个OptionManagerWidget窗口类实现执行构建选项管理的功能
+import copy
 import sys
 from PyQt5.QtWidgets import QScrollArea, QFrame
 from util.WidgetUtil import *
@@ -69,6 +70,12 @@ class OptionManagerWidget(QFrame):
                                    groupList=self.optionGroups)
         pass
 
+    def copyOptionGroup(self, optionGroupInfo):
+        LogUtil.d(TAG, "copyOptionGroup", optionGroupInfo)
+        AddOrEditOptionGroupDialog(callback=self.addOrEditOptionGroupCallback, default=copy.deepcopy(optionGroupInfo),
+                                   groupList=self.optionGroups, isCopyEdit=True)
+        pass
+
     def addOrEditOptionGroupCallback(self, info):
         LogUtil.d(TAG, "addOrEditOptionGroupCallback", info)
         if info:
@@ -101,7 +108,8 @@ class OptionManagerWidget(QFrame):
     def updateOptionGroupItem(self, index, optionGroupInfo):
         LogUtil.d(TAG, "updateOptionGroupItem", index, optionGroupInfo)
         if index >= len(self.optionGroupWidgets):
-            widget = OptionGroupWidget(info=optionGroupInfo, editFunc=self.editOptionGroup, delFunc=self.delOptionGroup,
+            widget = OptionGroupWidget(info=optionGroupInfo, editFunc=self.editOptionGroup,
+                                       copyFunc=self.copyOptionGroup, delFunc=self.delOptionGroup,
                                        selectedChanged=self.saveProjectOptionGroups)
             self.optionGroupWidgets.append(widget)
             self.vLayout.addWidget(widget)
@@ -125,7 +133,7 @@ class OptionManagerWidget(QFrame):
 
 
 class OptionGroupWidget(QFrame):
-    def __init__(self, info, editFunc, delFunc, selectedChanged):
+    def __init__(self, info, editFunc, copyFunc, delFunc, selectedChanged):
         super(OptionGroupWidget, self).__init__()
         self.info = None
         self.selectedChanged = selectedChanged
@@ -137,6 +145,7 @@ class OptionGroupWidget(QFrame):
 
         # 为窗口添加QActions
         self.addAction(WidgetUtil.createAction(self, text="编辑", func=lambda: editFunc(self.info)))
+        self.addAction(WidgetUtil.createAction(self, text="Copy", func=lambda: copyFunc(self.info)))
         self.addAction(WidgetUtil.createAction(self, text="删除", func=lambda: delFunc(self, self.info)))
         self.setContextMenuPolicy(Qt.ActionsContextMenu)
         self.setStyleSheet("OptionGroupWidget{border:1px solid rgb(123,123,123)}")

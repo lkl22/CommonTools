@@ -24,7 +24,7 @@ TAG = "AddOrEditCmdDialog"
 
 class AddOrEditCmdDialog(QtWidgets.QDialog):
     def __init__(self, callback, moduleDir=None, default=None, cmdList=None, optionGroups=None, cmdGroups=None,
-                 isDebug=False):
+                 isCopyEdit=False, isDebug=False):
         # 调用父类的构函
         QtWidgets.QDialog.__init__(self)
         windowFlags = Qt.Dialog | Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint
@@ -46,7 +46,7 @@ class AddOrEditCmdDialog(QtWidgets.QDialog):
         # self.optionGroups = copy.deepcopy(optionGroups)
         self.optionGroups = optionGroups
 
-        self.isAdd = default is None
+        self.isAdd = default is None or isCopyEdit
         if not default:
             default = {}
         # 删除无效的动态参数
@@ -387,7 +387,7 @@ class AddOrEditCmdDialog(QtWidgets.QDialog):
         if not program:
             WidgetUtil.showErrorDialog(message="请输入需要执行的命令行指令")
             return
-        if DictUtil.get(self.default, KEY_NAME) != name:
+        if self.isAdd or DictUtil.get(self.default, KEY_NAME) != name:
             for item in self.cmdList:
                 if name == item[KEY_NAME]:
                     WidgetUtil.showErrorDialog(message=f"请重新添加一个其他的指令别名，{name}已经存在了，不能重复添加")

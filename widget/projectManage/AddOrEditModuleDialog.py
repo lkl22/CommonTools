@@ -244,27 +244,35 @@ class AddOrEditModuleDialog(QtWidgets.QDialog):
         row = index.row()
         LogUtil.d(TAG, "双击的单元格：row ", row, ' col', index.column(), ' data ', oldValue)
         AddOrEditCmdDialog(callback=self.addOrEditCmdCallback, moduleDir=self.getCurWorkingDir(),
-                           default=self.cmdList[row],
-                           cmdList=self.cmdList, optionGroups=self.optionGroups, cmdGroups=self.cmdGroups)
+                           default=self.cmdList[row], cmdList=self.cmdList, optionGroups=self.optionGroups,
+                           cmdGroups=self.cmdGroups)
+        pass
+
+    def copyCmd(self):
+        cmdInfo = self.cmdList[self.curCmdRow]
+        LogUtil.i(TAG, f"copyCmd {cmdInfo}")
+        AddOrEditCmdDialog(callback=self.addOrEditCmdCallback, moduleDir=self.getCurWorkingDir(),
+                           default=copy.deepcopy(cmdInfo), cmdList=self.cmdList, optionGroups=self.optionGroups,
+                           cmdGroups=self.cmdGroups, isCopyEdit=True)
         pass
 
     def customRightMenu(self, pos):
-        self.curDelRow = self.cmdTableView.currentIndex().row()
-        LogUtil.i(TAG, "customRightMenu", pos, ' row: ', self.curDelRow)
-        menu = WidgetUtil.createMenu("删除", func1=self.delCmd)
+        self.curCmdRow = self.cmdTableView.currentIndex().row()
+        LogUtil.i(TAG, "customRightMenu", pos, ' row: ', self.curCmdRow)
+        menu = WidgetUtil.createMenu(action1="删除", func1=self.delCmd, action2="Copy", func2=self.copyCmd)
         menu.exec(self.cmdTableView.mapToGlobal(pos))
         pass
 
     def delCmd(self):
-        cmd = self.cmdList[self.curDelRow][KEY_NAME]
-        LogUtil.i(TAG, f"delCmd {cmd}")
-        WidgetUtil.showQuestionDialog(message=f"你确定需要删除 <span style='color:red;'>{cmd}</span> 吗？",
+        cmdName = self.cmdList[self.curCmdRow][KEY_NAME]
+        LogUtil.i(TAG, f"delCmd {cmdName}")
+        WidgetUtil.showQuestionDialog(message=f"你确定需要删除 <span style='color:red;'>{cmdName}</span> 吗？",
                                       acceptFunc=self.delTableItem)
         pass
 
     def delTableItem(self):
         LogUtil.i(TAG, "delTableItem")
-        self.cmdList.remove(self.cmdList[self.curDelRow])
+        self.cmdList.remove(self.cmdList[self.curCmdRow])
         self.updateCmdTableView()
         pass
 
@@ -275,8 +283,9 @@ class AddOrEditModuleDialog(QtWidgets.QDialog):
             params = ProjectManagerUtil.transformCmdParams(params=params,
                                                            dynParams=DictUtil.get(cmd, KEY_DYNAMIC_ARGUMENTS),
                                                            optionGroups=self.optionGroups)
-            tooltip = ProjectManagerUtil.transformPreconditionsTooltip(preconditionsLogic=DictUtil.get(cmd, KEY_PRECONDITIONS_LOGIC),
-                                                                       preconditions=DictUtil.get(cmd, KEY_PRECONDITIONS))
+            tooltip = ProjectManagerUtil.transformPreconditionsTooltip(
+                preconditionsLogic=DictUtil.get(cmd, KEY_PRECONDITIONS_LOGIC),
+                preconditions=DictUtil.get(cmd, KEY_PRECONDITIONS))
             tableData.append({
                 KEY_NAME: cmd[KEY_NAME],
                 KEY_DESC: cmd[KEY_DESC],

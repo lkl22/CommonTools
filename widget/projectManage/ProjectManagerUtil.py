@@ -185,10 +185,7 @@ class ProjectManagerUtil:
                     matchResults.append(DictUtil.get(precondition, KEY_OPTION_VALUE, "") == value)
                 else:
                     matchResults.append(DictUtil.get(precondition, KEY_OPTION_VALUE, "") != value)
-        if preconditionsLogic == PRECONDITIONS_LOGIC_ALL:
-            match = True
-        else:
-            match = False
+        match = True if preconditionsLogic == PRECONDITIONS_LOGIC_ALL else False
         for index, item in enumerate(matchResults):
             if preconditionsLogic == PRECONDITIONS_LOGIC_ALL:
                 match = match and item

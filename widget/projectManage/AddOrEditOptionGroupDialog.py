@@ -18,7 +18,7 @@ TAG = "AddOrEditOptionGroupDialog"
 
 
 class AddOrEditOptionGroupDialog(QtWidgets.QDialog):
-    def __init__(self, callback, default=None, groupList=None, isDebug=False):
+    def __init__(self, callback, default=None, groupList=None, isCopyEdit=False, isDebug=False):
         # 调用父类的构函
         QtWidgets.QDialog.__init__(self)
         self.currentRow = -1
@@ -27,7 +27,7 @@ class AddOrEditOptionGroupDialog(QtWidgets.QDialog):
         if groupList is None:
             groupList = []
         self.groupList = groupList
-        self.isAdd = default is None
+        self.isAdd = default is None or isCopyEdit
         if default is None:
             default = {KEY_OPTIONS: []}
         elif KEY_OPTIONS not in default:
