@@ -13,10 +13,11 @@ TAG = "OptionManagerWidget"
 
 
 class OptionManagerWidget(QFrame):
-    def __init__(self, projectManager: ProjectManager):
+    def __init__(self, projectManager: ProjectManager, modifyCallback):
         super(OptionManagerWidget, self).__init__()
 
         self.projectManager = projectManager
+        self.modifyCallback = modifyCallback
         self.projectInfo = None
         self.optionGroups = []
         self.optionGroupWidgets: [OptionGroupWidget] = []
@@ -76,13 +77,14 @@ class OptionManagerWidget(QFrame):
                                    groupList=self.optionGroups, isCopyEdit=True)
         pass
 
-    def addOrEditOptionGroupCallback(self, info):
-        LogUtil.d(TAG, "addOrEditOptionGroupCallback", info)
+    def addOrEditOptionGroupCallback(self, info, modifyInfo):
+        LogUtil.d(TAG, "addOrEditOptionGroupCallback", info, modifyInfo)
         if info:
             self.optionGroups.append(info)
         self.optionGroups = sorted(self.optionGroups, key=lambda x: x[KEY_NAME])
         self.updateOptionGroupList()
         self.saveProjectOptionGroups()
+        self.modifyCallback(modifyInfo)
         pass
 
     def delOptionGroup(self, optionGroupWidget, optionGroupInfo):

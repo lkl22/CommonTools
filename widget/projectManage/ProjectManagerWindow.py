@@ -61,7 +61,7 @@ class ProjectManagerWindow(QMainWindow):
         self.futureList = []
         self.processManagers = []
 
-        self.optionManagerWidget = OptionManagerWidget(projectManager=self.projectManager)
+        self.optionManagerWidget = OptionManagerWidget(projectManager=self.projectManager, modifyCallback=self.optionGroupModify)
         self.cmdManagerWidget = CmdManagerWidget(projectManager=self.projectManager)
         self.moduleManagerWidget = ModuleManagerWidget(projectManager=self.projectManager,
                                                        getOptionGroupsFunc=lambda: self.optionManagerWidget.getProjectOptionGroups(),
@@ -102,6 +102,18 @@ class ProjectManagerWindow(QMainWindow):
         self.windowList.append(window)
         window.show()
         event.accept()
+        pass
+
+    def optionGroupModify(self, modifyOptionGroupInfo):
+        LogUtil.i(TAG, "optionGroupModify", modifyOptionGroupInfo)
+        if not modifyOptionGroupInfo:
+            return
+        projectInfo = self.getCurProjectInfo()
+        projectId = DictUtil.get(projectInfo, KEY_ID)
+        modules = self.projectManager.getProjectModules(projectId)
+        ProjectManagerUtil.updateModulesInfoByOptionGroup(modifyOptionGroup=modifyOptionGroupInfo, modules=modules)
+        self.projectManager.saveProjectModulesInfo(projectId, modules)
+        self.moduleManagerWidget.setProjectInfo(projectInfo)
         pass
 
     def createProjectManageGroupBox(self, parent):

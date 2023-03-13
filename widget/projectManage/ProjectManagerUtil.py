@@ -193,6 +193,28 @@ class ProjectManagerUtil:
                 match = match or item
         return match
 
+    @staticmethod
+    def updateModulesInfoByOptionGroup(modifyOptionGroup, modules: []):
+        if not modifyOptionGroup:
+            return
+        optionGroupName = DictUtil.get(modifyOptionGroup, KEY_OPTION_GROUP)
+        for module in modules:
+            cmdList = DictUtil.get(module, KEY_CMD_LIST)
+            if not cmdList:
+                continue
+            for cmdInfo in cmdList:
+                dynamicArguments = DictUtil.get(cmdInfo, KEY_DYNAMIC_ARGUMENTS)
+                if dynamicArguments:
+                    for dynamicArgument in dynamicArguments:
+                        if DictUtil.get(dynamicArgument, KEY_OPTION_GROUP) == DictUtil.get(optionGroupName, KEY_OLD_VALUE):
+                            dynamicArgument[KEY_OPTION_GROUP] = DictUtil.get(optionGroupName, KEY_NEW_VALUE)
+                preconditions = DictUtil.get(cmdInfo, KEY_PRECONDITIONS)
+                if preconditions:
+                    for precondition in preconditions:
+                        if DictUtil.get(precondition, KEY_OPTION_GROUP) == DictUtil.get(optionGroupName, KEY_OLD_VALUE):
+                            precondition[KEY_OPTION_GROUP] = DictUtil.get(optionGroupName, KEY_NEW_VALUE)
+        pass
+
 
 if __name__ == '__main__':
     srcOptionGroups = [

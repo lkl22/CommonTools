@@ -28,12 +28,11 @@ class AddOrEditOptionGroupDialog(QtWidgets.QDialog):
             groupList = []
         self.groupList = groupList
         self.isAdd = default is None or isCopyEdit
-        if default is None:
-            default = {KEY_OPTIONS: []}
-        elif KEY_OPTIONS not in default:
-            default[KEY_OPTIONS] = []
+        if not self.isAdd:
+            # 原始的选项群组，用于判断是否修改了属性
+            self.srcOptionGroup = copy.deepcopy(default)
         self.default = default
-        self.options = copy.deepcopy(default[KEY_OPTIONS])
+        self.options = copy.deepcopy(DictUtil.get(default, KEY_OPTIONS, []))
 
         windowFlags = Qt.Dialog | Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint
         if PlatformUtil.isMac():
@@ -222,7 +221,11 @@ class AddOrEditOptionGroupDialog(QtWidgets.QDialog):
         self.default[KEY_DESC] = desc
         self.default[KEY_OPTIONS] = self.options
 
-        self.callback(self.default if self.isAdd else None)
+        modifyInfo = {}
+        if not self.isAdd and self.srcOptionGroup[KEY_NAME] != name:
+            modifyInfo[KEY_OPTION_GROUP] = {KEY_OLD_VALUE: self.srcOptionGroup[KEY_NAME], KEY_NEW_VALUE: name}
+
+        self.callback(self.default if self.isAdd else None, modifyInfo)
         self.close()
         pass
 
@@ -231,13 +234,15 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     # window = AddOrEditOptionGroupDialog(callback=lambda it: LogUtil.d(TAG, "callback", it),
     #                                     isDebug=True)
-    window = AddOrEditOptionGroupDialog(callback=lambda it: LogUtil.d(TAG, "callback", it),
-                                        default={'options': [
-                                            {'default': 0,
-                                             'optionValues': [{'value': 'product', 'desc': '现网环境', 'input': 'A'}],
-                                             'name': 'productFlavors', 'desc': '打包渠道', 'echo': '请输入环境'}],
-                                            'id': 'f7b9d4a9655e78ca1f665ed463919fe3', 'name': 'buildGroup',
-                                            'desc': '打包指令'},
-                                        isDebug=True)
+    window = AddOrEditOptionGroupDialog(
+        callback=lambda optionGroup, modifyInfo: LogUtil.d(TAG, "callback", optionGroup, modifyInfo),
+        default={'options': [
+            {'default': 0,
+             'optionValues': [{'value': 'product', 'desc': '现网环境', 'input': 'A'}],
+             'name': 'productFlavors', 'desc': '打包渠道', 'echo': '请输入环境'}],
+            'id': 'f7b9d4a9655e78ca1f665ed463919fe3', 'name': 'buildGroup',
+            'desc': '打包指令'},
+        isCopyEdit=True,
+        isDebug=True)
     window.show()
     sys.exit(app.exec_())

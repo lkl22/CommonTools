@@ -81,6 +81,11 @@ KEY_ECHO = 'echo'
 # 模拟用户输入的文本，对应于echo
 KEY_INPUT = 'input'
 
+# 原有的值
+KEY_OLD_VALUE = 'oldValue'
+# 现在的值
+KEY_NEW_VALUE = 'newValue'
+
 
 class ProjectManager:
     def __init__(self, isDebug=False):
