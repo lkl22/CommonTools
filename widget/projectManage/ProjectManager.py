@@ -47,9 +47,19 @@ DEFAULT_VALUE_NEED_CAPITALIZE = False
 
 # 指令执行前置条件列表
 KEY_PRECONDITIONS = 'preconditions'
+# 存储多个前置条件间的逻辑关系 key
 KEY_PRECONDITIONS_LOGIC = 'preconditionsLogic'
+# 多个前置条件间的逻辑关系 - 与 and
 PRECONDITIONS_LOGIC_ALL = 'all'
+# 多个前置条件间的逻辑关系 - 或 or
 PRECONDITIONS_LOGIC_ANY = 'any'
+
+# 存储前置条件判断逻辑 key
+KEY_PRECONDITION_LOGIC = 'preconditionLogic'
+# 前置条件判断逻辑 ==
+PRECONDITION_LOGIC_EQ = 'eq'
+# 前置条件判断逻辑 !=
+PRECONDITION_LOGIC_NEQ = 'neq'
 
 KEY_OPTION_GROUP_ID = 'optionGroupId'
 KEY_OPTION_NAMES = 'optionNames'

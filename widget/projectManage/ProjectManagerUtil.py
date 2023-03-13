@@ -142,14 +142,18 @@ class ProjectManagerUtil:
         if not preconditions:
             return toolTip
         if preconditionsLogic == PRECONDITIONS_LOGIC_ALL:
-            logic = "and"
+            conditionsLogic = "and"
         else:
-            logic = "or"
+            conditionsLogic = "or"
         for index, precondition in enumerate(preconditions):
-            if index == 0:
-                toolTip += f"{precondition[KEY_OPTION_GROUP]}-{precondition[KEY_OPTION]} == {precondition[KEY_OPTION_VALUE]}"
-            else:
-                toolTip += f" {logic} {precondition[KEY_OPTION_GROUP]}-{precondition[KEY_OPTION]} == {precondition[KEY_OPTION_VALUE]}"
+            if index > 0:
+                # 多个条件间逻辑
+                toolTip += f" {conditionsLogic} "
+            # 条件内部逻辑
+            conditionLogic = "==" if DictUtil.get(precondition, KEY_PRECONDITION_LOGIC,
+                                                  PRECONDITION_LOGIC_EQ) == PRECONDITION_LOGIC_EQ else "!="
+            toolTip += f"{precondition[KEY_OPTION_GROUP]}-{precondition[KEY_OPTION]} {conditionLogic} {precondition[KEY_OPTION_VALUE]}"
+
         return toolTip
 
     @staticmethod
@@ -177,7 +181,10 @@ class ProjectManagerUtil:
             option = ListUtil.find(options, KEY_NAME, DictUtil.get(precondition, KEY_OPTION))
             if option:
                 value = option[KEY_OPTION_VALUES][option[KEY_DEFAULT]][KEY_VALUE]
-                matchResults.append(DictUtil.get(precondition, KEY_OPTION_VALUE, "") == value)
+                if DictUtil.get(precondition, KEY_PRECONDITION_LOGIC, PRECONDITION_LOGIC_EQ) == PRECONDITION_LOGIC_EQ:
+                    matchResults.append(DictUtil.get(precondition, KEY_OPTION_VALUE, "") == value)
+                else:
+                    matchResults.append(DictUtil.get(precondition, KEY_OPTION_VALUE, "") != value)
         if preconditionsLogic == PRECONDITIONS_LOGIC_ALL:
             match = True
         else:
@@ -227,16 +234,18 @@ if __name__ == '__main__':
                                {'desc': 'release包', 'input': 'B',
                                 'value': 'release'}]}]},
     ]
-    srcDynParams = [{"name": "11", "desc": "11", "optionGroup": "buildParams", "option": "packageType", "needCapitalize": False},
-                    {"name": "12", "desc": "12", "optionGroup": "buildParams", "option": "productFlavors", "needCapitalize": True},
-                    {"name": "13", "desc": "13", "optionGroup": "buildParams", "option": "buildType", "needCapitalize": True},
-                    {"name": "22", "desc": "22", "optionGroup": "buildParams", "option": "buildType1"},
-                    {"name": "33", "desc": "33", "optionGroup": "buildParams3", "option": "buildType1"}]
+    srcDynParams = [
+        {"name": "11", "desc": "11", "optionGroup": "buildParams", "option": "packageType", "needCapitalize": False},
+        {"name": "12", "desc": "12", "optionGroup": "buildParams", "option": "productFlavors", "needCapitalize": True},
+        {"name": "13", "desc": "13", "optionGroup": "buildParams", "option": "buildType", "needCapitalize": True},
+        {"name": "22", "desc": "22", "optionGroup": "buildParams", "option": "buildType1"},
+        {"name": "33", "desc": "33", "optionGroup": "buildParams3", "option": "buildType1"}]
 
     ProjectManagerUtil.delInvalidDynParam(dynParams=srcDynParams, optionGroups=srcOptionGroups)
 
     print(srcDynParams)
 
     srcParam = "gradlew {11}{12}{13} {22} {33}"
-    print(ProjectManagerUtil.transformCmdParams(params=srcParam, dynParams=srcDynParams, optionGroups=srcOptionGroups), srcParam)
+    print(ProjectManagerUtil.transformCmdParams(params=srcParam, dynParams=srcDynParams, optionGroups=srcOptionGroups),
+          srcParam)
     print(ProjectManagerUtil.extractConditionInputs(dynParams=srcDynParams, optionGroups=srcOptionGroups))

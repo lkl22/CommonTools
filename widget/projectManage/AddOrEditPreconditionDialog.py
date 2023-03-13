@@ -82,6 +82,19 @@ class AddOrEditPreconditionDialog(QtWidgets.QDialog):
         hBox.addWidget(self.optionValueComboBox, 1)
         vLayout.addLayout(hBox)
 
+        hBox = WidgetUtil.createHBoxLayout(spacing=10)
+        self.eqCheckBox = WidgetUtil.createRadioButton(self, text="值相等", toolTip="选项的值等于当前选择的值时条件才满足",
+                                                       autoExclusive=True,
+                                                       isChecked=DictUtil.get(self.default,
+                                                                              KEY_PRECONDITION_LOGIC) == PRECONDITION_LOGIC_EQ)
+        self.neqCheckBox = WidgetUtil.createRadioButton(self, text="值不相等", toolTip="选项的值不等于当前选择的值时条件才满足",
+                                                        autoExclusive=True,
+                                                        isChecked=DictUtil.get(self.default,
+                                                                               KEY_PRECONDITION_LOGIC) == PRECONDITION_LOGIC_NEQ)
+        hBox.addWidget(self.eqCheckBox)
+        hBox.addWidget(self.neqCheckBox)
+        vLayout.addLayout(hBox)
+
         # vLayout.addWidget(WidgetUtil.createLabel(self), 1)
         vLayout.addItem(WidgetUtil.createVSpacerItem(1, 1))
 
@@ -188,6 +201,7 @@ class AddOrEditPreconditionDialog(QtWidgets.QDialog):
         self.default[KEY_OPTION_GROUP] = optionGroup
         self.default[KEY_OPTION] = option
         self.default[KEY_OPTION_VALUE] = optionValue
+        self.default[KEY_PRECONDITION_LOGIC] = PRECONDITION_LOGIC_NEQ if self.neqCheckBox.isChecked() else PRECONDITION_LOGIC_EQ
         self.callback(self.default if self.isAdd else None)
         self.close()
         pass

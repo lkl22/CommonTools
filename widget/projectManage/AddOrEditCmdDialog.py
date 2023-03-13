@@ -305,10 +305,12 @@ class AddOrEditCmdDialog(QtWidgets.QDialog):
                 KEY_DESC: DictUtil.get(precondition, KEY_DESC),
                 KEY_OPTION_GROUP: DictUtil.get(precondition, KEY_OPTION_GROUP),
                 KEY_OPTION: DictUtil.get(precondition, KEY_OPTION),
-                KEY_OPTION_VALUE: DictUtil.get(precondition, KEY_OPTION_VALUE)
+                KEY_OPTION_VALUE: DictUtil.get(precondition, KEY_OPTION_VALUE),
+                KEY_PRECONDITION_LOGIC: "==" if DictUtil.get(precondition, KEY_PRECONDITION_LOGIC,
+                                                             PRECONDITION_LOGIC_EQ) == PRECONDITION_LOGIC_EQ else "!="
             })
         WidgetUtil.addTableViewData(self.preconditionsTableView, tableData,
-                                    headerLabels=["条件名称", "条件描述", "选项所属群组", "选项", "选项值"])
+                                    headerLabels=["条件名称", "条件描述", "选项所属群组", "选项", "选项值", "逻辑关系"])
         # WidgetUtil.tableViewSetColumnWidth(self.cmdTableView, 0, 100)
         pass
 
