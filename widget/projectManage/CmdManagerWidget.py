@@ -14,10 +14,11 @@ TAG = "CmdManagerWidget"
 
 
 class CmdManagerWidget(QFrame):
-    def __init__(self, projectManager: ProjectManager, getOptionGroupsFunc=None):
+    def __init__(self, projectManager: ProjectManager, modifyCallback, getOptionGroupsFunc=None):
         super(CmdManagerWidget, self).__init__()
 
         self.projectManager = projectManager
+        self.modifyCallback = modifyCallback
         self.getOptionGroupsFunc = getOptionGroupsFunc
         self.projectInfo = None
         self.cmdGroups = {}
@@ -89,14 +90,15 @@ class CmdManagerWidget(QFrame):
                                 callback=self.addOrEditCmdGroupCallback, default=cmdGroup)
         pass
 
-    def addOrEditCmdGroupCallback(self, info):
-        LogUtil.d(TAG, "addOrEditCmdGroupCallback", info)
+    def addOrEditCmdGroupCallback(self, info, modifyInfo):
+        LogUtil.d(TAG, "addOrEditCmdGroupCallback", info, modifyInfo)
         cmdGroupList = DictUtil.get(self.cmdGroups, KEY_LIST, [])
         if info:
             cmdGroupList.append(info)
         self.cmdGroups[KEY_LIST] = sorted(cmdGroupList, key=lambda x: x[KEY_NAME])
         self.updateCmdGroupList()
         self.saveProjectCmdGroups()
+        self.modifyCallback(modifyInfo)
         pass
 
     def delCmdGroup(self, widget, info):

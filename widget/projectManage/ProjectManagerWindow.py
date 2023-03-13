@@ -62,7 +62,7 @@ class ProjectManagerWindow(QMainWindow):
         self.processManagers = []
 
         self.optionManagerWidget = OptionManagerWidget(projectManager=self.projectManager, modifyCallback=self.optionGroupModify)
-        self.cmdManagerWidget = CmdManagerWidget(projectManager=self.projectManager)
+        self.cmdManagerWidget = CmdManagerWidget(projectManager=self.projectManager, modifyCallback=self.cmdGroupModify)
         self.moduleManagerWidget = ModuleManagerWidget(projectManager=self.projectManager,
                                                        getOptionGroupsFunc=lambda: self.optionManagerWidget.getProjectOptionGroups(),
                                                        getCmdGroupsFunc=lambda: self.cmdManagerWidget.getProjectCmdGroupList())
@@ -112,6 +112,18 @@ class ProjectManagerWindow(QMainWindow):
         projectId = DictUtil.get(projectInfo, KEY_ID)
         modules = self.projectManager.getProjectModules(projectId)
         ProjectManagerUtil.updateModulesInfoByOptionGroup(modifyOptionGroup=modifyOptionGroupInfo, modules=modules)
+        self.projectManager.saveProjectModulesInfo(projectId, modules)
+        self.moduleManagerWidget.setProjectInfo(projectInfo)
+        pass
+
+    def cmdGroupModify(self, modifyCmdGroupInfo):
+        LogUtil.i(TAG, "cmdGroupModify", modifyCmdGroupInfo)
+        if not modifyCmdGroupInfo:
+            return
+        projectInfo = self.getCurProjectInfo()
+        projectId = DictUtil.get(projectInfo, KEY_ID)
+        modules = self.projectManager.getProjectModules(projectId)
+        ProjectManagerUtil.updateModulesInfoByCmdGroup(cmdOptionGroup=modifyCmdGroupInfo, modules=modules)
         self.projectManager.saveProjectModulesInfo(projectId, modules)
         self.moduleManagerWidget.setProjectInfo(projectInfo)
         pass

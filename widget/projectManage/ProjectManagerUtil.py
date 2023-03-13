@@ -195,7 +195,7 @@ class ProjectManagerUtil:
 
     @staticmethod
     def updateModulesInfoByOptionGroup(modifyOptionGroup, modules: []):
-        if not modifyOptionGroup:
+        if not modifyOptionGroup or not modules:
             return
         optionGroupName = DictUtil.get(modifyOptionGroup, KEY_OPTION_GROUP)
         for module in modules:
@@ -206,13 +206,31 @@ class ProjectManagerUtil:
                 dynamicArguments = DictUtil.get(cmdInfo, KEY_DYNAMIC_ARGUMENTS)
                 if dynamicArguments:
                     for dynamicArgument in dynamicArguments:
-                        if DictUtil.get(dynamicArgument, KEY_OPTION_GROUP) == DictUtil.get(optionGroupName, KEY_OLD_VALUE):
+                        if DictUtil.get(dynamicArgument, KEY_OPTION_GROUP) == DictUtil.get(optionGroupName,
+                                                                                           KEY_OLD_VALUE):
                             dynamicArgument[KEY_OPTION_GROUP] = DictUtil.get(optionGroupName, KEY_NEW_VALUE)
                 preconditions = DictUtil.get(cmdInfo, KEY_PRECONDITIONS)
                 if preconditions:
                     for precondition in preconditions:
                         if DictUtil.get(precondition, KEY_OPTION_GROUP) == DictUtil.get(optionGroupName, KEY_OLD_VALUE):
                             precondition[KEY_OPTION_GROUP] = DictUtil.get(optionGroupName, KEY_NEW_VALUE)
+        pass
+
+    @staticmethod
+    def updateModulesInfoByCmdGroup(cmdOptionGroup, modules: []):
+        if not cmdOptionGroup or not modules:
+            return
+        for module in modules:
+            cmdList = DictUtil.get(module, KEY_CMD_LIST)
+            if not cmdList:
+                continue
+            for cmdInfo in cmdList:
+                cmdGroups = DictUtil.get(cmdInfo, KEY_CMD_GROUPS)
+                if cmdGroups:
+                    oldValue = DictUtil.get(cmdOptionGroup, KEY_OLD_VALUE)
+                    if oldValue in cmdGroups:
+                        cmdGroups.remove(oldValue)
+                        cmdGroups.append(DictUtil.get(cmdOptionGroup, KEY_NEW_VALUE))
         pass
 
 

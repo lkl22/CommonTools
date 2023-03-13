@@ -2,6 +2,8 @@
 # python 3.x
 # Filename: AddOrEditCmdGroupDialog.py
 # 定义一个AddOrEditCmdGroupDialog类实现添加、编辑指令分组功能
+import copy
+
 from constant.WidgetConst import *
 from util.DialogUtil import *
 from util.OperaIni import *
@@ -25,6 +27,8 @@ class AddOrEditCmdGroupDialog(QtWidgets.QDialog):
         self.cmdGroupList = cmdGroupList
         self.default = default
         self.isAdd = default is None
+        if not self.isAdd:
+            self.srcCmdGroup = copy.deepcopy(default)
 
         self.setObjectName("AddOrEditCmdGroupDialog")
         self.setMinimumWidth(AddOrEditCmdGroupDialog.WINDOW_WIDTH)
@@ -70,7 +74,8 @@ class AddOrEditCmdGroupDialog(QtWidgets.QDialog):
         if DictUtil.get(self.default, KEY_NAME) != name:
             for item in self.cmdGroupList:
                 if name == item[KEY_NAME]:
-                    WidgetUtil.showErrorDialog(message=f"请重新添加一个其他的指令群组，<span style='color:red;'>{name}</span>已经存在了，不能重复添加")
+                    WidgetUtil.showErrorDialog(
+                        message=f"请重新添加一个其他的指令群组，<span style='color:red;'>{name}</span>已经存在了，不能重复添加")
                     return
         desc = self.descLineEdit.text().strip()
         if not self.default:
@@ -79,13 +84,20 @@ class AddOrEditCmdGroupDialog(QtWidgets.QDialog):
         self.default[KEY_NAME] = name
         self.default[KEY_DESC] = desc
 
-        self.callback(self.default if self.isAdd else None)
+        modifyInfo = {}
+        if not self.isAdd and self.srcCmdGroup[KEY_NAME] != name:
+            modifyInfo[KEY_OLD_VALUE] = self.srcCmdGroup[KEY_NAME]
+            modifyInfo[KEY_NEW_VALUE] = name
+
+        self.callback(self.default if self.isAdd else None, modifyInfo)
         self.close()
         pass
 
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    window = AddOrEditCmdGroupDialog(cmdGroupList=[], callback=lambda it: LogUtil.d(TAG, "callback", it), isDebug=True)
+    window = AddOrEditCmdGroupDialog(cmdGroupList=[],
+                                     callback=lambda cmdGroupInfo, modifyInfo: LogUtil.d(TAG, "callback", cmdGroupInfo,
+                                                                                         modifyInfo), isDebug=True)
     window.show()
     sys.exit(app.exec_())
