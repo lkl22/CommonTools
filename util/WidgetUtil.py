@@ -5,7 +5,7 @@
 from typing import Union
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtGui import QIcon, QBrush, QStandardItemModel, QStandardItem, QColor, QKeySequence
+from PyQt5.QtGui import QIcon, QBrush, QStandardItemModel, QStandardItem, QColor, QKeySequence, QFont
 from PyQt5.QtWidgets import QWidget, QMessageBox, QSizePolicy, QTreeWidget, QMenu, QTreeWidgetItem, QDialog, \
     QRadioButton, QTableView, QHeaderView, QColorDialog, QSpinBox, QTextEdit, QApplication, QDoubleSpinBox, QMenuBar, \
     QTabWidget, QCheckBox, QProgressBar, QComboBox, QDialogButtonBox, QLineEdit
@@ -514,10 +514,21 @@ class WidgetUtil:
         widget.setText(_translate(contextName, text))
         widget.setAutoExclusive(autoExclusive)
         widget.setChecked(isChecked)
+        font = QFont()
+        font.setBold(isChecked)
+        widget.setFont(font)
         if stateChanged:
-            widget.stateChanged.connect(stateChanged)
+            widget.stateChanged.connect(lambda: (
+                stateChanged(),
+                font.setBold(widget.isChecked()),
+                widget.setFont(font)
+            ))
         if clicked:
-            widget.clicked.connect(clicked)
+            widget.clicked.connect(lambda: (
+                clicked(),
+                font.setBold(widget.isChecked()),
+                widget.setFont(font)
+            ))
         return widget
 
     @staticmethod

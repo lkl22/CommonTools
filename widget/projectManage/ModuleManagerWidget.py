@@ -16,7 +16,7 @@ TAG = "ModuleManagerWidget"
 
 
 class ModuleManagerWidget(QFrame):
-    def __init__(self, projectManager: ProjectManager, getOptionGroupsFunc=None, getCmdGroupsFunc=None):
+    def __init__(self, projectManager: ProjectManager, getOptionGroupsFunc=None, getCmdGroupsFunc=None, isDebug=False):
         super(ModuleManagerWidget, self).__init__()
 
         self.projectManager = projectManager
@@ -26,6 +26,7 @@ class ModuleManagerWidget(QFrame):
         self.modules = []
         self.defaultModules = []
         self.moduleWidgets: [ModuleWidget] = []
+        self.isDebug = isDebug
 
         self.setObjectName("ModuleManagerWidget")
         # self.setWindowFlags(QtCore.Qt.SplashScreen | QtCore.Qt.FramelessWindowHint)
@@ -194,11 +195,12 @@ class ModuleManagerWidget(QFrame):
 
 
 class ModuleWidget(QWidget):
-    def __init__(self, moduleInfo, defaultModules, editFunc, copyFunc, delFunc, selectedChanged):
+    def __init__(self, moduleInfo, defaultModules, editFunc, copyFunc, delFunc, selectedChanged, isDebug=False):
         super(ModuleWidget, self).__init__()
         self.moduleInfo = moduleInfo
         self.defaultModules = defaultModules
         self.selectedChanged = selectedChanged
+        self.isDebug = isDebug
 
         hbox = WidgetUtil.createHBoxLayout(self, margins=QMargins(0, 0, 0, 0))
         self.checkBox = WidgetUtil.createCheckBox(self, clicked=self.moduleSelectedChange)
@@ -219,6 +221,9 @@ class ModuleWidget(QWidget):
         self.checkBox.setText(moduleInfo[KEY_NAME])
         self.checkBox.setToolTip(moduleInfo[KEY_DESC])
         self.checkBox.setChecked(moduleInfo[KEY_NAME] in defaultModules)
+        font = QFont()
+        font.setBold(self.checkBox.isChecked()),
+        self.checkBox.setFont(font)
         pass
 
     def moduleSelectedChange(self):

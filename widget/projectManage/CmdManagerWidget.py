@@ -184,6 +184,9 @@ class CmdGroupWidget(QWidget):
         self.checkBox.setText(info[KEY_NAME])
         self.checkBox.setToolTip(info[KEY_DESC])
         self.checkBox.setChecked(info[KEY_NAME] in defaultSelected)
+        font = QFont()
+        font.setBold(self.checkBox.isChecked()),
+        self.checkBox.setFont(font)
         pass
 
     def cmdGroupSelectedChange(self):
