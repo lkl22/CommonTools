@@ -4,8 +4,11 @@
 # 定义一个ModuleManagerWidget窗口类实现模块管理的功能
 import copy
 import sys
+
+from PyQt5.QtGui import QMovie, QPixmap
 from PyQt5.QtWidgets import QScrollArea, QFrame
 
+from util.FileUtil import FileUtil
 from util.ListUtil import ListUtil
 from util.WidgetUtil import *
 from widget.projectManage.AddOrEditModuleDialog import AddOrEditModuleDialog
@@ -172,7 +175,8 @@ class ModuleManagerWidget(QFrame):
             moduleWidget = ModuleWidget(moduleInfo=moduleInfo, defaultModules=self.defaultModules,
                                         editFunc=self.editModule,
                                         copyFunc=self.copyModule, delFunc=self.delModule,
-                                        selectedChanged=self.saveProjectDefaultModules)
+                                        selectedChanged=self.saveProjectDefaultModules,
+                                        isDebug=self.isDebug)
             self.moduleWidgets.append(moduleWidget)
             self.vLayout.addWidget(moduleWidget)
         else:
@@ -193,6 +197,13 @@ class ModuleManagerWidget(QFrame):
         self.vLayout.addItem(self.spacerItem)
         pass
 
+    def updateModuleExecStatus(self, moduleName, status):
+        LogUtil.d(TAG, "updateModuleExecStatus", moduleName, status)
+        for index, moduleInfo in enumerate(self.modules):
+            if moduleName == moduleInfo[KEY_NAME] or moduleName == KEY_ALL:
+                self.moduleWidgets[index].updateStatus(status)
+        pass
+
 
 class ModuleWidget(QWidget):
     def __init__(self, moduleInfo, defaultModules, editFunc, copyFunc, delFunc, selectedChanged, isDebug=False):
@@ -205,14 +216,17 @@ class ModuleWidget(QWidget):
         hbox = WidgetUtil.createHBoxLayout(self, margins=QMargins(0, 0, 0, 0))
         self.checkBox = WidgetUtil.createCheckBox(self, clicked=self.moduleSelectedChange)
         hbox.addWidget(self.checkBox)
+        self.label = WidgetUtil.createLabel(self)
+        hbox.addWidget(self.label)
         # 为窗口添加QActions
         self.addAction(WidgetUtil.createAction(self, text="编辑", func=lambda: editFunc(self.moduleInfo)))
         self.addAction(WidgetUtil.createAction(self, text="Copy", func=lambda: copyFunc(self.moduleInfo)))
         self.addAction(WidgetUtil.createAction(self, text="删除", func=lambda: delFunc(self, self.moduleInfo)))
         self.setContextMenuPolicy(Qt.ActionsContextMenu)
-        self.setStyleSheet("QWidget:hover{background-color:rgb(0,255,255)}")
+        # self.setStyleSheet("QWidget:hover{background-color:rgb(0,255,255)}")
 
         self.updateUi(moduleInfo, defaultModules)
+        self.updateStatus(STATUS_HIDE)
         pass
 
     def updateUi(self, moduleInfo, defaultModules):
@@ -241,6 +255,25 @@ class ModuleWidget(QWidget):
 
     def isChecked(self):
         return self.checkBox.isChecked()
+
+    def updateStatus(self, status):
+        self.label.setVisible(status != STATUS_HIDE)
+        if status == STATUS_LOADING:
+            movie = QMovie("../../resources/icons/loading.gif" if self.isDebug else FileUtil.getIconFp("loading.gif"))
+            movie.setScaledSize(QSize(16, 16))
+            self.label.setMovie(movie)
+            movie.start()
+        elif status == STATUS_SUCCESS:
+            pixmap = QPixmap("../../resources/icons/projectManager/success.png" if self.isDebug else FileUtil.getIconFp(
+                "projectManager/success.png"))
+            pixmap.scaled(self.label.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation)
+            self.label.setPixmap(pixmap)
+        elif status == STATUS_FAILED:
+            pixmap = QPixmap("../../resources/icons/projectManager/error.png" if self.isDebug else FileUtil.getIconFp(
+                "projectManager/error.png"))
+            pixmap.scaled(self.label.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation)
+            self.label.setPixmap(pixmap)
+        pass
 
 
 if __name__ == "__main__":

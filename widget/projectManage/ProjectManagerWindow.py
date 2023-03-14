@@ -20,7 +20,6 @@ from util.StrUtil import StrUtil
 from util.WidgetUtil import *
 from PyQt5.QtWidgets import *
 
-from widget.custom.LoadingDialog import LoadingDialog
 from widget.projectManage.AddOrEditProjectDialog import AddOrEditProjectDialog
 from widget.projectManage.CmdManagerWidget import CmdManagerWidget
 from widget.projectManage.ModuleManagerWidget import ModuleManagerWidget
@@ -36,7 +35,7 @@ PROCESS_MANAGER = "processManager"
 
 class ProjectManagerWindow(QMainWindow):
     windowList = []
-    execUi = pyqtSignal(int)
+    updateModuleStatus = pyqtSignal(str, str)
 
     def __init__(self, isDebug=False):
         # 调用父类的构函
@@ -65,8 +64,8 @@ class ProjectManagerWindow(QMainWindow):
         self.cmdManagerWidget = CmdManagerWidget(projectManager=self.projectManager, modifyCallback=self.cmdGroupModify)
         self.moduleManagerWidget = ModuleManagerWidget(projectManager=self.projectManager,
                                                        getOptionGroupsFunc=lambda: self.optionManagerWidget.getProjectOptionGroups(),
-                                                       getCmdGroupsFunc=lambda: self.cmdManagerWidget.getProjectCmdGroupList())
-        self.loadingDialog = None
+                                                       getCmdGroupsFunc=lambda: self.cmdManagerWidget.getProjectCmdGroupList(),
+                                                       isDebug=self.isDebug)
         self.lock = threading.RLock()
 
         layoutWidget = QtWidgets.QWidget(self)
@@ -85,11 +84,10 @@ class ProjectManagerWindow(QMainWindow):
 
         self.updateProjectComboBox()
         self.show()
-        self.execUi.connect(self.updateUi)
+        self.updateModuleStatus.connect(self.updateModuleExecStatus)
 
-    def updateUi(self, type):
-        if type == TYPE_HIDE_LOADING_DIALOG and self.loadingDialog is not None:
-            self.loadingDialog.hide()
+    def updateModuleExecStatus(self, moduleName, status):
+        self.moduleManagerWidget.updateModuleExecStatus(moduleName=moduleName, status=status)
         pass
 
     # 重写关闭事件，回到第一界面
@@ -143,7 +141,8 @@ class ProjectManagerWindow(QMainWindow):
 
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
         hbox.addItem(WidgetUtil.createHSpacerItem(1, 1))
-        hbox.addWidget(WidgetUtil.createPushButton(box, text="开始执行", onClicked=self.startExecute))
+        self.execBtn = WidgetUtil.createPushButton(box, text="开始执行", onClicked=self.toggleExecute)
+        hbox.addWidget(self.execBtn)
         hbox.addItem(WidgetUtil.createHSpacerItem(1, 1))
         vbox.addLayout(hbox)
         return box
@@ -348,6 +347,14 @@ class ProjectManagerWindow(QMainWindow):
             text=f"您成功导入<span style='color:red;'>{projectInfo['simpleInfo'][KEY_NAME]}</span>工程信息")
         pass
 
+    def toggleExecute(self):
+        execBtnTxt = self.execBtn.text().strip()
+        if execBtnTxt == "开始执行":
+            self.startExecute()
+        else:
+            self.stopExecCmd()
+        pass
+
     def startExecute(self):
         LogUtil.d(TAG, f"startExecute main pid: {os.getpid()} threadId: {threading.current_thread().ident}")
         projectInfo = self.getCurProjectInfo()
@@ -359,19 +366,15 @@ class ProjectManagerWindow(QMainWindow):
             WidgetUtil.showAboutDialog(text="请先添加/选择一个模块")
             return
         self.consoleTextEdit.setText("")
-
+        self.execBtn.setText("停止执行")
         # 必须放到线程执行，否则加载框要等指令执行完才会弹
         threading.Thread(target=self.executeModuleCmd, args=(projectInfo, modules)).start()
-        if self.loadingDialog is None:
-            self.loadingDialog = LoadingDialog(showText="正在执行。。。", btnText="终止",
-                                               rejectedFunc=self.stopExecCmd, isDebug=self.isDebug)
-        else:
-            self.loadingDialog.show()
         pass
 
     def stopExecCmd(self):
         threading.Thread(target=self.stopRun).start()
         LogUtil.d(TAG, "stopExecCmd")
+        self.execBtn.setText("开始执行")
         pass
 
     def handleCmdArgs(self, cmdInfo, optionGroups):
@@ -435,6 +438,7 @@ class ProjectManagerWindow(QMainWindow):
             LogUtil.d(TAG, "acquire lock failed.")
             return
         self.lock.release()
+        self.updateModuleStatus.emit(KEY_ALL, STATUS_HIDE)
 
         self.futureList.clear()
         self.processManagers.clear()
@@ -464,6 +468,7 @@ class ProjectManagerWindow(QMainWindow):
                                                                                          hasFinishedTasks)
             if dependencyTasksAllFinished:
                 future = self.executor.submit(processManager.run)
+                self.updateModuleStatus.emit(processManager.getName(), STATUS_LOADING)
                 self.futureList.append(future)
                 allTasks.remove(ListUtil.find(allTasks, KEY_NAME, moduleInfo[KEY_NAME]))
 
@@ -475,9 +480,11 @@ class ProjectManagerWindow(QMainWindow):
                     isSuccess, taskName = future.result()
                 except CancelledError as err:
                     LogUtil.e(TAG, "CancelledError", err)
+                    self.updateModuleStatus.emit(KEY_ALL, STATUS_HIDE)
                     break
                 if taskName in hasFinishedTasks:
                     continue
+                self.updateModuleStatus.emit(taskName, STATUS_SUCCESS if isSuccess else STATUS_FAILED)
                 hasFinishedTasks.append(taskName)
                 LogUtil.d(TAG, future, isSuccess, taskName, "hasFinishedTasks", hasFinishedTasks)
                 copyAllTasks = copy.deepcopy(allTasks)
@@ -487,14 +494,16 @@ class ProjectManagerWindow(QMainWindow):
                                                                                                  allExecuteModules,
                                                                                                  hasFinishedTasks)
                     if dependencyTasksAllFinished:
-                        future = self.executor.submit(
-                            ListUtil.find(self.processManagers, KEY_NAME, moduleInfo[KEY_NAME])[PROCESS_MANAGER].run)
+                        processManager = ListUtil.find(self.processManagers, KEY_NAME, moduleInfo[KEY_NAME])[
+                            PROCESS_MANAGER]
+                        future = self.executor.submit(processManager.run)
+                        self.updateModuleStatus.emit(processManager.getName(), STATUS_LOADING)
                         self.futureList.append(future)
                         hasNewTaskAdd = True
                         allTasks.remove(ListUtil.find(allTasks, KEY_NAME, moduleInfo[KEY_NAME]))
 
         LogUtil.e(TAG, f"executeModuleCmd all finished. pid: {os.getpid()}")
-        self.execUi.emit(TYPE_HIDE_LOADING_DIALOG)
+        self.execBtn.setText("开始执行")
         pass
 
     def stopRun(self):

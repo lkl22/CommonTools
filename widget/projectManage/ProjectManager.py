@@ -86,6 +86,12 @@ KEY_OLD_VALUE = 'oldValue'
 # 现在的值
 KEY_NEW_VALUE = 'newValue'
 
+KEY_ALL = "All"
+STATUS_LOADING = "loading"
+STATUS_SUCCESS = "success"
+STATUS_FAILED = "failed"
+STATUS_HIDE = "hide"
+
 
 class ProjectManager:
     def __init__(self, isDebug=False):

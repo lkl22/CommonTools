@@ -109,7 +109,7 @@ class ProcessManager(QObject):
 
     def handleStandardError(self, log):
         self.standardError.emit(f"{DateUtil.nowTimeMs()} {os.getpid()} {threading.current_thread().ident} {self.name} {log}")
-        self.isSuccess = False
+        pass
 
     def handleConditionInput(self, cmdInfo, log):
         conditionInput = DictUtil.get(cmdInfo, KEY_CONDITION_INPUT, [])
@@ -124,6 +124,7 @@ class ProcessManager(QObject):
     def kill(self):
         self.lock.acquire()
         self.needFinished = True
+        self.isSuccess = False
         self.lock.release()
         if self.process:
             try:
@@ -132,6 +133,9 @@ class ProcessManager(QObject):
                 LogUtil.e(TAG, "kill process Exception", ex)
         LogUtil.d(TAG, f"{self.name} kill process.")
         pass
+
+    def getName(self):
+        return self.name
 
 
 if __name__ == "__main__":
