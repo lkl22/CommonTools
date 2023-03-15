@@ -28,6 +28,21 @@ class StrUtil:
             return ""
         return data[0].lower() + data[1:]
 
+    @staticmethod
+    def containsStr(srcStr: str, dataList: []):
+        """
+        判断字符串中是否包含指定列表中的数据
+        :param srcStr: 源字符串
+        :param dataList: 要判断的字符串列表
+        :return: True 包含任意一个数据 False 一个都不包含
+        """
+        isContains = False
+        for data in dataList:
+            if data in srcStr:
+                isContains = True
+                break
+        return isContains
+
 
 if __name__ == "__main__":
     LogUtil.d(StrUtil.capitalize("thank"))

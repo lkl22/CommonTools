@@ -97,6 +97,8 @@ DEFAULT_VALUE_IS_VISIBLE = True
 KEY_IS_SELECTED = "isSelected"
 DEFAULT_VALUE_IS_SELECTED = False
 
+KEY_CHECK_CODE_MODIFY = "checkCodeModify"
+
 
 class ProjectManager:
     def __init__(self, isDebug=False):

@@ -19,12 +19,14 @@ TAG = "ModuleManagerWidget"
 
 
 class ModuleManagerWidget(QFrame):
-    def __init__(self, projectManager: ProjectManager, getOptionGroupsFunc=None, getCmdGroupsFunc=None, isDebug=False):
+    def __init__(self, projectManager: ProjectManager, getOptionGroupsFunc=None, getCmdGroupsFunc=None,
+                 autoSelectedModulesFunc=None, isDebug=False):
         super(ModuleManagerWidget, self).__init__()
 
         self.projectManager = projectManager
         self.getOptionGroupsFunc = getOptionGroupsFunc
         self.getCmdGroupsFunc = getCmdGroupsFunc
+        self.autoSelectedModulesFunc = autoSelectedModulesFunc
         self.projectInfo = None
         self.modules = []
         self.moduleWidgets: [ModuleWidget] = []
@@ -66,6 +68,9 @@ class ModuleManagerWidget(QFrame):
                                                              isEnable=False,
                                                              isChecked=False, clicked=self.allSelected)
         hbox.addWidget(self.allSelectedCheckBox)
+        self.autoSelectedBtn = WidgetUtil.createPushButton(self, text="自动选择", toolTip="自动检查工程中修改了本地代码的模块，显示并勾选上",
+                                                           onClicked=self.autoSelectedModules)
+        hbox.addWidget(self.autoSelectedBtn)
         self.showAllBtn = WidgetUtil.createPushButton(self, text="显示所有", toolTip="显示所有配置的工程模块。",
                                                       onClicked=self.showAllModuleWidget)
         hbox.addWidget(self.showAllBtn)
@@ -133,6 +138,11 @@ class ModuleManagerWidget(QFrame):
             if DictUtil.get(moduleInfo, KEY_IS_VISIBLE, DEFAULT_VALUE_IS_VISIBLE):
                 moduleInfo[KEY_IS_SELECTED] = allSelected
         self.updateModuleList()
+        pass
+
+    def autoSelectedModules(self):
+        LogUtil.d(TAG, "autoSelectedModules")
+        self.autoSelectedModulesFunc()
         pass
 
     def showAllModuleWidget(self):

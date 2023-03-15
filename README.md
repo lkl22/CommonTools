@@ -124,4 +124,4 @@ Working directory：$ProjectFileDir$
 
 [这40个Python可视化图表案例，强烈建议收藏！](https://mp.weixin.qq.com/s?__biz=MzU5MjI3NzIxMw==&mid=2247503641&idx=1&sn=35507e72d14adb95884b8b29ca38e864&chksm=fe20b4abc9573dbdc384b25ef600466ae8b0f51fbe10cb5ac257915887832184f0d42e5dd621&scene=126&&sessionid=0)
 
-
+[windows关闭java进程](https://blog.csdn.net/qq_33326449/article/details/80506214)

@@ -35,7 +35,8 @@ PROCESS_MANAGER = "processManager"
 
 class ProjectManagerWindow(QMainWindow):
     windowList = []
-    updateModuleStatus = pyqtSignal(str, str)
+    updateModuleStatusSignal = pyqtSignal(str, str)
+    standardOutputSignal = pyqtSignal(str)
 
     def __init__(self, isDebug=False):
         # 调用父类的构函
@@ -60,11 +61,13 @@ class ProjectManagerWindow(QMainWindow):
         self.futureList = []
         self.processManagers = []
 
-        self.optionManagerWidget = OptionManagerWidget(projectManager=self.projectManager, modifyCallback=self.optionGroupModify)
+        self.optionManagerWidget = OptionManagerWidget(projectManager=self.projectManager,
+                                                       modifyCallback=self.optionGroupModify)
         self.cmdManagerWidget = CmdManagerWidget(projectManager=self.projectManager, modifyCallback=self.cmdGroupModify)
         self.moduleManagerWidget = ModuleManagerWidget(projectManager=self.projectManager,
                                                        getOptionGroupsFunc=lambda: self.optionManagerWidget.getProjectOptionGroups(),
                                                        getCmdGroupsFunc=lambda: self.cmdManagerWidget.getProjectCmdGroupList(),
+                                                       autoSelectedModulesFunc=self.autoSelectedModulesFunc,
                                                        isDebug=self.isDebug)
         self.lock = threading.RLock()
 
@@ -84,7 +87,8 @@ class ProjectManagerWindow(QMainWindow):
 
         self.updateProjectComboBox()
         self.show()
-        self.updateModuleStatus.connect(self.updateModuleExecStatus)
+        self.updateModuleStatusSignal.connect(self.updateModuleExecStatus)
+        self.standardOutputSignal.connect(self.standardOutput)
 
     def updateModuleExecStatus(self, moduleName, status):
         self.moduleManagerWidget.updateModuleExecStatus(moduleName=moduleName, status=status)
@@ -124,6 +128,11 @@ class ProjectManagerWindow(QMainWindow):
         ProjectManagerUtil.updateModulesInfoByCmdGroup(cmdOptionGroup=modifyCmdGroupInfo, modules=modules)
         self.projectManager.saveProjectModulesInfo(projectId, modules)
         self.moduleManagerWidget.setProjectInfo(projectInfo)
+        pass
+
+    def autoSelectedModulesFunc(self):
+        LogUtil.i(TAG, "autoSelectedModulesFunc")
+
         pass
 
     def createProjectManageGroupBox(self, parent):
@@ -438,8 +447,9 @@ class ProjectManagerWindow(QMainWindow):
             LogUtil.d(TAG, "acquire lock failed.")
             return
         self.lock.release()
-        self.updateModuleStatus.emit(KEY_ALL, STATUS_HIDE)
+        self.updateModuleStatusSignal.emit(KEY_ALL, STATUS_HIDE)
 
+        startTime = DateUtil.nowTimestamp(isMilliSecond=True)
         self.futureList.clear()
         self.processManagers.clear()
         LogUtil.e(TAG, f"executeModuleCmd start. pid: {os.getpid()} threadId: {threading.current_thread().ident}")
@@ -468,7 +478,7 @@ class ProjectManagerWindow(QMainWindow):
                                                                                          hasFinishedTasks)
             if dependencyTasksAllFinished:
                 future = self.executor.submit(processManager.run)
-                self.updateModuleStatus.emit(processManager.getName(), STATUS_LOADING)
+                self.updateModuleStatusSignal.emit(processManager.getName(), STATUS_LOADING)
                 self.futureList.append(future)
                 allTasks.remove(ListUtil.find(allTasks, KEY_NAME, moduleInfo[KEY_NAME]))
 
@@ -477,14 +487,14 @@ class ProjectManagerWindow(QMainWindow):
             hasNewTaskAdd = False
             for future in as_completed(self.futureList):
                 try:
-                    isSuccess, taskName = future.result()
+                    isSuccess, taskName, resultData = future.result()
                 except CancelledError as err:
                     LogUtil.e(TAG, "CancelledError", err)
-                    self.updateModuleStatus.emit(KEY_ALL, STATUS_HIDE)
+                    self.updateModuleStatusSignal.emit(KEY_ALL, STATUS_HIDE)
                     break
                 if taskName in hasFinishedTasks:
                     continue
-                self.updateModuleStatus.emit(taskName, STATUS_SUCCESS if isSuccess else STATUS_FAILED)
+                self.updateModuleStatusSignal.emit(taskName, STATUS_SUCCESS if isSuccess else STATUS_FAILED)
                 hasFinishedTasks.append(taskName)
                 LogUtil.d(TAG, future, isSuccess, taskName, "hasFinishedTasks", hasFinishedTasks)
                 copyAllTasks = copy.deepcopy(allTasks)
@@ -497,12 +507,14 @@ class ProjectManagerWindow(QMainWindow):
                         processManager = ListUtil.find(self.processManagers, KEY_NAME, moduleInfo[KEY_NAME])[
                             PROCESS_MANAGER]
                         future = self.executor.submit(processManager.run)
-                        self.updateModuleStatus.emit(processManager.getName(), STATUS_LOADING)
+                        self.updateModuleStatusSignal.emit(processManager.getName(), STATUS_LOADING)
                         self.futureList.append(future)
                         hasNewTaskAdd = True
                         allTasks.remove(ListUtil.find(allTasks, KEY_NAME, moduleInfo[KEY_NAME]))
 
-        LogUtil.e(TAG, f"executeModuleCmd all finished. pid: {os.getpid()}")
+        allExecFinishedMsg = f"executeModuleCmd all finished. pid: {os.getpid()} costTime:{DateUtil.nowTimestamp(isMilliSecond=True) - startTime} ms\n"
+        LogUtil.e(TAG, allExecFinishedMsg)
+        self.standardOutputSignal.emit(allExecFinishedMsg)
         self.execBtn.setText("开始执行")
         pass
 
