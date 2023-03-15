@@ -31,6 +31,9 @@ class OptionManagerWidget(QFrame):
         self.addOptionGroupBtn = WidgetUtil.createPushButton(self, text="Add", toolTip="添加新的工程配置选项", isEnable=False,
                                                              onClicked=self.addOptionGroup)
         hbox.addWidget(self.addOptionGroupBtn)
+        self.showAllOptionGroupBtn = WidgetUtil.createPushButton(self, text="显示所有", toolTip="显示所有工程选项配置",
+                                                                 onClicked=self.showAllOptionGroupWidget)
+        hbox.addWidget(self.showAllOptionGroupBtn)
         hbox.addItem(WidgetUtil.createHSpacerItem(1, 1))
         vbox.addLayout(hbox)
 
@@ -57,12 +60,19 @@ class OptionManagerWidget(QFrame):
         projectId = DictUtil.get(projectInfo, KEY_ID)
         self.addOptionGroupBtn.setEnabled(projectId is not None)
         self.optionGroups = self.projectManager.getProjectOptionGroups(projectId) if projectId else []
-        self.updateOptionGroupList()
+        self.updateOptionGroupList(False)
         pass
 
     def addOptionGroup(self):
         LogUtil.d(TAG, "addOptionGroup")
         AddOrEditOptionGroupDialog(callback=self.addOrEditOptionGroupCallback, groupList=self.optionGroups)
+        pass
+
+    def showAllOptionGroupWidget(self):
+        LogUtil.d(TAG, "showAllOptionGroupWidget")
+        for optionGroup in self.optionGroups:
+            optionGroup[KEY_IS_VISIBLE] = True
+        self.updateOptionGroupList()
         pass
 
     def editOptionGroup(self, optionGroupInfo):
@@ -83,7 +93,6 @@ class OptionManagerWidget(QFrame):
             self.optionGroups.append(info)
         self.optionGroups = sorted(self.optionGroups, key=lambda x: x[KEY_NAME])
         self.updateOptionGroupList()
-        self.saveProjectOptionGroups()
         self.modifyCallback(modifyInfo)
         pass
 
@@ -110,17 +119,24 @@ class OptionManagerWidget(QFrame):
     def updateOptionGroupItem(self, index, optionGroupInfo):
         LogUtil.d(TAG, "updateOptionGroupItem", index, optionGroupInfo)
         if index >= len(self.optionGroupWidgets):
-            widget = OptionGroupWidget(info=optionGroupInfo, editFunc=self.editOptionGroup,
-                                       copyFunc=self.copyOptionGroup, delFunc=self.delOptionGroup,
+            widget = OptionGroupWidget(info=optionGroupInfo,
+                                       editFunc=self.editOptionGroup,
+                                       copyFunc=self.copyOptionGroup,
+                                       hideFunc=self.saveProjectOptionGroups,
+                                       delFunc=self.delOptionGroup,
                                        selectedChanged=self.saveProjectOptionGroups)
             self.optionGroupWidgets.append(widget)
             self.vLayout.addWidget(widget)
         else:
             self.optionGroupWidgets[index].updateUi(optionGroupInfo)
+        self.optionGroupWidgets[index].setVisible(
+            DictUtil.get(optionGroupInfo, KEY_IS_VISIBLE, DEFAULT_VALUE_IS_VISIBLE))
         pass
 
-    def updateOptionGroupList(self):
-        LogUtil.d(TAG, "updateModuleList")
+    def updateOptionGroupList(self, needSaveOptionGroups=True):
+        LogUtil.d(TAG, "updateOptionGroupList", needSaveOptionGroups)
+        if needSaveOptionGroups:
+            self.saveProjectOptionGroups()
         moduleLen = len(self.optionGroups)
         while moduleLen < len(self.optionGroupWidgets):
             widget = self.optionGroupWidgets[moduleLen]
@@ -135,10 +151,11 @@ class OptionManagerWidget(QFrame):
 
 
 class OptionGroupWidget(QFrame):
-    def __init__(self, info, editFunc, copyFunc, delFunc, selectedChanged):
+    def __init__(self, info, editFunc, copyFunc, hideFunc, delFunc, selectedChanged):
         super(OptionGroupWidget, self).__init__()
         self.info = None
         self.selectedChanged = selectedChanged
+        self.hideFunc = hideFunc
         self.optionWidgets = []
         self.setObjectName("OptionGroupWidget")
         self.vbox = WidgetUtil.createVBoxLayout(self, margins=QMargins(5, 5, 5, 5))
@@ -148,6 +165,7 @@ class OptionGroupWidget(QFrame):
         # 为窗口添加QActions
         self.addAction(WidgetUtil.createAction(self, text="编辑", func=lambda: editFunc(self.info)))
         self.addAction(WidgetUtil.createAction(self, text="Copy", func=lambda: copyFunc(self.info)))
+        self.addAction(WidgetUtil.createAction(self, text="隐藏", func=self.hideWidget))
         self.addAction(WidgetUtil.createAction(self, text="删除", func=lambda: delFunc(self, self.info)))
         self.setContextMenuPolicy(Qt.ActionsContextMenu)
         self.setStyleSheet("OptionGroupWidget{border:1px solid rgb(123,123,123)}")
@@ -172,6 +190,12 @@ class OptionGroupWidget(QFrame):
                 self.vbox.addWidget(widget)
             else:
                 self.optionWidgets[index].updateUi(option)
+        pass
+
+    def hideWidget(self):
+        self.setVisible(False)
+        self.info[KEY_IS_VISIBLE] = False
+        self.hideFunc()
         pass
 
 
@@ -207,5 +231,3 @@ class OptionWidget(QWidget):
         LogUtil.d(TAG, "optionValueChange", index)
         self.info[KEY_DEFAULT] = index
         self.selectedChanged()
-
-
