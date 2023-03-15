@@ -27,7 +27,6 @@ class ModuleManagerWidget(QFrame):
         self.getCmdGroupsFunc = getCmdGroupsFunc
         self.projectInfo = None
         self.modules = []
-        self.defaultModules = []
         self.moduleWidgets: [ModuleWidget] = []
         self.isDebug = isDebug
 
@@ -44,10 +43,6 @@ class ModuleManagerWidget(QFrame):
                                                                       isEnable=False,
                                                                       onClicked=self.previewModuleDependency)
         hbox.addWidget(self.previewModuleDependencyBtn)
-        self.allSelectedCheckBox = WidgetUtil.createCheckBox(self, text="All", toolTip="☑️选中所有模块，否则取消全选。",
-                                                             isEnable=False,
-                                                             isChecked=False, clicked=self.allSelected)
-        hbox.addWidget(self.allSelectedCheckBox)
         hbox.addItem(WidgetUtil.createHSpacerItem(1, 1))
         vbox.addLayout(hbox)
 
@@ -66,6 +61,19 @@ class ModuleManagerWidget(QFrame):
         self.spacerItem = WidgetUtil.createVSpacerItem(1, 1)
         self.vLayout.addItem(self.spacerItem)
 
+        hbox = WidgetUtil.createHBoxLayout(margins=QMargins(0, 0, 0, 0), spacing=0)
+        self.allSelectedCheckBox = WidgetUtil.createCheckBox(self, text="全选", toolTip="☑️选中所有显示的模块，否则取消全选。",
+                                                             isEnable=False,
+                                                             isChecked=False, clicked=self.allSelected)
+        hbox.addWidget(self.allSelectedCheckBox)
+        self.showAllBtn = WidgetUtil.createPushButton(self, text="显示所有", toolTip="显示所有配置的工程模块。",
+                                                      onClicked=self.showAllModuleWidget)
+        hbox.addWidget(self.showAllBtn)
+        self.hideSelectedBtn = WidgetUtil.createPushButton(self, text="隐藏", toolTip="隐藏选择的工程模块。",
+                                                           onClicked=self.hideSelectedModulesWidget)
+        hbox.addWidget(self.hideSelectedBtn)
+        hbox.addItem(WidgetUtil.createHSpacerItem(1, 1))
+        vbox.addLayout(hbox)
         # self.setLineWidth(2)
         # self.setFrameShadow(QFrame.Plain)
         # self.setFrameShape(QFrame.Box)
@@ -80,8 +88,8 @@ class ModuleManagerWidget(QFrame):
         self.previewModuleDependencyBtn.setEnabled(projectId is not None)
         self.allSelectedCheckBox.setEnabled(projectId is not None)
         self.modules = self.projectManager.getProjectModules(projectId) if projectId else []
-        self.defaultModules = self.projectManager.getProjectDefaultModules(projectId) if projectId else []
-        self.updateModuleList()
+        self.updateModuleList(False)
+        self.updateAllSelectedCheckBoxStatus()
         pass
 
     def getProjectPath(self):
@@ -121,9 +129,42 @@ class ModuleManagerWidget(QFrame):
     def allSelected(self):
         allSelected = self.allSelectedCheckBox.isChecked()
         LogUtil.d(TAG, "allSelected", allSelected)
-        self.defaultModules = [item[KEY_NAME] for item in self.modules] if allSelected else []
-        self.saveProjectDefaultModules()
+        for moduleInfo in self.modules:
+            if DictUtil.get(moduleInfo, KEY_IS_VISIBLE, DEFAULT_VALUE_IS_VISIBLE):
+                moduleInfo[KEY_IS_SELECTED] = allSelected
         self.updateModuleList()
+        pass
+
+    def showAllModuleWidget(self):
+        LogUtil.d(TAG, "showAllModuleWidget")
+        for moduleInfo in self.modules:
+            moduleInfo[KEY_IS_VISIBLE] = True
+        self.updateModuleList()
+        self.updateAllSelectedCheckBoxStatus()
+        pass
+
+    def hideSelectedModulesWidget(self):
+        LogUtil.d(TAG, "hideSelectedModulesWidget")
+        selectedModules = self.getSelectedModules()
+        if not selectedModules:
+            WidgetUtil.showAboutDialog(text="请先选择至少一个工程模块")
+            return
+        for moduleInfo in selectedModules:
+            moduleInfo[KEY_IS_VISIBLE] = False
+            # 隐藏了就取消选中状态
+            moduleInfo[KEY_IS_SELECTED] = False
+        self.allSelectedCheckBox.setChecked(False)
+        self.updateModuleList()
+        pass
+
+    def updateAllSelectedCheckBoxStatus(self):
+        isChecked = True if self.modules else False
+        for moduleInfo in self.modules:
+            if DictUtil.get(moduleInfo, KEY_IS_VISIBLE, DEFAULT_VALUE_IS_VISIBLE) and \
+                    not DictUtil.get(moduleInfo, KEY_IS_SELECTED, DEFAULT_VALUE_IS_SELECTED):
+                isChecked = False
+                break
+        self.allSelectedCheckBox.setChecked(isChecked)
         pass
 
     def editModule(self, moduleInfo):
@@ -147,7 +188,6 @@ class ModuleManagerWidget(QFrame):
             self.modules.append(info)
         self.modules = sorted(self.modules, key=lambda x: x[KEY_NAME])
         self.updateModuleList()
-        self.projectManager.saveProjectModulesInfo(DictUtil.get(self.projectInfo, KEY_ID), self.modules)
         pass
 
     def delModule(self, moduleWidget, moduleInfo):
@@ -159,32 +199,35 @@ class ModuleManagerWidget(QFrame):
                 moduleWidget.deleteLater(),
                 self.moduleWidgets.remove(moduleWidget),
                 self.modules.remove(moduleInfo),
-                self.projectManager.saveProjectModulesInfo(DictUtil.get(self.projectInfo, KEY_ID), self.modules),
-                ListUtil.remove(self.defaultModules, DictUtil.get(moduleInfo, KEY_NAME)),
-                self.saveProjectDefaultModules()
+                self.saveProjectModulesInfo()
             ))
         pass
 
-    def saveProjectDefaultModules(self):
-        self.projectManager.saveProjectDefaultModules(DictUtil.get(self.projectInfo, KEY_ID), self.defaultModules)
+    def saveProjectModulesInfo(self):
+        self.projectManager.saveProjectModulesInfo(DictUtil.get(self.projectInfo, KEY_ID), self.modules)
         pass
 
     def updateModuleItem(self, index, moduleInfo):
         LogUtil.d(TAG, "updateModuleItem", index, moduleInfo)
         if index >= len(self.moduleWidgets):
-            moduleWidget = ModuleWidget(moduleInfo=moduleInfo, defaultModules=self.defaultModules,
+            moduleWidget = ModuleWidget(moduleInfo=moduleInfo,
                                         editFunc=self.editModule,
-                                        copyFunc=self.copyModule, delFunc=self.delModule,
-                                        selectedChanged=self.saveProjectDefaultModules,
+                                        copyFunc=self.copyModule,
+                                        hideFunc=self.saveProjectModulesInfo,
+                                        delFunc=self.delModule,
+                                        selectedChanged=self.saveProjectModulesInfo,
                                         isDebug=self.isDebug)
             self.moduleWidgets.append(moduleWidget)
             self.vLayout.addWidget(moduleWidget)
         else:
-            self.moduleWidgets[index].updateUi(moduleInfo, self.defaultModules)
+            self.moduleWidgets[index].updateUi(moduleInfo)
+        self.moduleWidgets[index].setVisible(DictUtil.get(moduleInfo, KEY_IS_VISIBLE, DEFAULT_VALUE_IS_VISIBLE))
         pass
 
-    def updateModuleList(self):
+    def updateModuleList(self, needSaveModulesInfo=True):
         LogUtil.d(TAG, "updateModuleList")
+        if needSaveModulesInfo:
+            self.saveProjectModulesInfo()
         moduleLen = len(self.modules)
         while moduleLen < len(self.moduleWidgets):
             widget = self.moduleWidgets[moduleLen]
@@ -206,10 +249,10 @@ class ModuleManagerWidget(QFrame):
 
 
 class ModuleWidget(QWidget):
-    def __init__(self, moduleInfo, defaultModules, editFunc, copyFunc, delFunc, selectedChanged, isDebug=False):
+    def __init__(self, moduleInfo, editFunc, copyFunc, hideFunc, delFunc, selectedChanged, isDebug=False):
         super(ModuleWidget, self).__init__()
         self.moduleInfo = moduleInfo
-        self.defaultModules = defaultModules
+        self.hideFunc = hideFunc
         self.selectedChanged = selectedChanged
         self.isDebug = isDebug
 
@@ -221,32 +264,34 @@ class ModuleWidget(QWidget):
         # 为窗口添加QActions
         self.addAction(WidgetUtil.createAction(self, text="编辑", func=lambda: editFunc(self.moduleInfo)))
         self.addAction(WidgetUtil.createAction(self, text="Copy", func=lambda: copyFunc(self.moduleInfo)))
+        self.addAction(WidgetUtil.createAction(self, text="隐藏", func=self.hideWidget))
         self.addAction(WidgetUtil.createAction(self, text="删除", func=lambda: delFunc(self, self.moduleInfo)))
         self.setContextMenuPolicy(Qt.ActionsContextMenu)
         # self.setStyleSheet("QWidget:hover{background-color:rgb(0,255,255)}")
 
-        self.updateUi(moduleInfo, defaultModules)
+        self.updateUi(moduleInfo)
         self.updateStatus(STATUS_HIDE)
         pass
 
-    def updateUi(self, moduleInfo, defaultModules):
+    def hideWidget(self):
+        self.setVisible(False)
+        self.moduleInfo[KEY_IS_VISIBLE] = False
+        self.moduleInfo[KEY_IS_SELECTED] = False
+        self.hideFunc()
+
+    def updateUi(self, moduleInfo):
         self.moduleInfo = moduleInfo
-        self.defaultModules = defaultModules
         self.checkBox.setText(moduleInfo[KEY_NAME])
         self.checkBox.setToolTip(moduleInfo[KEY_DESC])
-        self.checkBox.setChecked(moduleInfo[KEY_NAME] in defaultModules)
+        self.checkBox.setChecked(DictUtil.get(moduleInfo, KEY_IS_SELECTED, DEFAULT_VALUE_IS_SELECTED))
         font = QFont()
         font.setBold(self.checkBox.isChecked()),
         self.checkBox.setFont(font)
         pass
 
     def moduleSelectedChange(self):
-        name = DictUtil.get(self.moduleInfo, KEY_NAME)
-        if self.isChecked():
-            self.defaultModules.append(name)
-        else:
-            self.defaultModules.remove(name)
-        LogUtil.d(TAG, "moduleSelectedChange", self.defaultModules)
+        self.moduleInfo[KEY_IS_SELECTED] = self.isChecked()
+        LogUtil.d(TAG, "moduleSelectedChange", self.moduleInfo[KEY_IS_SELECTED])
         self.selectedChanged()
         pass
 

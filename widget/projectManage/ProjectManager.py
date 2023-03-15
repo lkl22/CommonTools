@@ -92,6 +92,11 @@ STATUS_SUCCESS = "success"
 STATUS_FAILED = "failed"
 STATUS_HIDE = "hide"
 
+KEY_IS_VISIBLE = "isVisible"
+DEFAULT_VALUE_IS_VISIBLE = True
+KEY_IS_SELECTED = "isSelected"
+DEFAULT_VALUE_IS_SELECTED = False
+
 
 class ProjectManager:
     def __init__(self, isDebug=False):
