@@ -57,7 +57,7 @@ class ProjectManagerWindow(QMainWindow):
             self.projects = {KEY_DEFAULT: -1, KEY_LIST: []}
         self.curProjectIndex = self.projects[KEY_DEFAULT]
 
-        self.executor = ThreadPoolExecutor(thread_name_prefix="ProjectExecute_")
+        self.executor = ThreadPoolExecutor(max_workers=5, thread_name_prefix="ProjectExecute_")
         self.futureList = []
         self.processManagers = []
 
@@ -529,7 +529,7 @@ class ProjectManagerWindow(QMainWindow):
                 future.cancel()
             self.futureList.clear()
             self.executor.shutdown(wait=False, cancel_futures=True)
-            self.executor = ThreadPoolExecutor(thread_name_prefix="ProjectExecute_")
+            self.executor = ThreadPoolExecutor(max_workers=5, thread_name_prefix="ProjectExecute_")
         except Exception as err:
             LogUtil.e(TAG, err)
         self.lock.release()

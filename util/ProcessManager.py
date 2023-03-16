@@ -9,6 +9,7 @@ from PyQt5.QtCore import QProcess, QProcessEnvironment, QTextCodec, pyqtSignal, 
 
 from util.DateUtil import DateUtil
 from util.DictUtil import DictUtil
+from util.FileUtil import FileUtil
 from util.LogUtil import LogUtil
 from util.StrUtil import StrUtil
 from widget.projectManage.ProjectManager import KEY_CHECK_CODE_MODIFY
@@ -98,7 +99,7 @@ class ProcessManager(QObject):
         if "git" in program:
             self.needSpecialHandler = True
             if "pull" in args:
-                self.gitUpdateCode(cmdInfo=cmdInfo)
+                self.gitUpdateCode(workingDir=workingDir, cmdInfo=cmdInfo)
             elif KEY_CHECK_CODE_MODIFY in args:
                 self.gitCheckCodeModify(cmdInfo=cmdInfo)
             else:
@@ -111,7 +112,7 @@ class ProcessManager(QObject):
             self.runCmd(cmd=cmd, cmdInfo=cmdInfo)
         pass
 
-    def gitUpdateCode(self, cmdInfo):
+    def gitUpdateCode(self, workingDir, cmdInfo):
         needStash = self.isModifyCode(cmdInfo=cmdInfo)
         if needStash:
             cmd = f'git stash save "stash by tools on {DateUtil.nowTime()}"'
@@ -122,6 +123,11 @@ class ProcessManager(QObject):
             self.isSuccess = False
             self.handleStandardError("您代码更新需要密码")
             return
+        if "I wonder if you are in the middle of another rebase" in self.log:
+            rebaseApplyDir = os.path.join(workingDir, ".git/rebase-apply")
+            FileUtil.clearPath(rebaseApplyDir)
+            cmd = "git pull --rebase"
+            self.runCmd(cmd=cmd, cmdInfo=cmdInfo)
         if needStash:
             cmd = "git stash pop"
             self.runCmd(cmd=cmd, cmdInfo=cmdInfo)
@@ -155,6 +161,8 @@ class ProcessManager(QObject):
     def readStandardOutput(self, cmdInfo):
         log = QTextCodec.codecForLocale().toUnicode(self.process.readAllStandardOutput())
         if log:
+            if "BUILD SUCCESSFUL" in log:
+                self.isSuccess = True
             if self.needSpecialHandler:
                 self.log += log
             self.handleConditionInput(cmdInfo, log)
@@ -167,6 +175,8 @@ class ProcessManager(QObject):
     def readStandardError(self, cmdInfo):
         log = QTextCodec.codecForLocale().toUnicode(self.process.readAllStandardError())
         if log:
+            if "BUILD FAILED" in log:
+                self.isSuccess = False
             if self.needSpecialHandler:
                 self.log += log
             self.handleConditionInput(cmdInfo, log)
