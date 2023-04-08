@@ -63,6 +63,11 @@ a = Analysis(['RunMain.py',
               'widget/custom/LoadingDialog.py',
 
               'widget/fileOperation/FileOperationDialog.py',
+              'widget/findFileContent/AddOrEditConfigDialog.py',
+              'widget/findFileContent/AddOrEditMatchDialog.py',
+              'widget/findFileContent/FindFileContentDialog.py',
+              'widget/findFileContent/FindFileContentManager.py',
+
               'widget/hash/FileHashDialog.py',
               'widget/mockExam/Excel2Word.py',
               'widget/mockExam/MockExamDialog.py',

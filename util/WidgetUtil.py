@@ -616,6 +616,8 @@ class WidgetUtil:
         widgetSetAttrs(widget, objectName, toolTip=toolTip, geometry=geometry, isEnable=isEnable, sizePolicy=sizePolicy)
         if holderText:
             widget.setPlaceholderText(_translate(contextName, holderText))
+            if not toolTip:
+                widget.setToolTip(_translate(contextName, holderText))
         if text:
             widget.setText(_translate(contextName, text))
         if textChanged:
