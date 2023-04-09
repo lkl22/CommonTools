@@ -152,7 +152,7 @@ class MainWidget(QMainWindow):
         hbox.addWidget(WidgetUtil.createPushButton(box, text="计算文件hash", onClicked=self.jumpFileHashDialog), 1)
         hbox.addWidget(WidgetUtil.createPushButton(box, text="账号管理", onClicked=self.jumpAccountManagerDialog), 1)
         hbox.addWidget(WidgetUtil.createPushButton(box, text="项目管理", onClicked=self.jumpProjectManagerWindow), 1)
-        hbox.addWidget(WidgetUtil.createPushButton(box, text="批量查找文件内容", onClicked=self.jumpFindFileContentDialog), 1)
+        hbox.addWidget(WidgetUtil.createPushButton(box, text="批量查找文件内容", onClicked=self.jumpFindFileContentWindow), 1)
         hbox.addWidget(WidgetUtil.createLabel(box), 1)
         vbox.addLayout(hbox)
         vbox.addItem(WidgetUtil.createVSpacerItem(1, 1))
@@ -244,8 +244,12 @@ class MainWidget(QMainWindow):
         window.show()
         pass
 
-    def jumpFindFileContentDialog(self):
-        LogUtil.i(TAG, "jumpFindFileContentDialog")
-        from widget.findFileContent.FindFileContentDialog import FindFileContentDialog
-        FindFileContentDialog()
+    def jumpFindFileContentWindow(self):
+        LogUtil.i(TAG, "jumpFindFileContentWindow")
+        from widget.findFileContent.FindFileContentWindow import FindFileContentWindow
+        window = FindFileContentWindow()
+        # 注：没有这句，是不打开另一个主界面的
+        self.windowList.append(window)
+        self.close()
+        window.show()
         pass

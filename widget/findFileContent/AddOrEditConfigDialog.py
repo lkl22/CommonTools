@@ -2,6 +2,8 @@
 # python 3.x
 # Filename: AddOrEditConfigDialog.py
 # 定义一个AddOrEditConfigDialog类实现添加/编辑查找配置
+import copy
+
 from PyQt5.QtCore import QModelIndex
 from PyQt5.QtWidgets import QAbstractItemView
 
@@ -35,7 +37,7 @@ class AddOrEditConfigDialog(QtWidgets.QDialog):
         self.isAdd = default is None
         self.isDebug = isDebug
 
-        self.matchList = DictUtil.get(self.default, KEY_LIST, [])
+        self.matchList = copy.deepcopy(DictUtil.get(self.default, KEY_LIST, []))
 
         self.setObjectName("AddOrEditConfigDialog")
         self.resize(AddOrEditConfigDialog.WINDOW_WIDTH, AddOrEditConfigDialog.WINDOW_HEIGHT)
@@ -155,13 +157,11 @@ class AddOrEditConfigDialog(QtWidgets.QDialog):
         if not ReUtil.match(name, "\\w*"):
             WidgetUtil.showErrorDialog(message="请输入正确的配置名（只能包含字母数字及下划线）")
             return
-        for item in self.configList:
-            if name == item[KEY_NAME]:
-                WidgetUtil.showErrorDialog(message=f"请重新添加一个其他的配置，{name}已经存在了，可以下拉选择")
-                return
-            if desc == item[KEY_DESC]:
-                WidgetUtil.showErrorDialog(message=f"请设置一个其他的描述，{desc}已经存在了，相同的描述会产生混淆")
-                return
+        if self.isAdd or DictUtil.get(self.default, KEY_NAME) != name:
+            for item in self.configList:
+                if name == item[KEY_NAME]:
+                    WidgetUtil.showErrorDialog(message=f"请重新添加一个其他的配置，{name}已经存在了，可以下拉选择")
+                    return
         self.default[KEY_NAME] = name
         self.default[KEY_DESC] = desc
         self.default[KEY_LIST] = self.matchList

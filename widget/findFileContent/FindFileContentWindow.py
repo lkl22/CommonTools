@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 # python 3.x
-# Filename: FindFileContentDialog.py
-# 定义一个FindFileContentDialog类实现批量查找文件内容功能
+# Filename: FindFileContentWindow.py
+# 定义一个FindFileContentWindow类实现批量查找文件内容功能
 from PyQt5.QtCore import QModelIndex
-from PyQt5.QtWidgets import QAbstractItemView
+from PyQt5.QtWidgets import QAbstractItemView, QMainWindow
 
 from constant.WidgetConst import *
 from util.DialogUtil import *
@@ -15,21 +15,23 @@ from widget.custom.DragInputWidget import DragInputWidget
 from widget.findFileContent.AddOrEditConfigDialog import AddOrEditConfigDialog
 from widget.findFileContent.FindFileContentManager import *
 
-TAG = "FindFileContentDialog"
+TAG = "FindFileContentWindow"
 
 
-class FindFileContentDialog(QtWidgets.QDialog):
+class FindFileContentWindow(QMainWindow):
+    windowList = []
+
     def __init__(self, isDebug=False):
         # 调用父类的构函
-        QtWidgets.QDialog.__init__(self)
+        QMainWindow.__init__(self)
         self.setWindowFlags(Qt.Dialog | Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint)
-        FindFileContentDialog.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.7)
-        FindFileContentDialog.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.7)
-        LogUtil.d(TAG, "FindFileContentDialog")
+        FindFileContentWindow.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.7)
+        FindFileContentWindow.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.7)
+        LogUtil.d(TAG, "FindFileContentWindow")
         self.setWindowTitle(WidgetUtil.translate(text="批量查找文件中包含的指定内容"))
 
-        self.setObjectName("FindFileContentDialog")
-        self.resize(FindFileContentDialog.WINDOW_WIDTH, FindFileContentDialog.WINDOW_HEIGHT)
+        self.setObjectName("FindFileContentWindow")
+        self.resize(FindFileContentWindow.WINDOW_WIDTH, FindFileContentWindow.WINDOW_HEIGHT)
         # self.setFixedSize(MockExamDialog.WINDOW_WIDTH, MockExamDialog.WINDOW_HEIGHT)
 
         self.isDebug = isDebug
@@ -43,16 +45,31 @@ class FindFileContentDialog(QtWidgets.QDialog):
         if not self.curConfigInfo:
             self.curConfigInfo = {}
 
-        vLayout = WidgetUtil.createVBoxLayout(self, margins=QMargins(10, 10, 10, 10), spacing=10)
-        self.setLayout(vLayout)
+        layoutWidget = QtWidgets.QWidget(self)
+        layoutWidget.setObjectName("layoutWidget")
+        vLayout = WidgetUtil.createVBoxLayout(layoutWidget, margins=QMargins(10, 10, 10, 10), spacing=10)
+        self.setCentralWidget(layoutWidget)
+        layoutWidget.setLayout(vLayout)
 
         self.managerGroupBox = self.createManagerGroupBox(self)
         vLayout.addWidget(self.managerGroupBox)
 
-        self.setWindowModality(Qt.WindowModal)
-        if not isDebug:
-            # 很关键，不加出不来
-            self.exec_()
+        self.consoleTextEdit = WidgetUtil.createTextEdit(self, isReadOnly=True)
+        vLayout.addWidget(self.consoleTextEdit, 1)
+        self.statusBar().showMessage("状态栏")
+        self.show()
+
+    # 重写关闭事件，回到第一界面
+    def closeEvent(self, event):
+        if self.isDebug:
+            return
+        from widget.MainWidget import MainWidget
+        window = MainWidget()
+        # 注：没有这句，是不打开另一个主界面的
+        self.windowList.append(window)
+        window.show()
+        event.accept()
+        pass
 
     def createManagerGroupBox(self, parent):
         box = WidgetUtil.createGroupBox(parent, title="")
@@ -83,13 +100,13 @@ class FindFileContentDialog(QtWidgets.QDialog):
         return box
 
     def updateConfigComboBox(self):
+        self.configsComboBox.clear()
         if self.configList:
-            self.configsComboBox.clear()
             for index, item in enumerate(self.configList):
-                self.configsComboBox.addItem(item[KEY_NAME], item)
+                self.configsComboBox.addItem(f"{item[KEY_NAME]}（{item[KEY_DESC]}）", item)
             if not self.curConfigInfo:
                 self.curConfigInfo = self.configList[0]
-            self.configsComboBox.setCurrentText(self.curConfigInfo[KEY_NAME])
+            self.configsComboBox.setCurrentText(f"{self.curConfigInfo[KEY_NAME]}（{self.curConfigInfo[KEY_DESC]}）")
             LogUtil.d(TAG, 'updateConfigComboBox setCurrentText', self.curConfigInfo)
         pass
 
@@ -108,15 +125,27 @@ class FindFileContentDialog(QtWidgets.QDialog):
 
     def editConfig(self):
         LogUtil.d(TAG, "editConfig")
-        AddOrEditConfigDialog(configList=self.configs[KEY_LIST], callback=self.addOrEditConfigCallback, isDebug=self.isDebug).show()
+        AddOrEditConfigDialog(default=self.curConfigInfo, configList=self.configs[KEY_LIST],
+                              callback=self.addOrEditConfigCallback, isDebug=self.isDebug).show()
         pass
 
     def delConfig(self):
         LogUtil.d(TAG, "delConfig")
-        # name = self.matchList[self.curDelRow][KEY_NAME]
-        # LogUtil.i(TAG, f"delMatch {name}")
-        # WidgetUtil.showQuestionDialog(message=f"你确定需要删除 <span style='color:red;'>{name}</span> 吗？",
-        #                               acceptFunc=self.delTableItem)
+        if not self.curConfigInfo:
+            WidgetUtil.showErrorDialog(message=f"当前没有选中任何配置。")
+            return
+        name = self.curConfigInfo[KEY_NAME]
+        LogUtil.i(TAG, f"delMatch {name}")
+        WidgetUtil.showQuestionDialog(message=f"你确定需要删除 <span style='color:red;'>{name}</span> 吗？",
+                                      acceptFunc=self.delConfigItem)
+        pass
+
+    def delConfigItem(self):
+        LogUtil.d(TAG, "delConfigItem")
+        ListUtil.remove(self.configList, self.curConfigInfo)
+        self.curConfigInfo = {}
+        self.updateConfigComboBox()
+        self.updateConfigInfo()
         pass
 
     def addOrEditConfigCallback(self, info):
@@ -137,6 +166,6 @@ class FindFileContentDialog(QtWidgets.QDialog):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    window = FindFileContentDialog(isDebug=True)
+    window = FindFileContentWindow(isDebug=True)
     window.show()
     sys.exit(app.exec_())
