@@ -63,9 +63,11 @@ a = Analysis(['RunMain.py',
               'widget/custom/LoadingDialog.py',
 
               'widget/fileOperation/FileOperationDialog.py',
+
               'widget/findFileContent/AddOrEditConfigDialog.py',
               'widget/findFileContent/AddOrEditMatchDialog.py',
               'widget/findFileContent/FindFileContentManager.py',
+              'widget/findFileContent/FindFileContentUtil.py',
               'widget/findFileContent/FindFileContentWindow.py',
 
               'widget/hash/FileHashDialog.py',

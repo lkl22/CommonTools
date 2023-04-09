@@ -14,6 +14,7 @@ from util.ReUtil import ReUtil
 from widget.custom.DragInputWidget import DragInputWidget
 from widget.findFileContent.AddOrEditConfigDialog import AddOrEditConfigDialog
 from widget.findFileContent.FindFileContentManager import *
+from widget.findFileContent.FindFileContentUtil import FindFileContentUtil
 
 TAG = "FindFileContentWindow"
 
@@ -60,6 +61,8 @@ class FindFileContentWindow(QMainWindow):
         self.consoleTextEdit = WidgetUtil.createTextEdit(self, isReadOnly=True)
         vLayout.addWidget(self.consoleTextEdit, 1)
         self.statusBar().showMessage("状态栏")
+        self.updateProgressSignal.connect(self.standardOutput)
+        self.updateStatusBarSignal.connect(self.statusBarShowMessage)
         self.show()
 
     # 重写关闭事件，回到第一界面
@@ -180,6 +183,40 @@ class FindFileContentWindow(QMainWindow):
 
     def startExec(self):
         LogUtil.i(TAG, "startExec")
+        if not self.path:
+            WidgetUtil.showErrorDialog(message="请先选择您的工作目录。")
+            return
+        if not self.curConfigInfo:
+            WidgetUtil.showErrorDialog(message="请先选择一个配置项。")
+            return
+        fileList = FindFileContentUtil.findFileList(fp=self.path, configInfo=self.curConfigInfo)
+        LogUtil.d(TAG, "startExec fileList", fileList)
+
+        patternList = FindFileContentUtil.getPatternList(configInfo=self.curConfigInfo)
+        LogUtil.d(TAG, "startExec patternList", patternList)
+
+        FindFileContentUtil.findFileContent(fileList=fileList, patternList=patternList,
+                                            statusCallback=self.statusMsgCallback,
+                                            resCallback=self.findResCallback)
+        self.updateStatusBarSignal.emit("处理完成")
+        pass
+
+    def statusMsgCallback(self, msg):
+        LogUtil.i(TAG, "statusMsgCallback", msg)
+        self.updateStatusBarSignal.emit(msg)
+        pass
+
+    def findResCallback(self, fp, matchContent):
+        LogUtil.i(TAG, "findResCallback", fp, matchContent)
+        self.updateProgressSignal.emit(f"查找文件：{fp}", "#00f")
+        self.updateProgressSignal.emit(f"包含的字符：\n{str(matchContent)}\n", "#F00")
+        pass
+
+    def statusBarShowMessage(self, msg):
+        self.statusBar().showMessage(msg)
+
+    def standardOutput(self, log, color):
+        WidgetUtil.appendTextEdit(self.consoleTextEdit, text=log, color=color)
         pass
 
 

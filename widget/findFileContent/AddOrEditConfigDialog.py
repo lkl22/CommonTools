@@ -198,7 +198,7 @@ class AddOrEditConfigDialog(QtWidgets.QDialog):
                     return
         self.default[KEY_NAME] = name
         self.default[KEY_DESC] = desc
-        self.default[KEY_MATCH_TYPE] = MATCH_TYPE_EXCLUDE if self.fileNameMatchType.checkedId() == 1 else MATCH_TYPE_INCLUDE
+        self.default[KEY_MATCH_TYPE] = MATCH_TYPE_INCLUDE if self.fileNameMatchType.checkedId() == 0 else MATCH_TYPE_EXCLUDE
         self.default[KEY_INCLUDE_PATTERN] = self.includePatternLineEdit.text().strip()
         self.default[KEY_EXCLUDE_EXT] = self.excludeExtLineEdit.text().strip()
         self.default[KEY_EXCLUDE_DIR] = self.excludeDirLineEdit.text().strip()
