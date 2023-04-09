@@ -6,6 +6,7 @@ import re
 
 from util.DictUtil import DictUtil
 from util.FileUtil import FileUtil
+from util.LogUtil import LogUtil
 from widget.findFileContent.FindFileContentManager import *
 
 TAG = "FindFileContentUtil"
@@ -31,11 +32,17 @@ class FindFileContentUtil:
         else:
             excludeExtStr = DictUtil.get(configInfo, KEY_EXCLUDE_EXT, "")
             excludeExtList = excludeExtStr.split(";")
-            return FileUtil.findFilePathListByExclude(dirPath=fp, excludeExtPatterns=excludeExtList, excludeDirPatterns=excludeDirs)
+            return FileUtil.findFilePathListByExclude(dirPath=fp, excludeExtPatterns=excludeExtList,
+                                                      excludeDirPatterns=excludeDirs)
         pass
 
     @staticmethod
     def getPatternList(configInfo: {}):
+        """
+        获取匹配正则表达式列表
+        :param configInfo: 配置信息
+        :return: 正则表达式列表
+        """
         patternList = []
         patternConfigs = DictUtil.get(configInfo, KEY_LIST, [])
         pattern = ""
@@ -53,24 +60,54 @@ class FindFileContentUtil:
 
     @staticmethod
     def findFileContent(fileList: [], patternList: [], statusCallback, resCallback):
+        """
+        查找文件内容
+        :param fileList: 文件列表
+        :param patternList: 正则表达式列表
+        :param statusCallback: 处理状态回调
+        :param resCallback: 处理结果回调
+        """
         for fn in fileList:
             statusCallback(fn)
             fileSize = FileUtil.readFileSize(fn)
+            findContents = []
             if fileSize > MAX_FILE_SIZE:
-                pass
+                try:
+                    with open(fn, encoding="utf8") as file:
+                        lineNo = 1
+                        while True:
+                            content = file.readline()
+                            if not content:
+                                break
+                            FindFileContentUtil.matchContent(content=content, findContents=findContents, patternList=patternList, lineNo=lineNo)
+                            lineNo += 1
+                except Exception as e:
+                    LogUtil.e(TAG, 'findFileContent错误信息：', e)
             else:
                 fileContent = FileUtil.readFile(fn)
-                findContents = []
-                for pattern in patternList:
-                    it = re.finditer(pattern=pattern, string=fileContent, flags=re.I)
-                    for match in it:
-                        res = match.group()
-                        if res not in findContents:
-                            findContents.append(res)
+                FindFileContentUtil.matchContent(content=fileContent, findContents=findContents, patternList=patternList)
+            if findContents:
                 resCallback(fn, findContents)
         pass
 
+    @staticmethod
+    def matchContent(content, findContents: [], patternList: [], lineNo=-1):
+        """
+        从指定字符串文本中查找匹配的字符，并将结果添加进结果集
+        :param content: 源文本
+        :param findContents: 结果集
+        :param patternList: 匹配规则
+        :param lineNo: 当前文本在文件中的行号 -1，无效行号
+        """
+        for pattern in patternList:
+            it = re.finditer(pattern=pattern, string=content, flags=re.I)
+            for match in it:
+                res = match.group()
+                if lineNo > 0:
+                    res = f"{lineNo}: {res}"
+                if res not in findContents:
+                    findContents.append(res)
+
 
 if __name__ == '__main__':
-
     pass

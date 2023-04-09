@@ -189,6 +189,8 @@ class FindFileContentWindow(QMainWindow):
         if not self.curConfigInfo:
             WidgetUtil.showErrorDialog(message="请先选择一个配置项。")
             return
+
+        self.consoleTextEdit.clear()
         fileList = FindFileContentUtil.findFileList(fp=self.path, configInfo=self.curConfigInfo)
         LogUtil.d(TAG, "startExec fileList", fileList)
 
@@ -206,10 +208,13 @@ class FindFileContentWindow(QMainWindow):
         self.updateStatusBarSignal.emit(msg)
         pass
 
-    def findResCallback(self, fp, matchContent):
-        LogUtil.i(TAG, "findResCallback", fp, matchContent)
-        self.updateProgressSignal.emit(f"查找文件：{fp}", "#00f")
-        self.updateProgressSignal.emit(f"包含的字符：\n{str(matchContent)}\n", "#F00")
+    def findResCallback(self, fp, matchContents):
+        LogUtil.i(TAG, "findResCallback", fp, matchContents)
+        self.updateProgressSignal.emit(f"查找文件：{fp}", "#00F")
+        self.updateProgressSignal.emit(f"包含的字符：", "#F0F")
+        for matchContent in matchContents:
+            self.updateProgressSignal.emit(f"{str(matchContent)}", "#F00")
+        self.updateProgressSignal.emit(f"", "#F00")
         pass
 
     def statusBarShowMessage(self, msg):

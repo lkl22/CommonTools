@@ -293,8 +293,8 @@ class FileUtil:
         :return: 文件内容
         """
         try:
-            file = open(fp, encoding=encoding)
-            return file.read()
+            with open(fp, encoding=encoding) as file:
+                return file.read()
         except Exception as e:
             LogUtil.e(TAG, 'FileUtil readFile 错误信息：', e)
             return None
