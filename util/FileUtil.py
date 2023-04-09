@@ -14,11 +14,12 @@ TAG = "FileUtil"
 
 class FileUtil:
     @staticmethod
-    def findFilePathList(dirPath, findPatterns=[], isFullPath=True):
+    def findFilePathList(dirPath, findPatterns=[], excludeDirPatterns=[], isFullPath=True):
         """
         查找指定目录下匹配文件名的文件路径
         :param dirPath: 查找目录path
         :param findPatterns: 文件名匹配正则，不传返回目录下所有文件
+        :param excludeDirPatterns: 需要排除的目录，文件在排除的目录列表下的排除掉
         :param isFullPath: True 文件全路径名，False 子文件路径
         :return: 查找到的文件path列表
         """
@@ -30,11 +31,49 @@ class FileUtil:
                 filePath = os.path.join(parent, fn).replace("\\", "/")
                 if not isFullPath:
                     filePath = filePath.replace(os.path.join(dirPath, ''), '')
-                if len(findPatterns) > 0:
-                    if ReUtil.matchMore(fn, findPatterns):
-                        L.append(filePath)
-                else:
-                    L.append(filePath)
+
+                fp, fn = os.path.split(filePath)
+                _, fileExt = os.path.splitext(fn)
+
+                if len(excludeDirPatterns) > 0 and ReUtil.matchMore(fp + "/", excludeDirPatterns):
+                    LogUtil.i(TAG, f"findFilePathList {filePath} in {excludeDirPatterns}")
+                    continue
+
+                if len(findPatterns) > 0 and not ReUtil.matchMore(fn, findPatterns):
+                    LogUtil.i(TAG, f"findFilePathList {filePath} not in {findPatterns}")
+                    continue
+                L.append(filePath)
+        return L
+
+    @staticmethod
+    def findFilePathListByExclude(dirPath, excludeExtPatterns=[], excludeDirPatterns=[], isFullPath=True):
+        """
+        查找指定目录下排除了指定目录/后缀文件的文件路径
+        :param dirPath: 查找目录path
+        :param excludeExtPatterns: 需要排除的文件后缀，文件后缀包含在该列表的排除掉
+        :param excludeDirPatterns: 需要排除的目录，文件在排除的目录列表下的排除掉
+        :param isFullPath: True 文件全路径名，False 子文件路径
+        :return: 查找到的文件path列表
+        """
+        L = []
+        # for循环自动完成递归枚举
+        # 三个参数：分别返回1.父目录（当前路径） 2.所有文件夹名字（不含路径） 3.所有文件名字（不含路径）
+        for parent, dirnames, filenames in os.walk(dirPath):
+            for fn in filenames:
+                filePath = os.path.join(parent, fn).replace("\\", "/")
+                if not isFullPath:
+                    filePath = filePath.replace(os.path.join(dirPath, ''), '')
+                fp, fn = os.path.split(filePath)
+                _, fileExt = os.path.splitext(fn)
+
+                if len(excludeDirPatterns) > 0 and ReUtil.matchMore(fp + "/", excludeDirPatterns):
+                    LogUtil.i(TAG, f"findFilePathListByExclude {filePath} in {excludeDirPatterns}")
+                    continue
+
+                if len(excludeExtPatterns) > 0 and fileExt in excludeExtPatterns:
+                    LogUtil.i(TAG, f"findFilePathListByExclude {fn} in {excludeExtPatterns}")
+                    continue
+                L.append(filePath)
         return L
 
     @staticmethod
@@ -110,7 +149,7 @@ class FileUtil:
         :param isCopy: True 复制 False 移动
         """
         # 查找需要复制/移动的文件列表
-        srcFiles = FileUtil.findFilePathList(srcFp, fnPatterns)
+        srcFiles = FileUtil.findFilePathList(dirPath=srcFp, findPatterns=fnPatterns)
         for srcFile in srcFiles:
             dstFile = srcFile.replace(srcFp, dstFp)
             FileUtil.modifyFilePath(srcFile, dstFile, isCopy)
@@ -299,7 +338,7 @@ if __name__ == "__main__":
     #     FileUtil.modifyFilesPath(["strings.xml", "colors.xml"],
     #                             "/Users/likunlun/PycharmProjects/CarAssist/app/src/main/res",
     #                             "/Users/likunlun/PycharmProjects/CarAssist/app/src/main/bb", True)
-    print(FileUtil.getProjectPath())
+    # print(FileUtil.getProjectPath())
     # print(FileUtil.getConfigFp('BaseConfig.ini'))
     #
     # print(FileUtil.getIconFp('zoom_in.jpg'))
@@ -311,5 +350,7 @@ if __name__ == "__main__":
     # print(FileUtil.readFileSize('0C1A8658.JPG'))
     # print(FileUtil.getFileName('/aa/ad/../d/0C1A8658.JPG'))
 
-    print(FileUtil.existsFile('/aa/ad/../d/0C1A8658.JPG'))
-    print(FileUtil.existsFile('../resources/mockExam/题库模版.xlsx'))
+    # print(FileUtil.existsFile('/aa/ad/../d/0C1A8658.JPG'))
+    # print(FileUtil.existsFile('../resources/mockExam/题库模版.xlsx'))
+
+    print(FileUtil.findFilePathListByExclude('./', [".JPG", ".py"], [".*/111/.*", ".*/__pycache__/.*"]))

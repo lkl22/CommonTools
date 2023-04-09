@@ -211,7 +211,7 @@ class AndroidResDialog(QtWidgets.QDialog):
             attrValues = ''
 
         # 查找需要修改的文件列表
-        srcFiles = FileUtil.findFilePathList(srcFileDirPath, srcFnPs)
+        srcFiles = FileUtil.findFilePathList(dirPath=srcFileDirPath, findPatterns=srcFnPs)
         if srcFiles:
             for srcFile in srcFiles:
                 dstFile = srcFile.replace(srcFileDirPath, dstFileDirPath, 1)

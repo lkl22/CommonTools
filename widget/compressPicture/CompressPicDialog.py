@@ -251,7 +251,7 @@ class CompressPicDialog(QtWidgets.QDialog):
         srcFnPs = data.split(";")
         # 查找需要修改的图片列表
         srcFileDirPath = self.srcFilePathLineEdit.text().strip()
-        srcFiles = FileUtil.findFilePathList(srcFileDirPath, srcFnPs)
+        srcFiles = FileUtil.findFilePathList(dirPath=srcFileDirPath, findPatterns=srcFnPs)
         if len(srcFiles) == 1:
             self.dstFnPatternsLineEdit.setEnabled(True)
         else:
@@ -291,7 +291,7 @@ class CompressPicDialog(QtWidgets.QDialog):
         LogUtil.d(TAG, "目标图片文件名：", dstFnPs)
 
         # 查找需要修改的图片列表
-        srcFiles = FileUtil.findFilePathList(srcFileDirPath, srcFnPs)
+        srcFiles = FileUtil.findFilePathList(dirPath=srcFileDirPath, findPatterns=srcFnPs)
         if srcFiles:
             self.setCompressPicProgress(0, len(srcFiles))
             self.compressRes.clear()

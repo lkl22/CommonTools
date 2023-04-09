@@ -7,6 +7,7 @@ import copy
 from PyQt5.QtCore import QModelIndex
 from PyQt5.QtWidgets import QAbstractItemView
 
+from constant import const
 from util.DialogUtil import *
 from util.DictUtil import DictUtil
 from util.OperaIni import *
@@ -45,19 +46,52 @@ class AddOrEditConfigDialog(QtWidgets.QDialog):
 
         vLayout = WidgetUtil.createVBoxLayout(self, margins=QMargins(10, 10, 10, 10), spacing=10)
         self.setLayout(vLayout)
-
+        labelWidth = 130
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
-        hbox.addWidget(WidgetUtil.createLabel(self, text="请输入配置名：", minSize=QSize(120, 20)))
+        hbox.addWidget(WidgetUtil.createLabel(self, text="请输入配置名：", minSize=QSize(labelWidth, const.HEIGHT)))
         self.nameLineEdit = WidgetUtil.createLineEdit(self, text=DictUtil.get(default, KEY_NAME),
                                                       holderText="配置名（只能包含字母数字及下划线）")
         hbox.addWidget(self.nameLineEdit)
         vLayout.addLayout(hbox)
 
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
-        hbox.addWidget(WidgetUtil.createLabel(self, text="请输入配置描述：", minSize=QSize(120, 20)))
+        hbox.addWidget(WidgetUtil.createLabel(self, text="请输入配置描述：", minSize=QSize(labelWidth, const.HEIGHT)))
         self.descLineEdit = WidgetUtil.createLineEdit(self, text=DictUtil.get(default, KEY_DESC),
                                                       holderText="配置描述，用于说明该配置的作用")
         hbox.addWidget(self.descLineEdit)
+        vLayout.addLayout(hbox)
+
+        hbox = WidgetUtil.createHBoxLayout(spacing=10)
+        hbox.addWidget(WidgetUtil.createLabel(self, text="文件匹配规则：", minSize=QSize(labelWidth, const.HEIGHT)))
+        self.fileNameMatchType = WidgetUtil.createButtonGroup()
+        radioButton = WidgetUtil.createRadioButton(self, text="include文件名正则", isChecked=DictUtil.get(default, KEY_MATCH_TYPE) == MATCH_TYPE_INCLUDE)
+        self.fileNameMatchType.addButton(radioButton, 0)
+        hbox.addWidget(radioButton)
+        radioButton = WidgetUtil.createRadioButton(self, text="Exclude文件名后缀", isChecked=DictUtil.get(default, KEY_MATCH_TYPE) == MATCH_TYPE_EXCLUDE)
+        self.fileNameMatchType.addButton(radioButton, 1)
+        hbox.addWidget(radioButton)
+        hbox.addItem(WidgetUtil.createHSpacerItem(1, 1))
+        vLayout.addLayout(hbox)
+
+        hbox = WidgetUtil.createHBoxLayout(spacing=10)
+        hbox.addWidget(WidgetUtil.createLabel(self, text="include文件名正则：", minSize=QSize(labelWidth, const.HEIGHT)))
+        self.includePatternLineEdit = WidgetUtil.createLineEdit(self, text=DictUtil.get(default, KEY_INCLUDE_PATTERN),
+                                                                holderText="指定了，匹配了该正则规则的文件才会执行，跟Exclude文件名后缀互斥，可以使用英文;分隔多个正则表达式，例如：.*jpg;.*png，会匹配jpg/png文件")
+        hbox.addWidget(self.includePatternLineEdit)
+        vLayout.addLayout(hbox)
+
+        hbox = WidgetUtil.createHBoxLayout(spacing=10)
+        hbox.addWidget(WidgetUtil.createLabel(self, text="Exclude文件名后缀：", minSize=QSize(labelWidth, const.HEIGHT)))
+        self.excludeExtLineEdit = WidgetUtil.createLineEdit(self, text=DictUtil.get(default, KEY_EXCLUDE_EXT),
+                                                            holderText="指定了，包含了文件名后缀的文件会被排除，跟include文件名正则互斥，可以使用英文;分隔多个后缀，例如：.jpg;.png，会排除jpg/png文件")
+        hbox.addWidget(self.excludeExtLineEdit)
+        vLayout.addLayout(hbox)
+
+        hbox = WidgetUtil.createHBoxLayout(spacing=10)
+        hbox.addWidget(WidgetUtil.createLabel(self, text="Exclude目录正则：", minSize=QSize(labelWidth, const.HEIGHT)))
+        self.excludeDirLineEdit = WidgetUtil.createLineEdit(self, text=DictUtil.get(default, KEY_EXCLUDE_DIR),
+                                                            holderText="指定了，文件路径匹配了该正则的文件会被过滤，可以使用英文;分隔多个正则，例如：.*/11/.*;.*/22/.*，会排除11/22文件夹下所有的文件")
+        hbox.addWidget(self.excludeDirLineEdit)
         vLayout.addLayout(hbox)
 
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
@@ -164,6 +198,10 @@ class AddOrEditConfigDialog(QtWidgets.QDialog):
                     return
         self.default[KEY_NAME] = name
         self.default[KEY_DESC] = desc
+        self.default[KEY_MATCH_TYPE] = MATCH_TYPE_EXCLUDE if self.fileNameMatchType.checkedId() == 1 else MATCH_TYPE_INCLUDE
+        self.default[KEY_INCLUDE_PATTERN] = self.includePatternLineEdit.text().strip()
+        self.default[KEY_EXCLUDE_EXT] = self.excludeExtLineEdit.text().strip()
+        self.default[KEY_EXCLUDE_DIR] = self.excludeDirLineEdit.text().strip()
         self.default[KEY_LIST] = self.matchList
         if self.callback:
             self.callback(self.default if self.isAdd else None)
@@ -174,7 +212,8 @@ class AddOrEditConfigDialog(QtWidgets.QDialog):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     # window = AddOrEditConfigDialog(configList=[], callback=lambda it: LogUtil.d(TAG, it), isDebug=True)
-    window = AddOrEditConfigDialog(default={'name': '111', 'desc': '2233', 'list': [{'name': '11', 'desc': '222', 'pattern': '333', 'isReg': False}]},
+    window = AddOrEditConfigDialog(default={'name': '111', 'desc': '2233',
+                                            'list': [{'name': '11', 'desc': '222', 'pattern': '333', 'isReg': False}]},
                                    configList=[], callback=lambda it: LogUtil.d(TAG, it), isDebug=True)
     window.show()
     sys.exit(app.exec_())

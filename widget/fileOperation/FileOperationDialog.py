@@ -150,7 +150,7 @@ class FileOperationDialog(QtWidgets.QDialog):
             return
         LogUtil.d(TAG, "将指定目录：", changeFileDirPath, " 下的所有文件 ", beforeFn, " 修改为 ", afterFn)
         # 查找需要修改名称的文件列表
-        srcFiles = FileUtil.findFilePathList(changeFileDirPath, [beforeFn])
+        srcFiles = FileUtil.findFilePathList(dirPath=changeFileDirPath, findPatterns=[beforeFn])
         if srcFiles:
             if FileUtil.modifyFilesName(srcFiles, afterFn):
                 WidgetUtil.showErrorDialog(message="修改成功")

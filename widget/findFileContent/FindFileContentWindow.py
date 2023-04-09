@@ -2,7 +2,7 @@
 # python 3.x
 # Filename: FindFileContentWindow.py
 # 定义一个FindFileContentWindow类实现批量查找文件内容功能
-from PyQt5.QtCore import QModelIndex
+from PyQt5.QtCore import QModelIndex, pyqtSignal
 from PyQt5.QtWidgets import QAbstractItemView, QMainWindow
 
 from constant.WidgetConst import *
@@ -20,6 +20,8 @@ TAG = "FindFileContentWindow"
 
 class FindFileContentWindow(QMainWindow):
     windowList = []
+    updateProgressSignal = pyqtSignal(str, str)
+    updateStatusBarSignal = pyqtSignal(str)
 
     def __init__(self, isDebug=False):
         # 调用父类的构函
@@ -37,6 +39,7 @@ class FindFileContentWindow(QMainWindow):
         self.isDebug = isDebug
         self.manager = FindFileContentManager(isDebug=isDebug)
         self.configs = self.manager.configs
+        self.path = self.manager.path
         if not self.configs:
             self.configs = {KEY_DEFAULT: None, KEY_LIST: []}
         self.defaultName = DictUtil.get(self.configs, KEY_DEFAULT, "")
@@ -92,10 +95,16 @@ class FindFileContentWindow(QMainWindow):
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
         hbox.addWidget(WidgetUtil.createLabel(box, text="工程路径：", minSize=QSize(labelWidth, const.HEIGHT)))
         self.pathInputWidget = DragInputWidget(
-            text=DictUtil.get(self.curConfigInfo, KEY_PATH),
-            dirParam=["请选择您工程工作目录", "./"], isReadOnly=True,
-            holderText="请拖动您工程的工作目录到此框或者点击右侧的按钮选择您的工程路径")
+            text=self.path,
+            dirParam=["请选择您的工作目录", "./"], isReadOnly=True,
+            holderText="请拖动您的工作目录到此框或者点击右侧的按钮选择您的工作路径",
+            textChanged=self.pathChanged)
         hbox.addWidget(self.pathInputWidget)
+        vbox.addLayout(hbox)
+
+        hbox = WidgetUtil.createHBoxLayout(spacing=10)
+        hbox.addWidget(WidgetUtil.createPushButton(box, text="开始执行", onClicked=self.startExec))
+        hbox.addItem(WidgetUtil.createHSpacerItem(1, 1))
         vbox.addLayout(hbox)
         return box
 
@@ -161,6 +170,16 @@ class FindFileContentWindow(QMainWindow):
         self.configs[KEY_DEFAULT] = DictUtil.get(self.curConfigInfo, KEY_NAME)
         self.configs[KEY_LIST] = self.configList
         self.manager.saveConfigInfos(self.configs)
+        pass
+
+    def pathChanged(self, fp):
+        LogUtil.d(TAG, "pathChanged", fp)
+        self.path = fp
+        self.manager.savePath(fp)
+        pass
+
+    def startExec(self):
+        LogUtil.i(TAG, "startExec")
         pass
 
 

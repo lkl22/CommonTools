@@ -151,7 +151,7 @@ class PhotoWallWindow(QMainWindow):
             filePath = self.filePath
             LogUtil.d(TAG, 'file path为{}'.format(filePath))
 
-            self.photoFps = FileUtil.findFilePathList(filePath, [self.photoType])
+            self.photoFps = FileUtil.findFilePathList(dirPath=filePath, findPatterns=[self.photoType])
             LogUtil.d(TAG, '预览图片path', self.photoFps)
 
             if len(self.photoFps) > 0:
