@@ -2,6 +2,10 @@
 # python 3.x
 # Filename: FindFileContentWindow.py
 # 定义一个FindFileContentWindow类实现批量查找文件内容功能
+import threading
+from concurrent.futures import as_completed, CancelledError
+from concurrent.futures.thread import ThreadPoolExecutor
+
 from PyQt5.QtCore import QModelIndex, pyqtSignal
 from PyQt5.QtWidgets import QAbstractItemView, QMainWindow
 
@@ -10,13 +14,13 @@ from util.DialogUtil import *
 from util.DictUtil import DictUtil
 from util.ListUtil import ListUtil
 from util.OperaIni import *
-from util.ReUtil import ReUtil
 from widget.custom.DragInputWidget import DragInputWidget
 from widget.findFileContent.AddOrEditConfigDialog import AddOrEditConfigDialog
 from widget.findFileContent.FindFileContentManager import *
 from widget.findFileContent.FindFileContentUtil import FindFileContentUtil
 
 TAG = "FindFileContentWindow"
+WORKING_THREAD_NUM = 5
 
 
 class FindFileContentWindow(QMainWindow):
@@ -48,6 +52,9 @@ class FindFileContentWindow(QMainWindow):
         self.curConfigInfo = ListUtil.find(self.configList, KEY_NAME, self.defaultName)
         if not self.curConfigInfo:
             self.curConfigInfo = {}
+        self.lock = threading.RLock()
+        self.futureList = []
+        self.executor = ThreadPoolExecutor(max_workers=WORKING_THREAD_NUM, thread_name_prefix="FindContent_")
 
         layoutWidget = QtWidgets.QWidget(self)
         layoutWidget.setObjectName("layoutWidget")
@@ -106,7 +113,8 @@ class FindFileContentWindow(QMainWindow):
         vbox.addLayout(hbox)
 
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
-        hbox.addWidget(WidgetUtil.createPushButton(box, text="开始执行", onClicked=self.startExec))
+        self.execBtn = WidgetUtil.createPushButton(box, text="开始执行", onClicked=self.startExec)
+        hbox.addWidget(self.execBtn)
         hbox.addItem(WidgetUtil.createHSpacerItem(1, 1))
         vbox.addLayout(hbox)
         return box
@@ -190,18 +198,42 @@ class FindFileContentWindow(QMainWindow):
             WidgetUtil.showErrorDialog(message="请先选择一个配置项。")
             return
 
+        self.execBtn.setEnabled(False)
         self.consoleTextEdit.clear()
         fileList = FindFileContentUtil.findFileList(fp=self.path, configInfo=self.curConfigInfo)
         LogUtil.d(TAG, "startExec fileList", fileList)
 
         patternList = FindFileContentUtil.getPatternList(configInfo=self.curConfigInfo)
         LogUtil.d(TAG, "startExec patternList", patternList)
+        # 放到线程执行
+        threading.Thread(target=self.startFindContent, args=(fileList, patternList)).start()
+        pass
 
+    def startFindContent(self, fileList, patternList):
+        fileNum = len(fileList)
+        peer = int(fileNum / WORKING_THREAD_NUM) + 1
+        startIndex = 0
+        endIndex = peer
+
+        future = self.executor.submit(self.execFindContent, fileList, patternList)
+        self.futureList.append(future)
+        for future in as_completed(self.futureList):
+            try:
+                res = future.result()
+                LogUtil.d(TAG, "res:", res)
+            except CancelledError as err:
+                LogUtil.e(TAG, "CancelledError", err)
+                break
+        self.updateStatusBarSignal.emit("处理完成")
+        self.execBtn.setEnabled(True)
+        pass
+
+    def execFindContent(self, fileList, patternList):
+        LogUtil.d(TAG, "execFindContent", fileList)
         FindFileContentUtil.findFileContent(fileList=fileList, patternList=patternList,
                                             statusCallback=self.statusMsgCallback,
                                             resCallback=self.findResCallback)
-        self.updateStatusBarSignal.emit("处理完成")
-        pass
+        return "Finished"
 
     def statusMsgCallback(self, msg):
         LogUtil.i(TAG, "statusMsgCallback", msg)
