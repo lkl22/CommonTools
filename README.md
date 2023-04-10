@@ -51,6 +51,8 @@ py -3.9 -m pip install pyqt5-tools --index-url https://pypi.tuna.tsinghua.edu.cn
 pip install pycryptodomex -i https://pypi.douban.com/simple 
 
 pip install networkx==2.8.7 pydot==1.4.2 matplotlib==3.6.1 
+
+pip install chardet
 ```
 
 4、PyCharm配置

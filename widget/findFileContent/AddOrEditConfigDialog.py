@@ -139,7 +139,7 @@ class AddOrEditConfigDialog(QtWidgets.QDialog):
     def addMatch(self):
         LogUtil.d(TAG, "addMatch")
         AddOrEditMatchDialog(matchList=self.matchList, callback=self.addOrEditMatchCallback,
-                             isDebug=self.isDebug).show()
+                             isDebug=self.isDebug)
         pass
 
     def addOrEditMatchCallback(self, info):
@@ -156,7 +156,7 @@ class AddOrEditConfigDialog(QtWidgets.QDialog):
 
         matchInfo = self.matchList[row]
         AddOrEditMatchDialog(default=matchInfo, matchList=self.matchList, callback=self.addOrEditMatchCallback,
-                             isDebug=self.isDebug).show()
+                             isDebug=self.isDebug)
         pass
 
     def customRightMenu(self, pos):

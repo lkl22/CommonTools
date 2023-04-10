@@ -4,6 +4,8 @@
 # 定义一个FindFileContentUtil类实现批量查找文件内容相关的工具方法
 import re
 
+import chardet
+
 from util.DictUtil import DictUtil
 from util.FileUtil import FileUtil
 from util.LogUtil import LogUtil
@@ -70,10 +72,18 @@ class FindFileContentUtil:
         for fn in fileList:
             statusCallback(fn)
             fileSize = FileUtil.readFileSize(fn)
+            if fileSize == 0:
+                continue
             findContents = []
-            if fileSize > MAX_FILE_SIZE:
+            encoding = None
+            with open(fn, mode="rb") as file:
+                data = file.read(1024)
+                detectRes = chardet.detect(data)
+                if detectRes["confidence"] > 0.9:
+                    encoding = detectRes["encoding"]
+            if encoding:
                 try:
-                    with open(fn, encoding="utf8") as file:
+                    with open(fn, encoding=encoding) as file:
                         lineNo = 1
                         while True:
                             content = file.readline()
@@ -84,8 +94,12 @@ class FindFileContentUtil:
                 except Exception as e:
                     LogUtil.e(TAG, 'findFileContent错误信息：', e)
             else:
-                fileContent = FileUtil.readFile(fn)
-                FindFileContentUtil.matchContent(content=fileContent, findContents=findContents, patternList=patternList)
+                with open(fn, mode="rb") as file:
+                    while True:
+                        content = file.read(1024)
+                        if not content:
+                            break
+                        FindFileContentUtil.matchContent(content=str(content), findContents=findContents, patternList=patternList)
             if findContents:
                 resCallback(fn, findContents)
         pass

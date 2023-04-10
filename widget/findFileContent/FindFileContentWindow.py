@@ -132,13 +132,13 @@ class FindFileContentWindow(QMainWindow):
 
     def addConfig(self):
         LogUtil.d(TAG, "addConfig")
-        AddOrEditConfigDialog(configList=self.configs[KEY_LIST], callback=self.addOrEditConfigCallback, isDebug=self.isDebug).show()
+        AddOrEditConfigDialog(configList=self.configs[KEY_LIST], callback=self.addOrEditConfigCallback)
         pass
 
     def editConfig(self):
         LogUtil.d(TAG, "editConfig")
         AddOrEditConfigDialog(default=self.curConfigInfo, configList=self.configs[KEY_LIST],
-                              callback=self.addOrEditConfigCallback, isDebug=self.isDebug).show()
+                              callback=self.addOrEditConfigCallback)
         pass
 
     def delConfig(self):
