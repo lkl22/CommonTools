@@ -213,10 +213,12 @@ class FindFileContentWindow(QMainWindow):
         fileNum = len(fileList)
         peer = int(fileNum / WORKING_THREAD_NUM) + 1
         startIndex = 0
-        endIndex = peer
-
-        future = self.executor.submit(self.execFindContent, fileList, patternList)
-        self.futureList.append(future)
+        LogUtil.i(TAG, f"startFindContent fileNum {fileNum} peer {peer}")
+        while startIndex < fileNum:
+            endIndex = min(startIndex + peer, fileNum)
+            future = self.executor.submit(self.execFindContent, fileList[startIndex:endIndex], patternList)
+            self.futureList.append(future)
+            startIndex += peer
         for future in as_completed(self.futureList):
             try:
                 res = future.result()
@@ -229,7 +231,7 @@ class FindFileContentWindow(QMainWindow):
         pass
 
     def execFindContent(self, fileList, patternList):
-        LogUtil.d(TAG, "execFindContent", fileList)
+        LogUtil.d(TAG, f"execFindContent {len(fileList)}", fileList)
         FindFileContentUtil.findFileContent(fileList=fileList, patternList=patternList,
                                             statusCallback=self.statusMsgCallback,
                                             resCallback=self.findResCallback)

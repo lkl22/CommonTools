@@ -81,6 +81,7 @@ class FindFileContentUtil:
                 detectRes = chardet.detect(data)
                 if detectRes["confidence"] > 0.9:
                     encoding = detectRes["encoding"]
+            LogUtil.i(TAG, "findFileContent", encoding)
             if encoding:
                 try:
                     with open(fn, encoding=encoding) as file:
@@ -91,15 +92,18 @@ class FindFileContentUtil:
                                 break
                             FindFileContentUtil.matchContent(content=content, findContents=findContents, patternList=patternList, lineNo=lineNo)
                             lineNo += 1
+                    if findContents:
+                        resCallback(fn, findContents)
+                    continue
                 except Exception as e:
                     LogUtil.e(TAG, 'findFileContent错误信息：', e)
-            else:
-                with open(fn, mode="rb") as file:
-                    while True:
-                        content = file.read(1024)
-                        if not content:
-                            break
-                        FindFileContentUtil.matchContent(content=str(content), findContents=findContents, patternList=patternList)
+
+            with open(fn, mode="rb") as file:
+                while True:
+                    content = file.read(1024)
+                    if not content:
+                        break
+                    FindFileContentUtil.matchContent(content=str(content), findContents=findContents, patternList=patternList)
             if findContents:
                 resCallback(fn, findContents)
         pass
