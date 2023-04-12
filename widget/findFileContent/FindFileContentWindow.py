@@ -25,7 +25,7 @@ WORKING_THREAD_NUM = 5
 
 class FindFileContentWindow(QMainWindow):
     windowList = []
-    updateProgressSignal = pyqtSignal(str, str)
+    updateProgressSignal = pyqtSignal(list)
     updateStatusBarSignal = pyqtSignal(str)
 
     def __init__(self, isDebug=False):
@@ -244,18 +244,18 @@ class FindFileContentWindow(QMainWindow):
 
     def findResCallback(self, fp, matchContents):
         LogUtil.i(TAG, "findResCallback", fp, matchContents)
-        self.updateProgressSignal.emit(f"查找文件：{fp}", "#00F")
-        self.updateProgressSignal.emit(f"包含的字符：", "#F0F")
+        messages = [(f"查找文件：{fp}\n", "#00F"), (f"包含的字符：\n", "#F0F")]
         for matchContent in matchContents:
-            self.updateProgressSignal.emit(f"{str(matchContent)}", "#F00")
-        self.updateProgressSignal.emit(f"", "#F00")
+            messages.append((f"{str(matchContent)}\n", "#F00"))
+        messages.append((f"\n", "#F00"))
+        self.updateProgressSignal.emit(messages)
         pass
 
     def statusBarShowMessage(self, msg):
         self.statusBar().showMessage(msg)
 
-    def standardOutput(self, log, color):
-        WidgetUtil.appendTextEdit(self.consoleTextEdit, text=log, color=color)
+    def standardOutput(self, messages: [(str, str)]):
+        WidgetUtil.textEditAppendMessages(self.consoleTextEdit, messages=messages)
         pass
 
 

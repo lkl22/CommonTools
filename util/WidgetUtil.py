@@ -670,6 +670,22 @@ class WidgetUtil:
         pass
 
     @staticmethod
+    def textEditAppendMessages(textEdit: QTextEdit, messages: list):
+        """
+        批量向QTextEdit控件添加文字（指定颜色）
+        :param textEdit: QTextEdit控件
+        :param messages: 需要输出的信息列表(log, color)
+        :return: None
+        """
+        textFormat = ""
+        for msg in messages:
+            textFormat += "<font color=\"" + msg[1] + "\">" + msg[0].replace("\r\n", "<br/>").replace("\n", "<br/>") + "</font>"
+        textEdit.append(textFormat)
+        # 触发实时显示数据
+        QApplication.instance().processEvents()
+        pass
+
+    @staticmethod
     def createTreeWidget(parent: QWidget, objectName="TreeWidget", toolTip=None, headerLabels=['格式化数据'],
                          geometry: QRect = None, isEnable=True, sizePolicy: QSizePolicy = None):
         """
