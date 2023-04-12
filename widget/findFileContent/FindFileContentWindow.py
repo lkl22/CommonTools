@@ -14,6 +14,8 @@ from util.DialogUtil import *
 from util.DictUtil import DictUtil
 from util.ListUtil import ListUtil
 from util.OperaIni import *
+from util.ShellUtil import ShellUtil
+from widget.custom.ClickTextEdit import ClickTextEdit
 from widget.custom.DragInputWidget import DragInputWidget
 from widget.findFileContent.AddOrEditConfigDialog import AddOrEditConfigDialog
 from widget.findFileContent.FindFileContentManager import *
@@ -25,7 +27,7 @@ WORKING_THREAD_NUM = 5
 
 class FindFileContentWindow(QMainWindow):
     windowList = []
-    updateProgressSignal = pyqtSignal(list)
+    updateProgressSignal = pyqtSignal(str)
     updateStatusBarSignal = pyqtSignal(str)
 
     def __init__(self, isDebug=False):
@@ -65,7 +67,7 @@ class FindFileContentWindow(QMainWindow):
         self.managerGroupBox = self.createManagerGroupBox(self)
         vLayout.addWidget(self.managerGroupBox)
 
-        self.consoleTextEdit = WidgetUtil.createTextEdit(self, isReadOnly=True)
+        self.consoleTextEdit = ClickTextEdit(self, isReadOnly=True, linkClicked=self.clickLinkTxt)
         vLayout.addWidget(self.consoleTextEdit, 1)
         self.statusBar().showMessage("状态栏")
         self.updateProgressSignal.connect(self.standardOutput)
@@ -244,18 +246,28 @@ class FindFileContentWindow(QMainWindow):
 
     def findResCallback(self, fp, matchContents):
         LogUtil.i(TAG, "findResCallback", fp, matchContents)
-        messages = [(f"查找文件：{fp}\n", "#00F"), (f"包含的字符：\n", "#F0F")]
+        messages = f"<span><font color=\"#00F\">查找文件：</font><a href='{fp}'>{fp}</a></span><br/><font color=\"#F0F\">包含的字符：</font><br/>"
         for matchContent in matchContents:
-            messages.append((f"{str(matchContent)}\n", "#F00"))
-        messages.append((f"\n", "#F00"))
+            messages += f"<font color=\"#F00\">{str(matchContent)}</font><br/>"
+        messages += "<br/>"
         self.updateProgressSignal.emit(messages)
         pass
 
     def statusBarShowMessage(self, msg):
         self.statusBar().showMessage(msg)
 
-    def standardOutput(self, messages: [(str, str)]):
-        WidgetUtil.textEditAppendMessages(self.consoleTextEdit, messages=messages)
+    def standardOutput(self, messages: str):
+        self.consoleTextEdit.append(messages)
+        # 触发实时显示数据
+        QApplication.instance().processEvents()
+        pass
+
+    def clickLinkTxt(self, link):
+        LogUtil.d(TAG, "clickLinkTxt", link)
+        if PlatformUtil.isMac():
+            ShellUtil.exec(f"open {link}")
+        elif PlatformUtil.isWindows():
+            ShellUtil.exec(f"start notepad {link}")
         pass
 
 

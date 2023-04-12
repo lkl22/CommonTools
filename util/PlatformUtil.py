@@ -16,6 +16,10 @@ class PlatformUtil:
             return True
         return False
 
+    @staticmethod
+    def isWindows():
+        return platform.system() == "Windows" or platform.platform().startswith('Windows')
+
 
 # if __name__ == "__main__":
 #     print(platform.system())
@@ -23,3 +27,4 @@ class PlatformUtil:
 #     print(platform.mac_ver())
 #     print(platform.platform())
 #     print(PlatformUtil.isMac())
+#     print(PlatformUtil.isWindows())
