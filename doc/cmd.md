@@ -1,5 +1,9 @@
 # 指令相关
 
+## windows关闭java进程
+
+> taskkill /F /IM java.exe 
+
 ## 指令打开文件
 
 ### Windows
