@@ -2,9 +2,11 @@
 # python 3.x
 # Filename: HarmonyMergeResDialog.py
 # 定义一个HarmonyMergeResDialog类实现android xml资源文件移动合并的功能
+import os.path
 import sys
 
 from constant.WidgetConst import *
+from util.DictUtil import DictUtil
 from util.FileUtil import *
 from util.DialogUtil import *
 from util.JsonUtil import JsonUtil
@@ -14,6 +16,16 @@ RES_TYPE_LIST = ['all', 'string', 'color', 'media']
 EXCLUDE_DIR_PATTERNS = ['.*/\.hvigor/.*', '.*/\.idea/.*', '.*/\.cxx/.*', '.*/build/.*', '.*/libs/.*',
                         '.*/node_modules/.*', '.*/cpp/.*', '.*/ets/.*', '.*/ohosTest/.*']
 TAG = "HarmonyMergeResDialog"
+
+
+def getLanguageStr(fp):
+    startIndex = fp.index('resources')
+    if startIndex >= 0:
+        subStr = fp[startIndex + len('resources/'):]
+        endIndex = subStr.index('/element')
+        if endIndex >= 0:
+            return subStr[:endIndex]
+    return None
 
 
 class HarmonyMergeResDialog(QtWidgets.QDialog):
@@ -52,13 +64,17 @@ class HarmonyMergeResDialog(QtWidgets.QDialog):
         splitter = WidgetUtil.createSplitter(box)
         WidgetUtil.createPushButton(splitter, text="源文件路径", minSize=QSize(120, const.HEIGHT),
                                     onClicked=self.getSrcFilePath)
-        self.srcFilePathLineEdit = WidgetUtil.createLineEdit(splitter, text='/Users/likunlun/Android/Projects/DeveloperDocuments/HarmonyStudy', isEnable=False, sizePolicy=sizePolicy)
+        self.srcFilePathLineEdit = WidgetUtil.createLineEdit(splitter,
+                                                             text='/Users/likunlun/Android/Projects/DeveloperDocuments/HarmonyStudy',
+                                                             isEnable=False, sizePolicy=sizePolicy)
         vLayout.addWidget(splitter)
 
         splitter = WidgetUtil.createSplitter(box)
         WidgetUtil.createPushButton(splitter, text="目标文件路径", minSize=QSize(120, const.HEIGHT),
                                     onClicked=self.getDstFilePath)
-        self.dstFilePathLineEdit = WidgetUtil.createLineEdit(splitter, text='/Users/likunlun/Android/Projects/DeveloperDocuments/', sizePolicy=sizePolicy)
+        self.dstFilePathLineEdit = WidgetUtil.createLineEdit(splitter,
+                                                             text='/Users/likunlun/Android/Projects/DeveloperDocuments/',
+                                                             sizePolicy=sizePolicy)
         vLayout.addWidget(splitter)
 
         hbox = WidgetUtil.createHBoxLayout(spacing=20)
@@ -124,15 +140,42 @@ class HarmonyMergeResDialog(QtWidgets.QDialog):
 
         if self.resType == RES_TYPE_LIST[0] or self.resType == RES_TYPE_LIST[1]:
             self.mergeStringRes(srcFileDirPath, dstFileDirPath)
+        if self.resType == RES_TYPE_LIST[0] or self.resType == RES_TYPE_LIST[2]:
+            self.mergeColorRes(srcFileDirPath, dstFileDirPath)
         pass
 
     def mergeStringRes(self, srcFileDirPath, dstFileDirPath):
         # 查找需要修改的文件列表
-        srcFiles = FileUtil.findFilePathList(dirPath=srcFileDirPath, findPatterns=['.*string\.json'], excludeDirPatterns=EXCLUDE_DIR_PATTERNS)
+        srcFiles = FileUtil.findFilePathList(dirPath=srcFileDirPath, findPatterns=['.*string\.json'],
+                                             excludeDirPatterns=EXCLUDE_DIR_PATTERNS)
         LogUtil.d('mergeStringRes find files: ', srcFiles)
+        res = {}
         for fp in srcFiles:
+            languageStr = getLanguageStr(fp)
+            data = DictUtil.get(res, languageStr, [])
             jsonData = JsonUtil.load(fp)
-            LogUtil.d('jsondata: ', jsonData)
+            res[languageStr] = data + jsonData['string']
+        for (key, value) in res.items():
+            dstFp = os.path.join(dstFileDirPath, 'resources', key, 'element', 'string.json')
+            FileUtil.mkFilePath(dstFp)
+            JsonUtil.dump(dstFp, {'string': res[key]}, ensureAscii=False)
+        pass
+
+    def mergeColorRes(self, srcFileDirPath, dstFileDirPath):
+        # 查找需要修改的文件列表
+        srcFiles = FileUtil.findFilePathList(dirPath=srcFileDirPath, findPatterns=['.*color\.json'],
+                                             excludeDirPatterns=EXCLUDE_DIR_PATTERNS)
+        LogUtil.d('mergeColorRes find files: ', srcFiles)
+        res = {}
+        for fp in srcFiles:
+            languageStr = getLanguageStr(fp)
+            data = DictUtil.get(res, languageStr, [])
+            jsonData = JsonUtil.load(fp)
+            res[languageStr] = data + jsonData['color']
+        for (key, value) in res.items():
+            dstFp = os.path.join(dstFileDirPath, 'resources', key, 'element', 'color.json')
+            FileUtil.mkFilePath(dstFp)
+            JsonUtil.dump(dstFp, {'color': res[key]}, ensureAscii=False)
         pass
 
 
