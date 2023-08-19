@@ -149,11 +149,11 @@ class MainWidget(QMainWindow):
         vbox.addLayout(hbox)
 
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
-        hbox.addWidget(WidgetUtil.createPushButton(box, text="计算文件hash", onClicked=self.jumpFileHashDialog), 1)
-        hbox.addWidget(WidgetUtil.createPushButton(box, text="账号管理", onClicked=self.jumpAccountManagerDialog), 1)
-        hbox.addWidget(WidgetUtil.createPushButton(box, text="项目管理", onClicked=self.jumpProjectManagerWindow), 1)
-        hbox.addWidget(WidgetUtil.createPushButton(box, text="批量查找文件内容", onClicked=self.jumpFindFileContentWindow), 1)
-        hbox.addWidget(WidgetUtil.createLabel(box), 1)
+        hbox.addWidget(WidgetUtil.createPushButton(box, text="计算文件hash", onClicked=self.jumpFileHashDialog))
+        hbox.addWidget(WidgetUtil.createPushButton(box, text="账号管理", onClicked=self.jumpAccountManagerDialog))
+        hbox.addWidget(WidgetUtil.createPushButton(box, text="项目管理", onClicked=self.jumpProjectManagerWindow))
+        hbox.addWidget(WidgetUtil.createPushButton(box, text="批量查找文件内容", onClicked=self.jumpFindFileContentWindow))
+        hbox.addWidget(WidgetUtil.createPushButton(box, text="Harmony合并资源", onClicked=self.jumpHarmonyMergeResDialog))
         vbox.addLayout(hbox)
         vbox.addItem(WidgetUtil.createVSpacerItem(1, 1))
         return box
@@ -172,7 +172,7 @@ class MainWidget(QMainWindow):
 
     def jumpAndroidResDialog(self):
         LogUtil.i(TAG, "jumpAndroidResDialog")
-        from widget.AndroidResDialog import AndroidResDialog
+        from widget.resource.AndroidResDialog import AndroidResDialog
         AndroidResDialog()
         pass
 
@@ -252,4 +252,10 @@ class MainWidget(QMainWindow):
         self.windowList.append(window)
         self.close()
         window.show()
+        pass
+
+    def jumpHarmonyMergeResDialog(self):
+        LogUtil.i(TAG, "jumpHarmonyMergeResDialog")
+        from widget.resource.HarmonyMergeResDialog import HarmonyMergeResDialog
+        HarmonyMergeResDialog()
         pass

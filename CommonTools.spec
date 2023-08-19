@@ -78,6 +78,9 @@ a = Analysis(['RunMain.py',
               'widget/photoWall/PhotoWallWindow.py',
               'widget/photoWall/PicturePreviewDialog.py',
 
+              'widget/resource/AndroidResDialog.py',
+              'widget/resource/HarmonyMergeResDialog.py',
+
               'widget/projectManage/AddOrEditCmdDialog.py',
               'widget/projectManage/AddOrEditCmdGroupDialog.py',
               'widget/projectManage/AddOrEditDynamicParamDialog.py',
@@ -99,7 +102,7 @@ a = Analysis(['RunMain.py',
               'widget/test/AndroidAdbDialog.py',
               'widget/test/AndroidAssistTestDialog.py',
               'widget/test/EditTestStepDialog.py',
-              'widget/AndroidResDialog.py',
+
               'widget/JsonDialog.py',
               'widget/MainWidget.py'],
              pathex=['./', '../ven/Lib/site-packages/'],
