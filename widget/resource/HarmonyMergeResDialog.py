@@ -7,6 +7,7 @@ import sys
 from constant.WidgetConst import *
 from util.FileUtil import *
 from util.DialogUtil import *
+from util.JsonUtil import JsonUtil
 from util.LogUtil import *
 
 RES_TYPE_LIST = ['all', 'string', 'color', 'media']
@@ -129,6 +130,9 @@ class HarmonyMergeResDialog(QtWidgets.QDialog):
         # 查找需要修改的文件列表
         srcFiles = FileUtil.findFilePathList(dirPath=srcFileDirPath, findPatterns=['.*string\.json'], excludeDirPatterns=EXCLUDE_DIR_PATTERNS)
         LogUtil.d('mergeStringRes find files: ', srcFiles)
+        for fp in srcFiles:
+            jsonData = JsonUtil.load(fp)
+            LogUtil.d('jsondata: ', jsonData)
         pass
 
 
