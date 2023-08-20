@@ -28,10 +28,14 @@ class MainWidget(QMainWindow):
         centralWidget.setLayout(vLayout)
 
         commonGroupBox = self.createCommonGroupBox(centralWidget)
+        androidGroupBox = self.createAndroidGroupBox(centralWidget)
+        harmonyGroupBox = self.createHarmonyGroupBox(centralWidget)
         otherGroupBox = self.createOtherUtilGroupBox(centralWidget)
 
-        vLayout.addWidget(commonGroupBox, 1)
-        vLayout.addWidget(otherGroupBox, 3)
+        vLayout.addWidget(commonGroupBox)
+        vLayout.addWidget(androidGroupBox)
+        vLayout.addWidget(harmonyGroupBox)
+        vLayout.addWidget(otherGroupBox, 1)
         # vLayout.setStretch(0, 1)
         # vLayout.setStretch(1, 3)
 
@@ -125,37 +129,46 @@ class MainWidget(QMainWindow):
             WidgetUtil.showErrorDialog(message="请输入正确格式的时间(YYYY-MM-dd HH:mm:ss)")
         pass
 
+    def createAndroidGroupBox(self, parent):
+        box = WidgetUtil.createGroupBox(parent, title="Android工具")
+        vbox = WidgetUtil.createVBoxLayout(box, spacing=10)
+        hbox = WidgetUtil.createHBoxLayout()
+        hbox.addWidget(WidgetUtil.createPushButton(box, text="Android测试辅助工具", onClicked=self.jumpAndroidAssistTestDialog))
+        hbox.addWidget(WidgetUtil.createPushButton(box, text="Android资源移动工具", onClicked=self.jumpAndroidResDialog))
+        hbox.addWidget(WidgetUtil.createPushButton(box, text="Android color资源管理工具", onClicked=self.jumpAndroidColorResDialog))
+        hbox.addWidget(WidgetUtil.createPushButton(box, text="Android adb指令工具", onClicked=self.jumpAndroidAdbDialog))
+        vbox.addLayout(hbox)
+        return box
+
+    def createHarmonyGroupBox(self, parent):
+        box = WidgetUtil.createGroupBox(parent, title="Harmony工具")
+        vbox = WidgetUtil.createVBoxLayout(box, spacing=10)
+        hbox = WidgetUtil.createHBoxLayout()
+        hbox.addWidget(WidgetUtil.createPushButton(box, text="Harmony合并资源", onClicked=self.jumpHarmonyMergeResDialog))
+        hbox.addItem(WidgetUtil.createHSpacerItem())
+        vbox.addLayout(hbox)
+        return box
+
     def createOtherUtilGroupBox(self, parent):
         box = WidgetUtil.createGroupBox(parent, title="其他工具")
         vbox = WidgetUtil.createVBoxLayout(box, spacing=10)
-        hbox = WidgetUtil.createHBoxLayout()
-        hbox.addWidget(
-            WidgetUtil.createPushButton(box, text="Android测试辅助工具", onClicked=self.jumpAndroidAssistTestDialog))
-        hbox.addWidget(WidgetUtil.createPushButton(box, text="文件操作工具", onClicked=self.jumpFileOperationDialog))
-        hbox.addWidget(
-            WidgetUtil.createPushButton(box, text="Android资源移动工具", onClicked=self.jumpAndroidResDialog))
-        hbox.addWidget(WidgetUtil.createPushButton(box, text="Android color资源管理工具",
-                                                   onClicked=self.jumpAndroidColorResDialog))
-        hbox.addWidget(WidgetUtil.createPushButton(box, text="照片墙", onClicked=self.jumpPhotoWall))
-        vbox.addLayout(hbox)
-
-        hbox = WidgetUtil.createHBoxLayout()
-        hbox.addWidget(WidgetUtil.createPushButton(box, text="图片压缩", onClicked=self.jumpCompressPicDialog))
-        hbox.addWidget(WidgetUtil.createPushButton(box, text="Json格式化工具", onClicked=self.jumpJsonDialog))
-        hbox.addWidget(
-            WidgetUtil.createPushButton(box, text="Android adb指令工具", onClicked=self.jumpAndroidAdbDialog))
-        hbox.addWidget(WidgetUtil.createPushButton(box, text="算法可视化", onClicked=self.jumpAlgorithmVisualizer))
-        hbox.addWidget(WidgetUtil.createPushButton(box, text="模拟考试", onClicked=self.jumpMockExamDialog))
-        vbox.addLayout(hbox)
-
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
+        hbox.addWidget(WidgetUtil.createPushButton(box, text="文件操作工具", onClicked=self.jumpFileOperationDialog))
+        hbox.addWidget(WidgetUtil.createPushButton(box, text="照片墙", onClicked=self.jumpPhotoWall))
         hbox.addWidget(WidgetUtil.createPushButton(box, text="计算文件hash", onClicked=self.jumpFileHashDialog))
         hbox.addWidget(WidgetUtil.createPushButton(box, text="账号管理", onClicked=self.jumpAccountManagerDialog))
         hbox.addWidget(WidgetUtil.createPushButton(box, text="项目管理", onClicked=self.jumpProjectManagerWindow))
-        hbox.addWidget(WidgetUtil.createPushButton(box, text="批量查找文件内容", onClicked=self.jumpFindFileContentWindow))
-        hbox.addWidget(WidgetUtil.createPushButton(box, text="Harmony合并资源", onClicked=self.jumpHarmonyMergeResDialog))
         vbox.addLayout(hbox)
-        vbox.addItem(WidgetUtil.createVSpacerItem(1, 1))
+
+        hbox = WidgetUtil.createHBoxLayout(spacing=10)
+        hbox.addWidget(WidgetUtil.createPushButton(box, text="图片压缩", onClicked=self.jumpCompressPicDialog))
+        hbox.addWidget(WidgetUtil.createPushButton(box, text="Json格式化工具", onClicked=self.jumpJsonDialog))
+        hbox.addWidget(WidgetUtil.createPushButton(box, text="算法可视化", onClicked=self.jumpAlgorithmVisualizer))
+        hbox.addWidget(WidgetUtil.createPushButton(box, text="模拟考试", onClicked=self.jumpMockExamDialog))
+        hbox.addWidget(WidgetUtil.createPushButton(box, text="批量查找文件内容", onClicked=self.jumpFindFileContentWindow))
+        vbox.addLayout(hbox)
+
+        vbox.addItem(WidgetUtil.createVSpacerItem())
         return box
 
     def jumpAndroidAssistTestDialog(self):

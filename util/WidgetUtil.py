@@ -229,7 +229,7 @@ class WidgetUtil:
         return layout
 
     @staticmethod
-    def createHSpacerItem(w: int, h: int):
+    def createHSpacerItem(w: int = 1, h: int = 1):
         """
         创建一个水平垫片容器，用于占位空间
         :param w: 宽度
@@ -239,7 +239,7 @@ class WidgetUtil:
         return QtWidgets.QSpacerItem(w, h, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
 
     @staticmethod
-    def createVSpacerItem(w: int, h: int):
+    def createVSpacerItem(w: int = 1, h: int = 1):
         """
         创建一个垂直垫片容器，用于占位空间
         :param w: 宽度
