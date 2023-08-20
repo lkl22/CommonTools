@@ -18,14 +18,15 @@ from widget.custom.LoadingDialog import LoadingDialog
 RES_TYPE_LIST = ['all', 'string', 'color', 'media']
 EXCLUDE_DIR_PATTERNS = ['.*/\.hvigor/.*', '.*/\.idea/.*', '.*/\.cxx/.*', '.*/build/.*', '.*/libs/.*',
                         '.*/node_modules/.*', '.*/cpp/.*', '.*/ets/.*', '.*/ohosTest/.*']
+EXCHANGE_KEY = {'zh_CN': 'en_US', 'en_US': 'zh_CN'}
 TAG = "HarmonyMergeResDialog"
 
 
-def getLanguageStr(fp):
+def getLanguageStr(fp, endStr='/element'):
     startIndex = fp.index('resources')
     if startIndex >= 0:
         subStr = fp[startIndex + len('resources/'):]
-        endIndex = subStr.index('/element')
+        endIndex = subStr.index(endStr)
         if endIndex >= 0:
             return subStr[:endIndex]
     return None
@@ -156,6 +157,8 @@ class HarmonyMergeResDialog(QtWidgets.QDialog):
             self.mergeStringRes(srcFileDirPath, dstFileDirPath)
         if self.resType == RES_TYPE_LIST[0] or self.resType == RES_TYPE_LIST[2]:
             self.mergeColorRes(srcFileDirPath, dstFileDirPath)
+        if self.resType == RES_TYPE_LIST[0] or self.resType == RES_TYPE_LIST[3]:
+            self.mergeMediaRes(srcFileDirPath, dstFileDirPath)
         self.hideLoadingSignal.emit()
         pass
 
@@ -177,7 +180,7 @@ class HarmonyMergeResDialog(QtWidgets.QDialog):
             jsonData = JsonUtil.load(fp)
             res[languageStr] = data + jsonData['string']
         for (key, value) in res.items():
-            dstFp = os.path.join(dstFileDirPath, 'resources', key, 'element', 'string.json')
+            dstFp = os.path.join(dstFileDirPath, 'resources', DictUtil.get(EXCHANGE_KEY, key, key), 'element', 'string.json')
             FileUtil.mkFilePath(dstFp)
             JsonUtil.dump(dstFp, {'string': res[key]}, ensureAscii=False)
         pass
@@ -197,6 +200,21 @@ class HarmonyMergeResDialog(QtWidgets.QDialog):
             dstFp = os.path.join(dstFileDirPath, 'resources', key, 'element', 'color.json')
             FileUtil.mkFilePath(dstFp)
             JsonUtil.dump(dstFp, {'color': res[key]}, ensureAscii=False)
+        pass
+
+    def mergeMediaRes(self, srcFileDirPath, dstFileDirPath):
+        # 查找需要修改的文件列表
+        srcFiles = FileUtil.findFilePathList(dirPath=srcFileDirPath, findPatterns=['.*\.png', '.*\.jpg', '.*\.jpeg'],
+                                             excludeDirPatterns=EXCLUDE_DIR_PATTERNS)
+        LogUtil.d('mergeMediaRes find files: ', srcFiles)
+        res = {}
+        for fp in srcFiles:
+            languageStr = getLanguageStr(fp, '/media')
+            _, fn = os.path.split(fp)
+            dstFp = os.path.join(dstFileDirPath, 'resources', languageStr, 'media', fn)
+            FileUtil.mkFilePath(dstFp)
+            FileUtil.modifyFilePath(fp, dstFp)
+            LogUtil.d('mergeMediaRes', dstFp)
         pass
 
 
