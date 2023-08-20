@@ -16,14 +16,14 @@ class LoadingDialog(QtWidgets.QDialog):
     WINDOW_WIDTH = 300
     WINDOW_HEIGHT = 150
 
-    def __init__(self, showText: str = '正在加载中。。。', btnText="Cancel", rejectedFunc=None, isDebug=False):
+    def __init__(self, showText: str = '正在加载中。。。', btnText=None, rejectedFunc=None, isDebug=False):
         # 调用父类的构函
         QtWidgets.QDialog.__init__(self)
         LogUtil.d("Init Loading Dialog")
 
         self.setFixedSize(LoadingDialog.WINDOW_WIDTH, LoadingDialog.WINDOW_HEIGHT)
         self.setObjectName("LoadingDialog")
-        self.setStyleSheet("LoadingDialog{background-color:rgb(0,255,255)}")
+        self.setStyleSheet("LoadingDialog{background-color:rgb(255,255,255)}")
         # 设置透明度
         # self.setWindowOpacity(0.8)
 
@@ -55,10 +55,11 @@ class LoadingDialog(QtWidgets.QDialog):
 
         vLayout.addItem(WidgetUtil.createVSpacerItem(1, 1))
 
-        btnBox = WidgetUtil.createDialogButtonBox(standardButton=QDialogButtonBox.Cancel, parent=self,
+        if btnText:
+            btnBox = WidgetUtil.createDialogButtonBox(standardButton=QDialogButtonBox.Cancel, parent=self,
                                                   rejectedFunc=lambda: self.close())
-        btnBox.button(QDialogButtonBox.Cancel).setText(btnText)
-        vLayout.addWidget(btnBox)
+            btnBox.button(QDialogButtonBox.Cancel).setText(btnText)
+            vLayout.addWidget(btnBox)
 
         if rejectedFunc:
             self.rejected.connect(rejectedFunc)

@@ -4,13 +4,16 @@
 # 定义一个HarmonyMergeResDialog类实现android xml资源文件移动合并的功能
 import os.path
 import sys
+import threading
 
+from PyQt5.QtCore import pyqtSignal
 from constant.WidgetConst import *
 from util.DictUtil import DictUtil
 from util.FileUtil import *
 from util.DialogUtil import *
 from util.JsonUtil import JsonUtil
 from util.LogUtil import *
+from widget.custom.LoadingDialog import LoadingDialog
 
 RES_TYPE_LIST = ['all', 'string', 'color', 'media']
 EXCLUDE_DIR_PATTERNS = ['.*/\.hvigor/.*', '.*/\.idea/.*', '.*/\.cxx/.*', '.*/build/.*', '.*/libs/.*',
@@ -29,6 +32,8 @@ def getLanguageStr(fp):
 
 
 class HarmonyMergeResDialog(QtWidgets.QDialog):
+    hideLoadingSignal = pyqtSignal()
+
     def __init__(self, isDebug=False):
         # 调用父类的构函
         QtWidgets.QDialog.__init__(self)
@@ -43,6 +48,7 @@ class HarmonyMergeResDialog(QtWidgets.QDialog):
 
         self.resType = RES_TYPE_LIST[0]
         self.isDebug = isDebug
+        self.loadingDialog = None
 
         vLayout = WidgetUtil.createVBoxLayout(self, margins=QMargins(10, 10, 10, 10), spacing=10)
 
@@ -51,6 +57,7 @@ class HarmonyMergeResDialog(QtWidgets.QDialog):
         vLayout.addWidget(androidResGroupBox)
 
         self.setWindowModality(Qt.ApplicationModal)
+        self.hideLoadingSignal.connect(self.hideLoading)
         # 很关键，不加出不来
         if not isDebug:
             self.exec_()
@@ -138,10 +145,24 @@ class HarmonyMergeResDialog(QtWidgets.QDialog):
             dstFileDirPath = dstFileDirPath[:len(dstFileDirPath) - 1]
         LogUtil.d(TAG, "目标目录：", dstFileDirPath)
 
+        # 必须放到线程执行，否则加载框要等指令执行完才会弹
+        threading.Thread(target=self.mergeRes, args=(srcFileDirPath, dstFileDirPath)).start()
+        if not self.loadingDialog:
+            self.loadingDialog = LoadingDialog(isDebug=self.isDebug)
+        pass
+
+    def mergeRes(self, srcFileDirPath, dstFileDirPath):
         if self.resType == RES_TYPE_LIST[0] or self.resType == RES_TYPE_LIST[1]:
             self.mergeStringRes(srcFileDirPath, dstFileDirPath)
         if self.resType == RES_TYPE_LIST[0] or self.resType == RES_TYPE_LIST[2]:
             self.mergeColorRes(srcFileDirPath, dstFileDirPath)
+        self.hideLoadingSignal.emit()
+        pass
+
+    def hideLoading(self):
+        if self.loadingDialog:
+            self.loadingDialog.close()
+            self.loadingDialog = None
         pass
 
     def mergeStringRes(self, srcFileDirPath, dstFileDirPath):
