@@ -5,7 +5,7 @@
 
 import xlrd
 import xlwt
-from xlrd import book, sheet
+from xlrd import book, sheet, Book
 from xlutils.copy import copy
 from xlwt import Workbook, Worksheet
 
@@ -44,14 +44,39 @@ class ExcelUtil:
         return st
 
     @staticmethod
-    def getLines(st: sheet):
+    def getSheetByName(bk: Book, sheetName='考试信息'):
+        """
+        获取指定索引的sheet的内容
+        :param bk: Book
+        :param sheetName: sheet表的名字
+        :return: sheet的内容
+        """
+        st = None
+        try:
+            st = bk.sheet_by_name(sheetName)
+        except Exception as err:
+            LogUtil.e('ExcelUtil getSheetByName 错误信息：', err)
+        return st
+
+    @staticmethod
+    def getRows(st: sheet):
         """
         获取excel行数
         :param st: sheet
         :return: 行数
         """
-        lines = st.nrows
-        return lines
+        rows = st.nrows
+        return rows
+
+    @staticmethod
+    def getColumns(st: sheet):
+        """
+        获取excel列数
+        :param st: sheet
+        :return: 列数
+        """
+        cols = st.ncols
+        return cols
 
     @staticmethod
     def getCell(st: sheet, row, col):

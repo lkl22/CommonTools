@@ -29,7 +29,7 @@ class OpenpyxlUtil:
         return book
 
     @staticmethod
-    def getSheet(book: Workbook, sheetName='考试信息'):
+    def getSheetByName(book: Workbook, sheetName='考试信息'):
         """
         获取指定索引的sheet的内容
         :param book: Workbook
@@ -72,7 +72,7 @@ class OpenpyxlUtil:
         :param col: 列数，从1开始
         :return: 单元格内容
         """
-        value = st.cell(row, col).value
+        value = st.cell(row, col).value.strip()
         return value
 
     @staticmethod
@@ -117,7 +117,7 @@ class OpenpyxlUtil:
 
 if __name__ == "__main__":
     bk = OpenpyxlUtil.getBook()
-    ws = OpenpyxlUtil.getSheet(bk)
+    ws = OpenpyxlUtil.getSheetByName(bk)
     print(OpenpyxlUtil.getRows(ws))
     print(OpenpyxlUtil.getColumns(ws))
     print(OpenpyxlUtil.getCell(ws, 1, 1))

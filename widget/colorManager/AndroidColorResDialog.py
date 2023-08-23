@@ -274,7 +274,7 @@ class AndroidColorResDialog(QtWidgets.QDialog):
         st = ExcelUtil.getSheet(fn, 0)
         if st:
             self.findColorRes = []
-            lines = ExcelUtil.getLines(st)
+            lines = ExcelUtil.getRows(st)
             for i in range(1, lines):
                 key = ExcelUtil.getCell(st, i, 0)
                 if key:

@@ -42,10 +42,10 @@ class MockExamUtil:
         # 考试题目文件路径
         self.examFile = fp
         self.bk = OpenpyxlUtil.getBook(fp)
-        self.infoSheet = OpenpyxlUtil.getSheet(self.bk, '考试信息')
-        self.judgmentSheet = OpenpyxlUtil.getSheet(self.bk, '判断题')
-        self.oneChoiceSheet = OpenpyxlUtil.getSheet(self.bk, '单选题')
-        self.multipleChoiceSheet = OpenpyxlUtil.getSheet(self.bk, '多选题')
+        self.infoSheet = OpenpyxlUtil.getSheetByName(self.bk, '考试信息')
+        self.judgmentSheet = OpenpyxlUtil.getSheetByName(self.bk, '判断题')
+        self.oneChoiceSheet = OpenpyxlUtil.getSheetByName(self.bk, '单选题')
+        self.multipleChoiceSheet = OpenpyxlUtil.getSheetByName(self.bk, '多选题')
         self.examName = OpenpyxlUtil.getCell(self.infoSheet, 2, 1)
         self.scoreLine = OpenpyxlUtil.getCell(self.infoSheet, 2, 2)
         self.examTime = OpenpyxlUtil.getCell(self.infoSheet, 2, 3)
