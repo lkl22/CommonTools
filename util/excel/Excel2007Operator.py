@@ -71,7 +71,7 @@ class Excel2007Operator(IExcelOperator):
         :param col: 列数，从1开始
         :return: 单元格内容
         """
-        value = st.cell(row, col).value.strip()
+        value = str(st.cell(row, col).value).strip()
         return value
 
     @staticmethod
