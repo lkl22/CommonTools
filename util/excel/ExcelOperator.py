@@ -3,7 +3,6 @@
 # Filename: ExcelOperator.py
 # 定义一个ExcelOperator工具类实现Excel相关的功能
 import os
-
 from util.DictUtil import DictUtil
 from util.LogUtil import *
 from util.excel.IExcelOperator import IExcelOperator
@@ -54,16 +53,33 @@ class ExcelOperator:
         filterRules = DictUtil.get(extendInfo, KEY_FILTER_RULES, [])
         LogUtil.i(f"__getFilterData titleIndex: {titleIndex} primaryKey: {primaryKey} filterRules: {filterRules}")
         colKeyMap = {}
+        primaryIndex = -1
         hasColKeys = True if colKeys else False
         for col in range(indexOffset, cols + indexOffset):
             colKey = operator.getCell(sheet, titleIndex + indexOffset, col)
+            if primaryKey and primaryKey == colKey:
+                primaryIndex = col
             if hasColKeys:
                 if colKey in colKeys:
                     colKeyMap[colKey] = col
             else:
                 colKeyMap[colKey] = col
-        LogUtil.i(f"__getFilterData colKeyMap: {colKeyMap}")
-        pass
+        LogUtil.i(f"__getFilterData primaryIndex: {primaryIndex} colKeyMap: {colKeyMap}")
+        result = {}
+        for row in range(titleIndex + indexOffset + 1, rows + indexOffset):
+            primaryValue = operator.getCell(sheet, row, primaryIndex) if primaryIndex > -1 else row
+            rowData = {}
+            ignoreRow = False
+            for key, col in colKeyMap.items():
+                value = operator.getCell(sheet, row, col)
+                if key in filterRules.keys():
+                    if value not in filterRules[key]:
+                        ignoreRow = True
+                        break
+                rowData[key] = value
+            if not ignoreRow:
+                result[primaryValue] = rowData
+        return result
 
     @staticmethod
     def __getAllData(operator, sheet, rows, cols, indexOffset):
@@ -78,7 +94,13 @@ class ExcelOperator:
 
 if __name__ == "__main__":
     LogUtil.d(ExcelOperator.getExcelData("/Users/likunlun/PycharmProjects/res/values/AndroidRes.xls", 'color',
-                                         {KEY_TITLE_INDEX: 0, KEY_COL_KEYS: ['key', 'dark']}))
+                                         {KEY_TITLE_INDEX: 0, KEY_COL_KEYS: ['key', 'normal', 'dark'],
+                                          KEY_PRIMARY_KEY: 'key',
+                                          KEY_FILTER_RULES: {'dark': ['', '#000000', '#43CDF9'],
+                                                             'normal': ['#6633B5E5', '#1CA9F2']}}))
 
     LogUtil.d(
-        ExcelOperator.getExcelData("/Users/likunlun/PycharmProjects/CommonTools/resources/mockExam/题库模版.xlsx", '考试信息'))
+        ExcelOperator.getExcelData("/Users/likunlun/PycharmProjects/CommonTools/resources/mockExam/题库模版.xlsx", '单选题',
+                                   {KEY_TITLE_INDEX: 0, KEY_COL_KEYS: ['题干', '答案', '选项A'],
+                                    KEY_PRIMARY_KEY: '题干',
+                                    KEY_FILTER_RULES: {'答案': ['A', 'C']}}))
