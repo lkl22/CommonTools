@@ -13,6 +13,7 @@ from util.FileUtil import *
 from util.DialogUtil import *
 from util.JsonUtil import JsonUtil
 from util.LogUtil import *
+from util.OperaIni import OperaIni
 from widget.custom.LoadingDialog import LoadingDialog
 
 RES_TYPE_LIST = ['all', 'string', 'color', 'float', 'media']
@@ -20,6 +21,10 @@ EXCLUDE_DIR_PATTERNS = ['.*/\.hvigor/.*', '.*/\.idea/.*', '.*/\.cxx/.*', '.*/bui
                         '.*/node_modules/.*', '.*/cpp/.*', '.*/ets/.*', '.*/ohosTest/.*']
 EXCHANGE_KEY = {'zh_CN': 'en_US', 'en_US': 'zh_CN'}
 TAG = "HarmonyMergeResDialog"
+
+KEY_SECTION = 'HarmonyMergeRes'
+KEY_SRC_FILE_PATH = 'srcFilePath'
+KEY_DST_FILE_PATH = 'dstFilePath'
 
 
 def getLanguageStr(fp, endStr='/element'):
@@ -49,6 +54,9 @@ class HarmonyMergeResDialog(QtWidgets.QDialog):
 
         self.resType = RES_TYPE_LIST[0]
         self.isDebug = isDebug
+        self.operaIni = OperaIni("../../resources/config/BaseConfig.ini" if isDebug else '')
+        self.srcFilePath = self.operaIni.getValue(KEY_SRC_FILE_PATH, KEY_SECTION)
+        self.dstFilePath = self.operaIni.getValue(KEY_DST_FILE_PATH, KEY_SECTION)
         self.loadingDialog = None
 
         vLayout = WidgetUtil.createVBoxLayout(self, margins=QMargins(10, 10, 10, 10), spacing=10)
@@ -68,26 +76,21 @@ class HarmonyMergeResDialog(QtWidgets.QDialog):
         vbox = WidgetUtil.createVBoxLayout(box, margins=QMargins(10, 10, 10, 10), spacing=10)
         sizePolicy = WidgetUtil.createSizePolicy()
 
-        vLayout = WidgetUtil.createVBoxLayout()
         splitter = WidgetUtil.createSplitter(box)
         WidgetUtil.createPushButton(splitter, text="源文件路径", minSize=QSize(120, const.HEIGHT),
                                     onClicked=self.getSrcFilePath)
         self.srcFilePathLineEdit = WidgetUtil.createLineEdit(splitter,
-                                                             text='/Users/likunlun/Android/Projects/DeveloperDocuments/HarmonyStudy',
+                                                             text=self.srcFilePath if self.srcFilePath else '',
                                                              isEnable=False, sizePolicy=sizePolicy)
-        vLayout.addWidget(splitter)
+        vbox.addWidget(splitter)
 
         splitter = WidgetUtil.createSplitter(box)
         WidgetUtil.createPushButton(splitter, text="目标文件路径", minSize=QSize(120, const.HEIGHT),
                                     onClicked=self.getDstFilePath)
         self.dstFilePathLineEdit = WidgetUtil.createLineEdit(splitter,
-                                                             text='/Users/likunlun/Android/Projects/DeveloperDocuments/',
+                                                             text=self.dstFilePath if self.dstFilePath else '',
                                                              sizePolicy=sizePolicy)
-        vLayout.addWidget(splitter)
-
-        hbox = WidgetUtil.createHBoxLayout(spacing=20)
-        hbox.addLayout(vLayout)
-        vbox.addLayout(hbox)
+        vbox.addWidget(splitter)
 
         hbox = WidgetUtil.createHBoxLayout()
         hbox.addWidget(WidgetUtil.createLabel(box, text="选择资源类型：", alignment=Qt.AlignVCenter | Qt.AlignRight,
@@ -96,7 +99,6 @@ class HarmonyMergeResDialog(QtWidgets.QDialog):
         vbox.addLayout(hbox)
 
         hbox = WidgetUtil.createHBoxLayout(margins=QMargins(30, 0, 30, 0), spacing=10)
-        vbox.addLayout(hbox)
         self.resTypeBg = WidgetUtil.createButtonGroup(onToggled=self.resTypeToggled)
         for i in range(len(RES_TYPE_LIST)):
             if i == 12:
@@ -145,6 +147,9 @@ class HarmonyMergeResDialog(QtWidgets.QDialog):
         while dstFileDirPath.endswith("/") or dstFileDirPath.endswith("\\"):
             dstFileDirPath = dstFileDirPath[:len(dstFileDirPath) - 1]
         LogUtil.d(TAG, "目标目录：", dstFileDirPath)
+        self.operaIni.addItem(KEY_SECTION, KEY_SRC_FILE_PATH, srcFileDirPath)
+        self.operaIni.addItem(KEY_SECTION, KEY_DST_FILE_PATH, dstFileDirPath)
+        self.operaIni.saveIni()
 
         # 必须放到线程执行，否则加载框要等指令执行完才会弹
         threading.Thread(target=self.mergeRes, args=(srcFileDirPath, dstFileDirPath)).start()
