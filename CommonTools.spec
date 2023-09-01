@@ -52,6 +52,8 @@ a = Analysis(['RunMain.py',
               'widget/algorithm/sort/SelectionSortDialog.py',
               'widget/algorithm/AlgorithmDescDialog.py',
               'widget/algorithm/AlgorithmVisualizerManagerDialog.py',
+
+              'widget/analysis/LogAnalysisDialog.py',
               'widget/colorManager/AddColorResDialog.py',
               'widget/colorManager/AndroidColorResDialog.py',
               'widget/compressPicture/CompressPicDialog.py',

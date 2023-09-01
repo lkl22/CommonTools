@@ -129,3 +129,5 @@ Working directory：$ProjectFileDir$
 [windows关闭java进程](https://blog.csdn.net/qq_33326449/article/details/80506214)
 
 [Disable output buffering](https://stackoverflow.com/questions/107705/disable-output-buffering)
+
+[python xlwt写excel格式控制 颜色、模式、编码、背景色](https://www.cnblogs.com/hushaojun/p/7792550.html)

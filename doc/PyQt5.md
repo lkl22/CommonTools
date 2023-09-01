@@ -68,3 +68,5 @@ setFrameRect(QRect)|	设置边框矩形|	整型
 ## 参考文献
 
 [pyqt5 隐藏任务栏图标](https://blog.csdn.net/marwenx/article/details/107226153)
+
+[python GUI库图形界面开发之PyQt5日期时间控件](http://www.ay1.cc/article/1674029746095845314.html)

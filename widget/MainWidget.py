@@ -168,6 +168,11 @@ class MainWidget(QMainWindow):
         hbox.addWidget(WidgetUtil.createPushButton(box, text="批量查找文件内容", onClicked=self.jumpFindFileContentWindow))
         vbox.addLayout(hbox)
 
+        hbox = WidgetUtil.createHBoxLayout(spacing=10)
+        hbox.addWidget(WidgetUtil.createPushButton(box, text="Log提取", onClicked=self.jumpLogAnalysisDialog), 1)
+        hbox.addWidget(WidgetUtil.createLabel(box), 4)
+        vbox.addLayout(hbox)
+
         vbox.addItem(WidgetUtil.createVSpacerItem())
         return box
 
@@ -271,4 +276,10 @@ class MainWidget(QMainWindow):
         LogUtil.i(TAG, "jumpHarmonyMergeResDialog")
         from widget.resource.HarmonyMergeResDialog import HarmonyMergeResDialog
         HarmonyMergeResDialog()
+        pass
+
+    def jumpLogAnalysisDialog(self):
+        LogUtil.i(TAG, "jumpLogAnalysisDialog")
+        from widget.analysis.LogAnalysisDialog import LogAnalysisDialog
+        LogAnalysisDialog()
         pass

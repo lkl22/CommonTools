@@ -9,7 +9,7 @@ from PyQt5.QtGui import QIcon, QBrush, QStandardItemModel, QStandardItem, QColor
 from PyQt5.QtWidgets import QWidget, QMessageBox, QSizePolicy, QTreeWidget, QMenu, QTreeWidgetItem, QDialog, \
     QRadioButton, QTableView, QHeaderView, QColorDialog, QSpinBox, QTextEdit, QApplication, QDoubleSpinBox, QMenuBar, \
     QTabWidget, QCheckBox, QProgressBar, QComboBox, QDialogButtonBox, QLineEdit
-from PyQt5.QtCore import QRect, QMargins, QSize, Qt
+from PyQt5.QtCore import QRect, QMargins, QSize, Qt, QDateTime
 
 from util.LogUtil import *
 from util.DataTypeUtil import *
@@ -408,7 +408,8 @@ class WidgetUtil:
         return widget
 
     @staticmethod
-    def createLabel(parent: QWidget, objectName="Label", text="", toolTip=None, alignment=Qt.AlignVCenter | Qt.AlignLeft,
+    def createLabel(parent: QWidget, objectName="Label", text="", toolTip=None,
+                    alignment=Qt.AlignVCenter | Qt.AlignLeft,
                     geometry: QRect = None, minSize: QSize = None, sizePolicy: QSizePolicy = None):
         """
         创建一个Label标签
@@ -655,6 +656,42 @@ class WidgetUtil:
         return widget
 
     @staticmethod
+    def createDateTimeEdit(parent: QWidget, objectName="TextEdit", dateTime: QDateTime = QDateTime.currentDateTime(),
+                           minDateTime=None, maxDateTime=None,
+                           displayFormat: str = "yyyy-MM-dd HH:mm:ss", toolTip=None, onDateTimeChanged=None,
+                           geometry: QRect = None, isEnable=True, sizePolicy: QSizePolicy = None):
+        """
+        创建一个日期格式输入框
+        :param parent: 父QWidget
+        :param objectName: objectName
+        :param dateTime: 显示的时间
+        :param minDateTime: 日期最小值
+        :param maxDateTime: 日期最大值
+        :param displayFormat: 日期显示格式
+        :param toolTip: toolTip
+        :param onDateTimeChanged: 日期时间改变时触发槽函数
+        :param geometry: geometry
+        :param isEnable: enable
+        :param sizePolicy: 缩放策略
+        :return: 多行文本输入框
+        """
+        widget = QtWidgets.QDateTimeEdit(parent)
+        widgetSetAttrs(widget, objectName, toolTip=toolTip, geometry=geometry, isEnable=isEnable, sizePolicy=sizePolicy)
+        widget.setDateTime(dateTime)
+        widget.setDisplayFormat(displayFormat)
+        # 设置日期最大值与最小值
+        if minDateTime:
+            widget.setMinimumDateTime(minDateTime)
+        if maxDateTime:
+            widget.setMaximumDateTime(maxDateTime)
+        # 设置日历控件允许弹出
+        widget.setCalendarPopup(True)
+        # 当日期时间改变时触发槽函数
+        if onDateTimeChanged:
+            widget.dateTimeChanged.connect(onDateTimeChanged)
+        return widget
+
+    @staticmethod
     def appendTextEdit(textEdit: QTextEdit, text: str, color='#00f'):
         """
         向QTextEdit控件添加文字（指定颜色，默认蓝色）
@@ -679,7 +716,8 @@ class WidgetUtil:
         """
         textFormat = ""
         for msg in messages:
-            textFormat += "<font color=\"" + msg[1] + "\">" + msg[0].replace("\r\n", "<br/>").replace("\n", "<br/>") + "</font>"
+            textFormat += "<font color=\"" + msg[1] + "\">" + msg[0].replace("\r\n", "<br/>").replace("\n",
+                                                                                                      "<br/>") + "</font>"
         textEdit.append(textFormat)
         # 触发实时显示数据
         QApplication.instance().processEvents()
