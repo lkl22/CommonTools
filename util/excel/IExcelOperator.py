@@ -5,6 +5,10 @@
 
 from abc import ABCMeta, abstractmethod
 
+KEY_BG_COLOR = 'backgroundColor'
+KEY_FORMAT = 'format'
+KEY_VALUE = 'value'
+
 
 class IExcelOperator(metaclass=ABCMeta):
     @staticmethod
@@ -82,13 +86,14 @@ class IExcelOperator(metaclass=ABCMeta):
 
     @staticmethod
     @abstractmethod
-    def writeSheet(st, row, col, value):
+    def writeSheet(st, row, col, value, cellFormat):
         """
         写入数据
         :param st: Worksheet
         :param row: 行数
         :param col: 列数
         :param value: 内容
+        :param cellFormat: 单元格格式
         """
         pass
 

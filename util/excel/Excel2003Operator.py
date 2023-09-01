@@ -7,10 +7,10 @@ import xlrd
 import xlwt
 from xlrd import book, sheet, Book
 from xlutils.copy import copy
-from xlwt import Workbook, Worksheet
+from xlwt import Workbook, Worksheet, Style
 
 from util.LogUtil import *
-from util.excel.IExcelOperator import IExcelOperator
+from util.excel.IExcelOperator import IExcelOperator, KEY_BG_COLOR
 
 
 class Excel2003Operator(IExcelOperator):
@@ -119,15 +119,33 @@ class Excel2003Operator(IExcelOperator):
         return bk.add_sheet(sheetname, True)
 
     @staticmethod
-    def writeSheet(st: Worksheet, row, col, value):
+    def writeSheet(st: Worksheet, row, col, value, cellFormat):
         """
         写入数据
         :param st: Worksheet
         :param row: 行数
         :param col: 列数
         :param value: 内容
+        :param cellFormat: 单元格格式
         """
-        st.write(row, col, value)
+        if cellFormat:
+            style = Excel2003Operator.__getFormat(cellFormat)
+        else:
+            style = Style.default_style
+        st.write(row, col, value, style)
+
+    @staticmethod
+    def __getFormat(cellFormat: {}):
+        # May be: 8 through 63. 0 = Black, 1 = White, 2 = Red, 3 = Green, 4 = Blue, 5 = Yellow, 6 = Magenta, 7 = Cyan, 16 = Maroon, 17 = Dark Green, 18 = Dark Blue, 19 = Dark Yellow , almost brown), 20 = Dark Magenta, 21 = Teal, 22 = Light Gray, 23 = Dark Gray, the list goes on...
+        style = xlwt.XFStyle()  # Create the Pattern
+        if KEY_BG_COLOR in cellFormat:
+            # Create the Pattern
+            pattern = xlwt.Pattern()
+            # May be: NO_PATTERN, SOLID_PATTERN, or 0x00 through 0x12
+            pattern.pattern = xlwt.Pattern.SOLID_PATTERN
+            pattern.pattern_fore_colour = cellFormat[KEY_BG_COLOR]
+            style.pattern = pattern  # Add Pattern to Style
+        return style
 
     @staticmethod
     def saveBook(bk: Workbook, fileName):

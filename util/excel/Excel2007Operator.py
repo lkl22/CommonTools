@@ -94,13 +94,14 @@ class Excel2007Operator(IExcelOperator):
         return book.create_sheet(sheetName, index)
 
     @staticmethod
-    def writeSheet(st: Worksheet, row, col, value):
+    def writeSheet(st: Worksheet, row, col, value, cellFormat):
         """
         写入数据
         :param st: Worksheet
         :param row: 行数
         :param col: 列数
         :param value: 内容
+        :param cellFormat: 单元格格式
         """
         st.cell(row, col).value = value
 

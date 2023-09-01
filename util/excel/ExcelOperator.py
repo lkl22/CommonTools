@@ -5,7 +5,7 @@
 import os
 from util.DictUtil import DictUtil
 from util.LogUtil import *
-from util.excel.IExcelOperator import IExcelOperator
+from util.excel.IExcelOperator import IExcelOperator, KEY_VALUE, KEY_FORMAT, KEY_BG_COLOR
 from util.excel.Excel2003Operator import Excel2003Operator
 from util.excel.Excel2007Operator import Excel2007Operator
 
@@ -69,7 +69,9 @@ class ExcelOperator:
         sheet = operator.addSheet(bk, sheetName)
         for row, rowItem in enumerate(data):
             for key, item in rowItem.items():
-                operator.writeSheet(sheet, row + indexOffset, keyMap[key], item['value'])
+                if key in keyMap:
+                    operator.writeSheet(sheet, row + indexOffset, keyMap[key], DictUtil.get(item, KEY_VALUE, ''),
+                                        DictUtil.get(item, KEY_FORMAT, None))
         operator.saveBook(bk, fp)
         return True
 
@@ -151,6 +153,8 @@ if __name__ == "__main__":
     #                                {KEY_TITLE_INDEX: 0, KEY_COL_KEYS: ['题干', '答案', '选项A'],
     #                                 KEY_PRIMARY_KEY: '题干',
     #                                 KEY_FILTER_RULES: {'答案': ['A', 'C']}}))
-    ExcelOperator.saveToExcel('./test.xlsx', '11', ['key', 'normal', 'dark'],
-                              [{'key': {'value': 'key'}, 'normal': {'value': 'normal'}, 'dark': {'value': 'dark'}},
-                               {'key': {'value': 'sdd'}, 'normal': {'value': '#ffddffff'}, 'dark': {'value': '#000dd000'}}, ])
+    ExcelOperator.saveToExcel('./test.xls', '11', ['key', 'normal', 'dark'],
+                              [{'key': {KEY_VALUE: 'key', KEY_FORMAT: {KEY_BG_COLOR: 4}},
+                                'normal': {KEY_VALUE: 'normal'}, 'dark': {KEY_VALUE: 'dark'}},
+                               {'key': {KEY_VALUE: 'sdd'}, 'normal': {KEY_VALUE: '#ffddffff'},
+                                'dark': {KEY_VALUE: '#000dd000'}}, ])
