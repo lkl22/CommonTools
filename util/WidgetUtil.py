@@ -656,7 +656,7 @@ class WidgetUtil:
         return widget
 
     @staticmethod
-    def createDateTimeEdit(parent: QWidget, objectName="TextEdit", dateTime: QDateTime = QDateTime.currentDateTime(),
+    def createDateTimeEdit(parent: QWidget, objectName="DateTimeEdit", dateTime: QDateTime = QDateTime.currentDateTime(),
                            minDateTime=None, maxDateTime=None,
                            displayFormat: str = "yyyy-MM-dd HH:mm:ss", toolTip=None, onDateTimeChanged=None,
                            geometry: QRect = None, isEnable=True, sizePolicy: QSizePolicy = None):

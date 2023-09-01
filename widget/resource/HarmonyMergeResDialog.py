@@ -179,7 +179,7 @@ class HarmonyMergeResDialog(QtWidgets.QDialog):
         # 查找需要修改的文件列表
         srcFiles = FileUtil.findFilePathList(dirPath=srcFileDirPath, findPatterns=[f'.*{resType}\.json'],
                                              excludeDirPatterns=EXCLUDE_DIR_PATTERNS)
-        LogUtil.d('mergeHarmonyRes find files: ', srcFiles)
+        LogUtil.d(TAG, 'mergeHarmonyRes find files: ', srcFiles)
         res = {}
         for fp in srcFiles:
             languageStr = getLanguageStr(fp)
@@ -196,14 +196,14 @@ class HarmonyMergeResDialog(QtWidgets.QDialog):
         # 查找需要修改的文件列表
         srcFiles = FileUtil.findFilePathList(dirPath=srcFileDirPath, findPatterns=['.*/media/.*'],
                                              excludeDirPatterns=EXCLUDE_DIR_PATTERNS)
-        LogUtil.d('mergeMediaRes find files: ', srcFiles)
+        LogUtil.d(TAG, 'mergeMediaRes find files: ', srcFiles)
         for fp in srcFiles:
             languageStr = getLanguageStr(fp, '/media')
             _, fn = os.path.split(fp)
             dstFp = os.path.join(dstFileDirPath, 'resources', languageStr, 'media', fn)
             FileUtil.mkFilePath(dstFp)
             FileUtil.modifyFilePath(fp, dstFp)
-            LogUtil.d('mergeMediaRes', dstFp)
+            LogUtil.d(TAG, 'mergeMediaRes', dstFp)
         pass
 
 
