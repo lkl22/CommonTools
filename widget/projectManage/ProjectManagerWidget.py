@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 # python 3.x
 # Filename: ProjectManagerWidget.py
-# 定义一个ProjectManagerWidget窗口类实现执行指令管理的功能，可以控制一系列指令是否需要执行
+# 定义一个ProjectManagerWidget窗口类实现工程配置管理相关功能
 import os
 from PyQt5.QtWidgets import QFrame
-
 from util.DateUtil import DateUtil
 from util.FileUtil import FileUtil
 from util.ListUtil import ListUtil

@@ -13,6 +13,12 @@ a = Analysis(['RunMain.py',
               'constant/const.py',
               'constant/TestStepConst.py',
               'constant/WidgetConst.py',
+
+              'util/excel/Excel2003Operator.py',
+              'util/excel/Excel2007Operator.py',
+              'util/excel/ExcelOperator.py',
+              'util/excel/IExcelOperator.py',
+
               'util/AdbUtil.py',
               'util/AutoTestUtil.py',
               'util/CipherUtil.py',
@@ -53,8 +59,10 @@ a = Analysis(['RunMain.py',
               'widget/algorithm/AlgorithmDescDialog.py',
               'widget/algorithm/AlgorithmVisualizerManagerDialog.py',
 
+              'widget/analysis/AddOrEditCategoryDialog.py',
               'widget/analysis/ExtractLogDialog.py',
               'widget/analysis/LogAnalysisDialog.py',
+              'widget/analysis/LogAnalysisManager.py',
 
               'widget/colorManager/AddColorResDialog.py',
               'widget/colorManager/AndroidColorResDialog.py',

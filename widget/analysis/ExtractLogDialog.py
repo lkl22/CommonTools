@@ -6,7 +6,6 @@ import os.path
 import threading
 
 from PyQt5.QtCore import pyqtSignal
-
 from constant.WidgetConst import *
 from util.DialogUtil import *
 from util.OperaIni import *
@@ -34,7 +33,7 @@ class ExtractLogDialog(QtWidgets.QDialog):
         self.setWindowFlags(Qt.Dialog | Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint)
         ExtractLogDialog.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.7)
         ExtractLogDialog.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.3)
-        LogUtil.d(TAG, "Init Log Analysis Dialog")
+        LogUtil.d(TAG, "Init Extract Log Dialog")
         self.setObjectName("ExtractLogDialog")
         self.resize(ExtractLogDialog.WINDOW_WIDTH, ExtractLogDialog.WINDOW_HEIGHT)
         # self.setFixedSize(ExtractLogDialog.WINDOW_WIDTH, ExtractLogDialog.WINDOW_HEIGHT)
