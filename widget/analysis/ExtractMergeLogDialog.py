@@ -78,7 +78,7 @@ class ExtractMergeLogDialog(QtWidgets.QDialog):
         pass
 
     def createExtractLogGroupBox(self, parent):
-        box = WidgetUtil.createGroupBox(parent, title="提取日志")
+        box = WidgetUtil.createGroupBox(parent, title="筛选合并日志")
         vbox = WidgetUtil.createVBoxLayout(box, margins=QMargins(10, 10, 10, 10), spacing=10)
         sizePolicy = WidgetUtil.createSizePolicy()
 
@@ -128,7 +128,7 @@ class ExtractMergeLogDialog(QtWidgets.QDialog):
         vbox.addWidget(splitter)
 
         hbox = WidgetUtil.createHBoxLayout()
-        hbox.addWidget(WidgetUtil.createPushButton(box, text="提取", onClicked=self.extractLog))
+        hbox.addWidget(WidgetUtil.createPushButton(box, text="筛选合并", onClicked=self.extractLog))
         hbox.addItem(WidgetUtil.createHSpacerItem(1, 1))
         vbox.addLayout(hbox)
 

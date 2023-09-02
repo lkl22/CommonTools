@@ -6,8 +6,10 @@ import os
 import shutil
 import zipfile
 
+from util.PlatformUtil import PlatformUtil
 from util.ReUtil import *
 from util.LogUtil import *
+from util.ShellUtil import ShellUtil
 
 TAG = "FileUtil"
 
@@ -341,6 +343,19 @@ class FileUtil:
         except Exception as e:
             LogUtil.e(TAG, 'getFileName 错误信息：', e)
             return ''
+
+    @staticmethod
+    def openFile(fp):
+        """
+        打开指定文件
+        :param fp: 文件路径
+        """
+        LogUtil.d(TAG, "openFile", fp)
+        if PlatformUtil.isMac():
+            ShellUtil.exec(f"open {fp}")
+        elif PlatformUtil.isWindows():
+            ShellUtil.exec(f"start notepad {fp}")
+        pass
 
 
 if __name__ == "__main__":

@@ -264,10 +264,7 @@ class FindFileContentWindow(QMainWindow):
 
     def clickLinkTxt(self, link):
         LogUtil.d(TAG, "clickLinkTxt", link)
-        if PlatformUtil.isMac():
-            ShellUtil.exec(f"open {link}")
-        elif PlatformUtil.isWindows():
-            ShellUtil.exec(f"start notepad {link}")
+        FileUtil.openFile(link)
         pass
 
 
