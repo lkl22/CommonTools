@@ -71,7 +71,7 @@ class FileUtil:
     @staticmethod
     def mkFilePath(filePath):
         """
-        创建文件到目录
+        创建文件目录
         :param filePath: 文件路径
         """
         try:
@@ -162,6 +162,27 @@ class FileUtil:
             return True
         except Exception as err:
             LogUtil.e(TAG, 'modifyFilesName 错误信息：', err)
+            return False
+
+    @staticmethod
+    def mergeFiles(srcFns, dstFn):
+        """
+        将多个文件合并到一个文件
+        :param srcFns: 源文件path列表
+        :param dstFn: 目标文件名
+        :return: True 修改成功
+        """
+        try:
+            FileUtil.mkFilePath(dstFn)
+            with open(dstFn, mode='x') as dstFile:
+                for srcFn in srcFns:
+                    dstFile.write(f"\nfilePath: {srcFn}\n")
+                    with open(srcFn) as file:
+                        content = file.readlines()
+                        dstFile.writelines(content)
+            return True
+        except Exception as err:
+            LogUtil.e(TAG, 'mergeFiles 错误信息：', err)
             return False
 
     @staticmethod
