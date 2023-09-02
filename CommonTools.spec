@@ -60,9 +60,10 @@ a = Analysis(['RunMain.py',
               'widget/algorithm/AlgorithmVisualizerManagerDialog.py',
 
               'widget/analysis/AddOrEditCategoryDialog.py',
+              'widget/analysis/CategoryManagerWidget.py',
               'widget/analysis/ExtractLogDialog.py',
-              'widget/analysis/LogAnalysisDialog.py',
               'widget/analysis/LogAnalysisManager.py',
+              'widget/analysis/LogAnalysisWindow.py',
 
               'widget/colorManager/AddColorResDialog.py',
               'widget/colorManager/AndroidColorResDialog.py',

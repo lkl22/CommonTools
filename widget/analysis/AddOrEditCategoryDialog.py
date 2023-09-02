@@ -8,7 +8,7 @@ from util.DialogUtil import *
 from util.DictUtil import DictUtil
 from util.MD5Util import MD5Util
 from util.OperaIni import *
-from LogAnalysisManager import *
+from widget.analysis.LogAnalysisManager import *
 
 TAG = "AddOrEditCategoryDialog"
 

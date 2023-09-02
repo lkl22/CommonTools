@@ -169,7 +169,7 @@ class MainWidget(QMainWindow):
         vbox.addLayout(hbox)
 
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
-        hbox.addWidget(WidgetUtil.createPushButton(box, text="Log提取", onClicked=self.jumpLogAnalysisDialog), 1)
+        hbox.addWidget(WidgetUtil.createPushButton(box, text="Log提取", onClicked=self.jumpLogAnalysisWindow), 1)
         hbox.addWidget(WidgetUtil.createLabel(box), 4)
         vbox.addLayout(hbox)
 
@@ -278,8 +278,12 @@ class MainWidget(QMainWindow):
         HarmonyMergeResDialog()
         pass
 
-    def jumpLogAnalysisDialog(self):
-        LogUtil.i(TAG, "jumpLogAnalysisDialog")
-        from widget.analysis.LogAnalysisDialog import LogAnalysisDialog
-        LogAnalysisDialog()
+    def jumpLogAnalysisWindow(self):
+        LogUtil.i(TAG, "jumpLogAnalysisWindow")
+        from widget.analysis.LogAnalysisWindow import LogAnalysisWindow
+        window = LogAnalysisWindow()
+        # 注：没有这句，是不打开另一个主界面的
+        self.windowList.append(window)
+        self.close()
+        window.show()
         pass
