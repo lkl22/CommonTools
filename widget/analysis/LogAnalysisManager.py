@@ -27,6 +27,12 @@ KEY_LOG_KEYWORD = 'logKeyword'
 KEY_START_LOG_KEYWORD = 'startLogKeyword'
 KEY_END_LOG_KEYWORD = 'endLogKeyword'
 
+KEY_IS_CONTAIN = "isContain"
+DEFAULT_VALUE_IS_CONTAIN = True
+
+KEY_IS_ENABLE = "isEnable"
+DEFAULT_VALUE_IS_ENABLE = True
+
 KEY_NEED_COST_TIME = "needCostTime"
 DEFAULT_VALUE_NEED_COST_TIME = False
 

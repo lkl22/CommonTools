@@ -59,6 +59,7 @@ a = Analysis(['RunMain.py',
               'widget/algorithm/AlgorithmDescDialog.py',
               'widget/algorithm/AlgorithmVisualizerManagerDialog.py',
 
+              'widget/analysis/extract/AddOrEditExtracCfgDialog.py',
               'widget/analysis/extract/ExtractLogDialog.py',
               'widget/analysis/extract/ExtractMergeLogDialog.py',
               'widget/analysis/AddOrEditAnalysisCfgDialog.py',
