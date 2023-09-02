@@ -64,12 +64,12 @@ class CategoryManagerWidget(QFrame):
         pass
 
     def extractMergeLogFile(self):
-        from widget.analysis.ExtractMergeLogDialog import ExtractMergeLogDialog
+        from widget.analysis.extract.ExtractMergeLogDialog import ExtractMergeLogDialog
         ExtractMergeLogDialog()
         pass
 
     def extractLogFile(self):
-        from widget.analysis.ExtractLogDialog import ExtractLogDialog
+        from widget.analysis.extract.ExtractLogDialog import ExtractLogDialog
         ExtractLogDialog()
         pass
 
