@@ -27,6 +27,8 @@ class CategoryConfigWidget(QFrame):
         self.categoryRuleInfo = None
         self.ruleList = []
         self.logFilePath = None
+        self.logTimeIndex = None
+        self.logTimeFormat = None
         self.isDebug = isDebug
 
         widgetLayout = WidgetUtil.createVBoxLayout()
@@ -42,13 +44,27 @@ class CategoryConfigWidget(QFrame):
                                                              isEnable=False, sizePolicy=sizePolicy)
         vbox.addWidget(splitter)
 
+        splitter = WidgetUtil.createSplitter(self)
+        WidgetUtil.createLabel(splitter, text="Log中日期格式规则：", minSize=QSize(120, const.HEIGHT))
+        WidgetUtil.createLabel(splitter, text="日期起始位置", minSize=QSize(60, const.HEIGHT))
+        self.logTimeIndexSpinBox = WidgetUtil.createSpinBox(splitter,
+                                                            value=int(self.logTimeIndex) if self.logTimeIndex else 0,
+                                                            step=1, sizePolicy=sizePolicy)
+        WidgetUtil.createLabel(splitter, text="日期格式", minSize=QSize(60, const.HEIGHT))
+        self.logTimeFormatLE = WidgetUtil.createLineEdit(splitter,
+                                                         text=self.logTimeFormat if self.logTimeFormat else '',
+                                                         toolTip="请输入匹配Log文件名里的日期格式（例如：MM-dd_HH:mm:ss.SSS）",
+                                                         sizePolicy=sizePolicy)
+        vbox.addWidget(splitter)
+
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
         self.addAnalysisCfgBtn = WidgetUtil.createPushButton(self, text="添加Log分析配置", onClicked=self.__addAnalysisCfg)
         hbox.addWidget(self.addAnalysisCfgBtn)
         hbox.addItem(WidgetUtil.createHSpacerItem(1, 1))
         vbox.addLayout(hbox)
 
-        self.analysisRuleTableView = WidgetUtil.createTableView(self, doubleClicked=self.__analysisCfgTableDoubleClicked)
+        self.analysisRuleTableView = WidgetUtil.createTableView(self,
+                                                                doubleClicked=self.__analysisCfgTableDoubleClicked)
         # 设为不可编辑
         self.analysisRuleTableView.setEditTriggers(QAbstractItemView.NoEditTriggers)
         # 设置选中模式为选中行
@@ -72,6 +88,13 @@ class CategoryConfigWidget(QFrame):
 
         self.logFilePath = DictUtil.get(self.categoryRuleInfo, KEY_FILE_PATH, '')
         self.logFilePathLineEdit.setText(self.logFilePath)
+
+        self.logTimeIndex = DictUtil.get(self.categoryRuleInfo, KEY_LOG_TIME_INDEX, 0)
+        self.logTimeIndexSpinBox.setValue(self.logTimeIndex)
+
+        self.logTimeFormat = DictUtil.get(self.categoryRuleInfo, KEY_LOG_TIME_FORMAT, '')
+        self.logTimeFormatLE.setText(self.logTimeFormat)
+
         self.ruleList = copy.deepcopy(DictUtil.get(self.categoryRuleInfo, KEY_ANALYSIS_RULES, []))
         self.__updateRuleTableView()
         pass
@@ -81,10 +104,16 @@ class CategoryConfigWidget(QFrame):
         if not logFilePath:
             WidgetUtil.showErrorDialog(message="请选择要分析的日志文件")
             return None
+        logTimeFormat = self.logTimeFormatLE.text().strip()
+        if not logTimeFormat:
+            WidgetUtil.showErrorDialog(message="请输入日志中的时间格式")
+            return None
         if not self.ruleList:
             WidgetUtil.showErrorDialog(message="请添加日志分析规则")
             return None
         self.categoryRuleInfo[KEY_FILE_PATH] = logFilePath
+        self.categoryRuleInfo[KEY_LOG_TIME_INDEX] = self.logTimeIndexSpinBox.value()
+        self.categoryRuleInfo[KEY_LOG_TIME_FORMAT] = logTimeFormat
         self.categoryRuleInfo[KEY_ANALYSIS_RULES] = self.ruleList
         return self.categoryRuleInfo
 

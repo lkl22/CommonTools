@@ -19,6 +19,8 @@ KEY_NAME = 'name'
 KEY_DESC = 'desc'
 
 KEY_FILE_PATH = 'filePath'
+KEY_LOG_TIME_INDEX = 'logTimeIndex'
+KEY_LOG_TIME_FORMAT = 'logTimeFormat'
 KEY_ANALYSIS_RULES = 'analysisRules'
 
 KEY_LOG_KEYWORD = 'logKeyword'
