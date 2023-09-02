@@ -33,12 +33,12 @@ class ExtractLogDialog(QtWidgets.QDialog):
         QtWidgets.QDialog.__init__(self)
         self.setWindowFlags(Qt.Dialog | Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint)
         ExtractLogDialog.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.7)
-        ExtractLogDialog.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.35)
+        ExtractLogDialog.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.3)
         LogUtil.d(TAG, "Init Log Analysis Dialog")
         self.setObjectName("ExtractLogDialog")
         self.resize(ExtractLogDialog.WINDOW_WIDTH, ExtractLogDialog.WINDOW_HEIGHT)
         # self.setFixedSize(ExtractLogDialog.WINDOW_WIDTH, ExtractLogDialog.WINDOW_HEIGHT)
-        self.setWindowTitle(WidgetUtil.translate(text="Log分析工具"))
+        self.setWindowTitle(WidgetUtil.translate(text="Log提取工具"))
 
         self.isDebug = isDebug
         self.operaIni = OperaIni("../../resources/config/BaseConfig.ini" if isDebug else '')
@@ -115,7 +115,7 @@ class ExtractLogDialog(QtWidgets.QDialog):
         vbox.addWidget(splitter)
 
         splitter = WidgetUtil.createSplitter(box)
-        WidgetUtil.createLabel(splitter, text="日期过滤Log文件规则：", minSize=QSize(120, const.HEIGHT))
+        WidgetUtil.createLabel(splitter, text="Log文件中日期格式规则：", minSize=QSize(120, const.HEIGHT))
         WidgetUtil.createLabel(splitter, text="日期起始位置", minSize=QSize(60, const.HEIGHT))
         self.logFileTimeIndexSpinBox = WidgetUtil.createSpinBox(splitter,
                                                                 value=int(
