@@ -26,7 +26,7 @@ KEY_LOG_FILE_PATH = 'logFilePath'
 class LogAnalysisWindow(QMainWindow):
     windowList = []
     hideLoadingSignal = pyqtSignal()
-    standardOutputSignal = pyqtSignal(str)
+    standardOutputSignal = pyqtSignal(str, str)
 
     def __init__(self, isDebug=False):
         # 调用父类的构函
@@ -151,25 +151,32 @@ class LogAnalysisWindow(QMainWindow):
         for rule in ruleList:
             logKeyword = DictUtil.get(rule, KEY_LOG_KEYWORD, '')
             if logKeyword and logKeyword in line:
-                self.__standardOutput(line)
-            if DictUtil.get(rule, KEY_NEED_COST_TIME, DEFAULT_VALUE_NEED_COST_TIME):
-                startKeyword = DictUtil.get(rule, KEY_START_LOG_KEYWORD, '')
-                endKeyword = DictUtil.get(rule, KEY_END_LOG_KEYWORD, '')
-                if startKeyword in line:
-                    startTime = self.__getLogTime(line, timeIndex, timeFormat)
-                    self.analysisResult[rule[KEY_NAME]] = {'time': startTime, 'log': line}
-                elif endKeyword in line:
-                    startInfo = DictUtil.get(self.analysisResult, rule[KEY_NAME], None)
-                    if not startInfo:
-                        continue
-                    startTime = startInfo['time']
-                    if startTime:
-                        endTime = self.__getLogTime(line, timeIndex, timeFormat)
-                        if not endTime:
-                            continue
-                        self.__standardOutput(
-                            f"{startInfo['log']}{line}cost time: {endTime[0].msecsTo(startTime[0]) * 1000 + endTime[1] - startTime[1]} ms\n",
-                            '#f00')
+                self.standardOutputSignal.emit(line, '#00f')
+            self.__analysisCostTime(line, rule, timeIndex, timeFormat)
+        pass
+
+    def __analysisCostTime(self, line, rule, timeIndex, timeFormat):
+        if not DictUtil.get(rule, KEY_NEED_COST_TIME, DEFAULT_VALUE_NEED_COST_TIME):
+            return
+        startKeyword = DictUtil.get(rule, KEY_START_LOG_KEYWORD, '')
+        endKeyword = DictUtil.get(rule, KEY_END_LOG_KEYWORD, '')
+        if startKeyword in line:
+            startTime = self.__getLogTime(line, timeIndex, timeFormat)
+            self.analysisResult[rule[KEY_NAME]] = {'time': startTime, 'log': line}
+        elif endKeyword in line:
+            startInfo = DictUtil.get(self.analysisResult, rule[KEY_NAME], None)
+            if not startInfo:
+                return
+            startTime = startInfo['time']
+            if not startTime:
+                return
+            endTime = self.__getLogTime(line, timeIndex, timeFormat)
+            if not endTime:
+                return
+            self.standardOutputSignal.emit(
+                f"{startInfo['log']}{line}耗时分析：{rule[KEY_NAME]}({DictUtil.get(rule, KEY_DESC, '')}) cost time: {endTime[0].msecsTo(startTime[0]) * 1000 + endTime[1] - startTime[1]} ms\n",
+                '#f00')
+        pass
 
     def __getLogTime(self, line, timeIndex, timeFormat: str):
         try:

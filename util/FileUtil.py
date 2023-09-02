@@ -194,7 +194,7 @@ class FileUtil:
         path = os.getcwd().replace("\\", "/")
         while not FileUtil.existsFile(os.path.join(path, 'CommonTools.spec')):
             path = os.path.split(path)[0]
-        LogUtil.e(TAG, "getProjectPath：", path)
+        LogUtil.i(TAG, "getProjectPath：", path)
         return path
 
     @staticmethod
