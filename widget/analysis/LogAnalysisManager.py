@@ -19,7 +19,11 @@ KEY_NAME = 'name'
 KEY_DESC = 'desc'
 
 KEY_FILE_PATH = 'filePath'
+KEY_ANALYSIS_RULES = 'analysisRules'
 
+KEY_LOG_KEYWORD = 'logKeyword'
+KEY_START_LOG_KEYWORD = 'startLogKeyword'
+KEY_END_LOG_KEYWORD = 'endLogKeyword'
 
 KEY_NEED_COST_TIME = "needCostTime"
 DEFAULT_VALUE_NEED_COST_TIME = False
@@ -36,15 +40,15 @@ class LogAnalysisManager:
         self.operaIni.saveIni()
         pass
 
-    def saveCategoryInfoById(self, categoryId, info):
+    def saveCategoryRuleById(self, categoryId, info):
         self.operaIni.addItem(KEY_SECTION, categoryId, JsonUtil.encode(info, ensureAscii=False))
         self.operaIni.saveIni()
         pass
 
-    def delCategoryInfoById(self, categoryId):
+    def delCategoryRuleById(self, categoryId):
         self.operaIni.removeItem(KEY_SECTION, categoryId)
         self.operaIni.saveIni()
         pass
 
-    def getCategoryInfoById(self, categoryId):
+    def getCategoryRuleById(self, categoryId):
         return JsonUtil.decode(self.operaIni.getValue(categoryId, KEY_SECTION))

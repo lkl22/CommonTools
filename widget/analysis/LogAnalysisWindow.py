@@ -8,6 +8,7 @@ import threading
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QMainWindow
 from util.DialogUtil import *
+from util.DictUtil import DictUtil
 from util.OperaIni import *
 from widget.analysis.CategoryConfigWidget import CategoryConfigWidget
 from widget.analysis.CategoryManagerWidget import CategoryManagerWidget
@@ -41,6 +42,7 @@ class LogAnalysisWindow(QMainWindow):
         self.isDebug = isDebug
         self.analysisManager = LogAnalysisManager(isDebug)
         self.loadingDialog = None
+        self.categoryInfo = None
 
         layoutWidget = QtWidgets.QWidget(self)
         layoutWidget.setObjectName("layoutWidget")
@@ -48,11 +50,11 @@ class LogAnalysisWindow(QMainWindow):
         hLayout = WidgetUtil.createHBoxLayout(margins=QMargins(10, 10, 10, 10), spacing=10)
         layoutWidget.setLayout(hLayout)
 
-        self.categoryManagerWidget = CategoryManagerWidget(analysisManager=self.analysisManager,
-                                                           modifyCallback=self.categoryModify)
-
         self.categoryConfigWidget = CategoryConfigWidget(analysisManager=self.analysisManager,
                                                          isDebug=isDebug)
+
+        self.categoryManagerWidget = CategoryManagerWidget(analysisManager=self.analysisManager,
+                                                           modifyCallback=self.categoryModify)
 
         self.categoryManageGroupBox = self.createCategoryManageGroupBox()
         hLayout.addWidget(self.categoryManageGroupBox, 3)
@@ -98,16 +100,22 @@ class LogAnalysisWindow(QMainWindow):
         vbox.addLayout(hbox)
         return box
 
-    def categoryModify(self):
-        LogUtil.d(TAG, "categoryModify")
-
+    def categoryModify(self, categoryInfo):
+        LogUtil.d(TAG, "categoryModify", categoryInfo)
+        self.categoryInfo = categoryInfo
+        self.categoryConfigWidget.setCategoryInfo(categoryInfo)
         pass
 
     def extractLog(self):
-        self.logFilePath = self.logFilePathLineEdit.text().strip()
-        if not self.logFilePath:
-            WidgetUtil.showErrorDialog(message="请选择日志文件所在目录")
+        if not self.categoryInfo:
+            WidgetUtil.showErrorDialog(message="请先选择或者添加Log分析配置")
+            return None
+        categoryRule = self.categoryConfigWidget.getCategoryRule()
+        if not categoryRule:
             return
+
+        categoryId = DictUtil.get(self.categoryInfo, KEY_ID)
+        self.analysisManager.saveCategoryRuleById(categoryId, categoryRule)
 
         # 必须放到线程执行，否则加载框要等指令执行完才会弹
         threading.Thread(target=self.execExtractLog, args=()).start()

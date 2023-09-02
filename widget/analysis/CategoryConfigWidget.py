@@ -2,6 +2,7 @@
 # python 3.x
 # Filename: CategoryConfigWidget.py
 # 定义一个CategoryConfigWidget窗口类实现日志分析分类配置信息管理
+import copy
 import os
 
 from PyQt5.QtCore import QModelIndex
@@ -22,7 +23,8 @@ class CategoryConfigWidget(QFrame):
         self.setToolTip("日志分析配置信息管理")
 
         self.analysisManager = analysisManager
-        self.categoryConfigInfo = None
+        self.categoryInfo = None
+        self.categoryRuleInfo = None
         self.ruleList = []
         self.logFilePath = None
         self.isDebug = isDebug
@@ -31,25 +33,22 @@ class CategoryConfigWidget(QFrame):
         widgetLayout.addWidget(self)
         vbox = WidgetUtil.createVBoxLayout(self, margins=QMargins(5, 5, 5, 5), spacing=5)
         sizePolicy = WidgetUtil.createSizePolicy()
-        splitter = WidgetUtil.createSplitter(self)
-        WidgetUtil.createPushButton(splitter, text="提取Log文件", minSize=QSize(120, const.HEIGHT),
-                                    onClicked=self.extractLogFile)
-        vbox.addWidget(splitter)
 
         splitter = WidgetUtil.createSplitter(self)
         WidgetUtil.createPushButton(splitter, text="日志文件路径", minSize=QSize(120, const.HEIGHT),
-                                    onClicked=self.getLogFilePath)
+                                    onClicked=self.__getLogFilePath)
         self.logFilePathLineEdit = WidgetUtil.createLineEdit(splitter,
                                                              text='',
                                                              isEnable=False, sizePolicy=sizePolicy)
         vbox.addWidget(splitter)
 
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
-        hbox.addWidget(WidgetUtil.createPushButton(self, text="添加Log分析配置", onClicked=self.addAnalysisCfg))
+        self.addAnalysisCfgBtn = WidgetUtil.createPushButton(self, text="添加Log分析配置", onClicked=self.__addAnalysisCfg)
+        hbox.addWidget(self.addAnalysisCfgBtn)
         hbox.addItem(WidgetUtil.createHSpacerItem(1, 1))
         vbox.addLayout(hbox)
 
-        self.analysisRuleTableView = WidgetUtil.createTableView(self, doubleClicked=self.analysisCfgTableDoubleClicked)
+        self.analysisRuleTableView = WidgetUtil.createTableView(self, doubleClicked=self.__analysisCfgTableDoubleClicked)
         # 设为不可编辑
         self.analysisRuleTableView.setEditTriggers(QAbstractItemView.NoEditTriggers)
         # 设置选中模式为选中行
@@ -58,8 +57,8 @@ class CategoryConfigWidget(QFrame):
         self.analysisRuleTableView.setSelectionMode(QAbstractItemView.SingleSelection)
         # 设置自定义右键菜单
         self.analysisRuleTableView.setContextMenuPolicy(Qt.CustomContextMenu)
-        self.analysisRuleTableView.customContextMenuRequested.connect(self.analysisCfgCustomRightMenu)
-        self.updateRuleTableView()
+        self.analysisRuleTableView.customContextMenuRequested.connect(self.__analysisCfgCustomRightMenu)
+        self.__updateRuleTableView()
         vbox.addWidget(self.analysisRuleTableView, 1)
         # self.setAutoFillBackground(True)
         # self.setStyleSheet("CategoryConfigWidget{border:1px solid rgb(0,0,255)}")
@@ -67,16 +66,29 @@ class CategoryConfigWidget(QFrame):
 
     def setCategoryInfo(self, categoryInfo):
         LogUtil.d(TAG, "setCategoryInfo", categoryInfo)
+        self.categoryInfo = categoryInfo
         categoryId = DictUtil.get(categoryInfo, KEY_ID)
-        self.categoryConfigInfo = self.analysisManager.getCategoryInfoById(categoryId)
+        self.categoryRuleInfo = self.analysisManager.getCategoryRuleById(categoryId)
+
+        self.logFilePath = DictUtil.get(self.categoryRuleInfo, KEY_FILE_PATH, '')
+        self.logFilePathLineEdit.setText(self.logFilePath)
+        self.ruleList = copy.deepcopy(DictUtil.get(self.categoryRuleInfo, KEY_ANALYSIS_RULES, []))
+        self.__updateRuleTableView()
         pass
 
-    def extractLogFile(self):
-        from widget.analysis.ExtractLogDialog import ExtractLogDialog
-        ExtractLogDialog()
-        pass
+    def getCategoryRule(self):
+        logFilePath = self.logFilePathLineEdit.text().strip()
+        if not logFilePath:
+            WidgetUtil.showErrorDialog(message="请选择要分析的日志文件")
+            return None
+        if not self.ruleList:
+            WidgetUtil.showErrorDialog(message="请添加日志分析规则")
+            return None
+        self.categoryRuleInfo[KEY_FILE_PATH] = logFilePath
+        self.categoryRuleInfo[KEY_ANALYSIS_RULES] = self.ruleList
+        return self.categoryRuleInfo
 
-    def getLogFilePath(self):
+    def __getLogFilePath(self):
         fp = ''
         if self.logFilePath:
             fp, _ = os.path.split(self.logFilePath)
@@ -86,56 +98,62 @@ class CategoryConfigWidget(QFrame):
             self.logFilePathLineEdit.setText(fp)
         pass
 
-    def addAnalysisCfg(self):
+    def __addAnalysisCfg(self):
         LogUtil.d(TAG, "addAnalysisCfg")
-        AddOrEditAnalysisCfgDialog(callback=self.addOrEditAnalysisCfgCallback,
+        if not self.categoryInfo:
+            WidgetUtil.showErrorDialog(message="请先选择或者添加Log分析配置")
+            return
+        AddOrEditAnalysisCfgDialog(callback=self.__addOrEditAnalysisCfgCallback,
                                    ruleList=self.ruleList)
         pass
 
-    def addOrEditAnalysisCfgCallback(self, info):
+    def __addOrEditAnalysisCfgCallback(self, info):
         LogUtil.d(TAG, "addOrEditAnalysisCfgCallback", info)
         if info:
             self.ruleList.append(info)
-        self.updateRuleTableView()
+        self.__updateRuleTableView()
         pass
 
-    def analysisCfgTableDoubleClicked(self, index: QModelIndex):
+    def __analysisCfgTableDoubleClicked(self, index: QModelIndex):
         oldValue = index.data()
         row = index.row()
         LogUtil.d(TAG, "dynParamsTableDoubleClicked：row ", row, ' col', index.column(), ' data ', oldValue)
-        AddOrEditAnalysisCfgDialog(callback=self.addOrEditAnalysisCfgCallback,
+        AddOrEditAnalysisCfgDialog(callback=self.__addOrEditAnalysisCfgCallback,
                                    default=self.ruleList[row],
                                    ruleList=self.ruleList)
         pass
 
-    def analysisCfgCustomRightMenu(self, pos):
+    def __analysisCfgCustomRightMenu(self, pos):
         self.curRow = self.analysisRuleTableView.currentIndex().row()
         LogUtil.i(TAG, "analysisCfgCustomRightMenu", pos, ' row: ', self.curRow)
-        menu = WidgetUtil.createMenu("删除", func1=self.delRule)
+        menu = WidgetUtil.createMenu("删除", func1=self.__delRule)
         menu.exec(self.analysisRuleTableView.mapToGlobal(pos))
         pass
 
-    def delRule(self):
+    def __delRule(self):
         ruleName = self.ruleList[self.curRow][KEY_NAME]
         LogUtil.i(TAG, f"delRule {ruleName}")
         WidgetUtil.showQuestionDialog(message=f"你确定需要删除 <span style='color:red;'>{ruleName}</span> 吗？",
-                                      acceptFunc=self.delRuleTableItem)
+                                      acceptFunc=self.__delRuleTableItem)
         pass
 
-    def delRuleTableItem(self):
+    def __delRuleTableItem(self):
         LogUtil.i(TAG, "delRuleTableItem")
         self.ruleList.remove(self.ruleList[self.curRow])
-        self.updateRuleTableView()
+        self.__updateRuleTableView()
         pass
 
-    def updateRuleTableView(self):
+    def __updateRuleTableView(self):
         tableData = []
         for rule in self.ruleList:
             tableData.append({
-                KEY_NAME: rule[KEY_NAME],
+                KEY_NAME: DictUtil.get(rule, KEY_NAME, ''),
                 KEY_DESC: DictUtil.get(rule, KEY_DESC, ""),
-                KEY_NEED_COST_TIME: DictUtil.get(rule, KEY_NEED_COST_TIME, DEFAULT_VALUE_NEED_COST_TIME)
+                KEY_LOG_KEYWORD: DictUtil.get(rule, KEY_LOG_KEYWORD, ""),
+                KEY_NEED_COST_TIME: DictUtil.get(rule, KEY_NEED_COST_TIME, DEFAULT_VALUE_NEED_COST_TIME),
+                KEY_START_LOG_KEYWORD: DictUtil.get(rule, KEY_START_LOG_KEYWORD, ""),
+                KEY_END_LOG_KEYWORD: DictUtil.get(rule, KEY_END_LOG_KEYWORD, ""),
             })
         WidgetUtil.addTableViewData(self.analysisRuleTableView, tableData,
-                                    headerLabels=["规则名", "规则描述", "统计耗时"])
+                                    headerLabels=["规则名", "规则描述", "日志关键字", "统计耗时", "开始日志关键字", "结束日志关键字"])
         pass

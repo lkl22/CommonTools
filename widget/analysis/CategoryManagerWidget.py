@@ -4,6 +4,8 @@
 # 定义一个CategoryManagerWidget窗口类实现日志分析分类管理
 import os
 from PyQt5.QtWidgets import QFrame
+
+from constant import const
 from util.DateUtil import DateUtil
 from util.DictUtil import DictUtil
 from util.FileUtil import FileUtil
@@ -21,9 +23,7 @@ class CategoryManagerWidget(QFrame):
 
         self.analysisManager = analysisManager
         self.modifyCallback = modifyCallback
-        self.configs = self.analysisManager.configs
-        if not self.configs:
-            self.configs = {KEY_DEFAULT: -1, KEY_LIST: []}
+        self.configs = {KEY_DEFAULT: -1, KEY_LIST: []} | self.analysisManager.configs
         self.curCategoryIndex = self.configs[KEY_DEFAULT]
 
         self.setObjectName(TAG)
@@ -47,9 +47,21 @@ class CategoryManagerWidget(QFrame):
         hbox.addWidget(
             WidgetUtil.createPushButton(self, text="Import", toolTip="导入配置配置", onClicked=self.importCategory))
         vbox.addLayout(hbox)
+
+        splitter = WidgetUtil.createSplitter(self)
+        WidgetUtil.createPushButton(splitter, text="提取Log文件", minSize=QSize(120, const.HEIGHT),
+                                    onClicked=self.extractLogFile)
+        vbox.addWidget(splitter)
+
         # self.setAutoFillBackground(True)
         # self.setStyleSheet("CategoryManagerWidget{border:1px solid rgb(0,0,255)}")
+        self.modifyCallback(self.__getCurCategoryInfo())
         self.updateCategoryComboBox()
+        pass
+
+    def extractLogFile(self):
+        from widget.analysis.ExtractLogDialog import ExtractLogDialog
+        ExtractLogDialog()
         pass
 
     def updateCategoryComboBox(self):
@@ -71,15 +83,22 @@ class CategoryManagerWidget(QFrame):
     def categoryIndexChanged(self, index):
         LogUtil.d(TAG, 'categoryIndexChanged', index)
         self.curCategoryIndex = index
-        self.saveCategorys()
+        self.__saveCategorys()
         pass
 
-    def saveCategorys(self):
+    def __saveCategorys(self):
         # 更新当前默认打开的配置信息
         self.configs[KEY_DEFAULT] = self.curCategoryIndex
         # 将配置配置保存到ini文件
         self.analysisManager.saveConfigs(self.configs)
+        self.modifyCallback(self.__getCurCategoryInfo())
         pass
+
+    def __getCurCategoryInfo(self):
+        if self.curCategoryIndex >= 0:
+            return self.configs[KEY_LIST][self.curCategoryIndex]
+        else:
+            return None
 
     def addCategory(self):
         LogUtil.d(TAG, "addCategory")
@@ -111,7 +130,7 @@ class CategoryManagerWidget(QFrame):
         # 更新分类下拉选择框
         self.updateCategoryComboBox()
         # 将分类信息保存到ini文件
-        self.saveCategorys()
+        self.__saveCategorys()
         pass
 
     def getCurCategoryInfo(self):
@@ -137,8 +156,8 @@ class CategoryManagerWidget(QFrame):
         self.configs[KEY_LIST].remove(curCategoryInfo)
         self.curCategoryIndex = -1
         self.updateCategoryComboBox()
-        self.analysisManager.delCategoryInfoById(curCategoryInfo[KEY_ID])
-        self.saveCategorys()
+        self.analysisManager.delCategoryRuleById(curCategoryInfo[KEY_ID])
+        self.__saveCategorys()
         pass
 
     def saveAsCategory(self):
@@ -148,7 +167,7 @@ class CategoryManagerWidget(QFrame):
             return
 
         curCategoryInfo = self.getCurCategoryInfo()
-        detailCategoryInfo = self.analysisManager.getCategoryInfoById(curCategoryInfo[KEY_ID])
+        detailCategoryInfo = self.analysisManager.getCategoryRuleById(curCategoryInfo[KEY_ID])
 
         saveData = {"simpleInfo": curCategoryInfo, "detailInfo": detailCategoryInfo if detailCategoryInfo else {}}
         fp = WidgetUtil.getExistingDirectory(caption="请选择要备份保存的路径，不选的话默认使用当前工程路径。")
@@ -193,11 +212,11 @@ class CategoryManagerWidget(QFrame):
         categorys.append(categoryInfo['simpleInfo'])
         # 按配置名称重新排序
         self.configs[KEY_LIST] = sorted(categorys, key=lambda x: x[KEY_NAME])
-        self.analysisManager.saveCategoryInfoById(categoryInfo['simpleInfo'][KEY_ID], categoryInfo['detailInfo'])
+        self.analysisManager.saveCategoryRuleById(categoryInfo['simpleInfo'][KEY_ID], categoryInfo['detailInfo'])
         # 更新分类下拉选择框
         self.updateCategoryComboBox()
         # 将分类信息保存到ini文件
-        self.saveCategorys()
+        self.__saveCategorys()
         WidgetUtil.showAboutDialog(
             text=f"您成功导入<span style='color:red;'>{categoryInfo['simpleInfo'][KEY_NAME]}</span>分类信息")
         pass
