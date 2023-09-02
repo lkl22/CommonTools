@@ -64,6 +64,7 @@ a = Analysis(['RunMain.py',
               'widget/analysis/CategoryConfigWidget.py',
               'widget/analysis/CategoryManagerWidget.py',
               'widget/analysis/ExtractLogDialog.py',
+              'widget/analysis/ExtractMergeLogDialog.py',
               'widget/analysis/LogAnalysisManager.py',
               'widget/analysis/LogAnalysisWindow.py',
 

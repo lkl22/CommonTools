@@ -169,7 +169,7 @@ class MainWidget(QMainWindow):
         vbox.addLayout(hbox)
 
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
-        hbox.addWidget(WidgetUtil.createPushButton(box, text="Log提取", onClicked=self.jumpLogAnalysisWindow), 1)
+        hbox.addWidget(WidgetUtil.createPushButton(box, text="Log分析辅助工具", onClicked=self.jumpLogAnalysisWindow), 1)
         hbox.addWidget(WidgetUtil.createLabel(box), 4)
         vbox.addLayout(hbox)
 

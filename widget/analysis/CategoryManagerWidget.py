@@ -49,7 +49,11 @@ class CategoryManagerWidget(QFrame):
         vbox.addLayout(hbox)
 
         splitter = WidgetUtil.createSplitter(self)
-        WidgetUtil.createPushButton(splitter, text="提取Log文件", minSize=QSize(120, const.HEIGHT),
+        WidgetUtil.createPushButton(splitter, text="筛选指定日期范围Log文件", minSize=QSize(120, const.HEIGHT),
+                                    toolTip='从指定目录下筛选指定日期范围的Log压缩文件，解压并合并到一个文件中',
+                                    onClicked=self.extractMergeLogFile)
+        WidgetUtil.createPushButton(splitter, text="提取Log日志到指定文件", minSize=QSize(120, const.HEIGHT),
+                                    toolTip='从指定Log文件中提取指定日期范围到Log到目标文件',
                                     onClicked=self.extractLogFile)
         vbox.addWidget(splitter)
 
@@ -57,6 +61,11 @@ class CategoryManagerWidget(QFrame):
         # self.setStyleSheet("CategoryManagerWidget{border:1px solid rgb(0,0,255)}")
         self.modifyCallback(self.__getCurCategoryInfo())
         self.updateCategoryComboBox()
+        pass
+
+    def extractMergeLogFile(self):
+        from widget.analysis.ExtractMergeLogDialog import ExtractMergeLogDialog
+        ExtractMergeLogDialog()
         pass
 
     def extractLogFile(self):
