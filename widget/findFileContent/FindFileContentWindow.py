@@ -44,7 +44,7 @@ class FindFileContentWindow(QMainWindow):
         # self.setFixedSize(MockExamDialog.WINDOW_WIDTH, MockExamDialog.WINDOW_HEIGHT)
 
         self.isDebug = isDebug
-        self.manager = FindFileContentManager(isDebug=isDebug)
+        self.manager = FindFileContentManager()
         self.configs = self.manager.configs
         self.path = self.manager.path
         if not self.configs:

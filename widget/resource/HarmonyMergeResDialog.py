@@ -54,7 +54,7 @@ class HarmonyMergeResDialog(QtWidgets.QDialog):
 
         self.resType = RES_TYPE_LIST[0]
         self.isDebug = isDebug
-        self.operaIni = OperaIni("../../resources/config/BaseConfig.ini" if isDebug else '')
+        self.operaIni = OperaIni()
         self.srcFilePath = self.operaIni.getValue(KEY_SRC_FILE_PATH, KEY_SECTION)
         self.dstFilePath = self.operaIni.getValue(KEY_DST_FILE_PATH, KEY_SECTION)
         self.loadingDialog = None

@@ -101,8 +101,8 @@ KEY_CHECK_CODE_MODIFY = "checkCodeModify"
 
 
 class ProjectManager:
-    def __init__(self, isDebug=False):
-        self.operaIni = OperaIni("../../resources/config/BaseConfig.ini" if isDebug else '')
+    def __init__(self):
+        self.operaIni = OperaIni()
         self.projects = JsonUtil.decode(self.operaIni.getValue(ITEM_KEY_PROJECT, KEY_SECTION))
     pass
 

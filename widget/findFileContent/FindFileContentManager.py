@@ -28,8 +28,8 @@ DEFAULT_VALUE_IS_REG = False
 
 
 class FindFileContentManager:
-    def __init__(self, isDebug=False):
-        self.operaIni = OperaIni("../../resources/config/BaseConfig.ini" if isDebug else '')
+    def __init__(self):
+        self.operaIni = OperaIni()
         self.configs = JsonUtil.decode(self.operaIni.getValue(ITEM_KEY_CONFIGS, KEY_SECTION))
         self.path = self.operaIni.getValue(KEY_PATH, KEY_SECTION)
     pass

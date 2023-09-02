@@ -40,7 +40,7 @@ class ExtractLogDialog(QtWidgets.QDialog):
         self.setWindowTitle(WidgetUtil.translate(text="Log提取工具"))
 
         self.isDebug = isDebug
-        self.operaIni = OperaIni("../../resources/config/BaseConfig.ini" if isDebug else '')
+        self.operaIni = OperaIni()
         self.extractLogFilePath = self.operaIni.getValue(KEY_EXTRACT_LOG_FILE_PATH, KEY_SECTION)
         self.extractLogFileReg = self.operaIni.getValue(KEY_EXTRACT_LOG_FILE_REG, KEY_SECTION)
         self.extractFileTimeFormat = self.operaIni.getValue(KEY_EXTRACT_FILE_TIME_FORMAT, KEY_SECTION)

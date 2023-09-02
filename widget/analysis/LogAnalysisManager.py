@@ -22,12 +22,12 @@ KEY_FILE_PATH = 'filePath'
 
 
 KEY_NEED_COST_TIME = "needCostTime"
-DEFAULT_VALUE_HAS_COST_TIME = False
+DEFAULT_VALUE_NEED_COST_TIME = False
 
 
 class LogAnalysisManager:
     def __init__(self, isDebug=False):
-        self.operaIni = OperaIni("../../resources/config/BaseConfig.ini" if isDebug else '')
+        self.operaIni = OperaIni()
         self.configs = JsonUtil.decode(self.operaIni.getValue(ITEM_KEY_CATEGORY, KEY_SECTION))
     pass
 

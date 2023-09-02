@@ -25,7 +25,7 @@ KEY_PWD = 'pwd'
 
 class AccountManager:
     def __init__(self, isDebug=False):
-        self.operaIni = OperaIni("../../resources/config/BaseConfig.ini" if isDebug else '')
+        self.operaIni = OperaIni()
         # {"default": {"desc": "镜像环境", "flavorName": "mirror"}, "list": [{"desc": "开发环境", "flavorName": "develop"},{"desc": "镜像环境", "flavorName": "mirror"}]}
         self.flavors = JsonUtil.decode(self.operaIni.getValue(ITEM_KEY_FLAVOR, KEY_SECTION))
         # {"default": {"countryCode": "MY", "desc": "马来"}, "list": [{"countryCode": "CN", "desc": "中国"}, {"countryCode": "MY", "desc": "马来"}]}

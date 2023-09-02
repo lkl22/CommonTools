@@ -192,8 +192,9 @@ class FileUtil:
         :return: 项目根目录
         """
         path = os.getcwd().replace("\\", "/")
+        while not FileUtil.existsFile(os.path.join(path, 'CommonTools.spec')):
+            path = os.path.split(path)[0]
         LogUtil.e(TAG, "getProjectPath：", path)
-        # os.path.split(path)[0].replace("\\", "/")
         return path
 
     @staticmethod

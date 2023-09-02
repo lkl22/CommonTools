@@ -45,10 +45,7 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
             {"text": '获取设备MAC地址', "func": self.getMACAddr}
         ]
         self.isDebug = isDebug
-        if isDebug:
-            self.operaIni = OperaIni("../../resources/config/BaseConfig.ini")
-        else:
-            self.operaIni = OperaIni()
+        self.operaIni = OperaIni()
 
         self.autoClickButtonTxt = "|".join(JsonUtil.decode(self.operaIni.getValue("autoClickButtonText", "test")))
 

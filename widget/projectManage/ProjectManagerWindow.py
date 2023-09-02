@@ -47,7 +47,7 @@ class ProjectManagerWindow(QMainWindow):
         self.resize(ProjectManagerWindow.WINDOW_WIDTH, ProjectManagerWindow.WINDOW_HEIGHT)
 
         self.isDebug = isDebug
-        self.projectManager = ProjectManager(isDebug)
+        self.projectManager = ProjectManager()
 
         self.executor = ThreadPoolExecutor(max_workers=5, thread_name_prefix="ProjectExecute_")
         self.futureList = []

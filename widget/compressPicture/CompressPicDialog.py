@@ -42,10 +42,7 @@ class CompressPicDialog(QtWidgets.QDialog):
         # self.setFixedSize(CompressPicDialog.WINDOW_WIDTH, CompressPicDialog.WINDOW_HEIGHT)
 
         self.isDebug = isDebug
-        if isDebug:
-            self.operaIni = OperaIni("../../resources/config/BaseConfig.ini")
-        else:
-            self.operaIni = OperaIni()
+        self.operaIni = OperaIni()
         self.maxWorkerThreadCount = int(self.getConfig(KEY_MAX_WORKER_THREAD_COUNT))
         if not self.maxWorkerThreadCount:
             self.maxWorkerThreadCount = 5
