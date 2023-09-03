@@ -2,6 +2,7 @@
 # python 3.x
 # Filename: ListUtil.py
 # 定义一个ListUtil工具类实现列表数据操作相关的功能
+from util.DictUtil import DictUtil
 from util.LogUtil import *
 
 
@@ -138,6 +139,20 @@ class ListUtil:
                 listData.remove(oldData)
             listData.append(newData)
         pass
+
+    @staticmethod
+    def filter(listData: list, filterKey, filterValue, filterDefault=None):
+        """
+        从list中筛选满足指定条件的数据
+        :param listData: 源数据
+        :param filterKey: 需要从列表里筛选数据的key
+        :param filterValue: 需要从列表里筛选数据的value
+        :param filterDefault: 需要从列表里筛选数据的默认value
+        :return: 过滤的结果
+        """
+        if listData:
+            return [item for item in listData if DictUtil.get(item, filterKey, filterDefault) == filterValue]
+        return []
 
 
 if __name__ == "__main__":

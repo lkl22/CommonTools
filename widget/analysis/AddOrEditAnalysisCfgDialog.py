@@ -31,6 +31,7 @@ class AddOrEditAnalysisCfgDialog(QtWidgets.QDialog):
         self.isAdd = default is None
         self.default = default
         needCostTime = DictUtil.get(self.default, KEY_NEED_COST_TIME, DEFAULT_VALUE_NEED_COST_TIME)
+        isEnable = DictUtil.get(self.default, KEY_IS_ENABLE, DEFAULT_VALUE_IS_ENABLE)
 
         self.setObjectName("AddOrEditAnalysisCfgDialog")
         self.resize(AddOrEditAnalysisCfgDialog.WINDOW_WIDTH, AddOrEditAnalysisCfgDialog.WINDOW_HEIGHT)
@@ -78,12 +79,17 @@ class AddOrEditAnalysisCfgDialog(QtWidgets.QDialog):
         hBox.addWidget(self.endLogKeywordLineEdit)
         vLayout.addLayout(hBox)
 
-        hBox = WidgetUtil.createHBoxLayout(spacing=10)
+        hBox = WidgetUtil.createHBoxLayout(spacing=30)
+        self.enableCheckBox = WidgetUtil.createCheckBox(self, text="Enable",
+                                                        toolTip="默认Enable，规则生效",
+                                                        isChecked=isEnable)
+        hBox.addWidget(self.enableCheckBox)
         self.costTimeCheckBox = WidgetUtil.createCheckBox(self, text="统计耗时",
                                                           toolTip="默认不统计耗时，只打印日志",
                                                           isChecked=needCostTime,
                                                           clicked=self.costTimeCheckChange)
         hBox.addWidget(self.costTimeCheckBox)
+        hBox.addItem(WidgetUtil.createHSpacerItem(1, 1))
         vLayout.addLayout(hBox)
 
         # vLayout.addWidget(WidgetUtil.createLabel(self), 1)
@@ -119,8 +125,8 @@ class AddOrEditAnalysisCfgDialog(QtWidgets.QDialog):
         isChecked = self.costTimeCheckBox.isChecked()
 
         logKeyword = self.logKeywordLineEdit.text().strip()
-        startLogKeyword = ''
-        endLogKeyword = ''
+        startLogKeyword = DictUtil.get(self.default, KEY_START_LOG_KEYWORD, '')
+        endLogKeyword = DictUtil.get(self.default, KEY_END_LOG_KEYWORD, '')
         if isChecked:
             startLogKeyword = self.startLogKeywordLineEdit.text().strip()
             if not startLogKeyword:
@@ -138,6 +144,7 @@ class AddOrEditAnalysisCfgDialog(QtWidgets.QDialog):
         self.default[KEY_NAME] = name
         self.default[KEY_DESC] = desc
         self.default[KEY_LOG_KEYWORD] = logKeyword
+        self.default[KEY_IS_ENABLE] = self.enableCheckBox.isChecked()
         self.default[KEY_NEED_COST_TIME] = isChecked
         self.default[KEY_START_LOG_KEYWORD] = startLogKeyword
         self.default[KEY_END_LOG_KEYWORD] = endLogKeyword

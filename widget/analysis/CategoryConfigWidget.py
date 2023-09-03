@@ -179,10 +179,11 @@ class CategoryConfigWidget(QFrame):
                 KEY_NAME: DictUtil.get(rule, KEY_NAME, ''),
                 KEY_DESC: DictUtil.get(rule, KEY_DESC, ""),
                 KEY_LOG_KEYWORD: DictUtil.get(rule, KEY_LOG_KEYWORD, ""),
+                KEY_IS_ENABLE: DictUtil.get(rule, KEY_IS_ENABLE, DEFAULT_VALUE_IS_ENABLE),
                 KEY_NEED_COST_TIME: DictUtil.get(rule, KEY_NEED_COST_TIME, DEFAULT_VALUE_NEED_COST_TIME),
                 KEY_START_LOG_KEYWORD: DictUtil.get(rule, KEY_START_LOG_KEYWORD, ""),
                 KEY_END_LOG_KEYWORD: DictUtil.get(rule, KEY_END_LOG_KEYWORD, ""),
             })
         WidgetUtil.addTableViewData(self.analysisRuleTableView, tableData,
-                                    headerLabels=["规则名", "规则描述", "日志关键字", "统计耗时", "开始日志关键字", "结束日志关键字"])
+                                    headerLabels=["规则名", "规则描述", "日志关键字", "Enable", "统计耗时", "开始日志关键字", "结束日志关键字"])
         pass

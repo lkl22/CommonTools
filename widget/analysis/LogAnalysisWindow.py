@@ -2,13 +2,13 @@
 # python 3.x
 # Filename: LogAnalysisWindow.py
 # 定义一个LogAnalysisWindow类实现log分析相关功能
-import os.path
 import threading
 
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QMainWindow
 from util.DialogUtil import *
 from util.DictUtil import DictUtil
+from util.ListUtil import ListUtil
 from util.OperaIni import *
 from util.StrUtil import StrUtil
 from widget.analysis.CategoryConfigWidget import CategoryConfigWidget
@@ -124,6 +124,8 @@ class LogAnalysisWindow(QMainWindow):
         self.analysisManager.saveCategoryRuleById(categoryId, self.categoryRule)
 
         self.consoleTextEdit.clear()
+        self.costTimeResult.clear()
+        self.execResult.clear()
 
         # 必须放到线程执行，否则加载框要等指令执行完才会弹
         threading.Thread(target=self.__execAnalysisLog, args=()).start()
@@ -134,11 +136,9 @@ class LogAnalysisWindow(QMainWindow):
     def __execAnalysisLog(self):
         LogUtil.d(TAG, '__execAnalysisLog start', self.categoryRule)
         srcFile = open(self.categoryRule[KEY_FILE_PATH], 'rb')
-        ruleList = self.categoryRule[KEY_ANALYSIS_RULES]
         timeIndex = self.categoryRule[KEY_LOG_TIME_INDEX]
         timeFormat = self.categoryRule[KEY_LOG_TIME_FORMAT]
-        ruleList = self.categoryRule[KEY_ANALYSIS_RULES]
-        # keywords = list(rule[KEY_LOG_KEYWORD] for rule in ruleList)
+        ruleList = ListUtil.filter(self.categoryRule[KEY_ANALYSIS_RULES], KEY_IS_ENABLE, True, DEFAULT_VALUE_IS_ENABLE)
         line = StrUtil.decode(srcFile.readline())
         while line:
             self.__analysisLogByLine(line, ruleList, timeIndex, timeFormat)
