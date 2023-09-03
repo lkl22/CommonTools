@@ -10,6 +10,7 @@ from PyQt5.QtWidgets import QMainWindow
 from util.DialogUtil import *
 from util.DictUtil import DictUtil
 from util.OperaIni import *
+from util.StrUtil import StrUtil
 from widget.analysis.CategoryConfigWidget import CategoryConfigWidget
 from widget.analysis.CategoryManagerWidget import CategoryManagerWidget
 from widget.analysis.LogAnalysisManager import *
@@ -19,14 +20,16 @@ TAG = "LogAnalysisWindow"
 
 DATETIME_FORMAT = 'yyyy-MM-dd HH:mm:ss'
 
-KEY_SECTION = 'LogAnalysis'
-KEY_LOG_FILE_PATH = 'logFilePath'
+KEY_LOG = 'log'
+KEY_TIME = 'time'
+KEY_COLOR = 'color'
+MAX_BYTE = 200
 
 
 class LogAnalysisWindow(QMainWindow):
     windowList = []
     hideLoadingSignal = pyqtSignal()
-    standardOutputSignal = pyqtSignal(str, str)
+    standardOutputSignal = pyqtSignal()
 
     def __init__(self, isDebug=False):
         # 调用父类的构函
@@ -44,7 +47,8 @@ class LogAnalysisWindow(QMainWindow):
         self.analysisManager = LogAnalysisManager(isDebug)
         self.loadingDialog = None
         self.categoryInfo = None
-        self.analysisResult = {}
+        self.costTimeResult = {}
+        self.execResult = []
 
         layoutWidget = QtWidgets.QWidget(self)
         layoutWidget.setObjectName("layoutWidget")
@@ -129,21 +133,19 @@ class LogAnalysisWindow(QMainWindow):
 
     def __execAnalysisLog(self):
         LogUtil.d(TAG, '__execAnalysisLog start', self.categoryRule)
-        srcFile = open(self.categoryRule[KEY_FILE_PATH], 'r')
+        srcFile = open(self.categoryRule[KEY_FILE_PATH], 'rb')
         ruleList = self.categoryRule[KEY_ANALYSIS_RULES]
         timeIndex = self.categoryRule[KEY_LOG_TIME_INDEX]
         timeFormat = self.categoryRule[KEY_LOG_TIME_FORMAT]
         ruleList = self.categoryRule[KEY_ANALYSIS_RULES]
         # keywords = list(rule[KEY_LOG_KEYWORD] for rule in ruleList)
-        line = srcFile.readline()
+        line = StrUtil.decode(srcFile.readline())
         while line:
             self.__analysisLogByLine(line, ruleList, timeIndex, timeFormat)
-            try:
-                line = srcFile.readline()
-            except Exception as ex:
-                LogUtil.e("invalid line：{} \nex: {}".format(line, ex))
+            line = StrUtil.decode(srcFile.readline())
 
         srcFile.close()
+        self.standardOutputSignal.emit()
         self.hideLoadingSignal.emit()
         pass
 
@@ -151,7 +153,7 @@ class LogAnalysisWindow(QMainWindow):
         for rule in ruleList:
             logKeyword = DictUtil.get(rule, KEY_LOG_KEYWORD, '')
             if logKeyword and logKeyword in line:
-                self.standardOutputSignal.emit(line, '#00f')
+                self.execResult.append({KEY_LOG: line, KEY_COLOR: '#00f'})
             self.__analysisCostTime(line, rule, timeIndex, timeFormat)
         pass
 
@@ -162,20 +164,22 @@ class LogAnalysisWindow(QMainWindow):
         endKeyword = DictUtil.get(rule, KEY_END_LOG_KEYWORD, '')
         if startKeyword in line:
             startTime = self.__getLogTime(line, timeIndex, timeFormat)
-            self.analysisResult[rule[KEY_NAME]] = {'time': startTime, 'log': line}
+            self.costTimeResult[rule[KEY_NAME]] = {KEY_TIME: startTime, KEY_LOG: line}
         elif endKeyword in line:
-            startInfo = DictUtil.get(self.analysisResult, rule[KEY_NAME], None)
+            startInfo = DictUtil.get(self.costTimeResult, rule[KEY_NAME], None)
             if not startInfo:
                 return
-            startTime = startInfo['time']
+            startTime = startInfo[KEY_TIME]
             if not startTime:
                 return
             endTime = self.__getLogTime(line, timeIndex, timeFormat)
             if not endTime:
                 return
-            self.standardOutputSignal.emit(
-                f"{startInfo['log']}{line}耗时分析：{rule[KEY_NAME]}({DictUtil.get(rule, KEY_DESC, '')}) cost time: {endTime[0].msecsTo(startTime[0]) * 1000 + endTime[1] - startTime[1]} ms\n",
-                '#f00')
+            self.execResult.append({KEY_LOG: f"{startInfo[KEY_LOG]}{line[:MAX_BYTE]}", KEY_COLOR: '#000'})
+            costTime = startTime[0].msecsTo(endTime[0]) + endTime[1] - startTime[1]
+            self.execResult.append(
+                {KEY_LOG: f"耗时分析：{rule[KEY_NAME]}({DictUtil.get(rule, KEY_DESC, '')}) cost time: {costTime} ms\n",
+                 KEY_COLOR: '#f00'})
         pass
 
     def __getLogTime(self, line, timeIndex, timeFormat: str):
@@ -190,8 +194,9 @@ class LogAnalysisWindow(QMainWindow):
             LogUtil.e(TAG, '__getLogTime 错误信息：', e)
             return None
 
-    def __standardOutput(self, log, color='#00f'):
-        WidgetUtil.appendTextEdit(self.consoleTextEdit, text=log, color=color)
+    def __standardOutput(self):
+        for item in self.execResult:
+            WidgetUtil.appendTextEdit(self.consoleTextEdit, text=item[KEY_LOG], color=item[KEY_COLOR])
         pass
 
 

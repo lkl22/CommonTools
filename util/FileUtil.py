@@ -2,6 +2,7 @@
 # python 3.x
 # Filename: FileUtil.py
 # 定义一个FileUtil工具类实现文件相关的功能
+import gzip
 import os
 import shutil
 import zipfile
@@ -176,10 +177,10 @@ class FileUtil:
         """
         try:
             FileUtil.mkFilePath(dstFn)
-            with open(dstFn, mode='x') as dstFile:
+            with open(dstFn, mode='xb') as dstFile:
                 for srcFn in srcFns:
-                    dstFile.write(f"\nfilePath: {srcFn}\n")
-                    with open(srcFn) as file:
+                    dstFile.write(f"\nfilePath: {srcFn}\n".encode())
+                    with open(srcFn, 'wb') as file:
                         content = file.readlines()
                         dstFile.writelines(content)
             return True
@@ -286,7 +287,27 @@ class FileUtil:
         """
         if not os.path.exists(unzipToDir):
             os.mkdir(unzipToDir)
-        zfObj = zipfile.ZipFile(zipFileName)
+        _, fn = os.path.split(zipFileName)
+        fileName, ext = os.path.splitext(fn)
+        if ext == '.gz':
+            outFp = os.path.join(unzipToDir, fileName)
+            FileUtil.__unzipGzFile(zipFileName, outFp)
+        else:
+            FileUtil.__unzipFile(zipFileName, unzipToDir)
+        pass
+
+    @staticmethod
+    def __unzipFile(zipFileName, unzipToDir):
+        """
+        解压文件到指定目录
+        :param zipFileName: 压缩文件名
+        :param unzipToDir: 解压文件保存路径
+        """
+        try:
+            zfObj = zipfile.ZipFile(zipFileName)
+        except Exception as e:
+            LogUtil.e(TAG, '__unzipFile 错误信息：', e)
+            return
         for name in zfObj.namelist():
             name = name.replace('\\', '/')
             if name.endswith('/'):
@@ -296,9 +317,28 @@ class FileUtil:
                 extDir = os.path.dirname(extFileName)
                 if not os.path.exists(extDir):
                     os.mkdir(extDir)
-                outfile = open(extFileName, 'wb')
-                outfile.write(zfObj.read(name))
-                outfile.close()
+                with open(extFileName, 'wb') as outfile:
+                    outfile.write(zfObj.read(name))
+        pass
+
+    @staticmethod
+    def __unzipGzFile(zipFileName, outFp):
+        """
+        解压gz到指定文件
+        :param zipFileName: 压缩文件名
+        :param outFp: 输出文件
+        """
+        # 开始解压
+        try:
+            gFile = gzip.GzipFile(zipFileName)
+        except Exception as e:
+            LogUtil.e(TAG, '__unzipGzFile 错误信息：', e)
+            return
+        # 读取解压后的文件，并写入去掉后缀名的同名文件（即得到解压后的文件）
+        with open(outFp, 'wb') as outfile:
+            outfile.write(gFile.read())
+        gFile.close()
+        pass
 
     @staticmethod
     def readFile(fp, encoding='utf8'):

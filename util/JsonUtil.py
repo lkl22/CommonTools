@@ -37,17 +37,18 @@ class JsonUtil:
             LogUtil.e('JsonUtil load 错误信息：', err)
 
     @staticmethod
-    def decode(jsonData):
+    def decode(jsonData, defaultValue=None):
         """
         将 JSON 格式数据解析为 Python 数据
         :param jsonData: JSON 格式数据
+        :param defaultValue: 解析失败返回默认值
         :return: Python 数据
         """
         try:
             return json.loads(jsonData)
         except Exception as err:
             LogUtil.e('JsonUtil decode 错误信息：', err)
-            return None
+            return defaultValue
 
     @staticmethod
     def load(fp):

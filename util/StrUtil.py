@@ -4,6 +4,8 @@
 # 定义一个StrUtil工具类实现字符串操作相关的功能
 from util.LogUtil import *
 
+TAG = 'StrUtil'
+
 
 class StrUtil:
     @staticmethod
@@ -42,6 +44,25 @@ class StrUtil:
                 isContains = True
                 break
         return isContains
+
+    @staticmethod
+    def decode(data):
+        """
+        将字节转为字符串
+        :param data: 源字节串
+        :return: 解码后到字符串
+        """
+        if not data:
+            return ''
+        try:
+            return data.decode()
+        except Exception as e:
+            LogUtil.e(TAG, 'decode 错误信息：', e)
+        try:
+            return data.decode('gbk')
+        except Exception as e:
+            LogUtil.e(TAG, 'decode 错误信息：', e)
+        return ''
 
 
 if __name__ == "__main__":
