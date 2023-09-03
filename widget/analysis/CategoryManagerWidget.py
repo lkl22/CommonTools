@@ -25,6 +25,7 @@ class CategoryManagerWidget(QFrame):
         self.modifyCallback = modifyCallback
         self.configs = {KEY_DEFAULT: -1, KEY_LIST: []} | self.analysisManager.configs
         self.curCategoryIndex = self.configs[KEY_DEFAULT]
+        self.categoryId = -1
 
         self.setObjectName(TAG)
         self.setToolTip("日志分析配置信息管理")
@@ -35,45 +36,46 @@ class CategoryManagerWidget(QFrame):
         hbox = WidgetUtil.createHBoxLayout()
 
         hbox.addWidget(WidgetUtil.createLabel(self, text="请选择Log分析配置："))
-        self.categoryComboBox = WidgetUtil.createComboBox(self, activated=self.categoryIndexChanged,
+        self.categoryComboBox = WidgetUtil.createComboBox(self, activated=self.__categoryIndexChanged,
                                                           sizePolicy=WidgetUtil.createSizePolicy())
         hbox.addWidget(self.categoryComboBox, 1)
 
-        hbox.addWidget(WidgetUtil.createPushButton(self, text="Add", toolTip="添加新配置", onClicked=self.addCategory))
-        hbox.addWidget(WidgetUtil.createPushButton(self, text="Modify", toolTip="修改配置", onClicked=self.modifyCategory))
-        hbox.addWidget(WidgetUtil.createPushButton(self, text="Del", toolTip="删除配置", onClicked=self.delCategory))
+        hbox.addWidget(WidgetUtil.createPushButton(self, text="Add", toolTip="添加新配置", onClicked=self.__addCategory))
         hbox.addWidget(
-            WidgetUtil.createPushButton(self, text="Save As", toolTip="导出该配置配置", onClicked=self.saveAsCategory))
+            WidgetUtil.createPushButton(self, text="Modify", toolTip="修改配置", onClicked=self.__modifyCategory))
+        hbox.addWidget(WidgetUtil.createPushButton(self, text="Del", toolTip="删除配置", onClicked=self.__delCategory))
         hbox.addWidget(
-            WidgetUtil.createPushButton(self, text="Import", toolTip="导入配置配置", onClicked=self.importCategory))
+            WidgetUtil.createPushButton(self, text="Save As", toolTip="导出该配置配置", onClicked=self.__saveAsCategory))
+        hbox.addWidget(
+            WidgetUtil.createPushButton(self, text="Import", toolTip="导入配置配置", onClicked=self.__importCategory))
         vbox.addLayout(hbox)
 
         splitter = WidgetUtil.createSplitter(self)
         WidgetUtil.createPushButton(splitter, text="筛选指定日期范围Log文件", minSize=QSize(120, const.HEIGHT),
                                     toolTip='从指定目录下筛选指定日期范围的Log压缩文件，解压并合并到一个文件中',
-                                    onClicked=self.extractMergeLogFile)
+                                    onClicked=self.__extractMergeLogFile)
         WidgetUtil.createPushButton(splitter, text="提取Log日志到指定文件", minSize=QSize(120, const.HEIGHT),
                                     toolTip='从指定Log文件中提取指定日期范围到Log到目标文件',
-                                    onClicked=self.extractLogFile)
+                                    onClicked=self.__extractLogFile)
         vbox.addWidget(splitter)
 
         # self.setAutoFillBackground(True)
         # self.setStyleSheet("CategoryManagerWidget{border:1px solid rgb(0,0,255)}")
         self.modifyCallback(self.__getCurCategoryInfo())
-        self.updateCategoryComboBox()
+        self.__updateCategoryComboBox()
         pass
 
-    def extractMergeLogFile(self):
+    def __extractMergeLogFile(self):
         from widget.analysis.extract.ExtractMergeLogDialog import ExtractMergeLogDialog
         ExtractMergeLogDialog()
         pass
 
-    def extractLogFile(self):
+    def __extractLogFile(self):
         from widget.analysis.extract.ExtractLogDialog import ExtractLogDialog
         ExtractLogDialog()
         pass
 
-    def updateCategoryComboBox(self):
+    def __updateCategoryComboBox(self):
         if self.configs and self.configs[KEY_LIST]:
             self.categoryComboBox.clear()
             for index, item in enumerate(self.configs[KEY_LIST]):
@@ -89,7 +91,7 @@ class CategoryManagerWidget(QFrame):
             LogUtil.d(TAG, "no category")
         pass
 
-    def categoryIndexChanged(self, index):
+    def __categoryIndexChanged(self, index):
         LogUtil.d(TAG, 'categoryIndexChanged', index)
         self.curCategoryIndex = index
         self.__saveCategorys()
@@ -109,26 +111,28 @@ class CategoryManagerWidget(QFrame):
         else:
             return None
 
-    def addCategory(self):
+    def __addCategory(self):
         LogUtil.d(TAG, "addCategory")
-        AddOrEditCategoryDialog(callback=self.addOrEditCategoryCallback)
+        AddOrEditCategoryDialog(callback=self.__addOrEditCategoryCallback)
         pass
 
-    def modifyCategory(self):
+    def __modifyCategory(self):
         LogUtil.d(TAG, "modifyCategory")
         if self.curCategoryIndex < 0:
             WidgetUtil.showAboutDialog(text="请先选择一个分类")
             return
-        AddOrEditCategoryDialog(callback=self.addOrEditCategoryCallback,
-                                categoryInfo=self.configs[KEY_LIST][self.curCategoryIndex], categoryList=self.configs)
+        curCategoryInfo = self.__getCurCategoryInfo()
+        self.categoryId = curCategoryInfo[KEY_ID]
+        AddOrEditCategoryDialog(callback=self.__addOrEditCategoryCallback, categoryInfo=curCategoryInfo,
+                                categoryList=self.configs)
         pass
 
-    def addOrEditCategoryCallback(self, info):
+    def __addOrEditCategoryCallback(self, info):
         LogUtil.d(TAG, "addOrEditCategoryCallback", info)
+        curCategoryInfo = self.__getCurCategoryInfo()
         categorys = self.configs[KEY_LIST]
         if info:
             categorys.append(info)
-        curCategoryInfo = self.getCurCategoryInfo()
         # 按配置名称重新排序
         self.configs[KEY_LIST] = sorted(categorys, key=lambda x: x[KEY_NAME])
         if curCategoryInfo:
@@ -137,45 +141,50 @@ class CategoryManagerWidget(QFrame):
                     self.curCategoryIndex = index
                     break
         # 更新分类下拉选择框
-        self.updateCategoryComboBox()
+        self.__updateCategoryComboBox()
+        # 修改了分类，对应的分类信息也同步修改
+        if curCategoryInfo[KEY_ID] != self.categoryId:
+            categoryRule = self.analysisManager.getCategoryRuleById(self.categoryId)
+            if categoryRule:
+                self.analysisManager.saveCategoryRuleById(curCategoryInfo[KEY_ID], categoryRule)
         # 将分类信息保存到ini文件
         self.__saveCategorys()
         pass
 
-    def getCurCategoryInfo(self):
+    def __getCurCategoryInfo(self):
         if self.curCategoryIndex >= 0:
             return self.configs[KEY_LIST][self.curCategoryIndex]
         else:
             return None
 
-    def delCategory(self):
+    def __delCategory(self):
         LogUtil.d(TAG, "delCategory")
         if self.curCategoryIndex < 0:
             WidgetUtil.showAboutDialog(text="请先选择一个分类")
             return
-        categoryInfo = self.getCurCategoryInfo()
+        categoryInfo = self.__getCurCategoryInfo()
         WidgetUtil.showQuestionDialog(
             message=f"你确定需要删除 <span style='color:red;'>{categoryInfo[KEY_NAME]}（{categoryInfo[KEY_DESC]}）</span> 吗？",
-            acceptFunc=self.delCategoryItem)
+            acceptFunc=self.__delCategoryItem)
         pass
 
-    def delCategoryItem(self):
+    def __delCategoryItem(self):
         LogUtil.i(TAG, "delCategoryItem")
-        curCategoryInfo = self.getCurCategoryInfo()
+        curCategoryInfo = self.__getCurCategoryInfo()
         self.configs[KEY_LIST].remove(curCategoryInfo)
         self.curCategoryIndex = -1
-        self.updateCategoryComboBox()
+        self.__updateCategoryComboBox()
         self.analysisManager.delCategoryRuleById(curCategoryInfo[KEY_ID])
         self.__saveCategorys()
         pass
 
-    def saveAsCategory(self):
+    def __saveAsCategory(self):
         LogUtil.d(TAG, "saveAsCategory")
         if self.curCategoryIndex < 0:
             WidgetUtil.showAboutDialog(text="请先选择一个分类")
             return
 
-        curCategoryInfo = self.getCurCategoryInfo()
+        curCategoryInfo = self.__getCurCategoryInfo()
         detailCategoryInfo = self.analysisManager.getCategoryRuleById(curCategoryInfo[KEY_ID])
 
         saveData = {"simpleInfo": curCategoryInfo, "detailInfo": detailCategoryInfo if detailCategoryInfo else {}}
@@ -190,9 +199,9 @@ class CategoryManagerWidget(QFrame):
             text=f"你成功保存<span style='color:red;'>{curCategoryInfo[KEY_NAME]}</span>分类信息到<span style='color:red;'>{saveFile}</span>")
         pass
 
-    def importCategory(self):
+    def __importCategory(self):
         LogUtil.d(TAG, "importCategory")
-        curCategoryInfo = self.getCurCategoryInfo()
+        curCategoryInfo = self.__getCurCategoryInfo()
         fp = WidgetUtil.getOpenFileName(caption='选择备份的分类配置文件', filter='*.json', initialFilter='*.json')
         if not fp:
             WidgetUtil.showAboutDialog(text="您未选择配置文件，导入分类配置失败。")
@@ -208,12 +217,12 @@ class CategoryManagerWidget(QFrame):
             return
         if ListUtil.contain(self.configs[KEY_LIST], KEY_NAME, categoryInfo["simpleInfo"][KEY_NAME]):
             WidgetUtil.showQuestionDialog(message=f"{categoryInfo['simpleInfo'][KEY_NAME]}已经存在，是否继续，继续将覆盖现有的配置。",
-                                          acceptFunc=lambda: self.startImportCategory(categoryInfo, True))
+                                          acceptFunc=lambda: self.__startImportCategory(categoryInfo, True))
             return
-        self.startImportCategory(categoryInfo)
+        self.__startImportCategory(categoryInfo)
         pass
 
-    def startImportCategory(self, categoryInfo, has=False):
+    def __startImportCategory(self, categoryInfo, has=False):
         LogUtil.d(TAG, "startImportCategory", has)
         categorys = self.configs[KEY_LIST]
         if has:
@@ -223,7 +232,7 @@ class CategoryManagerWidget(QFrame):
         self.configs[KEY_LIST] = sorted(categorys, key=lambda x: x[KEY_NAME])
         self.analysisManager.saveCategoryRuleById(categoryInfo['simpleInfo'][KEY_ID], categoryInfo['detailInfo'])
         # 更新分类下拉选择框
-        self.updateCategoryComboBox()
+        self.__updateCategoryComboBox()
         # 将分类信息保存到ini文件
         self.__saveCategorys()
         WidgetUtil.showAboutDialog(
