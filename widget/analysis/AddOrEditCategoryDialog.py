@@ -77,8 +77,8 @@ class AddOrEditCategoryDialog(QtWidgets.QDialog):
             WidgetUtil.showErrorDialog(message="请输入分类描述")
             return
 
-        for item in self.categoryList:
-            if name == item[KEY_NAME] and name != DictUtil.get(self.categoryInfo, KEY_NAME):
+        for item in DictUtil.get(self.categoryList, KEY_LIST, []):
+            if name == item[KEY_NAME] and name != DictUtil.get(item, KEY_NAME):
                 WidgetUtil.showErrorDialog(message=f"请重新添加一个其他的分类名，{name}已经存在了，可以下拉选择")
                 return
 

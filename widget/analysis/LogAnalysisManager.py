@@ -59,4 +59,4 @@ class LogAnalysisManager:
         pass
 
     def getCategoryRuleById(self, categoryId):
-        return JsonUtil.decode(self.operaIni.getValue(categoryId, KEY_SECTION))
+        return JsonUtil.decode(self.operaIni.getValue(categoryId, KEY_SECTION), {})
