@@ -2,11 +2,16 @@
 # python 3.x
 # Filename: AddOrEditAnalysisCfgDialog.py
 # 定义一个AddOrEditAnalysisCfgDialog类实现添加、编辑log分析规则配置的功能
+import copy
+
+from PyQt5.QtCore import QModelIndex
+from PyQt5.QtWidgets import QAbstractItemView
 
 from constant.WidgetConst import *
 from util.DialogUtil import *
 from util.DictUtil import DictUtil
 from util.OperaIni import *
+from widget.analysis.AddOrEditResultMapDialog import AddOrEditResultMapDialog
 from widget.analysis.LogAnalysisManager import *
 
 TAG = "AddOrEditAnalysisCfgDialog"
@@ -24,14 +29,14 @@ class AddOrEditAnalysisCfgDialog(QtWidgets.QDialog):
         AddOrEditAnalysisCfgDialog.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.2)
         LogUtil.d(TAG, "Add or Edit Analysis Cfg Dialog")
         self.setWindowTitle(WidgetUtil.translate(text="添加/编辑Log分析规则配置"))
-        if ruleList is None:
-            ruleList = []
-        self.ruleList = ruleList
+        self.ruleList = ruleList if ruleList else []
         self.callback = callback
         self.isAdd = default is None
         self.default = default
-        needCostTime = DictUtil.get(self.default, KEY_NEED_COST_TIME, DEFAULT_VALUE_NEED_COST_TIME)
         isEnable = DictUtil.get(self.default, KEY_IS_ENABLE, DEFAULT_VALUE_IS_ENABLE)
+        needCostTime = DictUtil.get(self.default, KEY_NEED_COST_TIME, DEFAULT_VALUE_NEED_COST_TIME)
+        needLogMap = DictUtil.get(self.default, KEY_NEED_LOG_MAP, DEFAULT_VALUE_NEED_LOG_MAP)
+        self.logMapRules = copy.deepcopy(DictUtil.get(self.default, KEY_RESULT_MAP, []))
 
         self.setObjectName("AddOrEditAnalysisCfgDialog")
         self.resize(AddOrEditAnalysisCfgDialog.WINDOW_WIDTH, AddOrEditAnalysisCfgDialog.WINDOW_HEIGHT)
@@ -79,6 +84,25 @@ class AddOrEditAnalysisCfgDialog(QtWidgets.QDialog):
         hBox.addWidget(self.endLogKeywordLineEdit)
         vLayout.addLayout(hBox)
 
+        hbox = WidgetUtil.createHBoxLayout(spacing=10)
+        self.addLogMapBtn = WidgetUtil.createPushButton(self, text="添加Log映射配置", onClicked=self.__addLogMapCfg)
+        hbox.addWidget(self.addLogMapBtn)
+        hbox.addItem(WidgetUtil.createHSpacerItem(1, 1))
+        vLayout.addLayout(hbox)
+
+        self.logMapTableView = WidgetUtil.createTableView(self, doubleClicked=self.__logMapTableDoubleClicked)
+        # 设为不可编辑
+        self.logMapTableView.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        # 设置选中模式为选中行
+        self.logMapTableView.setSelectionBehavior(QAbstractItemView.SelectRows)
+        # 设置选中单个
+        self.logMapTableView.setSelectionMode(QAbstractItemView.SingleSelection)
+        # 设置自定义右键菜单
+        self.logMapTableView.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.logMapTableView.customContextMenuRequested.connect(self.__logMapCustomRightMenu)
+        self.__updateLogMapTableView()
+        vLayout.addWidget(self.logMapTableView, 1)
+
         hBox = WidgetUtil.createHBoxLayout(spacing=30)
         self.enableCheckBox = WidgetUtil.createCheckBox(self, text="Enable",
                                                         toolTip="默认Enable，规则生效",
@@ -89,6 +113,11 @@ class AddOrEditAnalysisCfgDialog(QtWidgets.QDialog):
                                                           isChecked=needCostTime,
                                                           clicked=self.costTimeCheckChange)
         hBox.addWidget(self.costTimeCheckBox)
+        self.logMapCheckBox = WidgetUtil.createCheckBox(self, text="结果映射",
+                                                          toolTip="默认不对日志结果做映射",
+                                                          isChecked=needLogMap,
+                                                          clicked=self.costTimeCheckChange)
+        hBox.addWidget(self.logMapCheckBox)
         hBox.addItem(WidgetUtil.createHSpacerItem(1, 1))
         vLayout.addLayout(hBox)
 
@@ -108,6 +137,60 @@ class AddOrEditAnalysisCfgDialog(QtWidgets.QDialog):
         isCheck = self.costTimeCheckBox.isChecked()
         self.startLogKeywordLineEdit.setEnabled(isCheck)
         self.endLogKeywordLineEdit.setEnabled(isCheck)
+        pass
+
+    def __addLogMapCfg(self):
+        LogUtil.d(TAG, "__addLogMapCfg")
+        AddOrEditResultMapDialog(callback=self.__addOrEditLogMapCallback,
+                                 ruleList=self.logMapRules)
+        pass
+
+    def __addOrEditLogMapCallback(self, info):
+        LogUtil.d(TAG, "__addOrEditLogMapCallback", info)
+        if info:
+            self.logMapRules.append(info)
+        self.__updateLogMapTableView()
+        pass
+
+    def __logMapTableDoubleClicked(self, index: QModelIndex):
+        oldValue = index.data()
+        row = index.row()
+        LogUtil.d(TAG, "__logMapTableDoubleClicked：row ", row, ' col', index.column(), ' data ', oldValue)
+        AddOrEditResultMapDialog(callback=self.__addOrEditLogMapCallback,
+                                 default=self.logMapRules[row],
+                                 ruleList=self.logMapRules)
+        pass
+
+    def __logMapCustomRightMenu(self, pos):
+        self.curRow = self.logMapTableView.currentIndex().row()
+        LogUtil.i(TAG, "__logMapCustomRightMenu", pos, ' row: ', self.curRow)
+        menu = WidgetUtil.createMenu("删除", func1=self.__delRule)
+        menu.exec(self.logMapTableView.mapToGlobal(pos))
+        pass
+
+    def __delRule(self):
+        ruleName = self.logMapRules[self.curRow][KEY_SRC_LOG]
+        LogUtil.i(TAG, f"delRule {ruleName}")
+        WidgetUtil.showQuestionDialog(message=f"你确定需要删除 <span style='color:red;'>{ruleName}</span> 吗？",
+                                      acceptFunc=self.__delRuleTableItem)
+        pass
+
+    def __delRuleTableItem(self):
+        LogUtil.i(TAG, "delRuleTableItem")
+        self.logMapRules.remove(self.logMapRules[self.curRow])
+        self.__updateLogMapTableView()
+        pass
+
+    def __updateLogMapTableView(self):
+        tableData = []
+        for rule in self.logMapRules:
+            tableData.append({
+                KEY_SRC_LOG: DictUtil.get(rule, KEY_SRC_LOG, ''),
+                KEY_MAP_TXT: DictUtil.get(rule, KEY_MAP_TXT, ""),
+                KEY_IS_ENABLE: DictUtil.get(rule, KEY_IS_ENABLE, DEFAULT_VALUE_IS_ENABLE)
+            })
+        WidgetUtil.addTableViewData(self.logMapTableView, tableData,
+                                    headerLabels=["Log原始文字", "映射文字", "Enable"])
         pass
 
     def acceptFunc(self):
@@ -148,6 +231,8 @@ class AddOrEditAnalysisCfgDialog(QtWidgets.QDialog):
         self.default[KEY_NEED_COST_TIME] = isChecked
         self.default[KEY_START_LOG_KEYWORD] = startLogKeyword
         self.default[KEY_END_LOG_KEYWORD] = endLogKeyword
+        self.default[KEY_NEED_LOG_MAP] = self.logMapCheckBox.isChecked()
+        self.default[KEY_RESULT_MAP] = self.logMapRules
 
         self.callback(self.default if self.isAdd else None)
         self.close()

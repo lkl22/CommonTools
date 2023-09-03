@@ -183,7 +183,10 @@ class CategoryConfigWidget(QFrame):
                 KEY_NEED_COST_TIME: DictUtil.get(rule, KEY_NEED_COST_TIME, DEFAULT_VALUE_NEED_COST_TIME),
                 KEY_START_LOG_KEYWORD: DictUtil.get(rule, KEY_START_LOG_KEYWORD, ""),
                 KEY_END_LOG_KEYWORD: DictUtil.get(rule, KEY_END_LOG_KEYWORD, ""),
+                KEY_NEED_LOG_MAP: DictUtil.get(rule, KEY_NEED_LOG_MAP, DEFAULT_VALUE_NEED_LOG_MAP),
+                KEY_RESULT_MAP: JsonUtil.encode(DictUtil.get(rule, KEY_RESULT_MAP, [])),
             })
         WidgetUtil.addTableViewData(self.analysisRuleTableView, tableData,
-                                    headerLabels=["规则名", "规则描述", "日志关键字", "Enable", "统计耗时", "开始日志关键字", "结束日志关键字"])
+                                    headerLabels=["规则名", "规则描述", "日志关键字", "Enable", "统计耗时", "开始日志关键字", "结束日志关键字",
+                                                  "结果映射", "映射规则"])
         pass

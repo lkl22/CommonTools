@@ -5,7 +5,6 @@
 from util.OperaIni import OperaIni
 from util.JsonUtil import JsonUtil
 
-
 KEY_SECTION = 'LogAnalysis'
 
 # 分析分类
@@ -24,6 +23,12 @@ KEY_LOG_TIME_FORMAT = 'logTimeFormat'
 KEY_ANALYSIS_RULES = 'analysisRules'
 
 KEY_LOG_KEYWORD = 'logKeyword'
+
+# 结果映射，将不易理解的log映射为能理解的文字
+KEY_RESULT_MAP = 'resultMap'
+KEY_SRC_LOG = 'srcLog'
+KEY_MAP_TXT = 'mapTxt'
+
 KEY_START_LOG_KEYWORD = 'startLogKeyword'
 KEY_END_LOG_KEYWORD = 'endLogKeyword'
 
@@ -36,11 +41,15 @@ DEFAULT_VALUE_IS_ENABLE = True
 KEY_NEED_COST_TIME = "needCostTime"
 DEFAULT_VALUE_NEED_COST_TIME = False
 
+KEY_NEED_LOG_MAP = "needLogMap"
+DEFAULT_VALUE_NEED_LOG_MAP = False
+
 
 class LogAnalysisManager:
     def __init__(self, isDebug=False):
         self.operaIni = OperaIni()
         self.configs = JsonUtil.decode(self.operaIni.getValue(ITEM_KEY_CATEGORY, KEY_SECTION))
+
     pass
 
     def saveConfigs(self, infos):
