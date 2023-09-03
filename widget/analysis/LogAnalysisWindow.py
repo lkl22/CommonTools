@@ -155,6 +155,17 @@ class LogAnalysisWindow(QMainWindow):
             if logKeyword and logKeyword in line:
                 self.execResult.append({KEY_LOG: line, KEY_COLOR: '#00f'})
             self.__analysisCostTime(line, rule, timeIndex, timeFormat)
+            self.__analysisLogMap(line, rule)
+        pass
+
+    def __analysisLogMap(self, line, rule):
+        if not DictUtil.get(rule, KEY_NEED_LOG_MAP, DEFAULT_VALUE_NEED_LOG_MAP):
+            return
+        logMapRules = ListUtil.filter(DictUtil.get(rule, KEY_RESULT_MAP), KEY_IS_ENABLE, True, DEFAULT_VALUE_IS_ENABLE)
+        for rule in logMapRules:
+            if rule[KEY_SRC_LOG] in line:
+                self.execResult.append({KEY_LOG: f"srcLog: {line}", KEY_COLOR: '#000'})
+                self.execResult.append({KEY_LOG: f"mapResult: {rule[KEY_MAP_TXT]}\n", KEY_COLOR: '#f0f'})
         pass
 
     def __analysisCostTime(self, line, rule, timeIndex, timeFormat):
