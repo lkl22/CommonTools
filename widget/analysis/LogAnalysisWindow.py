@@ -154,8 +154,8 @@ class LogAnalysisWindow(QMainWindow):
             logKeyword = DictUtil.get(rule, KEY_LOG_KEYWORD, '')
             if logKeyword and logKeyword in line:
                 self.execResult.append({KEY_LOG: line, KEY_COLOR: '#00f'})
+                self.__analysisLogMap(line, rule)
             self.__analysisCostTime(line, rule, timeIndex, timeFormat)
-            self.__analysisLogMap(line, rule)
         pass
 
     def __analysisLogMap(self, line, rule):

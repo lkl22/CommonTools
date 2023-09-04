@@ -17,8 +17,9 @@ from util.OperaIni import OperaIni
 from widget.custom.LoadingDialog import LoadingDialog
 
 RES_TYPE_LIST = ['all', 'string', 'color', 'float', 'media']
-EXCLUDE_DIR_PATTERNS = ['.*/\.hvigor/.*', '.*/\.idea/.*', '.*/\.cxx/.*', '.*/build/.*', '.*/libs/.*',
-                        '.*/node_modules/.*', '.*/cpp/.*', '.*/ets/.*', '.*/ohosTest/.*']
+EXCLUDE_DIR_PATTERNS = ['.*/\.hvigor/.*', '.*/\.git/.*', '.*/\.idea/.*', '.*/\.cxx/.*', '.*/build/.*', '.*/libs/.*',
+                        '.*/node_modules/.*', '.*/oh_modules/.*', '.*/cpp/.*', '.*/ets/.*', '.*/ohosTest/.*',
+                        '.*/\.preview/.*']
 EXCHANGE_KEY = {'zh_CN': 'en_US', 'en_US': 'zh_CN'}
 TAG = "HarmonyMergeResDialog"
 
@@ -187,7 +188,8 @@ class HarmonyMergeResDialog(QtWidgets.QDialog):
             jsonData = JsonUtil.load(fp)
             res[languageStr] = data + jsonData[resType]
         for (key, value) in res.items():
-            dstFp = os.path.join(dstFileDirPath, 'resources', DictUtil.get(EXCHANGE_KEY, key, key), 'element', f'{resType}.json')
+            dstFp = os.path.join(dstFileDirPath, 'resources', DictUtil.get(EXCHANGE_KEY, key, key), 'element',
+                                 f'{resType}.json')
             FileUtil.mkFilePath(dstFp)
             JsonUtil.dump(dstFp, {resType: res[key]}, ensureAscii=False)
         pass

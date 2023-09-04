@@ -180,7 +180,7 @@ class FileUtil:
             with open(dstFn, mode='wb') as dstFile:
                 for srcFn in srcFns:
                     dstFile.write(f"\nfilePath: {srcFn}\n".encode())
-                    with open(srcFn, 'rb') as file:
+                    with open(srcFn, mode='rb') as file:
                         content = file.readlines()
                         dstFile.writelines(content)
             return True
