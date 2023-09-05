@@ -533,7 +533,7 @@ class WidgetUtil:
         return widget
 
     @staticmethod
-    def createComboBox(parent: QWidget, objectName="ComboBox", toolTip=None, isEnable=True, geometry: QRect = None,
+    def createComboBox(parent: QWidget, objectName="QComboBox", toolTip=None, isEnable=True, geometry: QRect = None,
                        sizePolicy: QSizePolicy = None, currentIndexChanged=None, activated=None):
         """
         创建一个下拉选择框
