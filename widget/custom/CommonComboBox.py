@@ -1,25 +1,27 @@
 # -*- coding: utf-8 -*-
 # python 3.x
-# Filename: ColorComboBox.py
-# 定义一个ColorComboBox窗口类实现color颜色选择的功能
+# Filename: CommonComboBox.py
+# 定义一个CommonComboBox窗口类实现通用下拉选择弹框的功能
 import sys
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QFrame, QListView
 from util.WidgetUtil import *
 
-TAG = 'ColorComboBox'
+TAG = 'CommonComboBox'
+# icon颜色
 KEY_COLOR = 'color'
-KEY_TEXT = 'text'
+# item显示描述文案
+KEY_DESC = 'desc'
 
 
-class ColorComboBox(QFrame):
-    def __init__(self, colorGroup=[], toolTip=None):
-        super(ColorComboBox, self).__init__()
+class CommonComboBox(QFrame):
+    def __init__(self, label: str, colorGroup=[], toolTip=None):
+        super(CommonComboBox, self).__init__()
         # self.setWindowFlags(QtCore.Qt.SplashScreen | QtCore.Qt.FramelessWindowHint)
         self.colorGroup = colorGroup
 
         hBox = WidgetUtil.createHBoxLayout(self)
-        hBox.addWidget(WidgetUtil.createLabel(self, text='选择颜色：'))
+        hBox.addWidget(WidgetUtil.createLabel(self, text=label))
         self.comboBox = WidgetUtil.createComboBox(self, currentIndexChanged=self.__indexChanged)
         self.comboBox.setView(QListView())
         self.setStyleSheet('QComboBox QAbstractItemView::item {padding-top:2px;padding-bottom:2px}')
@@ -34,9 +36,14 @@ class ColorComboBox(QFrame):
 
     def __updateComboBox(self):
         for item in self.colorGroup:
-            pixmap = QPixmap(180, 60)
-            pixmap.fill(QColor(item[KEY_COLOR]))
-            self.comboBox.addItem(QIcon(pixmap), item[KEY_TEXT])
+            if KEY_DESC not in item:
+                continue
+            if KEY_COLOR in item:
+                pixmap = QPixmap(180, 60)
+                pixmap.fill(QColor(item[KEY_COLOR]))
+                self.comboBox.addItem(QIcon(pixmap), item[KEY_DESC])
+            else:
+                self.comboBox.addItem(item[KEY_DESC])
         pass
 
     def __indexChanged(self):
@@ -50,9 +57,13 @@ class ColorComboBox(QFrame):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    # e = ColorComboBox()
-    # e = ColorComboBox(fileParam=["file", "./", "*.py", "*.py"])
-    # e = ColorComboBox(dirParam=["dir", "./"])
-    e = ColorComboBox(colorGroup=[{KEY_COLOR: '#FF0000', KEY_TEXT: 'red'}, {KEY_COLOR: '#00FF00', KEY_TEXT: 'green'}])
+    # e = CommonComboBox()
+    # e = CommonComboBox(fileParam=["file", "./", "*.py", "*.py"])
+    # e = CommonComboBox(dirParam=["dir", "./"])
+    e = CommonComboBox(label='选择颜色：', colorGroup=[
+        {KEY_COLOR: '#FF0000', KEY_DESC: 'red', 'dd': 'ss'},
+        {KEY_COLOR: '#00FF00', KEY_DESC: 'green'},
+        {KEY_DESC: 'green'}, {}
+    ], toolTip='请选择需要的颜色')
     e.show()
     sys.exit(app.exec_())
