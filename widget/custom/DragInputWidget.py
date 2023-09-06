@@ -10,14 +10,16 @@ from util.PlatformUtil import PlatformUtil
 
 
 class DragInputWidget(QFrame):
-    def __init__(self, text=None, fileParam=None, dirParam=None, isReadOnly=True, holderText=None, toolTip=None,
-                 textChanged=None):
+    def __init__(self, label=None, text=None, fileParam=None, dirParam=None, isReadOnly=True, holderText=None,
+                 toolTip=None, textChanged=None):
         super(DragInputWidget, self).__init__()
         # self.setWindowFlags(QtCore.Qt.SplashScreen | QtCore.Qt.FramelessWindowHint)
         self.fileParam = fileParam
         self.dirParam = dirParam
 
         hbox = WidgetUtil.createHBoxLayout(self)
+        if label:
+            hbox.addWidget(WidgetUtil.createLabel(self, text=label))
         self.lineEdit = WidgetUtil.createLineEdit(self, text=text, holderText=holderText, toolTip=toolTip,
                                                   textChanged=textChanged, isReadOnly=isReadOnly)
         if dirParam:
@@ -93,9 +95,10 @@ class DragInputWidget(QFrame):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    # e = DragInputWidget()
+    e = DragInputWidget(label='名字', isReadOnly=False)
     # e = DragInputWidget(fileParam=["file", "./", "*.py", "*.py"])
     # e = DragInputWidget(dirParam=["dir", "./"])
-    e = DragInputWidget(fileParam=["file", "./", "*.py", "*.py"], dirParam=["dir", "./"], isReadOnly=False, toolTip="test toolTip")
+    # e = DragInputWidget(label='请选择需要的文件', fileParam=["file", "./", "*.py", "*.py"], dirParam=["dir", "./"], isReadOnly=False,
+    #                     toolTip="test toolTip")
     e.show()
     sys.exit(app.exec_())

@@ -80,6 +80,7 @@ a = Analysis(['RunMain.py',
               'widget/custom/ClickLabel.py',
               'widget/custom/ClickTextEdit.py',
               'widget/custom/CommonComboBox.py',
+              'widget/custom/CommonTableView.py',
               'widget/custom/DragInputWidget.py',
               'widget/custom/LoadingDialog.py',
 
