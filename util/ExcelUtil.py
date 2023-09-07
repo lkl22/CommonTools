@@ -7,7 +7,7 @@ import xlrd
 import xlwt
 from xlrd import book, sheet, Book
 from xlutils.copy import copy
-from xlwt import Workbook, Worksheet
+from xlwt import Workbook, Worksheet, Style
 
 from util.LogUtil import *
 
@@ -118,15 +118,16 @@ class ExcelUtil:
         return bk.add_sheet(sheetname, True)
 
     @staticmethod
-    def writeSheet(st: Worksheet, row, col, value):
+    def writeSheet(st: Worksheet, row, col, value, style=Style.default_style):
         """
         写入数据
         :param st: Worksheet
         :param row: 行数
         :param col: 列数
         :param value: 内容
+        :param style: 单元格样式
         """
-        st.write(row, col, value)
+        st.write(row, col, value, style)
 
     @staticmethod
     def saveBook(bk: Workbook, fileName):

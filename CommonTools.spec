@@ -92,6 +92,8 @@ a = Analysis(['RunMain.py',
               'widget/findFileContent/FindFileContentUtil.py',
               'widget/findFileContent/FindFileContentWindow.py',
 
+              'widget/harmony/HarmonyMergeResDialog.py',
+
               'widget/hash/FileHashDialog.py',
               'widget/mockExam/Excel2Word.py',
               'widget/mockExam/MockExamDialog.py',
@@ -101,7 +103,6 @@ a = Analysis(['RunMain.py',
               'widget/photoWall/PicturePreviewDialog.py',
 
               'widget/resource/AndroidResDialog.py',
-              'widget/resource/HarmonyMergeResDialog.py',
 
               'widget/projectManage/AddOrEditCmdDialog.py',
               'widget/projectManage/AddOrEditCmdGroupDialog.py',

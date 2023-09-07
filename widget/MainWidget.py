@@ -274,7 +274,7 @@ class MainWidget(QMainWindow):
 
     def jumpHarmonyMergeResDialog(self):
         LogUtil.i(TAG, "jumpHarmonyMergeResDialog")
-        from widget.resource.HarmonyMergeResDialog import HarmonyMergeResDialog
+        from widget.harmony.HarmonyMergeResDialog import HarmonyMergeResDialog
         HarmonyMergeResDialog()
         pass
 
