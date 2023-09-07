@@ -188,10 +188,14 @@ class HarmonyMergeResDialog(QtWidgets.QDialog):
             jsonData = JsonUtil.load(fp)
             res[languageStr] = data + jsonData[resType]
         for (key, value) in res.items():
+            temp = {}
+            for data in value:
+                temp[data['name']] = data
+            value = [item for item in temp.values()]
             dstFp = os.path.join(dstFileDirPath, 'resources', DictUtil.get(EXCHANGE_KEY, key, key), 'element',
                                  f'{resType}.json')
             FileUtil.mkFilePath(dstFp)
-            JsonUtil.dump(dstFp, {resType: res[key]}, ensureAscii=False)
+            JsonUtil.dump(dstFp, {resType: value}, ensureAscii=False)
         pass
 
     def mergeMediaRes(self, srcFileDirPath, dstFileDirPath):
