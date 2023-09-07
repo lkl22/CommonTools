@@ -25,11 +25,11 @@ class DragInputWidget(QFrame):
         if dirParam:
             self.lineEdit.addAction(
                 WidgetUtil.createAction(self, icon=QIcon(QApplication.style().standardIcon(QStyle.SP_DirIcon)),
-                                        text="打开目录", func=self.openDir), QLineEdit.TrailingPosition)
+                                        text="打开目录", func=self.__openDir), QLineEdit.TrailingPosition)
         if fileParam:
             self.lineEdit.addAction(
                 WidgetUtil.createAction(self, icon=QIcon(QApplication.style().standardIcon(QStyle.SP_FileIcon)),
-                                        text="打开文件", func=self.openFile), QLineEdit.TrailingPosition)
+                                        text="打开文件", func=self.__openFile), QLineEdit.TrailingPosition)
 
         hbox.addWidget(self.lineEdit)
         self.setAutoFillBackground(True)
@@ -70,35 +70,35 @@ class DragInputWidget(QFrame):
         # LogUtil.d('dragMoveEvent', '鼠标移动')
         pass
 
-    def openFile(self):
+    def __openFile(self):
         if self.fileParam:
             fp = WidgetUtil.getOpenFileName(self, *self.fileParam)
         else:
             fp = WidgetUtil.getOpenFileName()
-        self.updateContent(fp)
+        self.__updateContent(fp)
 
-    def openDir(self):
+    def __openDir(self):
         if self.dirParam:
             fp = WidgetUtil.getExistingDirectory(self, *self.dirParam)
         else:
             fp = WidgetUtil.getExistingDirectory(self)
-        self.updateContent(fp)
+        self.__updateContent(fp)
 
-    def updateContent(self, fp):
+    def __updateContent(self, fp):
         if self.lineEdit and fp:
             self.lineEdit.setText(fp)
         pass
 
-    def text(self):
+    def getData(self):
         return self.lineEdit.text().strip()
 
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    e = DragInputWidget(label='名字', isReadOnly=False)
+    # e = DragInputWidget(label='名字', isReadOnly=False)
     # e = DragInputWidget(fileParam=["file", "./", "*.py", "*.py"])
     # e = DragInputWidget(dirParam=["dir", "./"])
-    # e = DragInputWidget(label='请选择需要的文件', fileParam=["file", "./", "*.py", "*.py"], dirParam=["dir", "./"], isReadOnly=False,
-    #                     toolTip="test toolTip")
+    e = DragInputWidget(label='请选择需要的文件', fileParam=["file", "./", "*.py", "*.py"], dirParam=["dir", "./"],
+                        isReadOnly=False, toolTip="test toolTip")
     e.show()
     sys.exit(app.exec_())

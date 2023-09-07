@@ -206,7 +206,7 @@ class AddOrEditModuleDialog(QtWidgets.QDialog):
         pass
 
     def getCurWorkingDir(self):
-        path = self.pathInputWidget.text().strip()
+        path = self.pathInputWidget.getData().strip()
         return path if path else self.openDir
 
     def addCmd(self):
@@ -311,7 +311,7 @@ class AddOrEditModuleDialog(QtWidgets.QDialog):
         if not desc:
             WidgetUtil.showErrorDialog(message="请输入模块描述")
             return
-        path = self.pathInputWidget.text().strip()
+        path = self.pathInputWidget.getData().strip()
         isRelativePath = False
         if path and self.openDir and path.startswith(self.openDir):
             path = path.replace(self.openDir, "")

@@ -104,6 +104,9 @@ class CommonTableView(QFrame):
                                     headerLabels=[item[KEY_TITLE] for item in self.__headers.values()])
         pass
 
+    def getData(self):
+        return self.__items
+    
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

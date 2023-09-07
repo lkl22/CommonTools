@@ -83,7 +83,7 @@ class AddOrEditEvnDialog(QtWidgets.QDialog):
         if not name:
             WidgetUtil.showErrorDialog(message="请输入环境变量名")
             return
-        value = self.valueLineEdit.text().strip()
+        value = self.valueLineEdit.getData().strip()
         if not value:
             WidgetUtil.showErrorDialog(message="请输入环境变量值")
             return

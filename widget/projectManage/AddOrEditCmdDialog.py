@@ -383,7 +383,7 @@ class AddOrEditCmdDialog(QtWidgets.QDialog):
         if not name:
             WidgetUtil.showErrorDialog(message="请输入需要执行的命令行指令别名")
             return
-        program = self.programInputWidget.text().strip()
+        program = self.programInputWidget.getData().strip()
         if not program:
             WidgetUtil.showErrorDialog(message="请输入需要执行的命令行指令")
             return
@@ -393,7 +393,7 @@ class AddOrEditCmdDialog(QtWidgets.QDialog):
                     WidgetUtil.showErrorDialog(message=f"请重新添加一个其他的指令别名，{name}已经存在了，不能重复添加")
                     return
         desc = self.descLineEdit.text().strip()
-        workDir = self.workDirInputWidget.text().strip()
+        workDir = self.workDirInputWidget.getData().strip()
         arguments = self.argumentsLineEdit.text().strip()
         if not self.default:
             self.default = {}

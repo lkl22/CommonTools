@@ -15,10 +15,10 @@ KEY_DESC = 'desc'
 
 
 class CommonComboBox(QFrame):
-    def __init__(self, label: str, colorGroup=[], toolTip=None):
+    def __init__(self, label: str, group=[], toolTip=None):
         super(CommonComboBox, self).__init__()
         # self.setWindowFlags(QtCore.Qt.SplashScreen | QtCore.Qt.FramelessWindowHint)
-        self.colorGroup = colorGroup
+        self.__group = group
 
         hBox = WidgetUtil.createHBoxLayout(self)
         hBox.addWidget(WidgetUtil.createLabel(self, text=label))
@@ -35,7 +35,7 @@ class CommonComboBox(QFrame):
         pass
 
     def __updateComboBox(self):
-        for item in self.colorGroup:
+        for item in self.__group:
             if KEY_DESC not in item:
                 continue
             if KEY_COLOR in item:
@@ -47,12 +47,12 @@ class CommonComboBox(QFrame):
         pass
 
     def __indexChanged(self):
-        curData = self.colorGroup[self.comboBox.currentIndex()]
+        curData = self.__group[self.comboBox.currentIndex()]
         LogUtil.d(TAG, '__indexChanged', curData)
         pass
 
-    def getCurData(self):
-        return self.colorGroup[self.comboBox.currentIndex()]
+    def getData(self):
+        return self.__group[self.comboBox.currentIndex()]
 
 
 if __name__ == "__main__":
@@ -60,7 +60,7 @@ if __name__ == "__main__":
     # e = CommonComboBox()
     # e = CommonComboBox(fileParam=["file", "./", "*.py", "*.py"])
     # e = CommonComboBox(dirParam=["dir", "./"])
-    e = CommonComboBox(label='选择颜色：', colorGroup=[
+    e = CommonComboBox(label='选择颜色：', group=[
         {KEY_COLOR: '#FF0000', KEY_DESC: 'red', 'dd': 'ss'},
         {KEY_COLOR: '#00FF00', KEY_DESC: 'green'},
         {KEY_DESC: 'green'}, {}

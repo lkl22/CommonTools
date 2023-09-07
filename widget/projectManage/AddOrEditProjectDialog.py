@@ -165,7 +165,7 @@ class AddOrEditProjectDialog(QtWidgets.QDialog):
         if not desc:
             WidgetUtil.showErrorDialog(message="请输入工程描述")
             return
-        path = self.projectPathInputWidget.text().strip()
+        path = self.projectPathInputWidget.getData().strip()
         if not path:
             WidgetUtil.showErrorDialog(message="请选择工程路径")
             return
