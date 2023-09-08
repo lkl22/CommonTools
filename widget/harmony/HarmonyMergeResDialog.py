@@ -14,6 +14,7 @@ from util.DialogUtil import *
 from util.JsonUtil import JsonUtil
 from util.LogUtil import *
 from util.OperaIni import OperaIni
+from widget.custom.CommonRadioButtons import CommonRadioButtons
 from widget.custom.LoadingDialog import LoadingDialog
 
 RES_TYPE_LIST = ['all', 'string', 'color', 'float', 'media']
@@ -53,7 +54,6 @@ class HarmonyMergeResDialog(QtWidgets.QDialog):
         # self.setFixedSize(HarmonyMergeResDialog.WINDOW_WIDTH, HarmonyMergeResDialog.WINDOW_HEIGHT)
         self.setWindowTitle(WidgetUtil.translate(text="Harmony 合并资源文件处理"))
 
-        self.resType = RES_TYPE_LIST[0]
         self.isDebug = isDebug
         self.operaIni = OperaIni()
         self.srcFilePath = self.operaIni.getValue(KEY_SRC_FILE_PATH, KEY_SECTION)
@@ -93,23 +93,8 @@ class HarmonyMergeResDialog(QtWidgets.QDialog):
                                                              sizePolicy=sizePolicy)
         vbox.addWidget(splitter)
 
-        hbox = WidgetUtil.createHBoxLayout()
-        hbox.addWidget(WidgetUtil.createLabel(box, text="选择资源类型：", alignment=Qt.AlignVCenter | Qt.AlignRight,
-                                              minSize=QSize(120, const.HEIGHT)))
-        hbox.addItem(WidgetUtil.createHSpacerItem(1, 1))
-        vbox.addLayout(hbox)
-
-        hbox = WidgetUtil.createHBoxLayout(margins=QMargins(30, 0, 30, 0), spacing=10)
-        self.resTypeBg = WidgetUtil.createButtonGroup(onToggled=self.resTypeToggled)
-        for i in range(len(RES_TYPE_LIST)):
-            if i == 12:
-                hbox.addItem(WidgetUtil.createHSpacerItem(1, 1))
-                hbox = WidgetUtil.createHBoxLayout(margins=QMargins(30, 0, 30, 0), spacing=10)
-            radioButton = WidgetUtil.createRadioButton(box, text=RES_TYPE_LIST[i] + "  ", isChecked=i == 0)
-            self.resTypeBg.addButton(radioButton, i)
-            hbox.addWidget(radioButton)
-        hbox.addItem(WidgetUtil.createHSpacerItem(1, 1))
-        vbox.addLayout(hbox)
+        self.resTypeRadioButtons = CommonRadioButtons(label="选择资源类型：", groupList=RES_TYPE_LIST)
+        vbox.addWidget(self.resTypeRadioButtons)
 
         hbox = WidgetUtil.createHBoxLayout()
         hbox.addWidget(WidgetUtil.createPushButton(box, text="合并资源", onClicked=self.mergeElements))
@@ -129,11 +114,6 @@ class HarmonyMergeResDialog(QtWidgets.QDialog):
         fp = WidgetUtil.getExistingDirectory()
         if fp:
             self.dstFilePathLineEdit.setText(fp)
-        pass
-
-    def resTypeToggled(self, radioButton):
-        self.resType = RES_TYPE_LIST[self.resTypeBg.checkedId()]
-        LogUtil.i(TAG, "选择的资源类型：", self.resType)
         pass
 
     def mergeElements(self):
@@ -159,13 +139,14 @@ class HarmonyMergeResDialog(QtWidgets.QDialog):
         pass
 
     def mergeRes(self, srcFileDirPath, dstFileDirPath):
-        if self.resType == RES_TYPE_LIST[0] or self.resType == RES_TYPE_LIST[1]:
+        resType = self.resTypeRadioButtons.getData()
+        if resType == RES_TYPE_LIST[0] or resType == RES_TYPE_LIST[1]:
             self.mergeHarmonyRes(srcFileDirPath, dstFileDirPath, 'string')
-        if self.resType == RES_TYPE_LIST[0] or self.resType == RES_TYPE_LIST[2]:
+        if resType == RES_TYPE_LIST[0] or resType == RES_TYPE_LIST[2]:
             self.mergeHarmonyRes(srcFileDirPath, dstFileDirPath, 'color')
-        if self.resType == RES_TYPE_LIST[0] or self.resType == RES_TYPE_LIST[3]:
+        if resType == RES_TYPE_LIST[0] or resType == RES_TYPE_LIST[3]:
             self.mergeHarmonyRes(srcFileDirPath, dstFileDirPath, 'float')
-        if self.resType == RES_TYPE_LIST[0] or self.resType == RES_TYPE_LIST[4]:
+        if resType == RES_TYPE_LIST[0] or resType == RES_TYPE_LIST[4]:
             self.mergeMediaRes(srcFileDirPath, dstFileDirPath)
         self.hideLoadingSignal.emit()
         pass
