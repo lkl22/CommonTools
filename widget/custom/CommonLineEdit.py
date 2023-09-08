@@ -3,13 +3,13 @@
 # Filename: CommonLineEdit.py
 # 定义一个CommonLineEdit窗口类实现通用文本编辑的功能
 import sys
-from PyQt5.QtWidgets import QFrame
 from util.WidgetUtil import *
+from widget.custom.ICommonWidget import ICommonWidget
 
 TAG = 'CommonLineEdit'
 
 
-class CommonLineEdit(QFrame):
+class CommonLineEdit(ICommonWidget):
     def __init__(self, label: str, text: str, labelMinSize: QSize = None, holderText: str = None, toolTip=None):
         super(CommonLineEdit, self).__init__()
         hbox = WidgetUtil.createHBoxLayout(self, margins=QMargins(5, 5, 5, 5), spacing=10)
