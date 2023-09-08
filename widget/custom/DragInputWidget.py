@@ -4,22 +4,23 @@
 # 定义一个DragInputWidget窗口类实现拖动文件输入的功能
 import os
 import sys
-from PyQt5.QtWidgets import QFrame, QStyle
+from PyQt5.QtWidgets import QStyle
 from util.WidgetUtil import *
 from util.PlatformUtil import PlatformUtil
+from widget.custom.ICommonWidget import ICommonWidget
 
 
-class DragInputWidget(QFrame):
+class DragInputWidget(ICommonWidget):
     def __init__(self, label=None, text=None, fileParam=None, dirParam=None, isReadOnly=True, holderText=None,
-                 toolTip=None, textChanged=None):
+                 labelMinSize: QSize = None, toolTip=None, textChanged=None):
         super(DragInputWidget, self).__init__()
         # self.setWindowFlags(QtCore.Qt.SplashScreen | QtCore.Qt.FramelessWindowHint)
         self.fileParam = fileParam
         self.dirParam = dirParam
 
-        hbox = WidgetUtil.createHBoxLayout(self)
+        hbox = WidgetUtil.createHBoxLayout(self, margins=QMargins(5, 5, 5, 5), spacing=10)
         if label:
-            hbox.addWidget(WidgetUtil.createLabel(self, text=label))
+            hbox.addWidget(WidgetUtil.createLabel(self, text=label, minSize=labelMinSize))
         self.lineEdit = WidgetUtil.createLineEdit(self, text=text, holderText=holderText, toolTip=toolTip,
                                                   textChanged=textChanged, isReadOnly=isReadOnly)
         if dirParam:
@@ -35,8 +36,6 @@ class DragInputWidget(QFrame):
         self.setAutoFillBackground(True)
 
         self.setToolTip(toolTip)
-
-        hbox.setContentsMargins(0, 0, 0, 0)
         # 调用Drops方法
         self.setAcceptDrops(True)
         pass
