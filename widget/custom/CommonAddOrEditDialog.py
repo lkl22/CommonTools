@@ -2,13 +2,14 @@
 # python 3.x
 # Filename: CommonAddOrEditDialog.py
 # 定义一个CommonAddOrEditDialog类实现添加、编辑相关数据相关的功能
+import os.path
 import sys
 
 from constant.WidgetConst import *
 from util.DialogUtil import *
 from util.DictUtil import DictUtil
 from widget.custom.CommonLineEdit import CommonLineEdit
-from widget.custom.DragInputWidget import DragInputWidget
+from widget.custom.DragInputWidget import DragInputWidget, KEY_CAPTION, KEY_DIRECTORY, KEY_FILTER, KEY_INITIAL_FILTER
 from widget.custom.ICommonWidget import ICommonWidget
 
 TAG = "CommonAddOrEditDialog"
@@ -20,6 +21,7 @@ KEY_IS_UNIQUE = 'isUnique'
 KEY_IS_OPTIONAL = 'isOptional'
 KEY_TOOL_TIP = 'toolTip'
 KEY_FILE_PARAM = 'fileParam'
+KEY_DIR_PARAM = 'dirParam'
 
 TYPE_LINE_EDIT = 'lineEdit'
 TYPE_SELECT_FILE = 'selectFile'
@@ -58,15 +60,30 @@ class CommonAddOrEditDialog(QtWidgets.QDialog):
         labelWidth = 120
         for optionInfo in optionInfos:
             itemType = DictUtil.get(optionInfo, KEY_ITEM_TYPE)
+            defaultValue = DictUtil.get(self.__default, optionInfo[KEY_ITEM_KEY], '')
             if itemType == TYPE_LINE_EDIT:
                 widget = CommonLineEdit(label=DictUtil.get(optionInfo, KEY_ITEM_LABEL),
-                                        text=DictUtil.get(self.__default, optionInfo[KEY_ITEM_KEY], ''),
+                                        text=defaultValue,
                                         labelMinSize=QSize(labelWidth, 0),
                                         toolTip=DictUtil.get(optionInfo, KEY_TOOL_TIP))
             elif itemType == TYPE_SELECT_FILE:
+                fileParam = DictUtil.get(optionInfo, KEY_FILE_PARAM, {KEY_DIRECTORY: ''})
+                if defaultValue:
+                    fp, _ = os.path.split(defaultValue)
+                    fileParam = DictUtil.join([fileParam, {KEY_DIRECTORY: fp}])
                 widget = DragInputWidget(label=DictUtil.get(optionInfo, KEY_ITEM_LABEL),
-                                         text=DictUtil.get(self.__default, optionInfo[KEY_ITEM_KEY], ''),
-                                         fileParam=DictUtil.get(optionInfo, KEY_FILE_PARAM, ["", "./", "*.*", "*.*"]),
+                                         text=defaultValue,
+                                         fileParam=fileParam,
+                                         labelMinSize=QSize(labelWidth, 0),
+                                         toolTip=DictUtil.get(optionInfo, KEY_TOOL_TIP))
+            elif itemType == TYPE_SELECT_DIR:
+                dirParam = DictUtil.get(optionInfo, KEY_DIR_PARAM, {KEY_DIRECTORY: ''})
+                if defaultValue:
+                    fp, _ = os.path.split(defaultValue)
+                    dirParam = DictUtil.join([dirParam, {KEY_DIRECTORY: fp}])
+                widget = DragInputWidget(label=DictUtil.get(optionInfo, KEY_ITEM_LABEL),
+                                         text=defaultValue,
+                                         dirParam=dirParam,
                                          labelMinSize=QSize(labelWidth, 0),
                                          toolTip=DictUtil.get(optionInfo, KEY_TOOL_TIP))
             else:
@@ -124,10 +141,18 @@ if __name__ == '__main__':
                                        KEY_ITEM_KEY: 'srcFile',
                                        KEY_ITEM_TYPE: TYPE_SELECT_FILE,
                                        KEY_ITEM_LABEL: '请选则源文件：',
-                                       KEY_FILE_PARAM: ["", "./", "*.py", "*.py"]
+                                       KEY_IS_OPTIONAL: True,
+                                       KEY_FILE_PARAM: {KEY_CAPTION: "file", KEY_DIRECTORY: "./", KEY_FILTER: "*.py",
+                                                        KEY_INITIAL_FILTER: "*.py"}
+                                   }, {
+                                       KEY_ITEM_KEY: 'dstDst',
+                                       KEY_ITEM_TYPE: TYPE_SELECT_DIR,
+                                       KEY_ITEM_LABEL: '请选则目标路径：',
+                                       KEY_IS_OPTIONAL: True,
+                                       KEY_DIR_PARAM: {KEY_CAPTION: "file", KEY_DIRECTORY: "./"}
                                    }],
                                    callback=lambda it: LogUtil.d(TAG, "callback", it),
-                                   # default={"name": 'dd'},
+                                   # default={"name": 'dd', 'srcFile': '/Users/likunlun/PycharmProjects/CommonTools/widget/custom/progressBar/RoundProgressBar.py'},
                                    items=[{"name": 'dd'}],
                                    isDebug=True)
     window.show()

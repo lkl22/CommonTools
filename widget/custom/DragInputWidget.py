@@ -5,9 +5,16 @@
 import os
 import sys
 from PyQt5.QtWidgets import QStyle
+
+from util.DictUtil import DictUtil
 from util.WidgetUtil import *
 from util.PlatformUtil import PlatformUtil
 from widget.custom.ICommonWidget import ICommonWidget
+
+KEY_CAPTION = 'caption'
+KEY_DIRECTORY = 'directory'
+KEY_FILTER = 'filter'
+KEY_INITIAL_FILTER = 'initialFilter'
 
 
 class DragInputWidget(ICommonWidget):
@@ -71,14 +78,15 @@ class DragInputWidget(ICommonWidget):
 
     def __openFile(self):
         if self.fileParam:
-            fp = WidgetUtil.getOpenFileName(self, *self.fileParam)
+            fp = WidgetUtil.getOpenFileName(self, **self.fileParam)
         else:
             fp = WidgetUtil.getOpenFileName()
         self.__updateContent(fp)
 
     def __openDir(self):
         if self.dirParam:
-            fp = WidgetUtil.getExistingDirectory(self, *self.dirParam)
+            fp = WidgetUtil.getExistingDirectory(self, caption=DictUtil.get(self.dirParam, KEY_CAPTION, ''),
+                                                 directory=DictUtil.get(self.dirParam, KEY_DIRECTORY, ''))
         else:
             fp = WidgetUtil.getExistingDirectory(self)
         self.__updateContent(fp)
@@ -97,7 +105,10 @@ if __name__ == "__main__":
     # e = DragInputWidget(label='名字', isReadOnly=False)
     # e = DragInputWidget(fileParam=["file", "./", "*.py", "*.py"])
     # e = DragInputWidget(dirParam=["dir", "./"])
-    e = DragInputWidget(label='请选择需要的文件', fileParam=["file", "./", "*.py", "*.py"], dirParam=["dir", "./"],
+    e = DragInputWidget(label='请选择需要的文件',
+                        fileParam={KEY_CAPTION: "file", KEY_DIRECTORY: "./", KEY_FILTER: "*.py",
+                                   KEY_INITIAL_FILTER: "*.py"},
+                        dirParam={KEY_CAPTION: "dir", KEY_DIRECTORY: "./"},
                         isReadOnly=False, toolTip="test toolTip")
     e.show()
     sys.exit(app.exec_())

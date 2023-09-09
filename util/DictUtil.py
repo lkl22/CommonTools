@@ -19,6 +19,19 @@ class DictUtil:
             return data[key]
         return default
 
+    @staticmethod
+    def join(data: list[dict]):
+        """
+        将列表中的字典项合并为一个大字典
+        :param data: data
+        :return: 合并结果
+        """
+        result = {}
+        if data:
+            for item in data:
+                result = {**result, **item}
+        return result
+
 
 if __name__ == "__main__":
     LogUtil.d(DictUtil.get({"aa": 11, "bb": "dd"}, 'aa'))
