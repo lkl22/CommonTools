@@ -4,32 +4,54 @@
 # 定义一个CommonTableView窗口类实现通用tableView的功能
 import sys
 from PyQt5.QtCore import QModelIndex
-from PyQt5.QtWidgets import QFrame, QAbstractItemView
+from PyQt5.QtWidgets import QAbstractItemView
 
 from constant.WidgetConst import *
 from util.DictUtil import DictUtil
+from util.ListUtil import ListUtil
 from util.WidgetUtil import *
+from widget.custom.ICommonWidget import ICommonWidget
 
 TAG = 'CommonTableView'
 
 
-class CommonTableView(QFrame):
+class CommonTableView(ICommonWidget):
     def __init__(self, addBtnTxt: str, headers: {}, items: list[dict], addOrEditItemFunc,
                  toolTip=None):
         super(CommonTableView, self).__init__()
+        self.setMinimumWidth(int(WidgetUtil.getScreenWidth() * 0.25))
+
         self.__headers = headers
         self.__items = items
         self.__addOrEditItemFunc = addOrEditItemFunc
+        self.__curRow = -1
 
-        vbox = WidgetUtil.createVBoxLayout(self, margins=QMargins(5, 5, 5, 5), spacing=5)
+        vbox = WidgetUtil.createVBoxLayout(self, margins=QMargins(5, 5, 5, 5), spacing=10)
 
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
         self.__addItemBtn = WidgetUtil.createPushButton(self, text=addBtnTxt, onClicked=self.__addItem)
         hbox.addWidget(self.__addItemBtn)
         hbox.addItem(WidgetUtil.createHSpacerItem(1, 1))
+        hbox.addItem(WidgetUtil.createHSpacerItem(1, 1))
+        hbox.addWidget(WidgetUtil.createLabel(self, text="顺序调整:"))
+        self.__moveTopBtn = WidgetUtil.createPushButton(self, text="⬆️️", toolTip="移动到首行", isEnable=False,
+                                                        onClicked=lambda: self.__moveCmdPosition(0))
+        hbox.addWidget(self.__moveTopBtn)
+        self.__moveUpOneBtn = WidgetUtil.createPushButton(self, text="↑️️", toolTip="向上移动一行", isEnable=False,
+                                                          onClicked=lambda: self.__moveCmdPosition(
+                                                              self.__curRow - 1))
+        hbox.addWidget(self.__moveUpOneBtn)
+        self.__moveDownOneBtn = WidgetUtil.createPushButton(self, text="↓️", toolTip="向下移动一行", isEnable=False,
+                                                            onClicked=lambda: self.__moveCmdPosition(
+                                                                self.__curRow + 1))
+        hbox.addWidget(self.__moveDownOneBtn)
+        self.__moveBottomBtn = WidgetUtil.createPushButton(self, text="⬇️️", toolTip="移动到末行", isEnable=False,
+                                                           onClicked=lambda: self.__moveCmdPosition(-1))
+        hbox.addWidget(self.__moveBottomBtn)
         vbox.addLayout(hbox)
 
-        self.__tableView = WidgetUtil.createTableView(self, doubleClicked=self.__tableDoubleClicked)
+        self.__tableView = WidgetUtil.createTableView(self, clicked=self.__tableClicked,
+                                                      doubleClicked=self.__tableDoubleClicked)
         # 设为不可编辑
         self.__tableView.setEditTriggers(QAbstractItemView.NoEditTriggers)
         # 设置选中模式为选中行
@@ -45,8 +67,36 @@ class CommonTableView(QFrame):
         self.setAutoFillBackground(True)
         if toolTip:
             self.setToolTip(toolTip)
+        pass
 
-        vbox.setContentsMargins(0, 0, 0, 0)
+    def __moveCmdPosition(self, newPos):
+        LogUtil.d(TAG, "__moveCmdPosition", newPos)
+        # 交换数据
+        ListUtil.insert(self.__items, self.__curRow, newPos)
+        # 更新table表格数据
+        self.__updateTableView()
+        # 更新当前选择的行
+        self.__curRow = newPos if newPos >= 0 else len(self.__items) - 1
+        self.__tableView.selectRow(self.__curRow)
+        # 更新调整位置按钮的状态
+        self.__updateMoveBtnStatus()
+        pass
+
+    def __updateMoveBtnStatus(self):
+        LogUtil.d(TAG, "__updatePositionBtnStatus")
+        size = len(self.__items)
+        self.__moveTopBtn.setEnabled(self.__curRow > 0)
+        self.__moveUpOneBtn.setEnabled(self.__curRow > 0)
+        self.__moveDownOneBtn.setEnabled(0 <= self.__curRow < size - 1)
+        self.__moveBottomBtn.setEnabled(0 <= self.__curRow < size - 1)
+        pass
+
+    def __tableClicked(self):
+        currentRow = self.__tableView.currentIndex().row()
+        LogUtil.d(TAG, "__tableClicked", currentRow)
+        if currentRow != self.__curRow:
+            self.__curRow = currentRow
+            self.__updateMoveBtnStatus()
         pass
 
     def __addItem(self):
@@ -87,9 +137,11 @@ class CommonTableView(QFrame):
         pass
 
     def __delItemFunc(self):
-        LogUtil.i(TAG, "delRuleTableItem")
+        LogUtil.i(TAG, "__delItemFunc")
         self.__items.remove(self.__items[self.__curRow])
+        self.__curRow = -1
         self.__updateTableView()
+        self.__updateMoveBtnStatus()
         pass
 
     def __updateTableView(self):

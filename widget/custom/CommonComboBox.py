@@ -14,45 +14,47 @@ TAG = 'CommonComboBox'
 
 
 class CommonComboBox(QFrame):
-    def __init__(self, label: str, default=None, group: [{}] = [], toolTip=None):
+    def __init__(self, label: str, default=None, groupList: [{} or str] = [], toolTip=None):
         super(CommonComboBox, self).__init__()
         # self.setWindowFlags(QtCore.Qt.SplashScreen | QtCore.Qt.FramelessWindowHint)
-        self.__group = group
-        self.__default = default if default else DictUtil.get(group[0], KEY_DATA, DictUtil.get(group[0], KEY_SHOW_TEXT))
+        if type(groupList[0]) == str:
+            self.__groupList = [{KEY_SHOW_TEXT: item} for item in groupList]
+        else:
+            self.__groupList = groupList
+        self.__default = default if default else DictUtil.get(self.__groupList[0], KEY_DATA,
+                                                              DictUtil.get(self.__groupList[0], KEY_SHOW_TEXT))
 
-        hBox = WidgetUtil.createHBoxLayout(self)
+        hBox = WidgetUtil.createHBoxLayout(self, margins=QMargins(5, 5, 5, 5), spacing=10)
         hBox.addWidget(WidgetUtil.createLabel(self, text=label))
-        self.comboBox = WidgetUtil.createComboBox(self, activated=self.__activated)
-        self.comboBox.setView(QListView())
+        self.__comboBox = WidgetUtil.createComboBox(self, activated=self.__activated)
+        self.__comboBox.setView(QListView())
         self.setStyleSheet('QComboBox QAbstractItemView::item {padding-top:2px;padding-bottom:2px}')
-        hBox.addWidget(self.comboBox, 1)
+        hBox.addWidget(self.__comboBox, 1)
         self.__updateComboBox()
         self.setAutoFillBackground(True)
         if toolTip:
             self.setToolTip(toolTip)
-
-        hBox.setContentsMargins(0, 0, 0, 0)
         pass
 
     def __updateComboBox(self):
         curIndex = 0
-        for index, item in enumerate(self.__group):
+        for index, item in enumerate(self.__groupList):
             if KEY_SHOW_TEXT not in item:
                 continue
             if KEY_COLOR in item:
                 pixmap = QPixmap(180, 60)
                 pixmap.fill(QColor(item[KEY_COLOR]))
-                self.comboBox.addItem(QIcon(pixmap), item[KEY_SHOW_TEXT])
+                self.__comboBox.addItem(QIcon(pixmap), item[KEY_SHOW_TEXT])
             else:
-                self.comboBox.addItem(item[KEY_SHOW_TEXT])
+                self.__comboBox.addItem(item[KEY_SHOW_TEXT])
             data = DictUtil.get(item, KEY_DATA, DictUtil.get(item, KEY_SHOW_TEXT))
             if self.__default == data:
                 curIndex = index
-        self.comboBox.setCurrentIndex(curIndex)
+        self.__comboBox.setCurrentIndex(curIndex)
         pass
 
     def __activated(self):
-        curData = self.__group[self.comboBox.currentIndex()]
+        curData = self.__groupList[self.__comboBox.currentIndex()]
         self.__default = DictUtil.get(curData, KEY_DATA, DictUtil.get(curData, KEY_SHOW_TEXT))
         LogUtil.d(TAG, '__activated', curData, self.__default)
         pass
@@ -66,7 +68,7 @@ if __name__ == "__main__":
     # e = CommonComboBox()
     # e = CommonComboBox(fileParam=["file", "./", "*.py", "*.py"])
     # e = CommonComboBox(dirParam=["dir", "./"])
-    e = CommonComboBox(label='选择颜色：', default='ss', group=[
+    e = CommonComboBox(label='选择颜色：', default='ss', groupList=[
         {KEY_COLOR: '#FF0000', KEY_SHOW_TEXT: 'red', KEY_DATA: 'ss'},
         {KEY_COLOR: '#00FF00', KEY_SHOW_TEXT: 'green'},
         {KEY_SHOW_TEXT: 'blue'}, {}
