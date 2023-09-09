@@ -48,9 +48,16 @@ KEY_IS_OPTIONAL = 'isOptional'
 # 显示widget的toolTip
 KEY_TOOL_TIP = 'toolTip'
 
+# 打开文件弹框参数
 KEY_FILE_PARAM = 'fileParam'
+# 打开目录弹框参数
 KEY_DIR_PARAM = 'dirParam'
 
+# widget类型 - 输入文本框
 TYPE_LINE_EDIT = 'lineEdit'
+# widget类型 - 选择文件
 TYPE_SELECT_FILE = 'selectFile'
+# widget类型 - 选择目录
 TYPE_SELECT_DIR = 'selectDir'
+# widget类型 - tableView
+TYPE_TABLE_VIEW = 'tableView'

@@ -97,6 +97,7 @@ a = Analysis(['RunMain.py',
               'widget/findFileContent/FindFileContentWindow.py',
 
               'widget/harmony/HarmonyMergeResDialog.py',
+              'widget/harmony/HarmonyStrResDiffDialog.py',
 
               'widget/hash/FileHashDialog.py',
               'widget/mockExam/Excel2Word.py',

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # python 3.x
 # Filename: HarmonyMergeResDialog.py
-# 定义一个HarmonyMergeResDialog类实现android xml资源文件移动合并的功能
+# 定义一个HarmonyMergeResDialog类实现Harmony json资源文件移动合并的功能
 import os.path
 import sys
 import threading

@@ -73,19 +73,23 @@ class DragInputWidget(ICommonWidget):
         pass
 
     def __openFile(self):
-        if self.fileParam:
-            fp = WidgetUtil.getOpenFileName(self, **self.fileParam)
-        else:
-            fp = WidgetUtil.getOpenFileName()
+        directoryParam = {KEY_DIRECTORY: self.__getParentDir()}
+        fileParam = DictUtil.join([self.fileParam, directoryParam])
+        fp = WidgetUtil.getOpenFileName(self, **fileParam)
         self.__updateContent(fp)
 
     def __openDir(self):
-        if self.dirParam:
-            fp = WidgetUtil.getExistingDirectory(self, caption=DictUtil.get(self.dirParam, KEY_CAPTION, ''),
-                                                 directory=DictUtil.get(self.dirParam, KEY_DIRECTORY, ''))
-        else:
-            fp = WidgetUtil.getExistingDirectory(self)
+        directoryParam = {KEY_DIRECTORY: self.__getParentDir()}
+        dirParam = DictUtil.join([self.dirParam, directoryParam])
+        fp = WidgetUtil.getExistingDirectory(self, **dirParam)
         self.__updateContent(fp)
+
+    def __getParentDir(self):
+        filePath = self.lineEdit.text().strip()
+        if filePath:
+            fp, _ = os.path.split(filePath)
+            return fp
+        return ''
 
     def __updateContent(self, fp):
         if self.lineEdit and fp:

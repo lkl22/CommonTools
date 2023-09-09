@@ -29,7 +29,8 @@ class DictUtil:
         result = {}
         if data:
             for item in data:
-                result = {**result, **item}
+                if item:
+                    result = {**result, **item}
         return result
 
 
