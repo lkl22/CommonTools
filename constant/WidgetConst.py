@@ -33,3 +33,24 @@ KEY_CAPTION = 'caption'
 KEY_DIRECTORY = 'directory'
 KEY_FILTER = 'filter'
 KEY_INITIAL_FILTER = 'initialFilter'
+
+# 通用弹框属性
+# 存储数据的key
+KEY_ITEM_KEY = 'key'
+# 显示widget的label文案
+KEY_ITEM_LABEL = 'label'
+# 显示widget的类型
+KEY_ITEM_TYPE = 'type'
+# 数据是否时唯一的，默认False
+KEY_IS_UNIQUE = 'isUnique'
+# 数据是否可选的，默认False
+KEY_IS_OPTIONAL = 'isOptional'
+# 显示widget的toolTip
+KEY_TOOL_TIP = 'toolTip'
+
+KEY_FILE_PARAM = 'fileParam'
+KEY_DIR_PARAM = 'dirParam'
+
+TYPE_LINE_EDIT = 'lineEdit'
+TYPE_SELECT_FILE = 'selectFile'
+TYPE_SELECT_DIR = 'selectDir'

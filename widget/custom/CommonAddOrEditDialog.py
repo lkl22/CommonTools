@@ -14,19 +14,6 @@ from widget.custom.ICommonWidget import ICommonWidget
 
 TAG = "CommonAddOrEditDialog"
 
-KEY_ITEM_KEY = 'key'
-KEY_ITEM_LABEL = 'label'
-KEY_ITEM_TYPE = 'type'
-KEY_IS_UNIQUE = 'isUnique'
-KEY_IS_OPTIONAL = 'isOptional'
-KEY_TOOL_TIP = 'toolTip'
-KEY_FILE_PARAM = 'fileParam'
-KEY_DIR_PARAM = 'dirParam'
-
-TYPE_LINE_EDIT = 'lineEdit'
-TYPE_SELECT_FILE = 'selectFile'
-TYPE_SELECT_DIR = 'selectDir'
-
 
 class CommonAddOrEditDialog(QtWidgets.QDialog):
     def __init__(self, windowTitle: str, optionInfos: [{}], default=None, items: [] = None, callback=None, width=0.3,
