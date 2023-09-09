@@ -77,7 +77,7 @@ class AddOrEditProjectDialog(QtWidgets.QDialog):
         hbox.addWidget(WidgetUtil.createLabel(box, text="工程路径：", minSize=QSize(labelWidth, const.HEIGHT)))
         self.projectPathInputWidget = DragInputWidget(
             text=DictUtil.get(self.projectInfo, KEY_PATH),
-            dirParam=["请选择您工程工作目录", "./"], isReadOnly=True,
+            dirParam={KEY_CAPTION: "请选择您工程工作目录", KEY_DIRECTORY: "./"}, isReadOnly=True,
             holderText="请拖动您工程的工作目录到此框或者点击右侧的按钮选择您的工程路径")
         hbox.addWidget(self.projectPathInputWidget)
         vbox.addLayout(hbox)

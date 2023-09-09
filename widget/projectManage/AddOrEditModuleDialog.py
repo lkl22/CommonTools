@@ -120,7 +120,7 @@ class AddOrEditModuleDialog(QtWidgets.QDialog):
 
         self.pathInputWidget = DragInputWidget(
             text=self.getModuleDir(),
-            dirParam=["请选择您模块工作目录", self.openDir], isReadOnly=True,
+            dirParam={KEY_CAPTION: "请选择您模块工作目录", KEY_DIRECTORY: self.openDir}, isReadOnly=True,
             holderText="请拖动您模块的工作目录到此框或者点击右侧的文件夹图标选择您的模块路径，默认使用工程的路径",
             toolTip="不设置的话，默认使用工程的路径")
         hbox.addWidget(self.pathInputWidget)

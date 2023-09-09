@@ -108,7 +108,7 @@ class FindFileContentWindow(QMainWindow):
         hbox.addWidget(WidgetUtil.createLabel(box, text="工程路径：", minSize=QSize(labelWidth, const.HEIGHT)))
         self.pathInputWidget = DragInputWidget(
             text=self.path,
-            dirParam=["请选择您的工作目录", "./"], isReadOnly=True,
+            dirParam={KEY_CAPTION: "请选择您的工作目录", KEY_DIRECTORY: "./"}, isReadOnly=True,
             holderText="请拖动您的工作目录到此框或者点击右侧的按钮选择您的工作路径",
             textChanged=self.pathChanged)
         hbox.addWidget(self.pathInputWidget)

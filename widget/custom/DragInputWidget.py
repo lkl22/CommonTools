@@ -6,15 +6,11 @@ import os
 import sys
 from PyQt5.QtWidgets import QStyle
 
+from constant.WidgetConst import *
 from util.DictUtil import DictUtil
 from util.WidgetUtil import *
 from util.PlatformUtil import PlatformUtil
 from widget.custom.ICommonWidget import ICommonWidget
-
-KEY_CAPTION = 'caption'
-KEY_DIRECTORY = 'directory'
-KEY_FILTER = 'filter'
-KEY_INITIAL_FILTER = 'initialFilter'
 
 
 class DragInputWidget(ICommonWidget):

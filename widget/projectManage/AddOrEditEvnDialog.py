@@ -45,8 +45,8 @@ class AddOrEditEvnDialog(QtWidgets.QDialog):
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
         hbox.addWidget(WidgetUtil.createLabel(self, text="环境变量值：", minSize=QSize(labelWidth, const.HEIGHT)))
         self.valueLineEdit = DragInputWidget(text=default[KEY_VALUE] if default else "",
-                                             fileParam=['', './', '', ''],
-                                             dirParam=["", "./"],
+                                             fileParam={KEY_DIRECTORY: './'},
+                                             dirParam={KEY_DIRECTORY: './'},
                                              isReadOnly=False,
                                              holderText="工程运行时的环境变量值",
                                              toolTip="您可以拖动文件或者文件夹到此")

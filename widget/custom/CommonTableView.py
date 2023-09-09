@@ -5,13 +5,12 @@
 import sys
 from PyQt5.QtCore import QModelIndex
 from PyQt5.QtWidgets import QFrame, QAbstractItemView
+
+from constant.WidgetConst import *
 from util.DictUtil import DictUtil
 from util.WidgetUtil import *
 
 TAG = 'CommonTableView'
-KEY_PRIMARY = 'primary'
-KEY_DEFAULT = 'default'
-KEY_TITLE = 'title'
 
 
 class CommonTableView(QFrame):
@@ -106,7 +105,7 @@ class CommonTableView(QFrame):
 
     def getData(self):
         return self.__items
-    
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

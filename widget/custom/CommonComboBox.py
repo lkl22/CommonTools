@@ -5,13 +5,11 @@
 import sys
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QFrame, QListView
+
+from constant.WidgetConst import *
 from util.WidgetUtil import *
 
 TAG = 'CommonComboBox'
-# icon颜色
-KEY_COLOR = 'color'
-# item显示描述文案
-KEY_DESC = 'desc'
 
 
 class CommonComboBox(QFrame):

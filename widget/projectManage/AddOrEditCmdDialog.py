@@ -103,8 +103,8 @@ class AddOrEditCmdDialog(QtWidgets.QDialog):
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
         hbox.addWidget(WidgetUtil.createLabel(self, text="Program：", minSize=QSize(labelWidth, const.HEIGHT)))
         self.programInputWidget = DragInputWidget(text=DictUtil.get(default, KEY_PROGRAM),
-                                                  fileParam=['', self.moduleDir, '', ''],
-                                                  dirParam=["", self.moduleDir],
+                                                  fileParam={KEY_DIRECTORY: self.moduleDir},
+                                                  dirParam={KEY_DIRECTORY: self.moduleDir},
                                                   isReadOnly=False,
                                                   holderText="需要执行的命令行指令",
                                                   toolTip="您可以拖动文件或者文件夹到此或者点击右侧的图标")
@@ -114,8 +114,8 @@ class AddOrEditCmdDialog(QtWidgets.QDialog):
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
         hbox.addWidget(WidgetUtil.createLabel(self, text="Working directory：", minSize=QSize(labelWidth, const.HEIGHT)))
         self.workDirInputWidget = DragInputWidget(text=self.getCmdDir(),
-                                                  fileParam=['', self.moduleDir, '', ''],
-                                                  dirParam=["", self.moduleDir],
+                                                  fileParam={KEY_DIRECTORY: self.moduleDir},
+                                                  dirParam={KEY_DIRECTORY: self.moduleDir},
                                                   isReadOnly=False,
                                                   holderText="执行命令行指令所在的工作空间，不填，默认跟随模块工作目录",
                                                   toolTip="您可以拖动文件或者文件夹到此或者点击右侧的图标")
