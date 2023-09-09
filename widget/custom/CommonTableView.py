@@ -16,12 +16,22 @@ TAG = 'CommonTableView'
 
 
 class CommonTableView(ICommonWidget):
-    def __init__(self, addBtnTxt: str, headers: {}, items: list[dict], addOrEditItemFunc,
-                 toolTip=None):
+    def __init__(self, addBtnTxt: str, headers: {}, items: list[dict], addOrEditItemFunc, toolTip=None):
+        """
+        创建通用的tableView控件
+        :param addBtnTxt: 添加元素按钮上文案
+        :param headers: table上title信息 {key: {title: xxx, default: xxx}}
+        key: 从数据源中取值使用的key，title: 表格头显示文案，default: 列在数据源没有值时的默认值
+        :param items: 数据源
+        :param addOrEditItemFunc: 添加/编辑数据元素函数 (callback: ({})->void, default, items)->void
+        :param toolTip: toolTip
+        """
         super(CommonTableView, self).__init__()
         self.setMinimumWidth(int(WidgetUtil.getScreenWidth() * 0.25))
 
         self.__headers = headers
+        # 取字典的第一个键值
+        self.__primaryKey = [key for key in headers.keys()][0]
         self.__items = items
         self.__addOrEditItemFunc = addOrEditItemFunc
         self.__curRow = -1
@@ -103,6 +113,7 @@ class CommonTableView(ICommonWidget):
         LogUtil.d(TAG, "__addItem")
 
         self.__addOrEditItemFunc(callback=self.__addOrEditItemCallback,
+                                 default=None,
                                  items=self.__items)
         pass
 
@@ -130,7 +141,7 @@ class CommonTableView(ICommonWidget):
         pass
 
     def __delItemDialog(self):
-        primaryName = self.__items[self.__curRow][KEY_PRIMARY]
+        primaryName = self.__items[self.__curRow][self.__primaryKey]
         LogUtil.i(TAG, f"__delItemDialog {primaryName}")
         WidgetUtil.showQuestionDialog(message=f"你确定需要删除 <span style='color:red;'>{primaryName}</span> 吗？",
                                       acceptFunc=self.__delItemFunc)
@@ -155,6 +166,11 @@ class CommonTableView(ICommonWidget):
                                     headerLabels=[item[KEY_TITLE] for item in self.__headers.values()])
         pass
 
+    def updateData(self, items):
+        self.__items = items
+        self.__updateTableView()
+        pass
+
     def getData(self):
         return self.__items
 
@@ -163,16 +179,16 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     e = CommonTableView(addBtnTxt='添加',
                         headers={
-                            KEY_PRIMARY: {KEY_TITLE: '规则名'}, 'isEnable': {KEY_TITLE: 'Enable', KEY_DEFAULT: True},
+                            'name': {KEY_TITLE: '规则名'}, 'isEnable': {KEY_TITLE: 'Enable', KEY_DEFAULT: True},
                             'costTime': {KEY_TITLE: '统计耗时'}
                         },
                         items=[{
-                            KEY_PRIMARY: '22'
+                            'name': '22'
                         }, {
-                            KEY_PRIMARY: '33',
+                            'name': '33',
                             'isEnable': False,
                             'costTime': 20,
-                        }], addOrEditItemFunc=lambda callback, default=None, items=None: callback({KEY_PRIMARY: '55'})
+                        }], addOrEditItemFunc=lambda callback, default=None, items=None: callback({'name': '55'})
                         )
     e.show()
     sys.exit(app.exec_())

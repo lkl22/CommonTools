@@ -5,15 +5,22 @@
 import copy
 import os
 
-from PyQt5.QtCore import QModelIndex
-from PyQt5.QtWidgets import QFrame, QAbstractItemView
-from constant import const
+from PyQt5.QtWidgets import QFrame
+from constant.WidgetConst import *
 from util.DictUtil import DictUtil
 from util.WidgetUtil import *
 from widget.analysis.AddOrEditAnalysisCfgDialog import AddOrEditAnalysisCfgDialog
 from widget.analysis.LogAnalysisManager import *
+from widget.custom.CommonTableView import CommonTableView
 
 TAG = "CategoryConfigWidget"
+HEADERS = {
+    KEY_NAME: {KEY_TITLE: "规则名"}, KEY_DESC: {KEY_TITLE: "规则描述"}, KEY_LOG_KEYWORD: {KEY_TITLE: "日志关键字"},
+    KEY_IS_ENABLE: {KEY_TITLE: "Enable", KEY_DEFAULT: DEFAULT_VALUE_IS_ENABLE},
+    KEY_NEED_COST_TIME: {KEY_TITLE: "统计耗时", KEY_DEFAULT: DEFAULT_VALUE_NEED_COST_TIME},
+    KEY_START_LOG_KEYWORD: {KEY_TITLE: "开始日志关键字"}, KEY_END_LOG_KEYWORD: {KEY_TITLE: "结束日志关键字"},
+    KEY_NEED_LOG_MAP: {KEY_TITLE: "结果映射", KEY_DEFAULT: DEFAULT_VALUE_NEED_LOG_MAP}, KEY_RESULT_MAP: {KEY_TITLE: "映射规则"}
+}
 
 
 class CategoryConfigWidget(QFrame):
@@ -57,23 +64,9 @@ class CategoryConfigWidget(QFrame):
                                                          sizePolicy=sizePolicy)
         vbox.addWidget(splitter)
 
-        hbox = WidgetUtil.createHBoxLayout(spacing=10)
-        self.addAnalysisCfgBtn = WidgetUtil.createPushButton(self, text="添加Log分析配置", onClicked=self.__addAnalysisCfg)
-        hbox.addWidget(self.addAnalysisCfgBtn)
-        hbox.addItem(WidgetUtil.createHSpacerItem(1, 1))
-        vbox.addLayout(hbox)
-
-        self.analysisRuleTableView = WidgetUtil.createTableView(self,
-                                                                doubleClicked=self.__analysisCfgTableDoubleClicked)
-        # 设为不可编辑
-        self.analysisRuleTableView.setEditTriggers(QAbstractItemView.NoEditTriggers)
-        # 设置选中模式为选中行
-        self.analysisRuleTableView.setSelectionBehavior(QAbstractItemView.SelectRows)
-        # 设置选中单个
-        self.analysisRuleTableView.setSelectionMode(QAbstractItemView.SingleSelection)
-        # 设置自定义右键菜单
-        self.analysisRuleTableView.setContextMenuPolicy(Qt.CustomContextMenu)
-        self.analysisRuleTableView.customContextMenuRequested.connect(self.__analysisCfgCustomRightMenu)
+        self.analysisRuleTableView = CommonTableView(addBtnTxt="添加Log分析配置", headers=HEADERS,
+                                                     items=self.ruleList,
+                                                     addOrEditItemFunc=self.addOrEditItemFunc)
         self.__updateRuleTableView()
         vbox.addWidget(self.analysisRuleTableView, 1)
         # self.setAutoFillBackground(True)
@@ -127,66 +120,13 @@ class CategoryConfigWidget(QFrame):
             self.logFilePathLineEdit.setText(fp)
         pass
 
-    def __addAnalysisCfg(self):
-        LogUtil.d(TAG, "addAnalysisCfg")
-        if not self.categoryInfo:
+    def __updateRuleTableView(self):
+        self.analysisRuleTableView.updateData(self.ruleList)
+        pass
+
+    def addOrEditItemFunc(self, callback, default, items):
+        if not default and not self.categoryInfo:
             WidgetUtil.showErrorDialog(message="请先选择或者添加Log分析配置")
             return
-        AddOrEditAnalysisCfgDialog(callback=self.__addOrEditAnalysisCfgCallback,
-                                   ruleList=self.ruleList)
-        pass
 
-    def __addOrEditAnalysisCfgCallback(self, info):
-        LogUtil.d(TAG, "addOrEditAnalysisCfgCallback", info)
-        if info:
-            self.ruleList.append(info)
-        self.__updateRuleTableView()
-        pass
-
-    def __analysisCfgTableDoubleClicked(self, index: QModelIndex):
-        oldValue = index.data()
-        row = index.row()
-        LogUtil.d(TAG, "dynParamsTableDoubleClicked：row ", row, ' col', index.column(), ' data ', oldValue)
-        AddOrEditAnalysisCfgDialog(callback=self.__addOrEditAnalysisCfgCallback,
-                                   default=self.ruleList[row],
-                                   ruleList=self.ruleList)
-        pass
-
-    def __analysisCfgCustomRightMenu(self, pos):
-        self.curRow = self.analysisRuleTableView.currentIndex().row()
-        LogUtil.i(TAG, "analysisCfgCustomRightMenu", pos, ' row: ', self.curRow)
-        menu = WidgetUtil.createMenu("删除", func1=self.__delRule)
-        menu.exec(self.analysisRuleTableView.mapToGlobal(pos))
-        pass
-
-    def __delRule(self):
-        ruleName = self.ruleList[self.curRow][KEY_NAME]
-        LogUtil.i(TAG, f"delRule {ruleName}")
-        WidgetUtil.showQuestionDialog(message=f"你确定需要删除 <span style='color:red;'>{ruleName}</span> 吗？",
-                                      acceptFunc=self.__delRuleTableItem)
-        pass
-
-    def __delRuleTableItem(self):
-        LogUtil.i(TAG, "delRuleTableItem")
-        self.ruleList.remove(self.ruleList[self.curRow])
-        self.__updateRuleTableView()
-        pass
-
-    def __updateRuleTableView(self):
-        tableData = []
-        for rule in self.ruleList:
-            tableData.append({
-                KEY_NAME: DictUtil.get(rule, KEY_NAME, ''),
-                KEY_DESC: DictUtil.get(rule, KEY_DESC, ""),
-                KEY_LOG_KEYWORD: DictUtil.get(rule, KEY_LOG_KEYWORD, ""),
-                KEY_IS_ENABLE: DictUtil.get(rule, KEY_IS_ENABLE, DEFAULT_VALUE_IS_ENABLE),
-                KEY_NEED_COST_TIME: DictUtil.get(rule, KEY_NEED_COST_TIME, DEFAULT_VALUE_NEED_COST_TIME),
-                KEY_START_LOG_KEYWORD: DictUtil.get(rule, KEY_START_LOG_KEYWORD, ""),
-                KEY_END_LOG_KEYWORD: DictUtil.get(rule, KEY_END_LOG_KEYWORD, ""),
-                KEY_NEED_LOG_MAP: DictUtil.get(rule, KEY_NEED_LOG_MAP, DEFAULT_VALUE_NEED_LOG_MAP),
-                KEY_RESULT_MAP: JsonUtil.encode(DictUtil.get(rule, KEY_RESULT_MAP, [])),
-            })
-        WidgetUtil.addTableViewData(self.analysisRuleTableView, tableData,
-                                    headerLabels=["规则名", "规则描述", "日志关键字", "Enable", "统计耗时", "开始日志关键字", "结束日志关键字",
-                                                  "结果映射", "映射规则"])
-        pass
+        AddOrEditAnalysisCfgDialog(callback=callback, default=default, ruleList=items)

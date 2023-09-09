@@ -143,19 +143,13 @@ class CategoryManagerWidget(QFrame):
         # 更新分类下拉选择框
         self.__updateCategoryComboBox()
         # 修改了分类，对应的分类信息也同步修改
-        if curCategoryInfo[KEY_ID] != self.categoryId:
+        if DictUtil.get(curCategoryInfo, KEY_ID) != self.categoryId:
             categoryRule = self.analysisManager.getCategoryRuleById(self.categoryId)
             if categoryRule:
                 self.analysisManager.saveCategoryRuleById(curCategoryInfo[KEY_ID], categoryRule)
         # 将分类信息保存到ini文件
         self.__saveCategorys()
         pass
-
-    def __getCurCategoryInfo(self):
-        if self.curCategoryIndex >= 0:
-            return self.configs[KEY_LIST][self.curCategoryIndex]
-        else:
-            return None
 
     def __delCategory(self):
         LogUtil.d(TAG, "delCategory")
