@@ -18,7 +18,7 @@ class CommonTextEdit(ICommonWidget):
 
     def __init__(self, text: str = None, isReadOnly: bool = True, holderText: str = None, toolTip=None):
         super(CommonTextEdit, self).__init__()
-        vbox = WidgetUtil.createVBoxLayout(self, margins=QMargins(5, 5, 5, 5), spacing=10)
+        vbox = WidgetUtil.createVBoxLayout(self, margins=QMargins(5, 5, 5, 5))
         hbox = WidgetUtil.createHBoxLayout()
         hbox.addWidget(WidgetUtil.createPushButton(self, text='Copy', onClicked=self.__copyData))
         hbox.addItem(WidgetUtil.createHSpacerItem())

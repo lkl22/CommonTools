@@ -17,7 +17,7 @@ else:
 KEY_SHOW_TEXT = 'showText'
 # widget关联的数据
 KEY_DATA = 'data'
-# icon颜色
+# 颜色
 KEY_COLOR = 'color'
 # item显示描述文案
 KEY_DESC = 'desc'
@@ -36,7 +36,6 @@ KEY_INITIAL_FILTER = 'initialFilter'
 
 KEY_LOG = 'log'
 KEY_TIME = 'time'
-KEY_COLOR = 'color'
 
 # 通用弹框属性
 # 存储数据的key
@@ -65,3 +64,4 @@ TYPE_SELECT_FILE = 'selectFile'
 TYPE_SELECT_DIR = 'selectDir'
 # widget类型 - tableView
 TYPE_TABLE_VIEW = 'tableView'
+

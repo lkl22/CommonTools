@@ -10,6 +10,7 @@ SETUP_DIR = './'
 
 a = Analysis(['RunMain.py',
               'constant/ColorConst.py',
+              'constant/ColorEnum.py',
               'constant/const.py',
               'constant/TestStepConst.py',
               'constant/WidgetConst.py',
