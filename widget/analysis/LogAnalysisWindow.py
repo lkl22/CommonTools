@@ -14,6 +14,7 @@ from util.StrUtil import StrUtil
 from widget.analysis.CategoryConfigWidget import CategoryConfigWidget
 from widget.analysis.CategoryManagerWidget import CategoryManagerWidget
 from widget.analysis.LogAnalysisManager import *
+from widget.custom.CommonTextEdit import CommonTextEdit
 from widget.custom.LoadingDialog import LoadingDialog
 
 TAG = "LogAnalysisWindow"
@@ -25,7 +26,6 @@ MAX_BYTE = 200
 class LogAnalysisWindow(QMainWindow):
     windowList = []
     hideLoadingSignal = pyqtSignal()
-    standardOutputSignal = pyqtSignal()
 
     def __init__(self, isDebug=False):
         # 调用父类的构函
@@ -61,13 +61,12 @@ class LogAnalysisWindow(QMainWindow):
         self.categoryManageGroupBox = self.createCategoryManageGroupBox()
         hLayout.addWidget(self.categoryManageGroupBox, 3)
 
-        self.consoleTextEdit = WidgetUtil.createTextEdit(self, isReadOnly=True)
+        self.consoleTextEdit = CommonTextEdit()
         hLayout.addWidget(self.consoleTextEdit, 2)
 
         QtCore.QMetaObject.connectSlotsByName(self)
         self.show()
         self.hideLoadingSignal.connect(self.hideLoading)
-        self.standardOutputSignal.connect(self.__standardOutput)
 
     # 重写关闭事件，回到第一界面
     def closeEvent(self, event):
@@ -141,7 +140,7 @@ class LogAnalysisWindow(QMainWindow):
             line = StrUtil.decode(srcFile.readline())
 
         srcFile.close()
-        self.standardOutputSignal.emit()
+        self.consoleTextEdit.standardOutput(self.execResult)
         self.hideLoadingSignal.emit()
         pass
 
@@ -200,10 +199,6 @@ class LogAnalysisWindow(QMainWindow):
         except Exception as e:
             LogUtil.e(TAG, '__getLogTime 错误信息：', e)
             return None
-
-    def __standardOutput(self):
-        WidgetUtil.textEditAppendMessages(self.consoleTextEdit, messages=self.execResult)
-        pass
 
 
 if __name__ == '__main__':
