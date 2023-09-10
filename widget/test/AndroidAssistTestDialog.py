@@ -452,7 +452,7 @@ class AndroidAssistTestDialog(QtWidgets.QDialog):
 
     def printRes(self, res: str = '', color='#00f'):
         LogUtil.i(TAG, "printRes", res)
-        WidgetUtil.appendTextEdit(self.execResTE, res, color)
+        WidgetUtil.textEditAppendMessage(self.execResTE, res, color)
         pass
 
 

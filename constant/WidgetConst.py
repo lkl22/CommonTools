@@ -34,6 +34,10 @@ KEY_DIRECTORY = 'directory'
 KEY_FILTER = 'filter'
 KEY_INITIAL_FILTER = 'initialFilter'
 
+KEY_LOG = 'log'
+KEY_TIME = 'time'
+KEY_COLOR = 'color'
+
 # 通用弹框属性
 # 存储数据的key
 KEY_ITEM_KEY = 'key'

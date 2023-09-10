@@ -239,7 +239,7 @@ class AndroidAdbDialog(QtWidgets.QDialog):
         pass
 
     def printRes(self, res: str = '', color='#00f'):
-        WidgetUtil.appendTextEdit(self.execResTE, res, color)
+        WidgetUtil.textEditAppendMessage(self.execResTE, res, color)
         pass
 
     def acceptFunc(self):

@@ -341,13 +341,13 @@ class ProjectManagerWindow(QMainWindow):
 
     def standardOutput(self, log):
         if "开始执行" in log or "执行结束" in log:
-            WidgetUtil.appendTextEdit(self.consoleTextEdit, text=log, color='#000')
+            WidgetUtil.textEditAppendMessage(self.consoleTextEdit, text=log, color='#000')
         else:
-            WidgetUtil.appendTextEdit(self.consoleTextEdit, text=log)
+            WidgetUtil.textEditAppendMessage(self.consoleTextEdit, text=log)
         pass
 
     def standardError(self, log):
-        WidgetUtil.appendTextEdit(self.consoleTextEdit, text=log, color='#f00')
+        WidgetUtil.textEditAppendMessage(self.consoleTextEdit, text=log, color='#f00')
         pass
 
 

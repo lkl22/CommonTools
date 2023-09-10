@@ -10,7 +10,7 @@ from PyQt5.QtWidgets import QWidget, QMessageBox, QSizePolicy, QTreeWidget, QMen
     QRadioButton, QTableView, QHeaderView, QColorDialog, QSpinBox, QTextEdit, QApplication, QDoubleSpinBox, QMenuBar, \
     QTabWidget, QCheckBox, QProgressBar, QComboBox, QDialogButtonBox, QLineEdit
 from PyQt5.QtCore import QRect, QMargins, QSize, Qt, QDateTime
-
+from constant.WidgetConst import *
 from util.LogUtil import *
 from util.DataTypeUtil import *
 
@@ -656,8 +656,8 @@ class WidgetUtil:
         return widget
 
     @staticmethod
-    def createDateTimeEdit(parent: QWidget, objectName="DateTimeEdit", dateTime: QDateTime = QDateTime.currentDateTime(),
-                           minDateTime=None, maxDateTime=None,
+    def createDateTimeEdit(parent: QWidget, objectName="DateTimeEdit",
+                           dateTime: QDateTime = QDateTime.currentDateTime(), minDateTime=None, maxDateTime=None,
                            displayFormat: str = "yyyy-MM-dd HH:mm:ss", toolTip=None, onDateTimeChanged=None,
                            geometry: QRect = None, isEnable=True, sizePolicy: QSizePolicy = None):
         """
@@ -692,7 +692,7 @@ class WidgetUtil:
         return widget
 
     @staticmethod
-    def appendTextEdit(textEdit: QTextEdit, text: str, color='#00f'):
+    def textEditAppendMessage(textEdit: QTextEdit, text: str, color='#00f'):
         """
         向QTextEdit控件添加文字（指定颜色，默认蓝色）
         :param textEdit: QTextEdit控件
@@ -707,7 +707,7 @@ class WidgetUtil:
         pass
 
     @staticmethod
-    def textEditAppendMessages(textEdit: QTextEdit, messages: list):
+    def textEditAppendMessages(textEdit: QTextEdit, messages: list[dict]):
         """
         批量向QTextEdit控件添加文字（指定颜色）
         :param textEdit: QTextEdit控件
@@ -716,8 +716,8 @@ class WidgetUtil:
         """
         textFormat = ""
         for msg in messages:
-            textFormat += "<font color=\"" + msg[1] + "\">" + msg[0].replace("\r\n", "<br/>").replace("\n",
-                                                                                                      "<br/>") + "</font>"
+            textFormat += "<font color=\"" + msg[KEY_COLOR] + "\">" + msg[KEY_LOG] \
+                .replace("\r\n", "<br/>").replace("\n", "<br/>") + "</font>"
         textEdit.append(textFormat)
         # 触发实时显示数据
         QApplication.instance().processEvents()

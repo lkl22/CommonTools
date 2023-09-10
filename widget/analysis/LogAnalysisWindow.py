@@ -3,9 +3,9 @@
 # Filename: LogAnalysisWindow.py
 # 定义一个LogAnalysisWindow类实现log分析相关功能
 import threading
-
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QMainWindow
+from constant.WidgetConst import *
 from util.DialogUtil import *
 from util.DictUtil import DictUtil
 from util.ListUtil import ListUtil
@@ -19,10 +19,6 @@ from widget.custom.LoadingDialog import LoadingDialog
 TAG = "LogAnalysisWindow"
 
 DATETIME_FORMAT = 'yyyy-MM-dd HH:mm:ss'
-
-KEY_LOG = 'log'
-KEY_TIME = 'time'
-KEY_COLOR = 'color'
 MAX_BYTE = 200
 
 
@@ -189,7 +185,7 @@ class LogAnalysisWindow(QMainWindow):
             self.execResult.append({KEY_LOG: f"{startInfo[KEY_LOG]}{line[:MAX_BYTE]}", KEY_COLOR: '#000'})
             costTime = startTime[0].msecsTo(endTime[0]) + endTime[1] - startTime[1]
             self.execResult.append(
-                {KEY_LOG: f"耗时分析：{rule[KEY_NAME]}({DictUtil.get(rule, KEY_DESC, '')}) cost time: {costTime} ms\n",
+                {KEY_LOG: f"\n耗时分析：{rule[KEY_NAME]}({DictUtil.get(rule, KEY_DESC, '')}) cost time: {costTime} ms\n\n",
                  KEY_COLOR: '#f00'})
         pass
 
@@ -206,8 +202,7 @@ class LogAnalysisWindow(QMainWindow):
             return None
 
     def __standardOutput(self):
-        for item in self.execResult:
-            WidgetUtil.appendTextEdit(self.consoleTextEdit, text=item[KEY_LOG], color=item[KEY_COLOR])
+        WidgetUtil.textEditAppendMessages(self.consoleTextEdit, messages=self.execResult)
         pass
 
 
