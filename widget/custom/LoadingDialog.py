@@ -3,10 +3,7 @@
 # Filename: LoadingDialog.py
 # 定义一个LoadingDialog类实现加载等待弹框
 import sys
-
 from PyQt5.QtGui import QMovie
-
-from constant.WidgetConst import *
 from util.DialogUtil import *
 from util.FileUtil import FileUtil
 from util.LogUtil import *
@@ -16,7 +13,7 @@ class LoadingDialog(QtWidgets.QDialog):
     WINDOW_WIDTH = 300
     WINDOW_HEIGHT = 150
 
-    def __init__(self, showText: str = '正在加载中。。。', btnText=None, rejectedFunc=None, isDebug=False):
+    def __init__(self, showText: str = '正在加载中。。。', btnText=None, rejectedFunc=None):
         # 调用父类的构函
         QtWidgets.QDialog.__init__(self)
         LogUtil.d("Init Loading Dialog")
@@ -44,7 +41,7 @@ class LoadingDialog(QtWidgets.QDialog):
         layoutWidget.setLayout(vLayout)
 
         label = WidgetUtil.createLabel(self, alignment=Qt.AlignCenter)
-        movie = QMovie("../../resources/icons/loading.gif" if isDebug else FileUtil.getIconFp("loading.gif"))
+        movie = QMovie(FileUtil.getIconFp("loading.gif"))
         label.setMovie(movie)
         movie.start()
 
@@ -71,6 +68,6 @@ class LoadingDialog(QtWidgets.QDialog):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    window = LoadingDialog(isDebug=True)
+    window = LoadingDialog()
     window.show()
     sys.exit(app.exec_())

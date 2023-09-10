@@ -3,17 +3,13 @@
 # Filename: HarmonyStrResDiffDialog.py
 # 定义一个HarmonyStrResDiffDialog类实现Harmony string资源差异化对比，找出缺失的多语言翻译
 import sys
-import threading
-
-from PyQt5.QtCore import pyqtSignal
-from constant.WidgetConst import *
+from manager.AsyncFuncManager import AsyncFuncManager
 from util.FileUtil import *
 from util.DialogUtil import *
 from util.JsonUtil import JsonUtil
 from util.LogUtil import *
 from util.OperaIni import OperaIni
 from widget.custom.DragInputWidget import DragInputWidget
-from widget.custom.LoadingDialog import LoadingDialog
 
 TAG = "HarmonyStrResDiffDialog"
 
@@ -23,25 +19,23 @@ KEY_DST_FILE_PATH = 'dstFilePath'
 
 
 class HarmonyStrResDiffDialog(QtWidgets.QDialog):
-    hideLoadingSignal = pyqtSignal()
-
     def __init__(self, isDebug=False):
         # 调用父类的构函
         QtWidgets.QDialog.__init__(self)
         self.setWindowFlags(Qt.Dialog | Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint)
         HarmonyStrResDiffDialog.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.5)
-        HarmonyStrResDiffDialog.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.3)
+        HarmonyStrResDiffDialog.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.2)
         LogUtil.d(TAG, "Init Harmony String Res Diff Dialog")
         self.setObjectName("HarmonyStrResDiffDialog")
         self.resize(HarmonyStrResDiffDialog.WINDOW_WIDTH, HarmonyStrResDiffDialog.WINDOW_HEIGHT)
         # self.setFixedSize(HarmonyStrResDiffDialog.WINDOW_WIDTH, HarmonyStrResDiffDialog.WINDOW_HEIGHT)
         self.setWindowTitle(WidgetUtil.translate(text="Harmony 查找缺失的多语言翻译"))
 
-        self.isDebug = isDebug
-        self.operaIni = OperaIni()
-        self.srcFilePath = self.operaIni.getValue(KEY_SRC_FILE_PATH, KEY_SECTION)
-        self.dstFilePath = self.operaIni.getValue(KEY_DST_FILE_PATH, KEY_SECTION)
-        self.loadingDialog = None
+        self.__isDebug = isDebug
+        self.__operaIni = OperaIni()
+        self.__srcFilePath = self.__operaIni.getValue(KEY_SRC_FILE_PATH, KEY_SECTION)
+        self.__dstFilePath = self.__operaIni.getValue(KEY_DST_FILE_PATH, KEY_SECTION)
+        self.__asyncFuncManager = AsyncFuncManager()
 
         vLayout = WidgetUtil.createVBoxLayout(self, margins=QMargins(10, 10, 10, 10), spacing=10)
 
@@ -50,7 +44,6 @@ class HarmonyStrResDiffDialog(QtWidgets.QDialog):
         vLayout.addWidget(groupBox)
 
         self.setWindowModality(Qt.ApplicationModal)
-        self.hideLoadingSignal.connect(self.hideLoading)
         # 很关键，不加出不来
         if not isDebug:
             self.exec_()
@@ -60,14 +53,14 @@ class HarmonyStrResDiffDialog(QtWidgets.QDialog):
         vbox = WidgetUtil.createVBoxLayout(box, margins=QMargins(10, 10, 10, 10), spacing=10)
         labelWidth = 120
         self.srcFilePathWidget = DragInputWidget(label="源文件路径",
-                                                 text=self.srcFilePath,
+                                                 text=self.__srcFilePath,
                                                  fileParam={KEY_CAPTION: '请选择Harmony字符串资源文件路径'},
                                                  labelMinSize=QSize(labelWidth, 0),
                                                  toolTip='请选择Harmony字符串资源文件路径')
         vbox.addWidget(self.srcFilePathWidget)
 
         self.dstFilePathWidget = DragInputWidget(label="目标文件路径",
-                                                 text=self.dstFilePath,
+                                                 text=self.__dstFilePath,
                                                  fileParam={KEY_CAPTION: '请选择Harmony字符串资源文件路径'},
                                                  labelMinSize=QSize(labelWidth, 0),
                                                  toolTip='请选择Harmony字符串资源文件路径')
@@ -90,14 +83,11 @@ class HarmonyStrResDiffDialog(QtWidgets.QDialog):
         if not dstFileDirPath:
             WidgetUtil.showErrorDialog(message="请选择目标文件")
             return
-        self.operaIni.addItem(KEY_SECTION, KEY_SRC_FILE_PATH, srcFileDirPath)
-        self.operaIni.addItem(KEY_SECTION, KEY_DST_FILE_PATH, dstFileDirPath)
-        self.operaIni.saveIni()
+        self.__operaIni.addItem(KEY_SECTION, KEY_SRC_FILE_PATH, srcFileDirPath)
+        self.__operaIni.addItem(KEY_SECTION, KEY_DST_FILE_PATH, dstFileDirPath)
+        self.__operaIni.saveIni()
 
-        # 必须放到线程执行，否则加载框要等指令执行完才会弹
-        threading.Thread(target=self.execDiff, args=(srcFileDirPath, dstFileDirPath)).start()
-        if not self.loadingDialog:
-            self.loadingDialog = LoadingDialog(isDebug=self.isDebug)
+        self.__asyncFuncManager.asyncExec(target=self.execDiff, args=(srcFileDirPath, dstFileDirPath))
         pass
 
     def execDiff(self, srcFileDirPath, dstFileDirPath):
@@ -111,13 +101,7 @@ class HarmonyStrResDiffDialog(QtWidgets.QDialog):
             LogUtil.d(TAG, len(diff), diff)
         except Exception as err:
             LogUtil.e(TAG, 'execDiff 错误信息：', err)
-        self.hideLoadingSignal.emit()
-        pass
-
-    def hideLoading(self):
-        if self.loadingDialog:
-            self.loadingDialog.close()
-            self.loadingDialog = None
+        self.__asyncFuncManager.hideLoading()
         pass
 
 

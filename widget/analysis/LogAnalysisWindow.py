@@ -125,7 +125,7 @@ class LogAnalysisWindow(QMainWindow):
         # 必须放到线程执行，否则加载框要等指令执行完才会弹
         threading.Thread(target=self.__execAnalysisLog, args=()).start()
         if not self.loadingDialog:
-            self.loadingDialog = LoadingDialog(isDebug=self.isDebug)
+            self.loadingDialog = LoadingDialog()
         pass
 
     def __execAnalysisLog(self):

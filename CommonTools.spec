@@ -14,6 +14,8 @@ a = Analysis(['RunMain.py',
               'constant/TestStepConst.py',
               'constant/WidgetConst.py',
 
+              'manager/AsyncFuncManager.py',
+
               'util/excel/Excel2003Operator.py',
               'util/excel/Excel2007Operator.py',
               'util/excel/ExcelOperator.py',

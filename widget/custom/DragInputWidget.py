@@ -8,6 +8,7 @@ from PyQt5.QtWidgets import QStyle
 
 from constant.WidgetConst import *
 from util.DictUtil import DictUtil
+from util.FileUtil import FileUtil
 from util.WidgetUtil import *
 from util.PlatformUtil import PlatformUtil
 from widget.custom.ICommonWidget import ICommonWidget
@@ -86,10 +87,10 @@ class DragInputWidget(ICommonWidget):
 
     def __getParentDir(self):
         filePath = self.lineEdit.text().strip()
-        if filePath:
+        if FileUtil.existsFile(filePath):
             fp, _ = os.path.split(filePath)
             return fp
-        return ''
+        return filePath
 
     def __updateContent(self, fp):
         if self.lineEdit and fp:
