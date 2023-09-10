@@ -27,6 +27,7 @@ KEY_PRIMARY = 'primary'
 KEY_DEFAULT = 'default'
 # tableView title
 KEY_TITLE = 'title'
+KEY_NAME = 'name'
 
 # 打开文件/目录属性key
 KEY_CAPTION = 'caption'

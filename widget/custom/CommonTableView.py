@@ -32,7 +32,7 @@ class CommonTableView(ICommonWidget):
         self.__headers = headers
         # 取字典的第一个键值
         self.__primaryKey = [key for key in headers.keys()][0]
-        self.__items = items
+        self.__items = items if items else []
         self.__addOrEditItemFunc = addOrEditItemFunc
         self.__curRow = -1
 
