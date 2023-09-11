@@ -14,19 +14,20 @@ TAG = 'CommonComboBox'
 
 
 class CommonComboBox(QFrame):
-    def __init__(self, label: str, default=None, groupList: [{} or str] = [], toolTip=None):
+    def __init__(self, label: str, default=None, groupList: [{} or str] = [], isEditable=False, toolTip=None):
         super(CommonComboBox, self).__init__()
         # self.setWindowFlags(QtCore.Qt.SplashScreen | QtCore.Qt.FramelessWindowHint)
         if type(groupList[0]) == str:
             self.__groupList = [{KEY_SHOW_TEXT: item} for item in groupList]
         else:
-            self.__groupList = groupList
+            self.__groupList = [item for item in groupList if item]
         self.__default = default if default else DictUtil.get(self.__groupList[0], KEY_DATA,
                                                               DictUtil.get(self.__groupList[0], KEY_SHOW_TEXT))
+        self.__curIndex = -1
 
         hBox = WidgetUtil.createHBoxLayout(self, margins=QMargins(5, 5, 5, 5), spacing=10)
         hBox.addWidget(WidgetUtil.createLabel(self, text=label))
-        self.__comboBox = WidgetUtil.createComboBox(self, activated=self.__activated)
+        self.__comboBox = WidgetUtil.createComboBox(self, isEditable=isEditable, activated=self.__activated)
         self.__comboBox.setView(QListView())
         self.setStyleSheet('QComboBox QAbstractItemView::item {padding-top:2px;padding-bottom:2px}')
         hBox.addWidget(self.__comboBox, 1)
@@ -50,13 +51,22 @@ class CommonComboBox(QFrame):
             data = DictUtil.get(item, KEY_DATA, DictUtil.get(item, KEY_SHOW_TEXT))
             if self.__default == data:
                 curIndex = index
+        self.__curIndex = curIndex
         self.__comboBox.setCurrentIndex(curIndex)
         pass
 
-    def __activated(self):
-        curData = self.__groupList[self.__comboBox.currentIndex()]
-        self.__default = DictUtil.get(curData, KEY_DATA, DictUtil.get(curData, KEY_SHOW_TEXT))
-        LogUtil.d(TAG, '__activated', curData, self.__default)
+    def __activated(self, index):
+        curText = self.__comboBox.currentText()
+        LogUtil.d(TAG, '__activated oldIndex: ', self.__curIndex, ' newIndex: ', index, curText, len(self.__groupList))
+        self.__curIndex = index
+        if index >= len(self.__groupList):
+            newData = {KEY_SHOW_TEXT: curText}
+            self.__groupList.append(newData)
+            LogUtil.d(TAG, '__activated add item', newData)
+        else:
+            curData = self.__groupList[index]
+            self.__default = DictUtil.get(curData, KEY_DATA, DictUtil.get(curData, KEY_SHOW_TEXT))
+            LogUtil.d(TAG, '__activated', curData, self.__default, curText)
         pass
 
     def getData(self):
@@ -72,6 +82,6 @@ if __name__ == "__main__":
         {KEY_COLOR: '#FF0000', KEY_SHOW_TEXT: 'red', KEY_DATA: 'ss'},
         {KEY_COLOR: '#00FF00', KEY_SHOW_TEXT: 'green'},
         {KEY_SHOW_TEXT: 'blue'}, {}
-    ], toolTip='请选择需要的颜色')
+    ], isEditable=True, toolTip='请选择需要的颜色')
     e.show()
     sys.exit(app.exec_())

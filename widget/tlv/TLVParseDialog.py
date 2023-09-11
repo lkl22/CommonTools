@@ -18,8 +18,10 @@ from widget.custom.CommonTextEdit import CommonTextEdit
 from widget.custom.DragInputWidget import DragInputWidget
 
 TAG = "TLVParseDialog"
-
+KEY_LENGTH_TAG = 'lengthTag'
+KEY_CHAR_COUNT = 'charCount'
 TAG_HEADERS = {KEY_NAME: {KEY_TITLE: "Tag名"}, KEY_DESC: {KEY_TITLE: "Tag描述"}}
+LENGTH_HEADERS = {KEY_LENGTH_TAG: {KEY_TITLE: "Length Tag"}, KEY_CHAR_COUNT: {KEY_TITLE: "长度占用字符数"}}
 
 KEY_SECTION = 'TLVParse'
 # tag标签
@@ -57,13 +59,20 @@ class TLVParseDialog(QtWidgets.QDialog):
 
         labelWidth = 120
         self.__tagTableView = CommonTableView(addBtnTxt="添加Tag", headers=TAG_HEADERS,
-                                                     items=self.__tags,
-                                                     addOrEditItemFunc=self.__addOrEditTagFunc)
+                                              items=self.__tags,
+                                              addOrEditItemFunc=self.__addOrEditTagFunc)
 
         vbox.addWidget(self.__tagTableView)
 
+        self.__LengthTagTableView = CommonTableView(addBtnTxt="添加Length占用字符数映射关系", headers=LENGTH_HEADERS,
+                                                    items=self.__tags,
+                                                    addOrEditItemFunc=self.__addOrEditLengthTagFunc,
+                                                    toolTip='特殊字符代表长度占用字符数的映射关系表')
+
+        vbox.addWidget(self.__LengthTagTableView)
+
         hbox = WidgetUtil.createHBoxLayout()
-        hbox.addWidget(WidgetUtil.createPushButton(self, text="对比", onClicked=self.diffRes))
+        hbox.addWidget(WidgetUtil.createPushButton(self, text="解析TLV数据", onClicked=self.diffRes))
         hbox.addItem(WidgetUtil.createHSpacerItem(1, 1))
         vbox.addLayout(hbox)
         self.__textEdit = CommonTextEdit()
@@ -95,16 +104,34 @@ class TLVParseDialog(QtWidgets.QDialog):
         dialog.show()
         pass
 
+    def __addOrEditLengthTagFunc(self, callback, default=None, items=None):
+        dialog = CommonAddOrEditDialog(windowTitle='添加/编辑Length字符数映射关系表',
+                                       optionInfos=[{
+                                           KEY_ITEM_KEY: KEY_LENGTH_TAG,
+                                           KEY_ITEM_TYPE: TYPE_LINE_EDIT,
+                                           KEY_ITEM_LABEL: 'Length特殊字符：',
+                                           KEY_TOOL_TIP: '请输入代表长度占用字符个数的特殊字符',
+                                           KEY_IS_UNIQUE: True
+                                       }, {
+                                           KEY_ITEM_KEY: KEY_CHAR_COUNT,
+                                           KEY_ITEM_TYPE: TYPE_LINE_EDIT,
+                                           KEY_ITEM_LABEL: '请输入占用字符数',
+                                           KEY_IS_OPTIONAL: True
+                                       }],
+                                       callback=callback,
+                                       default=default,
+                                       items=items,
+                                       isDebug=self.__isDebug)
+        dialog.show()
+        pass
+
     def diffRes(self):
-        srcFileDirPath = self.__srcFilePathWidget.getData()
-        if not srcFileDirPath:
-            WidgetUtil.showErrorDialog(message="请选择源文件")
+        tags = self.__tagTableView.getData()
+        if not tags:
+            WidgetUtil.showErrorDialog(message="请添加Tag标签")
             return
-        dstFileDirPath = self.__dstFilePathWidget.getData()
-        if not dstFileDirPath:
-            WidgetUtil.showErrorDialog(message="请选择目标文件")
-            return
-        # self.__operaIni.addItem(KEY_SECTION, KEY_SRC_FILE_PATH, srcFileDirPath)
+
+        self.__operaIni.addItem(KEY_SECTION, KEY_TAGS, tags)
         # self.__operaIni.addItem(KEY_SECTION, KEY_DST_FILE_PATH, dstFileDirPath)
         self.__operaIni.saveIni()
 
