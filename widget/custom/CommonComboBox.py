@@ -28,13 +28,9 @@ class CommonComboBox(ICommonWidget):
         """
         super(CommonComboBox, self).__init__()
         # self.setWindowFlags(QtCore.Qt.SplashScreen | QtCore.Qt.FramelessWindowHint)
-        self.__originalGroupList = groupList
-        if type(groupList[0]) == str:
-            self.__groupList = copy.deepcopy([{KEY_SHOW_TEXT: item} for item in groupList])
-        else:
-            self.__groupList = copy.deepcopy([item for item in groupList if item])
-        self.__default = default if default else DictUtil.get(self.__groupList[0], KEY_DATA,
-                                                              DictUtil.get(self.__groupList[0], KEY_SHOW_TEXT))
+        self.__originalGroupList = []
+        self.__groupList = []
+        self.__default = ''
         self.__curIndex = -1
         self.__dataChanged = dataChanged
 
@@ -47,13 +43,14 @@ class CommonComboBox(ICommonWidget):
         if isEditable:
             self.__deleteBtn = WidgetUtil.createPushButton(self, text='Del', onClicked=self.__deleteItem)
             hBox.addWidget(self.__deleteBtn)
-        self.__updateComboBox()
+        self.updateData(default, groupList)
         self.setAutoFillBackground(True)
         if toolTip:
             self.setToolTip(toolTip)
         pass
 
     def __updateComboBox(self):
+        LogUtil.d(TAG, '__updateComboBox')
         curIndex = 0
         self.__comboBox.clear()
         for index, item in enumerate(self.__groupList):
@@ -68,6 +65,8 @@ class CommonComboBox(ICommonWidget):
             data = DictUtil.get(item, KEY_DATA, DictUtil.get(item, KEY_SHOW_TEXT))
             if self.__default == data:
                 curIndex = index
+        if not self.__groupList:
+            self.__deleteBtn.setEnabled(False)
         self.__curIndex = curIndex
         self.__comboBox.setCurrentIndex(curIndex)
         pass
@@ -80,15 +79,18 @@ class CommonComboBox(ICommonWidget):
             newData = {KEY_SHOW_TEXT: curText}
             self.__groupList.append(newData)
             self.__default = curText
+            self.__deleteBtn.setEnabled(True)
             LogUtil.d(TAG, '__activated add item', newData)
         else:
             curData = self.__groupList[index]
             self.__default = DictUtil.get(curData, KEY_DATA, DictUtil.get(curData, KEY_SHOW_TEXT))
             LogUtil.d(TAG, '__activated', curData, self.__default, curText)
-        self.__dataChanged(self.__default)
+        if self.__dataChanged:
+            self.__dataChanged(self.__default)
         pass
 
     def __deleteItem(self):
+        LogUtil.d(TAG, '__deleteItem')
         if 0 <= self.__curIndex < len(self.__groupList):
             ListUtil.remove(self.__groupList, self.__groupList[self.__curIndex])
             if len(self.__groupList) > 0:
@@ -97,14 +99,33 @@ class CommonComboBox(ICommonWidget):
             else:
                 self.__default = None
             self.__updateComboBox()
-            self.__dataChanged(self.__default)
+            if self.__dataChanged:
+                self.__dataChanged(self.__default)
+        pass
+
+    def keyPressEvent(self, a0: QtGui.QKeyEvent):
+        # 不复写，按下entry键时，删除按钮事件也会被响应
+        LogUtil.d(TAG, 'keyPressEvent')
+        pass
+
+    def updateData(self, default=None, groupList: [{} or str] = []):
+        self.__originalGroupList = groupList
+        if not groupList or type(groupList[0]) == str:
+            self.__groupList = copy.deepcopy([{KEY_SHOW_TEXT: item} for item in groupList])
+        else:
+            self.__groupList = copy.deepcopy([item for item in groupList if item])
+        self.__default = default if default else (DictUtil.get(self.__groupList[0], KEY_DATA,
+                                                               DictUtil.get(self.__groupList[0],
+                                                                            KEY_SHOW_TEXT)) if self.__groupList else '')
+        self.__curIndex = -1
+        self.__updateComboBox()
         pass
 
     def getData(self):
         return self.__default
 
     def getGroupList(self):
-        if type(self.__originalGroupList[0]) == str:
+        if not self.__originalGroupList or type(self.__originalGroupList[0]) == str:
             return [item[KEY_SHOW_TEXT] for item in self.__groupList]
         return self.__groupList
 
@@ -114,10 +135,12 @@ if __name__ == "__main__":
     # e = CommonComboBox()
     # e = CommonComboBox(fileParam=["file", "./", "*.py", "*.py"])
     # e = CommonComboBox(dirParam=["dir", "./"])
-    e = CommonComboBox(label='选择颜色：', default='ss', groupList=[
-        {KEY_COLOR: '#FF0000', KEY_SHOW_TEXT: 'red', KEY_DATA: 'ss'},
-        {KEY_COLOR: '#00FF00', KEY_SHOW_TEXT: 'green'},
-        {KEY_SHOW_TEXT: 'blue'}, {}
-    ], isEditable=True, toolTip='请选择需要的颜色', dataChange=lambda data: LogUtil.d(TAG, data))
+    # e = CommonComboBox(label='选择颜色：', default='ss', groupList=[
+    #     {KEY_COLOR: '#FF0000', KEY_SHOW_TEXT: 'red', KEY_DATA: 'ss'},
+    #     {KEY_COLOR: '#00FF00', KEY_SHOW_TEXT: 'green'},
+    #     {KEY_SHOW_TEXT: 'blue'}, {}
+    # ], isEditable=True, toolTip='请选择需要的颜色', dataChanged=lambda data: LogUtil.d(TAG, data))
+    e = CommonComboBox(label='选择颜色：', default='', groupList=[], isEditable=True, toolTip='请选择需要的颜色',
+                       dataChanged=lambda data: LogUtil.d(TAG, 'callback', data))
     e.show()
     sys.exit(app.exec_())

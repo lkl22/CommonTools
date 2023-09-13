@@ -5,8 +5,6 @@
 import sys
 from PyQt5.QtCore import QModelIndex
 from PyQt5.QtWidgets import QAbstractItemView
-
-from constant.WidgetConst import *
 from util.DictUtil import DictUtil
 from util.ListUtil import ListUtil
 from util.WidgetUtil import *

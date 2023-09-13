@@ -3,27 +3,30 @@
 # Filename: TLVParseDialog.py
 # 定义一个TLVParseDialog类实现TLV格式数据解析功能
 import sys
-
-from constant.ColorEnum import ColorEnum
 from manager.AsyncFuncManager import AsyncFuncManager
+from util.DictUtil import DictUtil
 from util.FileUtil import *
 from util.DialogUtil import *
 from util.JsonUtil import JsonUtil
-from util.ListUtil import ListUtil
 from util.LogUtil import *
+from util.MD5Util import MD5Util
 from util.OperaIni import OperaIni
 from widget.custom.CommonAddOrEditDialog import CommonAddOrEditDialog
+from widget.custom.CommonComboBox import CommonComboBox
 from widget.custom.CommonTableView import CommonTableView
 from widget.custom.CommonTextEdit import CommonTextEdit
-from widget.custom.DragInputWidget import DragInputWidget
 
 TAG = "TLVParseDialog"
 KEY_LENGTH_TAG = 'lengthTag'
 KEY_CHAR_COUNT = 'charCount'
+KEY_VALUE_PARSE_FUNC = 'valueParseFunc'
 TAG_HEADERS = {KEY_NAME: {KEY_TITLE: "Tag名"}, KEY_DESC: {KEY_TITLE: "Tag描述"}}
 LENGTH_HEADERS = {KEY_LENGTH_TAG: {KEY_TITLE: "Length Tag"}, KEY_CHAR_COUNT: {KEY_TITLE: "长度占用字符数"}}
 
 KEY_SECTION = 'TLVParse'
+KEY_CONFIGS = 'configs'
+KEY_LIST = 'list'
+KEY_DATAS = 'datas'
 # tag标签
 KEY_TAGS = 'tags'
 # 长度映射
@@ -40,8 +43,8 @@ class TLVParseDialog(QtWidgets.QDialog):
         if PlatformUtil.isMac():
             windowFlags |= Qt.WindowStaysOnTopHint
         self.setWindowFlags(windowFlags)
-        TLVParseDialog.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.5)
-        TLVParseDialog.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.5)
+        TLVParseDialog.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.6)
+        TLVParseDialog.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.6)
         LogUtil.d(TAG, "Init TLV Parse Dialog")
         self.setObjectName("TLVParseDialog")
         self.resize(TLVParseDialog.WINDOW_WIDTH, TLVParseDialog.WINDOW_HEIGHT)
@@ -50,29 +53,50 @@ class TLVParseDialog(QtWidgets.QDialog):
 
         self.__isDebug = isDebug
         self.__operaIni = OperaIni()
-        self.__tags = self.__operaIni.getValue(KEY_TAGS, KEY_SECTION)
-        self.__lengthMap = self.__operaIni.getValue(KEY_LENGTH_MAP, KEY_SECTION)
-        self.__valueParseFuncMap = self.__operaIni.getValue(KEY_VALUE_PARSE_FUNC_MAP, KEY_SECTION)
+        self.__configs = JsonUtil.decode(self.__operaIni.getValue(KEY_CONFIGS, KEY_SECTION), {})
+        self.__defaultConfigName = DictUtil.get(self.__configs, KEY_DEFAULT, '')
+        self.__config = JsonUtil.decode(self.__operaIni.getValue(MD5Util.md5(self.__defaultConfigName), KEY_SECTION),
+                                        {})
+
+        self.__datas = DictUtil.get(self.__config, KEY_DATAS, [])
+        self.__defaultData = DictUtil.get(self.__config, KEY_DEFAULT, '')
+        self.__tags = DictUtil.get(self.__config, KEY_TAGS, [])
+        self.__lengthMap = DictUtil.get(self.__config, KEY_LENGTH_MAP, [])
+        self.__valueParseFuncMap = DictUtil.get(self.__config, KEY_VALUE_PARSE_FUNC_MAP, [])
         self.__asyncFuncManager = AsyncFuncManager()
 
         vbox = WidgetUtil.createVBoxLayout(self, margins=QMargins(10, 10, 10, 10), spacing=10)
 
-        labelWidth = 120
+        self.__configComboBox = CommonComboBox(label='选择配置', default=self.__defaultConfigName,
+                                               groupList=DictUtil.get(self.__configs, KEY_LIST, []),
+                                               isEditable=True, dataChanged=self.__configChanged)
+        vbox.addWidget(self.__configComboBox)
+        self.__datasComboBox = CommonComboBox(label='需要解析的数据', default=self.__defaultData,
+                                              groupList=self.__datas,
+                                              isEditable=True)
+        vbox.addWidget(self.__datasComboBox)
         self.__tagTableView = CommonTableView(addBtnTxt="添加Tag", headers=TAG_HEADERS,
                                               items=self.__tags,
                                               addOrEditItemFunc=self.__addOrEditTagFunc)
 
         vbox.addWidget(self.__tagTableView)
 
-        self.__LengthTagTableView = CommonTableView(addBtnTxt="添加Length占用字符数映射关系", headers=LENGTH_HEADERS,
-                                                    items=self.__tags,
+        self.__lengthTagTableView = CommonTableView(addBtnTxt="添加Length占用字符数映射关系", headers=LENGTH_HEADERS,
+                                                    items=self.__lengthMap,
                                                     addOrEditItemFunc=self.__addOrEditLengthTagFunc,
                                                     toolTip='特殊字符代表长度占用字符数的映射关系表')
 
-        vbox.addWidget(self.__LengthTagTableView)
+        vbox.addWidget(self.__lengthTagTableView)
+
+        self.__valueParseTableView = CommonTableView(addBtnTxt="添加Value转换函数", headers=LENGTH_HEADERS,
+                                                     items=self.__valueParseFuncMap,
+                                                     addOrEditItemFunc=self.__addOrEditValueParseFunc,
+                                                     toolTip='tag对应value转换函数，转换为便于识别的函数')
+
+        vbox.addWidget(self.__valueParseTableView)
 
         hbox = WidgetUtil.createHBoxLayout()
-        hbox.addWidget(WidgetUtil.createPushButton(self, text="解析TLV数据", onClicked=self.diffRes))
+        hbox.addWidget(WidgetUtil.createPushButton(self, text="解析TLV数据", onClicked=self.__parseTLVData))
         hbox.addItem(WidgetUtil.createHSpacerItem(1, 1))
         vbox.addLayout(hbox)
         self.__textEdit = CommonTextEdit()
@@ -83,7 +107,30 @@ class TLVParseDialog(QtWidgets.QDialog):
         if not isDebug:
             self.exec_()
 
+    def __configChanged(self, config):
+        LogUtil.d(TAG, '__configChanged', config)
+        self.__defaultConfigName = config
+        self.__config = JsonUtil.decode(self.__operaIni.getValue(MD5Util.md5(config), KEY_SECTION), {})
+
+        self.__datas = DictUtil.get(self.__config, KEY_DATAS, [])
+        self.__defaultData = DictUtil.get(self.__config, KEY_DEFAULT, '')
+        self.__tags = DictUtil.get(self.__config, KEY_TAGS, [])
+        self.__lengthMap = DictUtil.get(self.__config, KEY_LENGTH_MAP, [])
+        self.__valueParseFuncMap = DictUtil.get(self.__config, KEY_VALUE_PARSE_FUNC_MAP, [])
+
+        self.__datasComboBox.updateData(self.__defaultData, self.__datas)
+        self.__tagTableView.updateData(self.__tags)
+        self.__lengthTagTableView.updateData(self.__tags)
+        self.__valueParseTableView.updateData(self.__tags)
+        pass
+
+    def __updateUi(self):
+        pass
+
     def __addOrEditTagFunc(self, callback, default=None, items=None):
+        if not default and not self.__defaultConfigName:
+            WidgetUtil.showErrorDialog(message="请先添加配置项")
+            return
         dialog = CommonAddOrEditDialog(windowTitle='添加/编辑Tag',
                                        optionInfos=[{
                                            KEY_ITEM_KEY: KEY_NAME,
@@ -105,6 +152,9 @@ class TLVParseDialog(QtWidgets.QDialog):
         pass
 
     def __addOrEditLengthTagFunc(self, callback, default=None, items=None):
+        if not default and not self.__defaultConfigName:
+            WidgetUtil.showErrorDialog(message="请先添加配置项")
+            return
         dialog = CommonAddOrEditDialog(windowTitle='添加/编辑Length字符数映射关系表',
                                        optionInfos=[{
                                            KEY_ITEM_KEY: KEY_LENGTH_TAG,
@@ -115,8 +165,7 @@ class TLVParseDialog(QtWidgets.QDialog):
                                        }, {
                                            KEY_ITEM_KEY: KEY_CHAR_COUNT,
                                            KEY_ITEM_TYPE: TYPE_LINE_EDIT,
-                                           KEY_ITEM_LABEL: '请输入占用字符数',
-                                           KEY_IS_OPTIONAL: True
+                                           KEY_ITEM_LABEL: '请输入占用字符数'
                                        }],
                                        callback=callback,
                                        default=default,
@@ -125,22 +174,57 @@ class TLVParseDialog(QtWidgets.QDialog):
         dialog.show()
         pass
 
-    def diffRes(self):
+    def __addOrEditValueParseFunc(self, callback, default=None, items=None):
+        if not default and not self.__defaultConfigName:
+            WidgetUtil.showErrorDialog(message="请先添加配置项")
+            return
+        dialog = CommonAddOrEditDialog(windowTitle='添加/编辑Value转换函数',
+                                       optionInfos=[{
+                                           KEY_ITEM_KEY: KEY_LENGTH_TAG,
+                                           KEY_ITEM_TYPE: TYPE_LINE_EDIT,
+                                           KEY_ITEM_LABEL: 'TAG名：',
+                                           KEY_TOOL_TIP: '请输入Tag名',
+                                           KEY_IS_UNIQUE: True
+                                       }, {
+                                           KEY_ITEM_KEY: KEY_VALUE_PARSE_FUNC,
+                                           KEY_ITEM_TYPE: TYPE_LINE_EDIT,
+                                           KEY_ITEM_LABEL: '请输入value转换函数'
+                                       }],
+                                       callback=callback,
+                                       default=default,
+                                       items=items,
+                                       isDebug=self.__isDebug)
+        dialog.show()
+        pass
+
+    def __parseTLVData(self):
         tags = self.__tagTableView.getData()
         if not tags:
             WidgetUtil.showErrorDialog(message="请添加Tag标签")
             return
-
-        self.__operaIni.addItem(KEY_SECTION, KEY_TAGS, tags)
-        # self.__operaIni.addItem(KEY_SECTION, KEY_DST_FILE_PATH, dstFileDirPath)
+        data = self.__datasComboBox.getData()
+        if not data:
+            WidgetUtil.showErrorDialog(message="请添加需要解析的数据")
+            return
+        configDatas = {KEY_DEFAULT: self.__configComboBox.getData(), KEY_LIST: self.__configComboBox.getGroupList()}
+        self.__operaIni.addItem(KEY_SECTION, KEY_CONFIGS, JsonUtil.encode(configDatas, ensureAscii=False))
+        configData = {
+            KEY_DEFAULT: data,
+            KEY_DATAS: self.__datasComboBox.getGroupList(),
+            KEY_TAGS: tags,
+            KEY_LENGTH_MAP: self.__lengthTagTableView.getData(),
+            KEY_VALUE_PARSE_FUNC: self.__valueParseTableView.getData(),
+        }
+        self.__operaIni.addItem(KEY_SECTION, MD5Util.md5(configDatas[KEY_DEFAULT]),
+                                JsonUtil.encode(configData, ensureAscii=False))
         self.__operaIni.saveIni()
 
         self.__textEdit.clear()
-        self.__asyncFuncManager.asyncExec(target=self.execDiff, args=(srcFileDirPath, dstFileDirPath))
+        self.__asyncFuncManager.asyncExec(target=self.__parseTLV, kwargs=configData)
         pass
 
-    def execDiff(self, srcFileDirPath, dstFileDirPath):
-        LogUtil.i(TAG, 'execDiff', srcFileDirPath, dstFileDirPath)
+    def __parseTLV(self, **configData):
+        LogUtil.i(TAG, '__parseTLV', configData)
 
         self.__asyncFuncManager.hideLoading()
         pass
