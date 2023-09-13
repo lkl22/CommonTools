@@ -2,28 +2,41 @@
 # python 3.x
 # Filename: CommonComboBox.py
 # 定义一个CommonComboBox窗口类实现通用下拉选择弹框的功能
+import copy
 import sys
 from PyQt5.QtGui import QPixmap
-from PyQt5.QtWidgets import QFrame, QListView
-
-from constant.WidgetConst import *
+from PyQt5.QtWidgets import QListView
 from util.DictUtil import DictUtil
+from util.ListUtil import ListUtil
 from util.WidgetUtil import *
+from widget.custom.ICommonWidget import ICommonWidget
 
 TAG = 'CommonComboBox'
 
 
-class CommonComboBox(QFrame):
-    def __init__(self, label: str, default=None, groupList: [{} or str] = [], isEditable=False, toolTip=None):
+class CommonComboBox(ICommonWidget):
+    def __init__(self, label: str, default=None, groupList: [{} or str] = [], isEditable=False, toolTip=None,
+                 dataChanged=None):
+        """
+        创建下拉选择框
+        :param label: label
+        :param default: 默认数据
+        :param groupList: 显示下拉列表数据
+        :param isEditable: true 可以编辑
+        :param toolTip: toolTip
+        :param dataChanged: 选项changed回调事件
+        """
         super(CommonComboBox, self).__init__()
         # self.setWindowFlags(QtCore.Qt.SplashScreen | QtCore.Qt.FramelessWindowHint)
+        self.__originalGroupList = groupList
         if type(groupList[0]) == str:
-            self.__groupList = [{KEY_SHOW_TEXT: item} for item in groupList]
+            self.__groupList = copy.deepcopy([{KEY_SHOW_TEXT: item} for item in groupList])
         else:
-            self.__groupList = [item for item in groupList if item]
+            self.__groupList = copy.deepcopy([item for item in groupList if item])
         self.__default = default if default else DictUtil.get(self.__groupList[0], KEY_DATA,
                                                               DictUtil.get(self.__groupList[0], KEY_SHOW_TEXT))
         self.__curIndex = -1
+        self.__dataChanged = dataChanged
 
         hBox = WidgetUtil.createHBoxLayout(self, margins=QMargins(5, 5, 5, 5), spacing=10)
         hBox.addWidget(WidgetUtil.createLabel(self, text=label))
@@ -31,6 +44,9 @@ class CommonComboBox(QFrame):
         self.__comboBox.setView(QListView())
         self.setStyleSheet('QComboBox QAbstractItemView::item {padding-top:2px;padding-bottom:2px}')
         hBox.addWidget(self.__comboBox, 1)
+        if isEditable:
+            self.__deleteBtn = WidgetUtil.createPushButton(self, text='Del', onClicked=self.__deleteItem)
+            hBox.addWidget(self.__deleteBtn)
         self.__updateComboBox()
         self.setAutoFillBackground(True)
         if toolTip:
@@ -39,6 +55,7 @@ class CommonComboBox(QFrame):
 
     def __updateComboBox(self):
         curIndex = 0
+        self.__comboBox.clear()
         for index, item in enumerate(self.__groupList):
             if KEY_SHOW_TEXT not in item:
                 continue
@@ -62,15 +79,34 @@ class CommonComboBox(QFrame):
         if index >= len(self.__groupList):
             newData = {KEY_SHOW_TEXT: curText}
             self.__groupList.append(newData)
+            self.__default = curText
             LogUtil.d(TAG, '__activated add item', newData)
         else:
             curData = self.__groupList[index]
             self.__default = DictUtil.get(curData, KEY_DATA, DictUtil.get(curData, KEY_SHOW_TEXT))
             LogUtil.d(TAG, '__activated', curData, self.__default, curText)
+        self.__dataChanged(self.__default)
+        pass
+
+    def __deleteItem(self):
+        if 0 <= self.__curIndex < len(self.__groupList):
+            ListUtil.remove(self.__groupList, self.__groupList[self.__curIndex])
+            if len(self.__groupList) > 0:
+                curData = self.__groupList[0]
+                self.__default = DictUtil.get(curData, KEY_DATA, DictUtil.get(curData, KEY_SHOW_TEXT))
+            else:
+                self.__default = None
+            self.__updateComboBox()
+            self.__dataChanged(self.__default)
         pass
 
     def getData(self):
         return self.__default
+
+    def getGroupList(self):
+        if type(self.__originalGroupList[0]) == str:
+            return [item[KEY_SHOW_TEXT] for item in self.__groupList]
+        return self.__groupList
 
 
 if __name__ == "__main__":
@@ -82,6 +118,6 @@ if __name__ == "__main__":
         {KEY_COLOR: '#FF0000', KEY_SHOW_TEXT: 'red', KEY_DATA: 'ss'},
         {KEY_COLOR: '#00FF00', KEY_SHOW_TEXT: 'green'},
         {KEY_SHOW_TEXT: 'blue'}, {}
-    ], isEditable=True, toolTip='请选择需要的颜色')
+    ], isEditable=True, toolTip='请选择需要的颜色', dataChange=lambda data: LogUtil.d(TAG, data))
     e.show()
     sys.exit(app.exec_())
