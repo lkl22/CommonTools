@@ -3,6 +3,8 @@
 # Filename: TLVParseDialog.py
 # 定义一个TLVParseDialog类实现TLV格式数据解析功能
 import sys
+
+from constant.ColorEnum import ColorEnum
 from manager.AsyncFuncManager import AsyncFuncManager
 from util.DictUtil import DictUtil
 from util.FileUtil import *
@@ -11,6 +13,7 @@ from util.JsonUtil import JsonUtil
 from util.LogUtil import *
 from util.MD5Util import MD5Util
 from util.OperaIni import OperaIni
+from util.TLV import TLV
 from widget.custom.CommonAddOrEditDialog import CommonAddOrEditDialog
 from widget.custom.CommonComboBox import CommonComboBox
 from widget.custom.CommonTableView import CommonTableView
@@ -225,7 +228,14 @@ class TLVParseDialog(QtWidgets.QDialog):
 
     def __parseTLV(self, **configData):
         LogUtil.i(TAG, '__parseTLV', configData)
-
+        parseData = configData[KEY_DEFAULT]
+        tags = [item[KEY_NAME] for item in configData[KEY_TAGS]]
+        lengthMap = {}
+        for item in configData[KEY_LENGTH_MAP]:
+            lengthMap[item[KEY_LENGTH_TAG]] = int(item[KEY_CHAR_COUNT])
+        LogUtil.i(TAG, '__parseTLV', parseData, tags, lengthMap)
+        tlv = TLV(tags=tags, LLengthMap=lengthMap)
+        self.__textEdit.standardOutputOne(tlv.toString(tlv.parse(parseData)).replace(' ', '&nbsp;'), ColorEnum.Blue.value)
         self.__asyncFuncManager.hideLoading()
         pass
 
