@@ -52,6 +52,14 @@ KEY_IS_OPTIONAL = 'isOptional'
 # 显示widget的toolTip
 KEY_TOOL_TIP = 'toolTip'
 
+# QSpinBox相关属性key
+KEY_MIN_VALUE = 'minValue'
+KEY_MAX_VALUE = 'maxValue'
+KEY_STEP = 'step'
+KEY_PREFIX = 'prefix'
+KEY_SUFFIX = 'suffix'
+KEY_INT_BASE = 'intBase'
+
 # 打开文件弹框参数
 KEY_FILE_PARAM = 'fileParam'
 # 打开目录弹框参数
@@ -59,10 +67,11 @@ KEY_DIR_PARAM = 'dirParam'
 
 # widget类型 - 输入文本框
 TYPE_LINE_EDIT = 'lineEdit'
+# widget类型 - 计数器控件 - 用于整数的显示和输入，一般显示十进制数，也可以显示二进制、十六进制的数，而且可以在显示框中增加前缀或后缀
+TYPE_SPIN_BOX = 'SpinBox'
 # widget类型 - 选择文件
 TYPE_SELECT_FILE = 'selectFile'
 # widget类型 - 选择目录
 TYPE_SELECT_DIR = 'selectDir'
 # widget类型 - tableView
 TYPE_TABLE_VIEW = 'tableView'
-

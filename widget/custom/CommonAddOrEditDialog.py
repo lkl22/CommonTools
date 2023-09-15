@@ -4,11 +4,10 @@
 # 定义一个CommonAddOrEditDialog类实现添加、编辑相关数据相关的功能
 import os.path
 import sys
-
-from constant.WidgetConst import *
 from util.DialogUtil import *
 from util.DictUtil import DictUtil
 from widget.custom.CommonLineEdit import CommonLineEdit
+from widget.custom.CommonSpinBox import CommonSpinBox
 from widget.custom.DragInputWidget import DragInputWidget, KEY_CAPTION, KEY_DIRECTORY, KEY_FILTER, KEY_INITIAL_FILTER
 from widget.custom.ICommonWidget import ICommonWidget
 
@@ -17,8 +16,7 @@ TAG = "CommonAddOrEditDialog"
 
 class CommonAddOrEditDialog(QtWidgets.QDialog):
     def __init__(self, windowTitle: str, optionInfos: [{}], default=None, items: [] = None, callback=None, width=0.3,
-                 height=0.2,
-                 isDebug=False):
+                 height=0.2, isDebug=False):
         # 调用父类的构函
         QtWidgets.QDialog.__init__(self)
         windowFlags = Qt.Dialog | Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint
@@ -53,6 +51,17 @@ class CommonAddOrEditDialog(QtWidgets.QDialog):
                                         text=defaultValue,
                                         labelMinSize=QSize(labelWidth, 0),
                                         toolTip=DictUtil.get(optionInfo, KEY_TOOL_TIP))
+            elif itemType == TYPE_SPIN_BOX:
+                widget = CommonSpinBox(label=DictUtil.get(optionInfo, KEY_ITEM_LABEL),
+                                       value=defaultValue,
+                                       minValue=DictUtil.get(optionInfo, KEY_MIN_VALUE),
+                                       maxValue=DictUtil.get(optionInfo, KEY_MAX_VALUE),
+                                       step=DictUtil.get(optionInfo, KEY_STEP),
+                                       prefix=DictUtil.get(optionInfo, KEY_PREFIX),
+                                       suffix=DictUtil.get(optionInfo, KEY_SUFFIX),
+                                       intBase=DictUtil.get(optionInfo, KEY_INT_BASE),
+                                       labelMinSize=QSize(labelWidth, 0),
+                                       toolTip=DictUtil.get(optionInfo, KEY_TOOL_TIP))
             elif itemType == TYPE_SELECT_FILE:
                 fileParam = DictUtil.get(optionInfo, KEY_FILE_PARAM, {KEY_DIRECTORY: ''})
                 if defaultValue:

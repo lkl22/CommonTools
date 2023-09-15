@@ -145,6 +145,7 @@ class MainWidget(QMainWindow):
         vbox = WidgetUtil.createVBoxLayout(box, spacing=10)
         hbox = WidgetUtil.createHBoxLayout()
         hbox.addWidget(WidgetUtil.createPushButton(box, text="Harmony合并资源", onClicked=self.jumpHarmonyMergeResDialog))
+        hbox.addWidget(WidgetUtil.createPushButton(box, text="Harmony查找缺失的多语言翻译", onClicked=self.jumpHarmonyStrResDiffDialog))
         hbox.addItem(WidgetUtil.createHSpacerItem())
         vbox.addLayout(hbox)
         return box
@@ -170,7 +171,8 @@ class MainWidget(QMainWindow):
 
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
         hbox.addWidget(WidgetUtil.createPushButton(box, text="Log分析辅助工具", onClicked=self.jumpLogAnalysisWindow), 1)
-        hbox.addWidget(WidgetUtil.createLabel(box), 4)
+        hbox.addWidget(WidgetUtil.createPushButton(box, text="TLV数据解析工具", onClicked=self.jumpTLVParseDialog), 1)
+        hbox.addWidget(WidgetUtil.createLabel(box), 3)
         vbox.addLayout(hbox)
 
         vbox.addItem(WidgetUtil.createVSpacerItem())
@@ -278,6 +280,12 @@ class MainWidget(QMainWindow):
         HarmonyMergeResDialog()
         pass
 
+    def jumpHarmonyStrResDiffDialog(self):
+        LogUtil.i(TAG, "jumpHarmonyStrResDiffDialog")
+        from widget.harmony.HarmonyStrResDiffDialog import HarmonyStrResDiffDialog
+        HarmonyStrResDiffDialog()
+        pass
+
     def jumpLogAnalysisWindow(self):
         LogUtil.i(TAG, "jumpLogAnalysisWindow")
         from widget.analysis.LogAnalysisWindow import LogAnalysisWindow
@@ -286,4 +294,10 @@ class MainWidget(QMainWindow):
         self.windowList.append(window)
         self.close()
         window.show()
+        pass
+
+    def jumpTLVParseDialog(self):
+        LogUtil.i(TAG, "jumpTLVParseDialog")
+        from widget.tlv.TLVParseDialog import TLVParseDialog
+        TLVParseDialog()
         pass

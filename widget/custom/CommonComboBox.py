@@ -41,7 +41,7 @@ class CommonComboBox(ICommonWidget):
         self.setStyleSheet('QComboBox QAbstractItemView::item {padding-top:2px;padding-bottom:2px}')
         hBox.addWidget(self.__comboBox, 1)
         if isEditable:
-            self.__deleteBtn = WidgetUtil.createPushButton(self, text='Del', onClicked=self.__deleteItem)
+            self.__deleteBtn = WidgetUtil.createPushButton(self, text='Del', onClicked=self.__showDeleteItemDialog)
             hBox.addWidget(self.__deleteBtn)
         self.updateData(default, groupList)
         self.setAutoFillBackground(True)
@@ -89,18 +89,26 @@ class CommonComboBox(ICommonWidget):
             self.__dataChanged(self.__default)
         pass
 
-    def __deleteItem(self):
-        LogUtil.d(TAG, '__deleteItem')
+    def __showDeleteItemDialog(self):
+        LogUtil.d(TAG, '__showDeleteItemDialog')
         if 0 <= self.__curIndex < len(self.__groupList):
-            ListUtil.remove(self.__groupList, self.__groupList[self.__curIndex])
-            if len(self.__groupList) > 0:
-                curData = self.__groupList[0]
-                self.__default = DictUtil.get(curData, KEY_DATA, DictUtil.get(curData, KEY_SHOW_TEXT))
-            else:
-                self.__default = None
-            self.__updateComboBox()
-            if self.__dataChanged:
-                self.__dataChanged(self.__default)
+            primaryName = self.__groupList[self.__curIndex][KEY_SHOW_TEXT]
+            LogUtil.i(TAG, f"__showDeleteItemDialog {primaryName}")
+            WidgetUtil.showQuestionDialog(message=f"你确定需要删除 <span style='color:red;'>{primaryName}</span> 吗？",
+                                          acceptFunc=self.__delItemFunc)
+        pass
+
+    def __delItemFunc(self):
+        LogUtil.d(TAG, '__delItemFunc')
+        ListUtil.remove(self.__groupList, self.__groupList[self.__curIndex])
+        if len(self.__groupList) > 0:
+            curData = self.__groupList[0]
+            self.__default = DictUtil.get(curData, KEY_DATA, DictUtil.get(curData, KEY_SHOW_TEXT))
+        else:
+            self.__default = None
+        self.__updateComboBox()
+        if self.__dataChanged:
+            self.__dataChanged(self.__default)
         pass
 
     def keyPressEvent(self, a0: QtGui.QKeyEvent):

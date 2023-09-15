@@ -34,12 +34,11 @@ class CommonTableView(ICommonWidget):
         self.__addOrEditItemFunc = addOrEditItemFunc
         self.__curRow = -1
 
-        vbox = WidgetUtil.createVBoxLayout(self, margins=QMargins(5, 5, 5, 5), spacing=10)
+        vbox = WidgetUtil.createVBoxLayout(self, margins=QMargins(5, 5, 5, 5))
 
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
         self.__addItemBtn = WidgetUtil.createPushButton(self, text=addBtnTxt, onClicked=self.__addItem)
         hbox.addWidget(self.__addItemBtn)
-        hbox.addItem(WidgetUtil.createHSpacerItem(1, 1))
         hbox.addItem(WidgetUtil.createHSpacerItem(1, 1))
         hbox.addWidget(WidgetUtil.createLabel(self, text="顺序调整:"))
         self.__moveTopBtn = WidgetUtil.createPushButton(self, text="⬆️️", toolTip="移动到首行", isEnable=False,

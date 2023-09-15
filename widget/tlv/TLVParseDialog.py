@@ -125,8 +125,8 @@ class TLVParseDialog(QtWidgets.QDialog):
 
         self.__datasComboBox.updateData(self.__defaultData, self.__datas)
         self.__tagTableView.updateData(self.__tags)
-        self.__lengthTagTableView.updateData(self.__tags)
-        self.__valueParseTableView.updateData(self.__tags)
+        self.__lengthTagTableView.updateData(self.__lengthMap)
+        self.__valueParseTableView.updateData(self.__valueParseFuncMap)
         pass
 
     def __updateUi(self):
@@ -169,8 +169,12 @@ class TLVParseDialog(QtWidgets.QDialog):
                                            KEY_IS_UNIQUE: True
                                        }, {
                                            KEY_ITEM_KEY: KEY_CHAR_COUNT,
-                                           KEY_ITEM_TYPE: TYPE_LINE_EDIT,
-                                           KEY_ITEM_LABEL: '请输入占用字符数'
+                                           KEY_ITEM_TYPE: TYPE_SPIN_BOX,
+                                           KEY_ITEM_LABEL: '请输入占用字符数',
+                                           KEY_MIN_VALUE: 2,
+                                           KEY_MAX_VALUE: 10,
+                                           KEY_STEP: 2,
+                                           KEY_SUFFIX: ' chars'
                                        }],
                                        callback=callback,
                                        default=default,
@@ -234,7 +238,7 @@ class TLVParseDialog(QtWidgets.QDialog):
         tags = [item[KEY_NAME] for item in configData[KEY_TAGS]]
         lengthMap = {}
         for item in configData[KEY_LENGTH_MAP]:
-            lengthMap[item[KEY_LENGTH_TAG]] = int(item[KEY_CHAR_COUNT])
+            lengthMap[item[KEY_LENGTH_TAG]] = item[KEY_CHAR_COUNT]
         vPrintFuncs = {}
         for item in configData[KEY_VALUE_PARSE_FUNC_MAP]:
             vPrintFuncs[item[KEY_VALUE_PARSE_TAG]] = item[KEY_VALUE_PARSE_FUNC]
