@@ -4,6 +4,7 @@
 # 定义一个TLV类实现TLV数据解析及解析结果打印相关的功能
 from collections import OrderedDict
 from util.DictUtil import DictUtil
+from util.EvalUtil import EvalUtil
 from util.LogUtil import LogUtil
 
 TAG = 'TLV'
@@ -102,7 +103,12 @@ class TLV:
             else:
                 valueFunc = DictUtil.get(self.VPrintFuncs, tag)
                 if valueFunc:
-                    tlvString += valueFunc(value)
+                    if type(valueFunc) == str:
+                        myLocals = {'value': value, 'res': ''}
+                        EvalUtil.exec(valueFunc, locals=myLocals)
+                        tlvString += myLocals.get('res')
+                    else:
+                        tlvString += valueFunc(value)
                 else:
                     tlvString += value
         return tlvString
@@ -115,7 +121,7 @@ def standout(data):
 
 if __name__ == "__main__":
     data = 'E002000A80030000016E02000187'
-    tlv = TLV(['E0', '80', '6E'], LLengthMap={'02': 4}, VPrintFuncs={'6E': standout})
+    tlv = TLV(['E0', '80', '6E'], LLengthMap={'02': 4}, VPrintFuncs={'6E': standout, '80': 'res = value + "word"'})
     LogUtil.d(TAG, '解析结果：', tlv.parse(data))
     LogUtil.d(TAG, '解析结果：', tlv.toString(tlv.parse(data)))
     pass

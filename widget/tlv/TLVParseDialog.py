@@ -22,9 +22,11 @@ from widget.custom.CommonTextEdit import CommonTextEdit
 TAG = "TLVParseDialog"
 KEY_LENGTH_TAG = 'lengthTag'
 KEY_CHAR_COUNT = 'charCount'
+KEY_VALUE_PARSE_TAG = 'valueParseTag'
 KEY_VALUE_PARSE_FUNC = 'valueParseFunc'
 TAG_HEADERS = {KEY_NAME: {KEY_TITLE: "Tag名"}, KEY_DESC: {KEY_TITLE: "Tag描述"}}
 LENGTH_HEADERS = {KEY_LENGTH_TAG: {KEY_TITLE: "Length Tag"}, KEY_CHAR_COUNT: {KEY_TITLE: "长度占用字符数"}}
+VALUE_PARSE_HEADERS = {KEY_VALUE_PARSE_TAG: {KEY_TITLE: "Value Parse Tag"}, KEY_VALUE_PARSE_FUNC: {KEY_TITLE: "value解析处理函数"}}
 
 KEY_SECTION = 'TLVParse'
 KEY_CONFIGS = 'configs'
@@ -91,7 +93,7 @@ class TLVParseDialog(QtWidgets.QDialog):
 
         vbox.addWidget(self.__lengthTagTableView)
 
-        self.__valueParseTableView = CommonTableView(addBtnTxt="添加Value转换函数", headers=LENGTH_HEADERS,
+        self.__valueParseTableView = CommonTableView(addBtnTxt="添加Value转换函数", headers=VALUE_PARSE_HEADERS,
                                                      items=self.__valueParseFuncMap,
                                                      addOrEditItemFunc=self.__addOrEditValueParseFunc,
                                                      toolTip='tag对应value转换函数，转换为便于识别的函数')
@@ -183,7 +185,7 @@ class TLVParseDialog(QtWidgets.QDialog):
             return
         dialog = CommonAddOrEditDialog(windowTitle='添加/编辑Value转换函数',
                                        optionInfos=[{
-                                           KEY_ITEM_KEY: KEY_LENGTH_TAG,
+                                           KEY_ITEM_KEY: KEY_VALUE_PARSE_TAG,
                                            KEY_ITEM_TYPE: TYPE_LINE_EDIT,
                                            KEY_ITEM_LABEL: 'TAG名：',
                                            KEY_TOOL_TIP: '请输入Tag名',
@@ -216,7 +218,7 @@ class TLVParseDialog(QtWidgets.QDialog):
             KEY_DATAS: self.__datasComboBox.getGroupList(),
             KEY_TAGS: tags,
             KEY_LENGTH_MAP: self.__lengthTagTableView.getData(),
-            KEY_VALUE_PARSE_FUNC: self.__valueParseTableView.getData(),
+            KEY_VALUE_PARSE_FUNC_MAP: self.__valueParseTableView.getData(),
         }
         self.__operaIni.addItem(KEY_SECTION, MD5Util.md5(configDatas[KEY_DEFAULT]),
                                 JsonUtil.encode(configData, ensureAscii=False))
@@ -233,8 +235,11 @@ class TLVParseDialog(QtWidgets.QDialog):
         lengthMap = {}
         for item in configData[KEY_LENGTH_MAP]:
             lengthMap[item[KEY_LENGTH_TAG]] = int(item[KEY_CHAR_COUNT])
-        LogUtil.i(TAG, '__parseTLV', parseData, tags, lengthMap)
-        tlv = TLV(tags=tags, LLengthMap=lengthMap)
+        vPrintFuncs = {}
+        for item in configData[KEY_VALUE_PARSE_FUNC_MAP]:
+            vPrintFuncs[item[KEY_VALUE_PARSE_TAG]] = item[KEY_VALUE_PARSE_FUNC]
+        LogUtil.i(TAG, '__parseTLV', parseData, tags, lengthMap, vPrintFuncs)
+        tlv = TLV(tags=tags, LLengthMap=lengthMap, VPrintFuncs=vPrintFuncs)
         self.__textEdit.standardOutputOne(tlv.toString(tlv.parse(parseData)).replace(' ', '&nbsp;'), ColorEnum.Blue.value)
         self.__asyncFuncManager.hideLoading()
         pass
