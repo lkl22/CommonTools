@@ -10,7 +10,7 @@ from collections import OrderedDict
 from openpyxl.styles import Alignment, PatternFill
 
 from util.LogUtil import LogUtil
-from util.OpenpyxlUtil import OpenpyxlUtil
+from util.excel.Excel2007Operator import Excel2007Operator
 
 questionDescRule = re.compile("(\d+[．.])(.*)")
 answerRule = re.compile("[\S\s]*([(（][ABCDEFGHIJK ]+[)）])[\S\s]*")
@@ -111,7 +111,7 @@ class Word2Excel:
     @staticmethod
     def writeSheet(st, row, col, dict, key):
         if key in dict.keys():
-            OpenpyxlUtil.writeSheet(st, row, col, dict[key])
+            Excel2007Operator.writeSheet(st, row, col, dict[key])
 
     def genExcel(self, saveFn, examInfo=None):
         if examInfo is None:
@@ -119,11 +119,11 @@ class Word2Excel:
                 "examNam": "", "scoreLine": 80, "examTime": 90, "judgmentNums": 0, "judgmentScore": 2,
                 "oneChoiceNums": 0, "oneChoiceScore": 3, "multiChoiceNums": 0, "multiChoiceScore": 5
             }
-        bk = OpenpyxlUtil.createBook()
-        examInfoSheet = OpenpyxlUtil.addSheet(bk, "考试信息")
-        judgmentSheet = OpenpyxlUtil.addSheet(bk, "判断题", 1)
-        oneChoiceSheet = OpenpyxlUtil.addSheet(bk, "单选题", 2)
-        multiChoiceSheet = OpenpyxlUtil.addSheet(bk, "多选题", 3)
+        bk = Excel2007Operator.createBook()
+        examInfoSheet = Excel2007Operator.addSheet(bk, "考试信息")
+        judgmentSheet = Excel2007Operator.addSheet(bk, "判断题", 1)
+        oneChoiceSheet = Excel2007Operator.addSheet(bk, "单选题", 2)
+        multiChoiceSheet = Excel2007Operator.addSheet(bk, "多选题", 3)
 
         alignment = Alignment(
             horizontal='center',  # 水平对齐，可选general、left、center、right、fill、justify、centerContinuous、distributed
@@ -135,27 +135,29 @@ class Word2Excel:
         )
 
         examExtInfo = [{"科目名称": examInfo["examNam"]}, {"分数线": examInfo["scoreLine"]}, {"考试时长": examInfo["examTime"]},
-                       {"判断题个数": examInfo["judgmentNums"]}, {"判断题分值": examInfo["judgmentScore"]}, {"单选题个数": examInfo["oneChoiceNums"]},
-                       {"单选题分值": examInfo["oneChoiceScore"]}, {"多选题个数": examInfo["multiChoiceNums"]}, {"多选题分值": examInfo["multiChoiceScore"]}]
+                       {"判断题个数": examInfo["judgmentNums"]}, {"判断题分值": examInfo["judgmentScore"]},
+                       {"单选题个数": examInfo["oneChoiceNums"]},
+                       {"单选题分值": examInfo["oneChoiceScore"]}, {"多选题个数": examInfo["multiChoiceNums"]},
+                       {"多选题分值": examInfo["multiChoiceScore"]}]
         for index in range(len(examExtInfo)):
             for key, value in examExtInfo[index].items():
-                OpenpyxlUtil.writeSheet(examInfoSheet, 1, index + 1, key)
-                OpenpyxlUtil.writeSheet(examInfoSheet, 2, index + 1, value)
+                Excel2007Operator.writeSheet(examInfoSheet, 1, index + 1, key)
+                Excel2007Operator.writeSheet(examInfoSheet, 2, index + 1, value)
             examInfoSheet["ABCDEFGHI"[index] + "1"].alignment = alignment
             examInfoSheet["ABCDEFGHI"[index] + "2"].alignment = alignment
             examInfoSheet.column_dimensions["ABCDEFGHI"[index]].width = 16
 
         for st in [judgmentSheet, oneChoiceSheet, multiChoiceSheet]:
-            OpenpyxlUtil.writeSheet(st, 1, 1, "题干")
+            Excel2007Operator.writeSheet(st, 1, 1, "题干")
             st.column_dimensions["A"].width = 48
             st.column_dimensions["B"].width = 8
             for ch in "CDEFGHIJKLMNO":
                 st.column_dimensions[ch].width = 16
-            OpenpyxlUtil.writeSheet(st, 1, 2, "答案")
-            OpenpyxlUtil.writeSheet(st, 1, 3, "备注")
-            OpenpyxlUtil.writeSheet(st, 1, 4, "解析")
+            Excel2007Operator.writeSheet(st, 1, 2, "答案")
+            Excel2007Operator.writeSheet(st, 1, 3, "备注")
+            Excel2007Operator.writeSheet(st, 1, 4, "解析")
             for index, ch in enumerate("ABCDEFGHIJK"):
-                OpenpyxlUtil.writeSheet(st, 1, 5 + index, "选项" + ch)
+                Excel2007Operator.writeSheet(st, 1, 5 + index, "选项" + ch)
             for ch in "ABCDEFGHIJKLMNO":
                 st[ch + "1"].alignment = alignment
                 st[ch + "1"].fill = PatternFill(

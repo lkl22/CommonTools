@@ -71,7 +71,9 @@ class Excel2007Operator(IExcelOperator):
         :param col: 列数，从1开始
         :return: 单元格内容
         """
-        value = str(st.cell(row, col).value).strip()
+        value = st.cell(row, col).value
+        if type(value) == str:
+            value = value.strip()
         return value
 
     @staticmethod
@@ -94,7 +96,7 @@ class Excel2007Operator(IExcelOperator):
         return book.create_sheet(sheetName, index)
 
     @staticmethod
-    def writeSheet(st: Worksheet, row, col, value, cellFormat):
+    def writeSheet(st: Worksheet, row, col, value, cellFormat=None):
         """
         写入数据
         :param st: Worksheet

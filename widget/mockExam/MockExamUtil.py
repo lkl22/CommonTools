@@ -4,9 +4,8 @@
 # 定义一个MockExamUtil工具类处理模拟考试相关逻辑
 
 from openpyxl.worksheet.worksheet import Worksheet
-
 from util.LogUtil import LogUtil
-from util.OpenpyxlUtil import OpenpyxlUtil
+from util.excel.Excel2007Operator import Excel2007Operator
 from util.RandomUtil import RandomUtil
 
 QUESTION_TYPE_JUDGMENT = "judgment"
@@ -27,44 +26,45 @@ def getRequest(st: Worksheet, row=2, colNum=12, realQuestionNo=1, questionType=Q
         KEY_ROW: row,
         KEY_REAL_QUESTION_NO: realQuestionNo,
         KEY_QUESTION_TYPE: questionType,
-        KEY_QUESTION: OpenpyxlUtil.getCell(st, row, 1),
-        KEY_ANSWER: OpenpyxlUtil.getCell(st, row, 2),
-        KEY_REMARK: OpenpyxlUtil.getCell(st, row, 3),
-        KEY_SOLUTION: OpenpyxlUtil.getCell(st, row, 4)
+        KEY_QUESTION: Excel2007Operator.getCell(st, row, 1),
+        KEY_ANSWER: Excel2007Operator.getCell(st, row, 2),
+        KEY_REMARK: Excel2007Operator.getCell(st, row, 3),
+        KEY_SOLUTION: Excel2007Operator.getCell(st, row, 4)
     }
     for col in range(5, colNum + 1):
-        request[chr(65 + col - 5)] = OpenpyxlUtil.getCell(st, row, col)
+        request[chr(65 + col - 5)] = Excel2007Operator.getCell(st, row, col)
     return request
 
 
 class MockExamUtil:
-    def __init__(self, fp='../resources/mockExam/题库模版.xlsx'):
+    def __init__(self, fp='../../resources/mockExam/题库模版.xlsx'):
         # 考试题目文件路径
         self.examFile = fp
-        self.bk = OpenpyxlUtil.getBook(fp)
-        self.infoSheet = OpenpyxlUtil.getSheetByName(self.bk, '考试信息')
-        self.judgmentSheet = OpenpyxlUtil.getSheetByName(self.bk, '判断题')
-        self.oneChoiceSheet = OpenpyxlUtil.getSheetByName(self.bk, '单选题')
-        self.multipleChoiceSheet = OpenpyxlUtil.getSheetByName(self.bk, '多选题')
-        self.examName = OpenpyxlUtil.getCell(self.infoSheet, 2, 1)
-        self.scoreLine = OpenpyxlUtil.getCell(self.infoSheet, 2, 2)
-        self.examTime = OpenpyxlUtil.getCell(self.infoSheet, 2, 3)
+        self.bk = Excel2007Operator.getBook(fp)
+        self.infoSheet = Excel2007Operator.getSheetByName(self.bk, '考试信息')
+        self.judgmentSheet = Excel2007Operator.getSheetByName(self.bk, '判断题')
+        self.oneChoiceSheet = Excel2007Operator.getSheetByName(self.bk, '单选题')
+        self.multipleChoiceSheet = Excel2007Operator.getSheetByName(self.bk, '多选题')
+        self.examName = Excel2007Operator.getCell(self.infoSheet, 2, 1)
+        self.scoreLine = Excel2007Operator.getCell(self.infoSheet, 2, 2)
+        self.examTime = Excel2007Operator.getCell(self.infoSheet, 2, 3)
 
-        self.judgmentNums = OpenpyxlUtil.getCell(self.infoSheet, 2, 4)
-        self.judgmentScore = OpenpyxlUtil.getCell(self.infoSheet, 2, 5)
-        self.judgmentRequestBankNums = OpenpyxlUtil.getRows(self.judgmentSheet)
+        self.judgmentNums = Excel2007Operator.getCell(self.infoSheet, 2, 4)
+        self.judgmentScore = Excel2007Operator.getCell(self.infoSheet, 2, 5)
+        self.judgmentRequestBankNums = Excel2007Operator.getRows(self.judgmentSheet)
 
-        self.oneChoiceNums = OpenpyxlUtil.getCell(self.infoSheet, 2, 6)
-        self.oneChoiceScore = OpenpyxlUtil.getCell(self.infoSheet, 2, 7)
-        self.oneChoiceRequestBankNums = OpenpyxlUtil.getRows(self.oneChoiceSheet)
+        self.oneChoiceNums = Excel2007Operator.getCell(self.infoSheet, 2, 6)
+        self.oneChoiceScore = Excel2007Operator.getCell(self.infoSheet, 2, 7)
+        self.oneChoiceRequestBankNums = Excel2007Operator.getRows(self.oneChoiceSheet)
 
-        self.multiChoiceNums = OpenpyxlUtil.getCell(self.infoSheet, 2, 8)
-        self.multiChoiceScore = OpenpyxlUtil.getCell(self.infoSheet, 2, 9)
-        self.multiChoiceRequestBankNums = OpenpyxlUtil.getRows(self.multipleChoiceSheet)
+        self.multiChoiceNums = Excel2007Operator.getCell(self.infoSheet, 2, 8)
+        self.multiChoiceScore = Excel2007Operator.getCell(self.infoSheet, 2, 9)
+        self.multiChoiceRequestBankNums = Excel2007Operator.getRows(self.multipleChoiceSheet)
 
-        self.maxCol = OpenpyxlUtil.getColumns(self.oneChoiceSheet)
+        self.maxCol = Excel2007Operator.getColumns(self.oneChoiceSheet)
 
-        LogUtil.w("MockExamUtil", "考试科目：", self.examName, "分数线：", self.scoreLine, "考试时长：", self.examTime, "最大列数：", self.maxCol,
+        LogUtil.w("MockExamUtil", "考试科目：", self.examName, "分数线：", self.scoreLine, "考试时长：", self.examTime, "最大列数：",
+                  self.maxCol,
                   "\n判断题个数", self.judgmentNums, "\t判断题分值", self.judgmentScore, "\t判断题题库", self.judgmentRequestBankNums,
                   "\n单选题个数", self.oneChoiceNums, "\t单选题分值", self.oneChoiceScore, "\t单选题题库",
                   self.oneChoiceRequestBankNums, "\n多选题个数", self.multiChoiceNums, "\t多选题分值",
@@ -151,4 +151,3 @@ if __name__ == "__main__":
     mockExamUtil.genExamPaperByReal()
     for i in range(mockExamUtil.totalQuestionNums):
         print(mockExamUtil.getQuestion(i))
-

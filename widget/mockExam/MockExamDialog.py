@@ -7,8 +7,6 @@ import random
 from PyQt5.QtCore import pyqtSignal, QTimer
 from PyQt5.QtGui import QMouseEvent
 from PyQt5.QtWidgets import QScrollArea, QPushButton, QAbstractButton
-
-from constant.WidgetConst import *
 from util.DialogUtil import *
 from util.OperaIni import *
 from widget.custom.ChoiceButton import ChoiceButton
@@ -476,7 +474,7 @@ class MockExamDialog(QtWidgets.QDialog):
             self.examFilePath = self.examFilePathLineEdit.text()
             self.genExamPaperMethod(isAll)
         except Exception as err:
-            LogUtil.e(TAG, 'mkDirs 错误信息：', err)
+            LogUtil.e(TAG, 'genExamPaper 错误信息：', err)
             self.examFilePath = None
             WidgetUtil.showErrorDialog(message="请选择正确的模拟考试的题库文件（按照指定规范提供）")
             return

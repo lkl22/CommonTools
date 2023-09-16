@@ -87,7 +87,9 @@ class ExcelUtil:
         :param col: 列数
         :return: 单元格内容
         """
-        value = str(st.cell(row, col).value).strip()
+        value = st.cell(row, col).value
+        if type(value) == str:
+            value = value.strip()
         return value
 
     @staticmethod
