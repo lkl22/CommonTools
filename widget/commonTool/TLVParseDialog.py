@@ -48,7 +48,7 @@ class TLVParseDialog(QtWidgets.QDialog):
         if PlatformUtil.isMac():
             windowFlags |= Qt.WindowStaysOnTopHint
         self.setWindowFlags(windowFlags)
-        TLVParseDialog.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.6)
+        TLVParseDialog.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.7)
         TLVParseDialog.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.6)
         LogUtil.d(TAG, "Init TLV Parse Dialog")
         self.setObjectName("TLVParseDialog")
@@ -70,8 +70,7 @@ class TLVParseDialog(QtWidgets.QDialog):
         self.__valueParseFuncMap = DictUtil.get(self.__config, KEY_VALUE_PARSE_FUNC_MAP, [])
         self.__asyncFuncManager = AsyncFuncManager()
 
-        vbox = WidgetUtil.createVBoxLayout(self, margins=QMargins(10, 10, 10, 10), spacing=10)
-
+        vbox = WidgetUtil.createVBoxLayout(spacing=10)
         self.__configComboBox = CommonComboBox(label='选择配置', default=self.__defaultConfigName,
                                                groupList=DictUtil.get(self.__configs, KEY_LIST, []),
                                                isEditable=True, dataChanged=self.__configChanged)
@@ -101,11 +100,15 @@ class TLVParseDialog(QtWidgets.QDialog):
         vbox.addWidget(self.__valueParseTableView)
 
         hbox = WidgetUtil.createHBoxLayout()
+        hbox.addItem(WidgetUtil.createHSpacerItem(1, 1))
         hbox.addWidget(WidgetUtil.createPushButton(self, text="解析TLV数据", onClicked=self.__parseTLVData))
         hbox.addItem(WidgetUtil.createHSpacerItem(1, 1))
         vbox.addLayout(hbox)
+
+        hbox = WidgetUtil.createHBoxLayout(self, margins=QMargins(10, 10, 10, 10), spacing=10)
+        hbox.addLayout(vbox, 2)
         self.__textEdit = CommonTextEdit()
-        vbox.addWidget(self.__textEdit, 1)
+        hbox.addWidget(self.__textEdit, 1)
 
         # self.setWindowModality(Qt.ApplicationModal)
         # 很关键，不加出不来

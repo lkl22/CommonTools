@@ -76,6 +76,7 @@ a = Analysis(['RunMain.py',
 
               'widget/colorManager/AddColorResDialog.py',
               'widget/colorManager/AndroidColorResDialog.py',
+              'widget/commonTool/TLVParseDialog.py',
               'widget/compressPicture/CompressPicDialog.py',
 
               'widget/custom/progressBar/RoundProgressBar.py',
@@ -135,7 +136,6 @@ a = Analysis(['RunMain.py',
               'widget/test/AndroidAdbDialog.py',
               'widget/test/AndroidAssistTestDialog.py',
               'widget/test/EditTestStepDialog.py',
-              'widget/tlv/TLVParseDialog.py',
 
               'widget/JsonDialog.py',
               'widget/MainWidget.py'],

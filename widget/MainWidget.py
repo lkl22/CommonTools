@@ -298,6 +298,6 @@ class MainWidget(QMainWindow):
 
     def jumpTLVParseDialog(self):
         LogUtil.i(TAG, "jumpTLVParseDialog")
-        from widget.tlv.TLVParseDialog import TLVParseDialog
+        from widget.commonTool.TLVParseDialog import TLVParseDialog
         TLVParseDialog()
         pass
