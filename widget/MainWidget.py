@@ -186,7 +186,7 @@ class MainWidget(QMainWindow):
 
     def jumpFileOperationDialog(self):
         LogUtil.i(TAG, "jumpAndroidAdbDialog")
-        from widget.fileOperation.FileOperationDialog import FileOperationDialog
+        from widget.commonTool.fileOperation.FileOperationDialog import FileOperationDialog
         FileOperationDialog()
         pass
 
@@ -244,7 +244,7 @@ class MainWidget(QMainWindow):
 
     def jumpFileHashDialog(self):
         LogUtil.i(TAG, "jumpFileHashDialog")
-        from widget.hash.FileHashDialog import FileHashDialog
+        from widget.commonTool.hash.FileHashDialog import FileHashDialog
         FileHashDialog()
         pass
 

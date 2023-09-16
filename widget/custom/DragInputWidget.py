@@ -4,6 +4,8 @@
 # 定义一个DragInputWidget窗口类实现拖动文件输入的功能
 import os
 import sys
+
+from PyQt5.QtGui import QMouseEvent
 from PyQt5.QtWidgets import QStyle
 
 from constant.WidgetConst import *
@@ -71,6 +73,22 @@ class DragInputWidget(ICommonWidget):
 
     def dragMoveEvent(self, evn):
         # LogUtil.d('dragMoveEvent', '鼠标移动')
+        pass
+
+    def mouseDoubleClickEvent(self, ev: QMouseEvent):
+        LogUtil.d('mouseDoubleClickEvent')
+        if ev.button() == Qt.LeftButton:
+            if self.fileParam:
+                fp = WidgetUtil.getOpenFileName(self, *self.fileParam)
+                self.__updateContent(fp)
+                return
+            if self.dirParam:
+                fp = WidgetUtil.getExistingDirectory(self, *self.dirParam)
+                self.__updateContent(fp)
+                return
+            # 默认选择一个文件，不限制文件类型
+            fp = WidgetUtil.getOpenFileName()
+            self.__updateContent(fp)
         pass
 
     def __openFile(self):

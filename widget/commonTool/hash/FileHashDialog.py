@@ -17,8 +17,8 @@ class FileHashDialog(QtWidgets.QDialog):
         # 调用父类的构函
         QtWidgets.QDialog.__init__(self)
         self.setWindowFlags(Qt.Dialog | Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint)
-        FileHashDialog.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.5)
-        FileHashDialog.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.3)
+        FileHashDialog.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.3)
+        FileHashDialog.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.2)
         LogUtil.d(TAG, "File Hash Dialog")
         self.setWindowTitle(WidgetUtil.translate(text="计算文件Hash"))
         self.setObjectName("FileHashDialog")
@@ -45,7 +45,9 @@ class FileHashDialog(QtWidgets.QDialog):
         box = WidgetUtil.createGroupBox(parent, title="计算文件Hash")
         vbox = WidgetUtil.createVBoxLayout(box, margins=QMargins(5, 5, 5, 5), spacing=5)
         hbox = WidgetUtil.createHBoxLayout()
-        self.dragInputWidget = DragInputWidget(isReadOnly=True, holderText="请拖动您要计算hash值的文件到此框或者双击选择您需要的文件", textChanged=self.dragInputTextChanged)
+        self.dragInputWidget = DragInputWidget(isReadOnly=True, fileParam={KEY_CAPTION: '选择需要计算hash的文件'},
+                                               holderText="请拖动您要计算hash值的文件到此框或者选择您需要的文件",
+                                               textChanged=self.dragInputTextChanged)
         hbox.addWidget(self.dragInputWidget)
         vbox.addLayout(hbox)
 
