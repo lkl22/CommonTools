@@ -3,6 +3,9 @@
 # Filename: EvalUtil.py
 # 定义一个EvalUtil工具类实现执行str代码相关的功能
 # https://pythonjishu.com/python-eval-exec/
+from util.LogUtil import LogUtil
+
+TAG = 'EvalUtil'
 
 
 class EvalUtil:
@@ -15,7 +18,11 @@ class EvalUtil:
         :param locals: 局部命名空间
         :return: 执行结果
         """
-        return eval(expression, globals, locals)
+        try:
+            return eval(expression, globals, locals)
+        except Exception as err:
+            LogUtil.e(TAG, 'eval Exception', err)
+            return err
 
     @staticmethod
     def exec(expression, globals: dict = {}, locals: dict = {}):
@@ -25,11 +32,16 @@ class EvalUtil:
         :param globals: 全局命名空间
         :param locals: 局部命名空间
         """
-        exec(expression, globals, locals)
+        try:
+            exec(expression, globals, locals)
+            return None
+        except Exception as err:
+            LogUtil.e(TAG, 'exec Exception', err)
+            return err
 
 
 if __name__ == "__main__":
-    print(EvalUtil.eval('x + y', locals={'x': 1, 'y': 2}))
+    print(EvalUtil.eval('x + y + z', locals={'x': 1, 'y': 2}))
     # 定义全局命名空间和本地命名空间
     myGlobals = {'x': 3, 'y': 6, 'z': 0}
     myLocals = {'a': 1, 'b': 2, 'c': 0}

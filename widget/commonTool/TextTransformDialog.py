@@ -84,8 +84,10 @@ class TextTransformDialog(QtWidgets.QDialog):
         if not isDebug:
             self.exec_()
 
-    def __configChanged(self, config):
-        LogUtil.d(TAG, '__configChanged', config)
+    def __configChanged(self, config, deleteData):
+        LogUtil.d(TAG, '__configChanged cur data', config, 'delete data', deleteData)
+        if deleteData:
+            self.__operaIni.removeItem(KEY_SECTION, MD5Util.md5(deleteData))
         self.__defaultConfigName = config
         self.__config = JsonUtil.decode(self.__operaIni.getValue(MD5Util.md5(config), KEY_SECTION), {})
 
@@ -95,6 +97,21 @@ class TextTransformDialog(QtWidgets.QDialog):
 
         self.__datasComboBox.updateData(self.__defaultData, self.__datas)
         self.__transformFuncLineEdit.updateData(self.__transformFunc)
+
+        self.__saveConfigs()
+        pass
+
+    def __saveConfigs(self):
+        configDatas = {KEY_DEFAULT: self.__configComboBox.getData(), KEY_LIST: self.__configComboBox.getGroupList()}
+        self.__operaIni.addItem(KEY_SECTION, KEY_CONFIGS, JsonUtil.encode(configDatas, ensureAscii=False))
+        configData = {
+            KEY_DEFAULT: self.__datasComboBox.getData(),
+            KEY_DATAS: self.__datasComboBox.getGroupList(),
+            KEY_TRANSFORM_FUNC: self.__transformFuncLineEdit.getData()
+        }
+        self.__operaIni.addItem(KEY_SECTION, MD5Util.md5(configDatas[KEY_DEFAULT]),
+                                JsonUtil.encode(configData, ensureAscii=False))
+        self.__operaIni.saveIni()
         pass
 
     def __transformData(self):
@@ -110,16 +127,12 @@ class TextTransformDialog(QtWidgets.QDialog):
         if not transformFunc:
             WidgetUtil.showErrorDialog(message="请添加文本转换函数代码")
             return
-        configDatas = {KEY_DEFAULT: config, KEY_LIST: self.__configComboBox.getGroupList()}
-        self.__operaIni.addItem(KEY_SECTION, KEY_CONFIGS, JsonUtil.encode(configDatas, ensureAscii=False))
         configData = {
             KEY_DEFAULT: data,
             KEY_DATAS: self.__datasComboBox.getGroupList(),
             KEY_TRANSFORM_FUNC: transformFunc
         }
-        self.__operaIni.addItem(KEY_SECTION, MD5Util.md5(configDatas[KEY_DEFAULT]),
-                                JsonUtil.encode(configData, ensureAscii=False))
-        self.__operaIni.saveIni()
+        self.__saveConfigs()
 
         self.__textEdit.clear()
         self.__asyncFuncManager.asyncExec(target=self.__transformText, kwargs=configData)
@@ -130,8 +143,8 @@ class TextTransformDialog(QtWidgets.QDialog):
         parseData = configData[KEY_DEFAULT]
         transformFunc = configData[KEY_TRANSFORM_FUNC]
         myLocals = {'text': parseData, 'res': ''}
-        EvalUtil.exec(transformFunc, locals=myLocals)
-        res = myLocals.get('res')
+        execResult = EvalUtil.exec(transformFunc, locals=myLocals)
+        res = myLocals.get('res') + (str(execResult) if execResult else '')
         LogUtil.i(TAG, '__transformText res: ', res)
         self.__textEdit.standardOutputOne(res, ColorEnum.Blue.value)
         self.__asyncFuncManager.hideLoading()

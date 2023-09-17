@@ -86,7 +86,7 @@ class CommonComboBox(ICommonWidget):
             self.__default = DictUtil.get(curData, KEY_DATA, DictUtil.get(curData, KEY_SHOW_TEXT))
             LogUtil.d(TAG, '__activated', curData, self.__default, curText)
         if self.__dataChanged:
-            self.__dataChanged(self.__default)
+            self.__dataChanged(self.__default, None)
         pass
 
     def __showDeleteItemDialog(self):
@@ -99,6 +99,8 @@ class CommonComboBox(ICommonWidget):
         pass
 
     def __delItemFunc(self):
+        deleteItem = self.__groupList[self.__curIndex]
+        deleteData = DictUtil.get(deleteItem, KEY_DATA, DictUtil.get(deleteItem, KEY_SHOW_TEXT))
         LogUtil.d(TAG, '__delItemFunc')
         ListUtil.remove(self.__groupList, self.__groupList[self.__curIndex])
         if len(self.__groupList) > 0:
@@ -108,7 +110,7 @@ class CommonComboBox(ICommonWidget):
             self.__default = None
         self.__updateComboBox()
         if self.__dataChanged:
-            self.__dataChanged(self.__default)
+            self.__dataChanged(self.__default, deleteData)
         pass
 
     def keyPressEvent(self, a0: QtGui.QKeyEvent):
