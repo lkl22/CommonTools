@@ -20,11 +20,12 @@ from widget.custom.CommonTableView import CommonTableView
 from widget.custom.CommonTextEdit import CommonTextEdit
 
 TAG = "TLVParseDialog"
+KEY_TAG = 'tag'
 KEY_LENGTH_TAG = 'lengthTag'
 KEY_CHAR_COUNT = 'charCount'
 KEY_VALUE_PARSE_TAG = 'valueParseTag'
 KEY_VALUE_PARSE_FUNC = 'valueParseFunc'
-TAG_HEADERS = {KEY_NAME: {KEY_TITLE: "Tag名"}, KEY_DESC: {KEY_TITLE: "Tag描述"}}
+TAG_HEADERS = {KEY_TAG: {KEY_TITLE: "Tag名"}, KEY_DESC: {KEY_TITLE: "Tag描述"}}
 LENGTH_HEADERS = {KEY_LENGTH_TAG: {KEY_TITLE: "Length Tag"}, KEY_CHAR_COUNT: {KEY_TITLE: "长度占用字符数"}}
 VALUE_PARSE_HEADERS = {KEY_VALUE_PARSE_TAG: {KEY_TITLE: "Value Parse Tag"}, KEY_VALUE_PARSE_FUNC: {KEY_TITLE: "value解析处理函数"}}
 
@@ -141,7 +142,7 @@ class TLVParseDialog(QtWidgets.QDialog):
             return
         dialog = CommonAddOrEditDialog(windowTitle='添加/编辑Tag',
                                        optionInfos=[{
-                                           KEY_ITEM_KEY: KEY_NAME,
+                                           KEY_ITEM_KEY: KEY_TAG,
                                            KEY_ITEM_TYPE: TYPE_LINE_EDIT,
                                            KEY_ITEM_LABEL: 'Tag名：',
                                            KEY_TOOL_TIP: '请输入Tag名',
@@ -238,7 +239,7 @@ class TLVParseDialog(QtWidgets.QDialog):
     def __parseTLV(self, **configData):
         LogUtil.i(TAG, '__parseTLV', configData)
         parseData = configData[KEY_DEFAULT]
-        tags = [item[KEY_NAME] for item in configData[KEY_TAGS]]
+        tags = [item[KEY_TAG] for item in configData[KEY_TAGS]]
         lengthMap = {}
         for item in configData[KEY_LENGTH_MAP]:
             lengthMap[item[KEY_LENGTH_TAG]] = item[KEY_CHAR_COUNT]

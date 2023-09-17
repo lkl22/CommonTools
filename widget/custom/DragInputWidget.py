@@ -7,13 +7,13 @@ import sys
 
 from PyQt5.QtGui import QMouseEvent
 from PyQt5.QtWidgets import QStyle
-
-from constant.WidgetConst import *
 from util.DictUtil import DictUtil
 from util.FileUtil import FileUtil
 from util.WidgetUtil import *
 from util.PlatformUtil import PlatformUtil
 from widget.custom.ICommonWidget import ICommonWidget
+
+TAG = 'DragInputWidget'
 
 
 class DragInputWidget(ICommonWidget):
@@ -69,14 +69,14 @@ class DragInputWidget(ICommonWidget):
 
     # 鼠标放开执行
     def dropEvent(self, evn):
-        LogUtil.d('dropEvent', '鼠标放开了')
+        LogUtil.d(TAG, 'dropEvent', '鼠标放开了')
 
     def dragMoveEvent(self, evn):
         # LogUtil.d('dragMoveEvent', '鼠标移动')
         pass
 
     def mouseDoubleClickEvent(self, ev: QMouseEvent):
-        LogUtil.d('mouseDoubleClickEvent')
+        LogUtil.d(TAG, 'mouseDoubleClickEvent')
         if ev.button() == Qt.LeftButton:
             if self.fileParam:
                 fp = WidgetUtil.getOpenFileName(self, *self.fileParam)
