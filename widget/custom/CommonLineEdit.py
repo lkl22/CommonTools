@@ -21,6 +21,10 @@ class CommonLineEdit(ICommonWidget):
             self.setToolTip(toolTip)
         pass
 
+    def updateData(self, text):
+        self.__lineEdit.setText(text)
+        pass
+
     def getData(self):
         return self.__lineEdit.text().strip()
 

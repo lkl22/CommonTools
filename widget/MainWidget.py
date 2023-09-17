@@ -172,7 +172,8 @@ class MainWidget(QMainWindow):
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
         hbox.addWidget(WidgetUtil.createPushButton(box, text="Log分析辅助工具", onClicked=self.jumpLogAnalysisWindow), 1)
         hbox.addWidget(WidgetUtil.createPushButton(box, text="TLV数据解析工具", onClicked=self.jumpTLVParseDialog), 1)
-        hbox.addWidget(WidgetUtil.createLabel(box), 3)
+        hbox.addWidget(WidgetUtil.createPushButton(box, text="文本转换工具", onClicked=self.jumpTextTransformDialog), 1)
+        hbox.addWidget(WidgetUtil.createLabel(box), 2)
         vbox.addLayout(hbox)
 
         vbox.addItem(WidgetUtil.createVSpacerItem())
@@ -300,4 +301,10 @@ class MainWidget(QMainWindow):
         LogUtil.i(TAG, "jumpTLVParseDialog")
         from widget.commonTool.TLVParseDialog import TLVParseDialog
         TLVParseDialog()
+        pass
+
+    def jumpTextTransformDialog(self):
+        LogUtil.i(TAG, "jumpTextTransformDialog")
+        from widget.commonTool.TextTransformDialog import TextTransformDialog
+        TextTransformDialog()
         pass

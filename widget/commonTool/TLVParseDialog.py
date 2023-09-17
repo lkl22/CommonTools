@@ -133,9 +133,6 @@ class TLVParseDialog(QtWidgets.QDialog):
         self.__valueParseTableView.updateData(self.__valueParseFuncMap)
         pass
 
-    def __updateUi(self):
-        pass
-
     def __addOrEditTagFunc(self, callback, default=None, items=None):
         if not default and not self.__defaultConfigName:
             WidgetUtil.showErrorDialog(message="请先添加配置项")
@@ -201,7 +198,7 @@ class TLVParseDialog(QtWidgets.QDialog):
                                        }, {
                                            KEY_ITEM_KEY: KEY_VALUE_PARSE_FUNC,
                                            KEY_ITEM_TYPE: TYPE_LINE_EDIT,
-                                           KEY_ITEM_LABEL: '请输入value转换函数'
+                                           KEY_ITEM_LABEL: '请输入value转换函数，输入参数value变量，输出结果到res变量'
                                        }],
                                        callback=callback,
                                        default=default,
