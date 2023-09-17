@@ -24,7 +24,7 @@ class CommonComboBox(ICommonWidget):
         :param groupList: 显示下拉列表数据
         :param isEditable: true 可以编辑
         :param toolTip: toolTip
-        :param dataChanged: 选项changed回调事件
+        :param dataChanged: 选项changed回调事件 (curData, deleteData) -> None
         """
         super(CommonComboBox, self).__init__()
         # self.setWindowFlags(QtCore.Qt.SplashScreen | QtCore.Qt.FramelessWindowHint)

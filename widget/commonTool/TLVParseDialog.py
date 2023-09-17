@@ -116,8 +116,10 @@ class TLVParseDialog(QtWidgets.QDialog):
         if not isDebug:
             self.exec_()
 
-    def __configChanged(self, config):
-        LogUtil.d(TAG, '__configChanged', config)
+    def __configChanged(self, config, deleteData):
+        LogUtil.d(TAG, '__configChanged cur data', config, 'delete data', deleteData)
+        if deleteData:
+            self.__operaIni.removeItem(KEY_SECTION, MD5Util.md5(deleteData))
         self.__defaultConfigName = config
         self.__config = JsonUtil.decode(self.__operaIni.getValue(MD5Util.md5(config), KEY_SECTION), {})
 
@@ -131,6 +133,22 @@ class TLVParseDialog(QtWidgets.QDialog):
         self.__tagTableView.updateData(self.__tags)
         self.__lengthTagTableView.updateData(self.__lengthMap)
         self.__valueParseTableView.updateData(self.__valueParseFuncMap)
+        self.__saveConfigs()
+        pass
+
+    def __saveConfigs(self):
+        configDatas = {KEY_DEFAULT: self.__configComboBox.getData(), KEY_LIST: self.__configComboBox.getGroupList()}
+        self.__operaIni.addItem(KEY_SECTION, KEY_CONFIGS, JsonUtil.encode(configDatas, ensureAscii=False))
+        configData = {
+            KEY_DEFAULT: self.__datasComboBox.getData(),
+            KEY_DATAS: self.__datasComboBox.getGroupList(),
+            KEY_TAGS: self.__tagTableView.getData(),
+            KEY_LENGTH_MAP: self.__lengthTagTableView.getData(),
+            KEY_VALUE_PARSE_FUNC_MAP: self.__valueParseTableView.getData(),
+        }
+        self.__operaIni.addItem(KEY_SECTION, MD5Util.md5(configDatas[KEY_DEFAULT]),
+                                JsonUtil.encode(configData, ensureAscii=False))
+        self.__operaIni.saveIni()
         pass
 
     def __addOrEditTagFunc(self, callback, default=None, items=None):
@@ -216,8 +234,6 @@ class TLVParseDialog(QtWidgets.QDialog):
         if not data:
             WidgetUtil.showErrorDialog(message="请添加需要解析的数据")
             return
-        configDatas = {KEY_DEFAULT: self.__configComboBox.getData(), KEY_LIST: self.__configComboBox.getGroupList()}
-        self.__operaIni.addItem(KEY_SECTION, KEY_CONFIGS, JsonUtil.encode(configDatas, ensureAscii=False))
         configData = {
             KEY_DEFAULT: data,
             KEY_DATAS: self.__datasComboBox.getGroupList(),
@@ -225,9 +241,7 @@ class TLVParseDialog(QtWidgets.QDialog):
             KEY_LENGTH_MAP: self.__lengthTagTableView.getData(),
             KEY_VALUE_PARSE_FUNC_MAP: self.__valueParseTableView.getData(),
         }
-        self.__operaIni.addItem(KEY_SECTION, MD5Util.md5(configDatas[KEY_DEFAULT]),
-                                JsonUtil.encode(configData, ensureAscii=False))
-        self.__operaIni.saveIni()
+        self.__saveConfigs()
 
         self.__textEdit.clear()
         self.__asyncFuncManager.asyncExec(target=self.__parseTLV, kwargs=configData)
