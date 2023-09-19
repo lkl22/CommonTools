@@ -64,7 +64,8 @@ class TextTransformDialog(QtWidgets.QDialog):
         vbox.addWidget(self.__configComboBox)
         self.__datasComboBox = CommonComboBox(label='需要转换的数据', default=self.__defaultData,
                                               groupList=self.__datas,
-                                              isEditable=True)
+                                              isEditable=True,
+                                              maxWidth=int(WidgetUtil.getScreenWidth() * 0.6))
         vbox.addWidget(self.__datasComboBox)
 
         self.__transformFuncLineEdit = CommonLineEdit(label='请输入文本转换函数', text=self.__transformFunc,

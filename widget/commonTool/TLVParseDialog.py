@@ -27,7 +27,8 @@ KEY_VALUE_PARSE_TAG = 'valueParseTag'
 KEY_VALUE_PARSE_FUNC = 'valueParseFunc'
 TAG_HEADERS = {KEY_TAG: {KEY_TITLE: "Tag名"}, KEY_DESC: {KEY_TITLE: "Tag描述"}}
 LENGTH_HEADERS = {KEY_LENGTH_TAG: {KEY_TITLE: "Length Tag"}, KEY_CHAR_COUNT: {KEY_TITLE: "长度占用字符数"}}
-VALUE_PARSE_HEADERS = {KEY_VALUE_PARSE_TAG: {KEY_TITLE: "Value Parse Tag"}, KEY_VALUE_PARSE_FUNC: {KEY_TITLE: "value解析处理函数"}}
+VALUE_PARSE_HEADERS = {KEY_VALUE_PARSE_TAG: {KEY_TITLE: "Value Parse Tag"},
+                       KEY_VALUE_PARSE_FUNC: {KEY_TITLE: "value解析处理函数"}}
 
 KEY_SECTION = 'TLVParse'
 KEY_CONFIGS = 'configs'
@@ -49,8 +50,8 @@ class TLVParseDialog(QtWidgets.QDialog):
         if PlatformUtil.isMac():
             windowFlags |= Qt.WindowStaysOnTopHint
         self.setWindowFlags(windowFlags)
-        TLVParseDialog.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.7)
-        TLVParseDialog.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.6)
+        TLVParseDialog.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.85)
+        TLVParseDialog.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.7)
         LogUtil.d(TAG, "Init TLV Parse Dialog")
         self.setObjectName("TLVParseDialog")
         self.resize(TLVParseDialog.WINDOW_WIDTH, TLVParseDialog.WINDOW_HEIGHT)
@@ -74,11 +75,12 @@ class TLVParseDialog(QtWidgets.QDialog):
         vbox = WidgetUtil.createVBoxLayout(spacing=10)
         self.__configComboBox = CommonComboBox(label='选择配置', default=self.__defaultConfigName,
                                                groupList=DictUtil.get(self.__configs, KEY_LIST, []),
-                                               isEditable=True, dataChanged=self.__configChanged)
+                                               isEditable=True, maxWidth=int(WidgetUtil.getScreenWidth() * 0.3),
+                                               dataChanged=self.__configChanged)
         vbox.addWidget(self.__configComboBox)
         self.__datasComboBox = CommonComboBox(label='需要解析的数据', default=self.__defaultData,
                                               groupList=self.__datas,
-                                              isEditable=True)
+                                              isEditable=True, maxWidth=int(WidgetUtil.getScreenWidth() * 0.3))
         vbox.addWidget(self.__datasComboBox)
         self.__tagTableView = CommonTableView(addBtnTxt="添加Tag", headers=TAG_HEADERS,
                                               items=self.__tags,
@@ -107,9 +109,9 @@ class TLVParseDialog(QtWidgets.QDialog):
         vbox.addLayout(hbox)
 
         hbox = WidgetUtil.createHBoxLayout(self, margins=QMargins(10, 10, 10, 10), spacing=10)
-        hbox.addLayout(vbox, 2)
+        hbox.addLayout(vbox, 1)
         self.__textEdit = CommonTextEdit()
-        hbox.addWidget(self.__textEdit, 1)
+        hbox.addWidget(self.__textEdit, 2)
 
         # self.setWindowModality(Qt.ApplicationModal)
         # 很关键，不加出不来
@@ -172,7 +174,8 @@ class TLVParseDialog(QtWidgets.QDialog):
                                        default=default,
                                        items=items,
                                        isDebug=self.__isDebug)
-        dialog.show()
+        if self.__isDebug:
+            dialog.show()
         pass
 
     def __addOrEditLengthTagFunc(self, callback, default=None, items=None):
@@ -199,7 +202,8 @@ class TLVParseDialog(QtWidgets.QDialog):
                                        default=default,
                                        items=items,
                                        isDebug=self.__isDebug)
-        dialog.show()
+        if self.__isDebug:
+            dialog.show()
         pass
 
     def __addOrEditValueParseFunc(self, callback, default=None, items=None):
@@ -216,13 +220,15 @@ class TLVParseDialog(QtWidgets.QDialog):
                                        }, {
                                            KEY_ITEM_KEY: KEY_VALUE_PARSE_FUNC,
                                            KEY_ITEM_TYPE: TYPE_LINE_EDIT,
-                                           KEY_ITEM_LABEL: '请输入value转换函数，输入参数value变量，输出结果到res变量'
+                                           KEY_ITEM_LABEL: '请输入value转换函数',
+                                           KEY_TOOL_TIP: '请输入value转换函数，输入参数value变量，输出结果到res变量'
                                        }],
                                        callback=callback,
                                        default=default,
                                        items=items,
                                        isDebug=self.__isDebug)
-        dialog.show()
+        if self.__isDebug:
+            dialog.show()
         pass
 
     def __parseTLVData(self):
@@ -259,7 +265,11 @@ class TLVParseDialog(QtWidgets.QDialog):
             vPrintFuncs[item[KEY_VALUE_PARSE_TAG]] = item[KEY_VALUE_PARSE_FUNC]
         LogUtil.i(TAG, '__parseTLV', parseData, tags, lengthMap, vPrintFuncs)
         tlv = TLV(tags=tags, LLengthMap=lengthMap, VPrintFuncs=vPrintFuncs)
-        self.__textEdit.standardOutputOne(tlv.toString(tlv.parse(parseData)).replace(' ', '&nbsp;'), ColorEnum.Blue.value)
+        try:
+            self.__textEdit.standardOutputOne(tlv.toString(tlv.parse(parseData)).replace(' ', '&nbsp;'),
+                                              ColorEnum.Blue.value)
+        except Exception as err:
+            self.__textEdit.standardOutputOne(str(err), ColorEnum.Red.value)
         self.__asyncFuncManager.hideLoading()
         pass
 

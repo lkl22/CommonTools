@@ -48,3 +48,9 @@ if __name__ == "__main__":
     EvalUtil.exec('z = x + y; c = a + b;', globals=myGlobals, locals=myLocals)
     print(myGlobals.get('z'))
     print(myLocals.get('c'))
+
+    myLocals = {'text': 'ddddfffffffffff', 'res': 0}
+    EvalUtil.exec('''def change(text: str):
+    return text[:2]
+res = change(text)''', locals=myLocals)
+    print(myLocals.get('res'))

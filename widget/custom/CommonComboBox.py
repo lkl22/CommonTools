@@ -15,14 +15,15 @@ TAG = 'CommonComboBox'
 
 
 class CommonComboBox(ICommonWidget):
-    def __init__(self, label: str, default=None, groupList: [{} or str] = [], isEditable=False, toolTip=None,
-                 dataChanged=None):
+    def __init__(self, label: str, default=None, groupList: [{} or str] = [], isEditable=False, maxWidth=None,
+                 toolTip=None, dataChanged=None):
         """
         创建下拉选择框
         :param label: label
         :param default: 默认数据
         :param groupList: 显示下拉列表数据
         :param isEditable: true 可以编辑
+        :param maxWidth: maxWidth 不设置，ComboBox文字长的时候会导致窗口宽度超出屏幕范围
         :param toolTip: toolTip
         :param dataChanged: 选项changed回调事件 (curData, deleteData) -> None
         """
@@ -44,6 +45,9 @@ class CommonComboBox(ICommonWidget):
             self.__deleteBtn = WidgetUtil.createPushButton(self, text='Del', onClicked=self.__showDeleteItemDialog)
             hBox.addWidget(self.__deleteBtn)
         self.updateData(default, groupList)
+
+        if maxWidth:
+            self.setMaximumWidth(maxWidth)
         self.setAutoFillBackground(True)
         if toolTip:
             self.setToolTip(toolTip)
