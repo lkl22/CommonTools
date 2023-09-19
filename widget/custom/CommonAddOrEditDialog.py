@@ -94,7 +94,6 @@ class CommonAddOrEditDialog(QtWidgets.QDialog):
         btnBox = WidgetUtil.createDialogButtonBox(parent=self, acceptedFunc=self.acceptFunc,
                                                   rejectedFunc=lambda: self.close())
         vLayout.addWidget(btnBox)
-        self.setWindowModality(Qt.WindowModal)
         if not isDebug:
             # 很关键，不加出不来
             self.exec_()

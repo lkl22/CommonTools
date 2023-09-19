@@ -113,7 +113,6 @@ class TLVParseDialog(QtWidgets.QDialog):
         self.__textEdit = CommonTextEdit()
         hbox.addWidget(self.__textEdit, 2)
 
-        # self.setWindowModality(Qt.ApplicationModal)
         # 很关键，不加出不来
         if not isDebug:
             self.exec_()
