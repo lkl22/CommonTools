@@ -56,7 +56,7 @@ class FileHashDialog(QtWidgets.QDialog):
         vbox.addLayout(hbox)
 
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
-        self.hashAlgorithmGroup = WidgetUtil.createButtonGroup(onToggled=self.hashAlgorithmToggled)
+        self.hashAlgorithmGroup = WidgetUtil.createButtonGroup(buttonClicked=self.hashAlgorithmToggled)
         for index, hashAlgorith in enumerate(HASH_ALGORITHM):
             radioButton = WidgetUtil.createRadioButton(box, text=hashAlgorith, isChecked=index == 0)
             self.hashAlgorithmGroup.addButton(radioButton, index)

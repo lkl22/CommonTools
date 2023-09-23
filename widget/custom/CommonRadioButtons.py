@@ -3,8 +3,6 @@
 # Filename: CommonRadioButtons.py
 # 定义一个CommonRadioButtons窗口类实现通用单选按钮选择的功能
 import sys
-
-from constant.WidgetConst import *
 from util.DictUtil import DictUtil
 from util.WidgetUtil import *
 from widget.custom.ICommonWidget import ICommonWidget
@@ -13,14 +11,14 @@ TAG = 'CommonRadioButtons'
 
 
 class CommonRadioButtons(ICommonWidget):
-    def __init__(self, label: str, groupList: list[dict or str], defaultValue=None, onToggled=None, maxCount=12, spacing=30,
-                 toolTip=None):
+    def __init__(self, label: str, groupList: list[dict or str], defaultValue=None, buttonClicked=None, maxCount=12,
+                 spacing=30, toolTip=None):
         """
         创建通用的单选按钮选项组件
         :param label: 选项描述文本
         :param groupList: 选项列表
         :param defaultValue: 默认选中选项的文本
-        :param onToggled: 点击回调
+        :param buttonClicked: 点击回调
         :param maxCount: 一行显示最大的item
         :param spacing: item间间隔
         :param toolTip: toolTip
@@ -31,13 +29,14 @@ class CommonRadioButtons(ICommonWidget):
         else:
             self.__groupList = groupList
         self.__defaultValue = defaultValue if defaultValue else DictUtil.get(self.__groupList[0], KEY_DATA,
-                                                                             DictUtil.get(self.__groupList[0], KEY_SHOW_TEXT))
-        self.__onToggled = onToggled
+                                                                             DictUtil.get(self.__groupList[0],
+                                                                                          KEY_SHOW_TEXT))
+        self.__buttonClicked = buttonClicked
 
         vbox = WidgetUtil.createVBoxLayout(self, margins=QMargins(5, 5, 5, 5), spacing=10)
         vbox.addWidget(WidgetUtil.createLabel(self, text=label))
         hbox = WidgetUtil.createHBoxLayout(margins=QMargins(0, 0, 0, 0), spacing=spacing)
-        self.__buttonGroup = WidgetUtil.createButtonGroup(onToggled=self.__internalOnToggled)
+        self.__buttonGroup = WidgetUtil.createButtonGroup(buttonClicked=self.__internalButtonClicked)
         for i in range(len(self.__groupList)):
             if i % maxCount == 0:
                 hbox.addItem(WidgetUtil.createHSpacerItem(1, 1))
@@ -55,12 +54,12 @@ class CommonRadioButtons(ICommonWidget):
             self.setToolTip(toolTip)
         pass
 
-    def __internalOnToggled(self, radioButton):
+    def __internalButtonClicked(self, radioButton):
         radioInfo = self.__groupList[self.__buttonGroup.checkedId()]
         self.__defaultValue = DictUtil.get(radioInfo, KEY_DATA, DictUtil.get(radioInfo, KEY_SHOW_TEXT))
-        LogUtil.i(TAG, "__onToggled：", self.__defaultValue)
-        if self.__onToggled:
-            self.__onToggled(self.__defaultValue)
+        LogUtil.i(TAG, "__internalButtonClicked：", self.__defaultValue)
+        if self.__buttonClicked:
+            self.__buttonClicked(self.__defaultValue)
         pass
 
     def getData(self):

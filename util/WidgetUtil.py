@@ -8,8 +8,9 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtGui import QIcon, QBrush, QStandardItemModel, QStandardItem, QColor, QKeySequence, QFont
 from PyQt5.QtWidgets import QWidget, QMessageBox, QSizePolicy, QTreeWidget, QMenu, QTreeWidgetItem, QDialog, \
     QRadioButton, QTableView, QHeaderView, QColorDialog, QSpinBox, QTextEdit, QApplication, QDoubleSpinBox, QMenuBar, \
-    QTabWidget, QCheckBox, QProgressBar, QComboBox, QDialogButtonBox, QLineEdit
-from PyQt5.QtCore import QRect, QMargins, QSize, Qt, QDateTime
+    QTabWidget, QCheckBox, QProgressBar, QComboBox, QDialogButtonBox, QLineEdit, QLayout, QWidgetItem, QSpacerItem, \
+    QLayoutItem
+from PyQt5.QtCore import QRect, QMargins, QSize, Qt, QDateTime, QObject
 from constant.WidgetConst import *
 from util.LogUtil import *
 from util.DataTypeUtil import *
@@ -453,15 +454,17 @@ class WidgetUtil:
         return widget
 
     @staticmethod
-    def createButtonGroup(onToggled=None):
+    def createButtonGroup(buttonClicked=None, exclusive=True):
         """
         创建一个QButtonGroup，给RadioButton分组
-        :param onToggled: toggled checked状态切换回调
+        :param buttonClicked: 群组中按钮点击回调
+        :param exclusive: False 独立，True 同一个父widget为一组，选中一个会取消其他按钮的选中状态
         :return: QButtonGroup
         """
         widget = QtWidgets.QButtonGroup()
-        if onToggled:
-            widget.buttonClicked.connect(onToggled)
+        if buttonClicked:
+            widget.buttonClicked.connect(buttonClicked)
+        widget.setExclusive(exclusive)
         return widget
 
     @staticmethod
@@ -1118,6 +1121,31 @@ class WidgetUtil:
             btnBox.clicked.connect(clickedFunc)
         return btnBox
         pass
+
+    @staticmethod
+    def removeAllChild(parent: QLayout):
+        """
+        移除控件下所有的子组件
+        :param parent: 父控件
+        """
+        if not isinstance(parent, QWidgetItem) and not isinstance(parent, QSpacerItem):
+            while len(parent.children()) > 0:
+                child = parent.children()[0]
+                WidgetUtil.removeChild(parent, child)
+
+    @staticmethod
+    def removeChild(parent: QLayout, child: QObject):
+        """
+        移除父控件下指定的子组件
+        :param parent: 父组件
+        :param child: 子组件
+        """
+        if isinstance(child, QWidget):
+            child.deleteLater()
+            parent.removeWidget(child)
+        elif isinstance(child, QLayoutItem):
+            WidgetUtil.removeAllChild(child)
+            parent.removeItem(child)
 
     @classmethod
     def translate(cls, context=contextName, text=""):

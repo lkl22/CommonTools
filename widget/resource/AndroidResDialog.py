@@ -90,7 +90,7 @@ class AndroidResDialog(QtWidgets.QDialog):
         hbox.addWidget(self.dstFnPatternsLineEdit)
         vbox.addLayout(hbox)
 
-        self.resTypeBg = CommonRadioButtons(label='选择资源类型：', groupList=RES_TYPE_LIST, onToggled=self.resTypeToggled)
+        self.resTypeBg = CommonRadioButtons(label='选择资源类型：', groupList=RES_TYPE_LIST, buttonClicked=self.resTypeToggled)
         vbox.addWidget(self.resTypeBg)
 
         hbox = WidgetUtil.createHBoxLayout()

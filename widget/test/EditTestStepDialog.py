@@ -34,7 +34,7 @@ class EditTestStepDialog(QtWidgets.QDialog):
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
         hbox.addWidget(WidgetUtil.createLabel(self, text="操作类型：", alignment=Qt.AlignVCenter | Qt.AlignLeft,
                                               minSize=QSize(80, const.HEIGHT)))
-        self.superTestTypes = WidgetUtil.createButtonGroup(onToggled=self.superTestTypeToggled)
+        self.superTestTypes = WidgetUtil.createButtonGroup(buttonClicked=self.superTestTypeToggled)
         for i in range(len(const.STEP_TYPE_NAMES)):
             radioButton = WidgetUtil.createRadioButton(self, text=const.STEP_TYPE_NAMES[i] + "  ",
                                                        isChecked=(stepType // 10 == i))
@@ -46,13 +46,13 @@ class EditTestStepDialog(QtWidgets.QDialog):
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
         hbox.addWidget(WidgetUtil.createLabel(self, text="", alignment=Qt.AlignVCenter | Qt.AlignLeft,
                                               minSize=QSize(80, const.HEIGHT)))
-        self.subClickTestTypes = WidgetUtil.createButtonGroup(onToggled=self.subClickTestTypeToggled)
+        self.subClickTestTypes = WidgetUtil.createButtonGroup(buttonClicked=self.subClickTestTypeToggled)
         for i in range(len(const.CLICK_TYPES)):
             radioButton = WidgetUtil.createRadioButton(self, text=const.CLICK_TYPES[i] + "  ", isChecked=False)
             self.subClickTestTypes.addButton(radioButton, i)
             hbox.addWidget(radioButton)
 
-        self.subSwipeTestTypes = WidgetUtil.createButtonGroup(onToggled=self.subSwipeTestTypeToggled)
+        self.subSwipeTestTypes = WidgetUtil.createButtonGroup(buttonClicked=self.subSwipeTestTypeToggled)
         for i in range(len(const.SWIPE_TYPES)):
             radioButton = WidgetUtil.createRadioButton(self, text=const.SWIPE_TYPES[i] + "  ", isChecked=False)
             self.subSwipeTestTypes.addButton(radioButton, i)
