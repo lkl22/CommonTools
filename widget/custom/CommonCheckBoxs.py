@@ -28,14 +28,15 @@ class CommonCheckBoxs(ICommonWidget):
         self.__defaultValue = []
         self.__buttonClicked = buttonClicked
         self.__checkBoxs: [QCheckBox] = []
-        self.__label = label
         self.__spacing = spacing
         self.__maxCount = maxCount
         self.__buttonGroup = None
 
-        self.vbox = WidgetUtil.createVBoxLayout(self, margins=QMargins(5, 5, 5, 5), spacing=10)
-        self.labelWidget = WidgetUtil.createLabel(self, text=self.__label)
+        self.__vbox = WidgetUtil.createVBoxLayout(self, margins=QMargins(5, 5, 5, 5), spacing=10)
+        self.__labelWidget = WidgetUtil.createLabel(self, text=label)
+
         self.updateData(groupList, defaultValue)
+
         self.setAutoFillBackground(True)
         if toolTip:
             self.setToolTip(toolTip)
@@ -58,17 +59,17 @@ class CommonCheckBoxs(ICommonWidget):
         for checkBox in self.__checkBoxs:
             checkBox.deleteLater()
         self.__checkBoxs.clear()
-        WidgetUtil.removeAllChild(self.vbox)
+        WidgetUtil.removeAllChild(self.__vbox)
         pass
 
     def __updateUi(self):
-        self.vbox.addWidget(self.labelWidget)
+        self.__vbox.addWidget(self.__labelWidget)
         hbox = WidgetUtil.createHBoxLayout(margins=QMargins(0, 0, 0, 0), spacing=self.__spacing)
         self.__buttonGroup = WidgetUtil.createButtonGroup(buttonClicked=self.__internalButtonClicked, exclusive=False)
         for i in range(len(self.__groupList)):
             if i % self.__maxCount == 0:
                 hbox.addItem(WidgetUtil.createHSpacerItem(1, 1))
-                self.vbox.addLayout(hbox)
+                self.__vbox.addLayout(hbox)
                 hbox = WidgetUtil.createHBoxLayout(margins=QMargins(0, 0, 0, 0), spacing=self.__spacing)
             itemData = DictUtil.get(self.__groupList[i], KEY_DATA, DictUtil.get(self.__groupList[i], KEY_SHOW_TEXT))
             isChecked = itemData in self.__defaultValue
@@ -78,7 +79,7 @@ class CommonCheckBoxs(ICommonWidget):
             self.__checkBoxs.append(checkBox)
             hbox.addWidget(checkBox)
         hbox.addItem(WidgetUtil.createHSpacerItem(1, 1))
-        self.vbox.addLayout(hbox)
+        self.__vbox.addLayout(hbox)
         # 重新调整尺寸
         self.adjustSize()
         pass
