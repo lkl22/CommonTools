@@ -3,15 +3,14 @@
 # Filename: CategoryConfigWidget.py
 # 定义一个CategoryConfigWidget窗口类实现日志分析分类配置信息管理
 import copy
-import os
-
 from PyQt5.QtWidgets import QFrame
-from constant.WidgetConst import *
 from util.DictUtil import DictUtil
 from util.WidgetUtil import *
 from widget.analysis.AddOrEditAnalysisCfgDialog import AddOrEditAnalysisCfgDialog
 from widget.analysis.LogAnalysisManager import *
+from widget.custom.CommonDateTimeFormatEdit import CommonDateTimeFormatEdit
 from widget.custom.CommonTableView import CommonTableView
+from widget.custom.DragInputWidget import DragInputWidget
 
 TAG = "CategoryConfigWidget"
 HEADERS = {
@@ -29,52 +28,41 @@ class CategoryConfigWidget(QFrame):
         self.setObjectName(TAG)
         self.setToolTip("日志分析配置信息管理")
 
-        self.analysisManager = analysisManager
-        self.categoryInfo = None
-        self.categoryRuleInfo = None
-        self.ruleList = []
-        self.logFilePath = None
-        self.logTimeIndex = None
-        self.logTimeFormat = None
-        self.isDebug = isDebug
+        self.__analysisManager = analysisManager
+        self.__categoryInfo = None
+        self.__categoryRuleInfo = None
+        self.__ruleList = []
+        self.__logFilePath = None
+        self.__datetimeFormatRule = None
+        self.__isDebug = isDebug
 
         widgetLayout = WidgetUtil.createVBoxLayout()
         widgetLayout.addWidget(self)
         vbox = WidgetUtil.createVBoxLayout(self, margins=QMargins(5, 5, 5, 5), spacing=5)
-        sizePolicy = WidgetUtil.createSizePolicy()
 
+        labelMinSize = QSize(120, const.HEIGHT)
         splitter = WidgetUtil.createSplitter(self)
-        WidgetUtil.createPushButton(splitter, text="筛选指定日期范围Log文件", minSize=QSize(120, const.HEIGHT),
+        WidgetUtil.createPushButton(splitter, text="筛选指定日期范围Log文件", minSize=labelMinSize,
                                     toolTip='从指定目录下筛选指定日期范围的Log压缩文件，解压并合并到一个文件中',
                                     onClicked=self.__extractMergeLogFile)
-        WidgetUtil.createPushButton(splitter, text="提取Log日志到指定文件", minSize=QSize(120, const.HEIGHT),
+        WidgetUtil.createPushButton(splitter, text="提取Log日志到指定文件", minSize=labelMinSize,
                                     toolTip='从指定Log文件中提取指定日期范围到Log到目标文件',
                                     onClicked=self.__extractLogFile)
         vbox.addWidget(splitter)
 
-        splitter = WidgetUtil.createSplitter(self)
-        WidgetUtil.createPushButton(splitter, text="日志文件路径", minSize=QSize(120, const.HEIGHT),
-                                    onClicked=self.__getLogFilePath)
-        self.logFilePathLineEdit = WidgetUtil.createLineEdit(splitter,
-                                                             text='',
-                                                             isEnable=False, sizePolicy=sizePolicy)
-        vbox.addWidget(splitter)
+        self.__logFilePathWidget = DragInputWidget(label='日志文件路径',
+                                                   fileParam={KEY_CAPTION: '要分析的日志文件'},
+                                                   labelMinSize=labelMinSize,
+                                                   toolTip='选择要分析的日志文件')
+        vbox.addWidget(self.__logFilePathWidget)
 
-        splitter = WidgetUtil.createSplitter(self)
-        WidgetUtil.createLabel(splitter, text="Log中日期格式规则：", minSize=QSize(120, const.HEIGHT))
-        WidgetUtil.createLabel(splitter, text="日期起始位置", minSize=QSize(60, const.HEIGHT))
-        self.logTimeIndexSpinBox = WidgetUtil.createSpinBox(splitter,
-                                                            value=int(self.logTimeIndex) if self.logTimeIndex else 0,
-                                                            step=1, sizePolicy=sizePolicy)
-        WidgetUtil.createLabel(splitter, text="日期格式", minSize=QSize(60, const.HEIGHT))
-        self.logTimeFormatLE = WidgetUtil.createLineEdit(splitter,
-                                                         text=self.logTimeFormat if self.logTimeFormat else '',
-                                                         toolTip="请输入匹配Log文件名里的日期格式（例如：MM-dd_HH:mm:ss.SSS）",
-                                                         sizePolicy=sizePolicy)
-        vbox.addWidget(splitter)
+        self.__datetimeFormatEdit = CommonDateTimeFormatEdit(label='Log中日期格式规则', value=self.__datetimeFormatRule,
+                                                             labelMinSize=labelMinSize,
+                                                             toolTip="请输入匹配Log文件名里的日期格式（例如：MM-dd_HH:mm:ss.SSS）")
+        vbox.addWidget(self.__datetimeFormatEdit)
 
         self.analysisRuleTableView = CommonTableView(addBtnTxt="添加Log分析配置", headers=HEADERS,
-                                                     items=self.ruleList,
+                                                     items=self.__ruleList,
                                                      addOrEditItemFunc=self.addOrEditItemFunc)
         self.__updateRuleTableView()
         vbox.addWidget(self.analysisRuleTableView, 1)
@@ -84,7 +72,7 @@ class CategoryConfigWidget(QFrame):
 
     def __extractMergeLogFile(self):
         from widget.analysis.extract.ExtractMergeLogDialog import ExtractMergeLogDialog
-        ExtractMergeLogDialog(callback=lambda fp: self.logFilePathLineEdit.setText(fp))
+        ExtractMergeLogDialog(callback=lambda fp: self.__logFilePathWidget.updateData(fp))
         pass
 
     def __extractLogFile(self):
@@ -94,57 +82,43 @@ class CategoryConfigWidget(QFrame):
 
     def setCategoryInfo(self, categoryInfo):
         LogUtil.d(TAG, "setCategoryInfo", categoryInfo)
-        self.categoryInfo = categoryInfo
+        self.__categoryInfo = categoryInfo
         categoryId = DictUtil.get(categoryInfo, KEY_ID)
-        self.categoryRuleInfo = self.analysisManager.getCategoryRuleById(categoryId)
+        self.__categoryRuleInfo = self.__analysisManager.getCategoryRuleById(categoryId)
 
-        self.logFilePath = DictUtil.get(self.categoryRuleInfo, KEY_FILE_PATH, '')
-        self.logFilePathLineEdit.setText(self.logFilePath)
+        self.__logFilePath = DictUtil.get(self.__categoryRuleInfo, KEY_FILE_PATH, '')
+        self.__logFilePathWidget.updateData(self.__logFilePath)
 
-        self.logTimeIndex = DictUtil.get(self.categoryRuleInfo, KEY_LOG_TIME_INDEX, 0)
-        self.logTimeIndexSpinBox.setValue(self.logTimeIndex)
+        self.__datetimeFormatRule = DictUtil.get(self.__categoryRuleInfo, KEY_DATETIME_FORMAT_RULE, 0)
+        self.__datetimeFormatEdit.updateData(self.__datetimeFormatRule)
 
-        self.logTimeFormat = DictUtil.get(self.categoryRuleInfo, KEY_LOG_TIME_FORMAT, '')
-        self.logTimeFormatLE.setText(self.logTimeFormat)
-
-        self.ruleList = copy.deepcopy(DictUtil.get(self.categoryRuleInfo, KEY_ANALYSIS_RULES, []))
+        self.__ruleList = copy.deepcopy(DictUtil.get(self.__categoryRuleInfo, KEY_ANALYSIS_RULES, []))
         self.__updateRuleTableView()
         pass
 
     def getCategoryRule(self):
-        logFilePath = self.logFilePathLineEdit.text().strip()
+        logFilePath = self.__logFilePathWidget.getData()
         if not logFilePath:
             WidgetUtil.showErrorDialog(message="请选择要分析的日志文件")
             return None
-        logTimeFormat = self.logTimeFormatLE.text().strip()
-        if not logTimeFormat:
+        datetimeFormatRule = self.__datetimeFormatEdit.getData()
+        if not DictUtil.get(datetimeFormatRule, KEY_DATETIME_FORMAT):
             WidgetUtil.showErrorDialog(message="请输入日志中的时间格式")
             return None
-        if not self.ruleList:
+        if not self.__ruleList:
             WidgetUtil.showErrorDialog(message="请添加日志分析规则")
             return None
-        self.categoryRuleInfo[KEY_FILE_PATH] = logFilePath
-        self.categoryRuleInfo[KEY_LOG_TIME_INDEX] = self.logTimeIndexSpinBox.value()
-        self.categoryRuleInfo[KEY_LOG_TIME_FORMAT] = logTimeFormat
-        self.categoryRuleInfo[KEY_ANALYSIS_RULES] = self.ruleList
-        return self.categoryRuleInfo
-
-    def __getLogFilePath(self):
-        fp = ''
-        if self.logFilePath:
-            fp, _ = os.path.split(self.logFilePath)
-        fp = WidgetUtil.getOpenFileName(caption='请选择要分析的Log文件',
-                                        directory=fp)
-        if fp:
-            self.logFilePathLineEdit.setText(fp)
-        pass
+        self.__categoryRuleInfo[KEY_FILE_PATH] = logFilePath
+        self.__categoryRuleInfo[KEY_DATETIME_FORMAT_RULE] = datetimeFormatRule
+        self.__categoryRuleInfo[KEY_ANALYSIS_RULES] = self.__ruleList
+        return self.__categoryRuleInfo
 
     def __updateRuleTableView(self):
-        self.analysisRuleTableView.updateData(self.ruleList)
+        self.analysisRuleTableView.updateData(self.__ruleList)
         pass
 
     def addOrEditItemFunc(self, callback, default, items):
-        if not default and not self.categoryInfo:
+        if not default and not self.__categoryInfo:
             WidgetUtil.showErrorDialog(message="请先选择或者添加Log分析配置")
             return
 

@@ -115,6 +115,10 @@ class DragInputWidget(ICommonWidget):
             self.lineEdit.setText(fp)
         pass
 
+    def updateData(self, text):
+        self.lineEdit.setText(text)
+        pass
+
     def getData(self):
         return self.lineEdit.text().strip()
 
