@@ -44,6 +44,15 @@ class CategoryConfigWidget(QFrame):
         sizePolicy = WidgetUtil.createSizePolicy()
 
         splitter = WidgetUtil.createSplitter(self)
+        WidgetUtil.createPushButton(splitter, text="筛选指定日期范围Log文件", minSize=QSize(120, const.HEIGHT),
+                                    toolTip='从指定目录下筛选指定日期范围的Log压缩文件，解压并合并到一个文件中',
+                                    onClicked=self.__extractMergeLogFile)
+        WidgetUtil.createPushButton(splitter, text="提取Log日志到指定文件", minSize=QSize(120, const.HEIGHT),
+                                    toolTip='从指定Log文件中提取指定日期范围到Log到目标文件',
+                                    onClicked=self.__extractLogFile)
+        vbox.addWidget(splitter)
+
+        splitter = WidgetUtil.createSplitter(self)
         WidgetUtil.createPushButton(splitter, text="日志文件路径", minSize=QSize(120, const.HEIGHT),
                                     onClicked=self.__getLogFilePath)
         self.logFilePathLineEdit = WidgetUtil.createLineEdit(splitter,
@@ -71,6 +80,16 @@ class CategoryConfigWidget(QFrame):
         vbox.addWidget(self.analysisRuleTableView, 1)
         # self.setAutoFillBackground(True)
         # self.setStyleSheet("CategoryConfigWidget{border:1px solid rgb(0,0,255)}")
+        pass
+
+    def __extractMergeLogFile(self):
+        from widget.analysis.extract.ExtractMergeLogDialog import ExtractMergeLogDialog
+        ExtractMergeLogDialog(callback=lambda fp: self.logFilePathLineEdit.setText(fp))
+        pass
+
+    def __extractLogFile(self):
+        from widget.analysis.extract.ExtractLogDialog import ExtractLogDialog
+        ExtractLogDialog()
         pass
 
     def setCategoryInfo(self, categoryInfo):
