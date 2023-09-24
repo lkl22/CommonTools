@@ -5,9 +5,9 @@
 import threading
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QMainWindow
-from constant.WidgetConst import *
 from util.DialogUtil import *
 from util.DictUtil import DictUtil
+from util.EvalUtil import EvalUtil
 from util.ListUtil import ListUtil
 from util.OperaIni import *
 from util.StrUtil import StrUtil
@@ -148,8 +148,9 @@ class LogAnalysisWindow(QMainWindow):
         for rule in ruleList:
             logKeyword = DictUtil.get(rule, KEY_LOG_KEYWORD, '')
             if logKeyword and logKeyword in line:
-                self.execResult.append({KEY_LOG: line, KEY_COLOR: '#00f'})
+                self.execResult.append({KEY_LOG: line, KEY_COLOR: '#000'})
                 self.__analysisLogMap(line, rule)
+                self.execResult.append({KEY_LOG: '\n', KEY_COLOR: '#000'})
             self.__analysisCostTime(line, rule, timeIndex, timeFormat)
         pass
 
@@ -159,8 +160,13 @@ class LogAnalysisWindow(QMainWindow):
         logMapRules = ListUtil.filter(DictUtil.get(rule, KEY_RESULT_MAP), KEY_IS_ENABLE, True, DEFAULT_VALUE_IS_ENABLE)
         for rule in logMapRules:
             if rule[KEY_SRC_LOG] in line:
-                self.execResult.append({KEY_LOG: f"srcLog: {line}", KEY_COLOR: '#000'})
-                self.execResult.append({KEY_LOG: f"mapResult: {rule[KEY_MAP_TXT]}\n", KEY_COLOR: '#f0f'})
+                if DictUtil.get(rule, KEY_IS_FUNCTION, DEFAULT_VALUE_IS_FUNCTION):
+                    myLocals = {'text': line, 'res': ''}
+                    execResult = EvalUtil.exec(rule[KEY_MAP_TXT], locals=myLocals)
+                    res = myLocals['res'] + (str(execResult) if execResult else '')
+                    self.execResult.append({KEY_LOG: f"mapResult: {res}\n", KEY_COLOR: '#f0f'})
+                else:
+                    self.execResult.append({KEY_LOG: f"mapResult: {rule[KEY_MAP_TXT]}\n", KEY_COLOR: '#f0f'})
         pass
 
     def __analysisCostTime(self, line, rule, timeIndex, timeFormat):
