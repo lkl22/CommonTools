@@ -1046,6 +1046,11 @@ class WidgetUtil:
             model = tableView.model()
             if model:
                 model.removeRows(0, model.rowCount())
+            if headerLabels:
+                model = QStandardItemModel(0, len(headerLabels))
+                # 设置水平方向头标签文本内容
+                model.setHorizontalHeaderLabels(headerLabels)
+                tableView.setModel(model)
             LogUtil.e("data is empty")
 
     @staticmethod

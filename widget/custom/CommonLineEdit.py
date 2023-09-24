@@ -11,7 +11,7 @@ TAG = 'CommonLineEdit'
 
 class CommonLineEdit(ICommonWidget):
     def __init__(self, label: str, text: str = None, labelMinSize: QSize = None, holderText: str = None, maxWidth=None,
-                 toolTip=None):
+                 toolTip=None, isEnable=True):
         super(CommonLineEdit, self).__init__()
         hbox = WidgetUtil.createHBoxLayout(self, margins=QMargins(5, 5, 5, 5), spacing=10)
         hbox.addWidget(WidgetUtil.createLabel(self, text=label, minSize=labelMinSize))
@@ -20,6 +20,8 @@ class CommonLineEdit(ICommonWidget):
 
         if maxWidth:
             self.setMaximumWidth(maxWidth)
+        self.setEnabled(isEnable)
+
         self.setAutoFillBackground(True)
         if toolTip:
             self.setToolTip(toolTip)
