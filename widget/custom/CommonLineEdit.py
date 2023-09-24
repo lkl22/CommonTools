@@ -10,7 +10,7 @@ TAG = 'CommonLineEdit'
 
 
 class CommonLineEdit(ICommonWidget):
-    def __init__(self, label: str, text: str, labelMinSize: QSize = None, holderText: str = None, maxWidth=None,
+    def __init__(self, label: str, text: str = None, labelMinSize: QSize = None, holderText: str = None, maxWidth=None,
                  toolTip=None):
         super(CommonLineEdit, self).__init__()
         hbox = WidgetUtil.createHBoxLayout(self, margins=QMargins(5, 5, 5, 5), spacing=10)

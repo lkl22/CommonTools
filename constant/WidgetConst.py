@@ -47,6 +47,12 @@ KEY_BEFORE = 'before'
 # 相对当前日期后多少s
 KEY_AFTER = 'after'
 
+# 通用时间格式控件属性
+# 文本中代表日期的起始位置，从下标0开始
+KEY_START_INDEX = 'startIndex'
+# 日期格式
+KEY_DATETIME_FORMAT = 'datetimeFormat'
+
 # 通用弹框属性
 # 存储数据的key
 KEY_ITEM_KEY = 'key'
