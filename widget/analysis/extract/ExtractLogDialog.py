@@ -22,12 +22,10 @@ DATETIME_FORMAT = 'yyyy-MM-dd HH:mm:ss'
 KEY_SECTION = 'ExtractLog'
 KEY_SRC_LOG_FILE_PATH = 'srcLogFilePath'
 KEY_DST_LOG_FILE_PATH = 'dstLogFilePath'
-KEY_LOG_TIME_RANGE = 'datetimeRange'
-KEY_LOG_TIME_FORMAT_RULE = 'datetimeFormatRule'
 
 
 class ExtractLogDialog(QtWidgets.QDialog):
-    hideLoadingSignal = pyqtSignal()
+    __hideLoadingSignal = pyqtSignal()
 
     def __init__(self, isDebug=False):
         # 调用父类的构函
@@ -45,14 +43,14 @@ class ExtractLogDialog(QtWidgets.QDialog):
         self.__operaIni = OperaIni()
         self.__srcLogFilePath = self.__operaIni.getValue(KEY_SRC_LOG_FILE_PATH, KEY_SECTION)
         self.__dstLogFilePath = self.__operaIni.getValue(KEY_DST_LOG_FILE_PATH, KEY_SECTION)
-        self.__logDatetimeRange = JsonUtil.decode(self.__operaIni.getValue(KEY_LOG_TIME_RANGE, KEY_SECTION))
-        self.__logDatetimeFormatRule = JsonUtil.decode(self.__operaIni.getValue(KEY_LOG_TIME_FORMAT_RULE, KEY_SECTION))
+        self.__logDatetimeRange = JsonUtil.decode(self.__operaIni.getValue(KEY_DATETIME_RANGE, KEY_SECTION))
+        self.__logDatetimeFormatRule = JsonUtil.decode(self.__operaIni.getValue(KEY_DATETIME_FORMAT_RULE, KEY_SECTION))
         self.__validTimeFormat = None
         self.__logTimeIndex = None
         self.__logTimeFormat = None
         self.__dstFp = None
 
-        self.loadingDialog = None
+        self.__loadingDialog = None
 
         vbox = WidgetUtil.createVBoxLayout(self, margins=QMargins(10, 10, 10, 10), spacing=10)
 
@@ -80,30 +78,30 @@ class ExtractLogDialog(QtWidgets.QDialog):
         vbox.addWidget(self.__datetimeFormatEdit)
 
         hbox = WidgetUtil.createHBoxLayout()
-        hbox.addWidget(WidgetUtil.createPushButton(self, text="提取", onClicked=self.extractLog))
-        self.openDstFileBtn = WidgetUtil.createPushButton(self, text="打开目标文件", isEnable=False,
-                                                          onClicked=self.__openDstLog)
-        hbox.addWidget(self.openDstFileBtn)
+        hbox.addWidget(WidgetUtil.createPushButton(self, text="提取", onClicked=self.__extractLog))
+        self.__openDstFileBtn = WidgetUtil.createPushButton(self, text="打开目标文件", isEnable=False,
+                                                            onClicked=self.__openDstLog)
+        hbox.addWidget(self.__openDstFileBtn)
         hbox.addItem(WidgetUtil.createHSpacerItem(1, 1))
         vbox.addLayout(hbox)
 
         vbox.addItem(WidgetUtil.createVSpacerItem(1, 1))
-        self.resultLabel = WidgetUtil.createLabel(self)
-        vbox.addWidget(self.resultLabel)
+        self.__resultLabel = WidgetUtil.createLabel(self)
+        vbox.addWidget(self.__resultLabel)
 
         self.setWindowModality(Qt.ApplicationModal)
-        self.hideLoadingSignal.connect(self.hideLoading)
+        self.__hideLoadingSignal.connect(self.__hideLoading)
         # 很关键，不加出不来
         if not isDebug:
             self.exec_()
 
-    def hideLoading(self):
-        if self.loadingDialog:
-            self.loadingDialog.close()
-            self.loadingDialog = None
+    def __hideLoading(self):
+        if self.__loadingDialog:
+            self.__loadingDialog.close()
+            self.__loadingDialog = None
         pass
 
-    def extractLog(self):
+    def __extractLog(self):
         self.__srcLogFilePath = self.__srcFilePathWidget.getData()
         if not self.__srcLogFilePath:
             WidgetUtil.showErrorDialog(message="请选择需要提取的源日志文件")
@@ -123,23 +121,23 @@ class ExtractLogDialog(QtWidgets.QDialog):
 
         self.__operaIni.addItem(KEY_SECTION, KEY_SRC_LOG_FILE_PATH, self.__srcLogFilePath)
         self.__operaIni.addItem(KEY_SECTION, KEY_DST_LOG_FILE_PATH, self.__dstLogFilePath)
-        self.__operaIni.addItem(KEY_SECTION, KEY_LOG_TIME_RANGE,
+        self.__operaIni.addItem(KEY_SECTION, KEY_DATETIME_RANGE,
                                 JsonUtil.encode(self.__logDatetimeRange, ensureAscii=False))
-        self.__operaIni.addItem(KEY_SECTION, KEY_LOG_TIME_FORMAT_RULE,
+        self.__operaIni.addItem(KEY_SECTION, KEY_DATETIME_FORMAT_RULE,
                                 JsonUtil.encode(self.__logDatetimeFormatRule, ensureAscii=False))
         self.__operaIni.saveIni()
 
         # 必须放到线程执行，否则加载框要等指令执行完才会弹
-        threading.Thread(target=self.execExtractLog, args=(self.__srcLogFilePath,
-                                                           self.__dstLogFilePath,
-                                                           self.__logDatetimeRange,
-                                                           self.__logDatetimeFormatRule)).start()
-        if not self.loadingDialog:
-            self.loadingDialog = LoadingDialog()
+        threading.Thread(target=self.__execExtractLog, args=(self.__srcLogFilePath,
+                                                             self.__dstLogFilePath,
+                                                             self.__logDatetimeRange,
+                                                             self.__logDatetimeFormatRule)).start()
+        if not self.__loadingDialog:
+            self.__loadingDialog = LoadingDialog()
         pass
 
-    def execExtractLog(self, srcFp, dstFp, datetimeRange, datetimeFormat):
-        LogUtil.d(TAG, 'execExtractLog start.', srcFp, dstFp, datetimeRange, datetimeFormat)
+    def __execExtractLog(self, srcFp, dstFp, datetimeRange, datetimeFormat):
+        LogUtil.d(TAG, '__execExtractLog start.', srcFp, dstFp, datetimeRange, datetimeFormat)
         self.__logTimeIndex = datetimeFormat[KEY_START_INDEX]
         self.__logTimeFormat = datetimeFormat[KEY_DATETIME_FORMAT]
         self.__validTimeFormat = self.__logTimeFormat.replace('yyyy', '%Y').replace('MM', '%m'). \
@@ -175,9 +173,9 @@ class ExtractLogDialog(QtWidgets.QDialog):
         srcFile.close()
         dstFile.close()
 
-        self.resultLabel.setText(f"处理完成，目标文件：{self.__dstFp}")
-        self.openDstFileBtn.setEnabled(True)
-        self.hideLoadingSignal.emit()
+        self.__resultLabel.setText(f"处理完成，目标文件：{self.__dstFp}")
+        self.__openDstFileBtn.setEnabled(True)
+        self.__hideLoadingSignal.emit()
         pass
 
     def __getDatetime(self, line):

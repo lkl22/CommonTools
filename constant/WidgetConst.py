@@ -39,8 +39,10 @@ KEY_LOG = 'log'
 KEY_TIME = 'time'
 
 # 通用时间段控件属性
-# 当前日期时间
+KEY_DATETIME_RANGE = 'datetimeRange'
+# 当前日期时间格式
 DATETIME_FORMAT = 'yyyy-MM-dd HH:mm:ss'
+# 当前日期时间
 KEY_DATETIME = 'datetime'
 # 相对当前日期前多少s
 KEY_BEFORE = 'before'
@@ -48,6 +50,7 @@ KEY_BEFORE = 'before'
 KEY_AFTER = 'after'
 
 # 通用时间格式控件属性
+KEY_DATETIME_FORMAT_RULE = 'datetimeFormatRule'
 # 文本中代表日期的起始位置，从下标0开始
 KEY_START_INDEX = 'startIndex'
 # 日期格式

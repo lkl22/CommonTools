@@ -23,7 +23,7 @@ KEY_EXTRACT_FILE_TIME_FORMAT = 'extractFileTimeFormat'
 
 
 class ExtractMergeLogDialog(QtWidgets.QDialog):
-    hideLoadingSignal = pyqtSignal(bool, str)
+    __hideLoadingSignal = pyqtSignal(bool, str)
 
     def __init__(self, callback=None, isDebug=False):
         # 调用父类的构函
@@ -71,7 +71,7 @@ class ExtractMergeLogDialog(QtWidgets.QDialog):
         vLayout.addWidget(btnBox)
 
         self.setWindowModality(Qt.ApplicationModal)
-        self.hideLoadingSignal.connect(self.__hideLoading)
+        self.__hideLoadingSignal.connect(self.__hideLoading)
         # 很关键，不加出不来
         if not isDebug:
             self.exec_()
@@ -221,7 +221,7 @@ class ExtractMergeLogDialog(QtWidgets.QDialog):
             _, fn = os.path.split(files[0])
             dstFp = os.path.join(tmp1Dir, fn)
             FileUtil.mergeFiles(files, dstFp)
-        self.hideLoadingSignal.emit(isClosed, dstFp)
+        self.__hideLoadingSignal.emit(isClosed, dstFp)
         pass
 
     def __isValidFile(self, fp):
