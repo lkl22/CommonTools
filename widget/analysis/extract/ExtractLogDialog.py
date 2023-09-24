@@ -12,6 +12,7 @@ from util.DictUtil import DictUtil
 from util.OperaIni import *
 from widget.custom.CommonDateTimeFormatEdit import CommonDateTimeFormatEdit
 from widget.custom.CommonDateTimeRangeEdit import CommonDateTimeRangeEdit
+from widget.custom.DragInputWidget import DragInputWidget
 from widget.custom.LoadingDialog import LoadingDialog
 
 TAG = "ExtractLogDialog"
@@ -32,7 +33,7 @@ class ExtractLogDialog(QtWidgets.QDialog):
         # 调用父类的构函
         QtWidgets.QDialog.__init__(self)
         self.setWindowFlags(Qt.Dialog | Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint)
-        ExtractLogDialog.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.7)
+        ExtractLogDialog.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.5)
         ExtractLogDialog.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.3)
         LogUtil.d(TAG, "Init Extract Log Dialog")
         self.setObjectName("ExtractLogDialog")
@@ -53,11 +54,42 @@ class ExtractLogDialog(QtWidgets.QDialog):
 
         self.loadingDialog = None
 
-        vLayout = WidgetUtil.createVBoxLayout(self, margins=QMargins(10, 10, 10, 10), spacing=10)
+        vbox = WidgetUtil.createVBoxLayout(self, margins=QMargins(10, 10, 10, 10), spacing=10)
 
-        extractLogGroupBox = self.createExtractLogGroupBox(self)
+        labelMinSize = QSize(120, const.HEIGHT)
+        self.__srcFilePathWidget = DragInputWidget(label='源日志文件',
+                                                   text=self.__srcLogFilePath,
+                                                   fileParam={KEY_CAPTION: '源日志文件'},
+                                                   labelMinSize=labelMinSize,
+                                                   toolTip='选择源日志文件')
+        vbox.addWidget(self.__srcFilePathWidget)
 
-        vLayout.addWidget(extractLogGroupBox)
+        self.__dstDirPathWidget = DragInputWidget(label='目标目录',
+                                                  text=self.__dstLogFilePath,
+                                                  dirParam={KEY_CAPTION: '需要存放到的目录'},
+                                                  labelMinSize=labelMinSize,
+                                                  toolTip='需要存放到的目录')
+        vbox.addWidget(self.__dstDirPathWidget)
+
+        self.__dateTimeRangeEdit = CommonDateTimeRangeEdit(label='提取Log日期范围', value=self.__logDatetimeRange,
+                                                           labelMinSize=labelMinSize)
+        vbox.addWidget(self.__dateTimeRangeEdit)
+
+        self.__datetimeFormatEdit = CommonDateTimeFormatEdit(label='文本日期格式规则', value=self.__logDatetimeFormatRule,
+                                                             labelMinSize=labelMinSize)
+        vbox.addWidget(self.__datetimeFormatEdit)
+
+        hbox = WidgetUtil.createHBoxLayout()
+        hbox.addWidget(WidgetUtil.createPushButton(self, text="提取", onClicked=self.extractLog))
+        self.openDstFileBtn = WidgetUtil.createPushButton(self, text="打开目标文件", isEnable=False,
+                                                          onClicked=self.__openDstLog)
+        hbox.addWidget(self.openDstFileBtn)
+        hbox.addItem(WidgetUtil.createHSpacerItem(1, 1))
+        vbox.addLayout(hbox)
+
+        vbox.addItem(WidgetUtil.createVSpacerItem(1, 1))
+        self.resultLabel = WidgetUtil.createLabel(self)
+        vbox.addWidget(self.resultLabel)
 
         self.setWindowModality(Qt.ApplicationModal)
         self.hideLoadingSignal.connect(self.hideLoading)
@@ -71,68 +103,12 @@ class ExtractLogDialog(QtWidgets.QDialog):
             self.loadingDialog = None
         pass
 
-    def createExtractLogGroupBox(self, parent):
-        box = WidgetUtil.createGroupBox(parent, title="提取日志")
-        vbox = WidgetUtil.createVBoxLayout(box, margins=QMargins(10, 10, 10, 10), spacing=10)
-        sizePolicy = WidgetUtil.createSizePolicy()
-        labelMinSize = QSize(120, const.HEIGHT)
-        splitter = WidgetUtil.createSplitter(box)
-        WidgetUtil.createPushButton(splitter, text="源日志文件", minSize=QSize(120, const.HEIGHT),
-                                    onClicked=self.getSrcFile)
-        self.srcLogFilePathLineEdit = WidgetUtil.createLineEdit(splitter,
-                                                                text=self.__srcLogFilePath if self.__srcLogFilePath else '',
-                                                                isEnable=False, sizePolicy=sizePolicy)
-        WidgetUtil.createPushButton(splitter, text="目标目录", minSize=QSize(120, const.HEIGHT),
-                                    onClicked=self.getDstFilePath)
-        self.dstLogFilePathLineEdit = WidgetUtil.createLineEdit(splitter,
-                                                                text=self.__dstLogFilePath if self.__dstLogFilePath else '',
-                                                                toolTip='需要存放到的目录',
-                                                                sizePolicy=sizePolicy)
-        vbox.addWidget(splitter)
-
-        self.__dateTimeRangeEdit = CommonDateTimeRangeEdit(label='提取Log日期范围', value=self.__logDatetimeRange,
-                                                           labelMinSize=labelMinSize)
-        vbox.addWidget(self.__dateTimeRangeEdit)
-
-        self.__datetimeFormatEdit = CommonDateTimeFormatEdit(label='文本日期格式规则', value=self.__logDatetimeFormatRule,
-                                                             labelMinSize=labelMinSize)
-        vbox.addWidget(self.__datetimeFormatEdit)
-
-        hbox = WidgetUtil.createHBoxLayout()
-        hbox.addWidget(WidgetUtil.createPushButton(box, text="提取", onClicked=self.extractLog))
-        self.openDstFileBtn = WidgetUtil.createPushButton(box, text="打开目标文件", isEnable=False,
-                                                          onClicked=self.__openDstLog)
-        hbox.addWidget(self.openDstFileBtn)
-        hbox.addItem(WidgetUtil.createHSpacerItem(1, 1))
-        vbox.addLayout(hbox)
-
-        vbox.addItem(WidgetUtil.createVSpacerItem(1, 1))
-        self.resultLabel = WidgetUtil.createLabel(box)
-        vbox.addWidget(self.resultLabel)
-        return box
-
-    def getSrcFile(self):
-        parentDir = './'
-        if self.__srcLogFilePath:
-            parentDir, _ = os.path.split(self.__srcLogFilePath)
-        fp = WidgetUtil.getOpenFileName(caption='请选择Log文件', directory=parentDir)
-        if fp:
-            self.srcLogFilePathLineEdit.setText(fp)
-        pass
-
-    def getDstFilePath(self):
-        fp = WidgetUtil.getExistingDirectory(caption='请选择Log文件所在路径',
-                                             directory=self.__dstLogFilePath if self.__dstLogFilePath else './')
-        if fp:
-            self.dstLogFilePathLineEdit.setText(fp)
-        pass
-
     def extractLog(self):
-        self.__srcLogFilePath = self.srcLogFilePathLineEdit.text().strip()
+        self.__srcLogFilePath = self.__srcFilePathWidget.getData()
         if not self.__srcLogFilePath:
             WidgetUtil.showErrorDialog(message="请选择需要提取的源日志文件")
             return
-        self.__dstLogFilePath = self.dstLogFilePathLineEdit.text().strip()
+        self.__dstLogFilePath = self.__dstDirPathWidget.getData()
         if not self.__dstLogFilePath:
             WidgetUtil.showErrorDialog(message="请选择日志文件需要存放的目录")
             return
