@@ -43,11 +43,11 @@ class ExtractLogDialog(QtWidgets.QDialog):
         self.__operaIni = OperaIni()
         self.__srcLogFilePath = self.__operaIni.getValue(KEY_SRC_LOG_FILE_PATH, KEY_SECTION)
         self.__dstLogFilePath = self.__operaIni.getValue(KEY_DST_LOG_FILE_PATH, KEY_SECTION)
-        self.__logDatetimeRange = JsonUtil.decode(self.__operaIni.getValue(KEY_DATETIME_RANGE, KEY_SECTION))
-        self.__logDatetimeFormatRule = JsonUtil.decode(self.__operaIni.getValue(KEY_DATETIME_FORMAT_RULE, KEY_SECTION))
+        self.__datetimeRange = JsonUtil.decode(self.__operaIni.getValue(KEY_DATETIME_RANGE, KEY_SECTION))
+        self.__datetimeFormatRule = JsonUtil.decode(self.__operaIni.getValue(KEY_DATETIME_FORMAT_RULE, KEY_SECTION))
         self.__validTimeFormat = None
-        self.__logTimeIndex = None
-        self.__logTimeFormat = None
+        self.__datetimeIndex = None
+        self.__datetimeFormat = None
         self.__dstFp = None
 
         self.__loadingDialog = None
@@ -69,11 +69,11 @@ class ExtractLogDialog(QtWidgets.QDialog):
                                                   toolTip='需要存放到的目录')
         vbox.addWidget(self.__dstDirPathWidget)
 
-        self.__dateTimeRangeEdit = CommonDateTimeRangeEdit(label='提取Log日期范围', value=self.__logDatetimeRange,
+        self.__dateTimeRangeEdit = CommonDateTimeRangeEdit(label='提取Log日期范围', value=self.__datetimeRange,
                                                            labelMinSize=labelMinSize)
         vbox.addWidget(self.__dateTimeRangeEdit)
 
-        self.__datetimeFormatEdit = CommonDateTimeFormatEdit(label='文本日期格式规则', value=self.__logDatetimeFormatRule,
+        self.__datetimeFormatEdit = CommonDateTimeFormatEdit(label='文本日期格式规则', value=self.__datetimeFormatRule,
                                                              labelMinSize=labelMinSize)
         vbox.addWidget(self.__datetimeFormatEdit)
 
@@ -113,34 +113,34 @@ class ExtractLogDialog(QtWidgets.QDialog):
         while self.__dstLogFilePath.endswith("/") or self.__dstLogFilePath.endswith("\\"):
             self.__dstLogFilePath = self.__dstLogFilePath[:len(self.__dstLogFilePath) - 1]
         LogUtil.d(TAG, "目标目录：", self.__dstLogFilePath)
-        self.__logDatetimeFormatRule = self.__datetimeFormatEdit.getData()
-        if not DictUtil.get(self.__logDatetimeFormatRule, KEY_DATETIME_FORMAT):
+        self.__datetimeFormatRule = self.__datetimeFormatEdit.getData()
+        if not DictUtil.get(self.__datetimeFormatRule, KEY_DATETIME_FORMAT):
             WidgetUtil.showErrorDialog(message="请输入匹配Log文件里的日期格式（例如：yyyy-MM-dd HH:mm:ss）")
             return
-        self.__logDatetimeRange = self.__dateTimeRangeEdit.getData()
+        self.__datetimeRange = self.__dateTimeRangeEdit.getData()
 
         self.__operaIni.addItem(KEY_SECTION, KEY_SRC_LOG_FILE_PATH, self.__srcLogFilePath)
         self.__operaIni.addItem(KEY_SECTION, KEY_DST_LOG_FILE_PATH, self.__dstLogFilePath)
         self.__operaIni.addItem(KEY_SECTION, KEY_DATETIME_RANGE,
-                                JsonUtil.encode(self.__logDatetimeRange, ensureAscii=False))
+                                JsonUtil.encode(self.__datetimeRange, ensureAscii=False))
         self.__operaIni.addItem(KEY_SECTION, KEY_DATETIME_FORMAT_RULE,
-                                JsonUtil.encode(self.__logDatetimeFormatRule, ensureAscii=False))
+                                JsonUtil.encode(self.__datetimeFormatRule, ensureAscii=False))
         self.__operaIni.saveIni()
 
         # 必须放到线程执行，否则加载框要等指令执行完才会弹
         threading.Thread(target=self.__execExtractLog, args=(self.__srcLogFilePath,
                                                              self.__dstLogFilePath,
-                                                             self.__logDatetimeRange,
-                                                             self.__logDatetimeFormatRule)).start()
+                                                             self.__datetimeRange,
+                                                             self.__datetimeFormatRule)).start()
         if not self.__loadingDialog:
             self.__loadingDialog = LoadingDialog()
         pass
 
     def __execExtractLog(self, srcFp, dstFp, datetimeRange, datetimeFormat):
         LogUtil.d(TAG, '__execExtractLog start.', srcFp, dstFp, datetimeRange, datetimeFormat)
-        self.__logTimeIndex = datetimeFormat[KEY_START_INDEX]
-        self.__logTimeFormat = datetimeFormat[KEY_DATETIME_FORMAT]
-        self.__validTimeFormat = self.__logTimeFormat.replace('yyyy', '%Y').replace('MM', '%m'). \
+        self.__datetimeIndex = datetimeFormat[KEY_START_INDEX]
+        self.__datetimeFormat = datetimeFormat[KEY_DATETIME_FORMAT]
+        self.__validTimeFormat = self.__datetimeFormat.replace('yyyy', '%Y').replace('MM', '%m'). \
             replace('dd', '%d').replace('HH', '%H').replace('mm', '%M').replace('ss', '%S')
 
         startTime, endTime = self.__dateTimeRangeEdit.getDateRange()
@@ -149,8 +149,8 @@ class ExtractLogDialog(QtWidgets.QDialog):
         FileUtil.removeFile(self.__dstFp)
 
         # 时间范围转为文本中相同格式的
-        startTime = QDateTime.fromString(startTime.toString(self.__logTimeFormat), self.__logTimeFormat)
-        endTime = QDateTime.fromString(endTime.toString(self.__logTimeFormat), self.__logTimeFormat)
+        startTime = QDateTime.fromString(startTime.toString(self.__datetimeFormat), self.__datetimeFormat)
+        endTime = QDateTime.fromString(endTime.toString(self.__datetimeFormat), self.__datetimeFormat)
 
         srcFile = open(self.__srcLogFilePath, 'r')
         dstFile = open(self.__dstFp, 'w')
@@ -180,9 +180,9 @@ class ExtractLogDialog(QtWidgets.QDialog):
 
     def __getDatetime(self, line):
         try:
-            timeStr = line[self.__logTimeIndex: self.__logTimeIndex + len(self.__logTimeFormat)]
+            timeStr = line[self.__datetimeIndex: self.__datetimeIndex + len(self.__datetimeFormat)]
             if DateUtil.isValidDate(timeStr, self.__validTimeFormat):
-                return QDateTime.fromString(timeStr, self.__logTimeFormat)
+                return QDateTime.fromString(timeStr, self.__datetimeFormat)
         except Exception as err:
             LogUtil.e(TAG, '__getDatetime 错误信息：', err)
         return None

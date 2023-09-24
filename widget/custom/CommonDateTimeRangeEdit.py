@@ -12,7 +12,8 @@ TAG = 'CommonDateTimeRangeEdit'
 
 
 class CommonDateTimeRangeEdit(ICommonWidget):
-    def __init__(self, label: str, value=None, labelMinSize: QSize = None, maxWidth=None, toolTip=None):
+    def __init__(self, label: str, value=None, maxOffsetValue=300, labelMinSize: QSize = None, maxWidth=None,
+                 toolTip=None):
         super(CommonDateTimeRangeEdit, self).__init__()
         self.__value = {}
 
@@ -20,10 +21,11 @@ class CommonDateTimeRangeEdit(ICommonWidget):
         hbox.addWidget(WidgetUtil.createLabel(self, text=label, minSize=labelMinSize))
         self.__dateTimeEdit = WidgetUtil.createDateTimeEdit(self, displayFormat=DATETIME_FORMAT)
         hbox.addWidget(self.__dateTimeEdit, 2)
-        self.__beforeSpinBox = WidgetUtil.createSpinBox(self, value=0, minValue=0, step=5, prefix='before: ',
-                                                        suffix=' s')
+        self.__beforeSpinBox = WidgetUtil.createSpinBox(self, value=0, minValue=0, maxValue=maxOffsetValue, step=5,
+                                                        prefix='before: ', suffix=' s')
         hbox.addWidget(self.__beforeSpinBox, 1)
-        self.__afterSpinBox = WidgetUtil.createSpinBox(self, value=0, minValue=0, step=5, prefix='after: ', suffix=' s')
+        self.__afterSpinBox = WidgetUtil.createSpinBox(self, value=0, minValue=0, maxValue=maxOffsetValue, step=5,
+                                                       prefix='after: ', suffix=' s')
         hbox.addWidget(self.__afterSpinBox, 1)
 
         self.updateData(value)
