@@ -38,6 +38,15 @@ KEY_INITIAL_FILTER = 'initialFilter'
 KEY_LOG = 'log'
 KEY_TIME = 'time'
 
+# 通用时间段控件属性
+# 当前日期时间
+DATETIME_FORMAT = 'yyyy-MM-dd HH:mm:ss'
+KEY_DATETIME = 'datetime'
+# 相对当前日期前多少s
+KEY_BEFORE = 'before'
+# 相对当前日期后多少s
+KEY_AFTER = 'after'
+
 # 通用弹框属性
 # 存储数据的key
 KEY_ITEM_KEY = 'key'
