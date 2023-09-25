@@ -130,25 +130,31 @@ class LogAnalysisWindow(QMainWindow):
 
     def __execAnalysisLog(self):
         LogUtil.d(TAG, '__execAnalysisLog start', self.categoryRule)
-        srcFile = open(self.categoryRule[KEY_FILE_PATH], 'rb')
-        timeIndex = self.categoryRule[KEY_DATETIME_FORMAT_RULE][KEY_START_INDEX]
-        timeFormat = self.categoryRule[KEY_DATETIME_FORMAT_RULE][KEY_DATETIME_FORMAT]
-        ruleList = ListUtil.filter(self.categoryRule[KEY_ANALYSIS_RULES], KEY_IS_ENABLE, True, DEFAULT_VALUE_IS_ENABLE)
-        line = StrUtil.decode(srcFile.readline())
-        while line:
-            self.__analysisLogByLine(line, ruleList, timeIndex, timeFormat)
+        if FileUtil.existsFile(self.categoryRule[KEY_FILE_PATH]):
+            srcFile = open(self.categoryRule[KEY_FILE_PATH], 'rb')
+            timeIndex = self.categoryRule[KEY_DATETIME_FORMAT_RULE][KEY_START_INDEX]
+            timeFormat = self.categoryRule[KEY_DATETIME_FORMAT_RULE][KEY_DATETIME_FORMAT]
+            ruleList = ListUtil.filter(self.categoryRule[KEY_ANALYSIS_RULES], KEY_IS_ENABLE, True,
+                                       DEFAULT_VALUE_IS_ENABLE)
             line = StrUtil.decode(srcFile.readline())
-
-        srcFile.close()
+            while line:
+                self.__analysisLogByLine(line, ruleList, timeIndex, timeFormat)
+                line = StrUtil.decode(srcFile.readline())
+            srcFile.close()
+        else:
+            self.execResult.append({KEY_LOG: f'{self.categoryRule[KEY_FILE_PATH]} file not exist.', KEY_COLOR: '#f00'})
         self.consoleTextEdit.standardOutput(self.execResult)
         self.hideLoadingSignal.emit()
         pass
 
     def __analysisLogByLine(self, line, ruleList, timeIndex, timeFormat):
+        hasPrintLine = False
         for rule in ruleList:
             logKeyword = DictUtil.get(rule, KEY_LOG_KEYWORD, '')
             if logKeyword and logKeyword in line:
-                self.execResult.append({KEY_LOG: line, KEY_COLOR: '#000'})
+                if not hasPrintLine:
+                    hasPrintLine = True
+                    self.execResult.append({KEY_LOG: line, KEY_COLOR: '#000'})
                 self.__analysisLogMap(line, rule)
                 self.execResult.append({KEY_LOG: '\n', KEY_COLOR: '#000'})
             self.__analysisCostTime(line, rule, timeIndex, timeFormat)

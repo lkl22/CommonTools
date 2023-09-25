@@ -109,6 +109,18 @@ class FileUtil:
             return False
 
     @staticmethod
+    def existsDir(dirPath):
+        """
+        判断是否存在指定文件夹
+        :param dirPath: 文件夹路径
+        :return: true 存在
+        """
+        if os.path.exists(dirPath) and os.path.isdir(dirPath):
+            return True
+        else:
+            return False
+
+    @staticmethod
     def modifyFilePath(srcFile, dstFile, isCopy=True):
         """
         复制/移动文件到目标位置

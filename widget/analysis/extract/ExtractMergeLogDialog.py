@@ -108,8 +108,8 @@ class ExtractMergeLogDialog(QtWidgets.QDialog):
 
     def __extractLog(self, isClosed=False):
         self.__extractLogFP = self.__logDirPathWidget.getData()
-        if not self.__extractLogFP:
-            WidgetUtil.showErrorDialog(message="请选择日志文件所在目录")
+        if not self.__extractLogFP or not FileUtil.existsDir(self.__extractLogFP):
+            WidgetUtil.showErrorDialog(message="请选择有效的日志文件所在目录（目录可能不存在了）")
             return
         self.__extractLogFileReg = self.__logFileRegEdit.getData()
         if not self.__extractLogFileReg:

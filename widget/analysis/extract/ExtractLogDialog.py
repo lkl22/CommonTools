@@ -103,8 +103,8 @@ class ExtractLogDialog(QtWidgets.QDialog):
 
     def __extractLog(self):
         self.__srcLogFilePath = self.__srcFilePathWidget.getData()
-        if not self.__srcLogFilePath:
-            WidgetUtil.showErrorDialog(message="请选择需要提取的源日志文件")
+        if not self.__srcLogFilePath or not FileUtil.existsFile(self.__srcLogFilePath):
+            WidgetUtil.showErrorDialog(message="请选择有效的需要处理的日志文件（文件可能已经不存在了）")
             return
         self.__dstLogFilePath = self.__dstDirPathWidget.getData()
         if not self.__dstLogFilePath:
