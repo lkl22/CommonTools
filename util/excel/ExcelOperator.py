@@ -46,6 +46,41 @@ class ExcelOperator:
         pass
 
     @staticmethod
+    def getExcelHeaderData(fp, sheetName, headerRow):
+        """
+        获取Excel指定表格header数据
+        :param fp: Excel文件路径
+        :param sheetName: 表名
+        :param headerRow: header所在的行
+        :return: header数据
+        """
+        _, fileExt = os.path.splitext(fp)
+        operator: IExcelOperator
+        indexOffset = 0
+        if fileExt == '.xls':
+            operator = Excel2003Operator()
+        elif fileExt == '.xlsx':
+            operator = Excel2007Operator()
+            # xlsx的下标从1开始
+            indexOffset = 1
+        else:
+            LogUtil.e('getExcelData', 'not support file ext: ', fileExt)
+            return 'File ext error.'
+        bk = operator.getBook(fp)
+        if not bk:
+            return 'File is not book'
+        sheet = operator.getSheetByName(bk, sheetName)
+        if not sheet:
+            return 'sheet name is error'
+        rows = operator.getRows(sheet)
+        cols = operator.getColumns(sheet)
+        LogUtil.d(f"Excel {fp} sheetName: {sheetName}", 'rows: ', rows, 'cols: ', cols, 'indexOffset: ', indexOffset)
+        res = []
+        for col in range(indexOffset, cols + indexOffset):
+            res.append(operator.getCell(sheet, indexOffset + headerRow, col))
+        return res
+
+    @staticmethod
     def saveToExcel(fp, sheetName, keys: [], data: [{}]):
         if not keys or not data:
             LogUtil.e('saveToExcel', 'no data add to excel')

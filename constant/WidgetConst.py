@@ -25,6 +25,8 @@ KEY_DESC = 'desc'
 KEY_PRIMARY = 'primary'
 # 默认值
 KEY_DEFAULT = 'default'
+# 数据列表
+KEY_LIST = 'list'
 # tableView title
 KEY_TITLE = 'title'
 KEY_NAME = 'name'

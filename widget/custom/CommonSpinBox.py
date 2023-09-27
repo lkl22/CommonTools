@@ -27,7 +27,7 @@ class CommonSpinBox(ICommonWidget):
         pass
 
     def updateData(self, value):
-        self.__spinBox.setValue(value)
+        self.__spinBox.setValue(value if value else 0)
         pass
 
     def getData(self):

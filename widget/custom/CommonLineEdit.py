@@ -28,7 +28,7 @@ class CommonLineEdit(ICommonWidget):
         pass
 
     def updateData(self, text):
-        self.__lineEdit.setText(text)
+        self.__lineEdit.setText(text if text else '')
         pass
 
     def getData(self):
