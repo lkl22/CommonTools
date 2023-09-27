@@ -78,16 +78,11 @@ class AddOrEditResultMapDialog(QtWidgets.QDialog):
         pass
 
     def __acceptFunc(self):
+        isFunc = self.__funcCheckBox.isChecked()
         srcLog = self.__srcLogLineEdit.getData()
-        if not srcLog:
+        if not isFunc and not srcLog:
             WidgetUtil.showErrorDialog(message="请输入Log原始文字")
             return
-
-        if self.__isAdd or self.__default[KEY_SRC_LOG] != srcLog:
-            for item in self.__ruleList:
-                if srcLog == item[KEY_SRC_LOG]:
-                    WidgetUtil.showErrorDialog(message=f"请重新添加一个其他的Log原始文字，{srcLog}已经存在了，不能重复添加")
-                    return
 
         mapTxt = self.__mapTxtLineEdit.getData()
         if not mapTxt:
@@ -99,7 +94,7 @@ class AddOrEditResultMapDialog(QtWidgets.QDialog):
         self.__default[KEY_SRC_LOG] = srcLog
         self.__default[KEY_MAP_TXT] = mapTxt
         self.__default[KEY_IS_ENABLE] = self.__enableCheckBox.isChecked()
-        self.__default[KEY_IS_FUNCTION] = self.__funcCheckBox.isChecked()
+        self.__default[KEY_IS_FUNCTION] = isFunc
 
         self.__callback(self.__default if self.__isAdd else None)
         self.close()

@@ -70,11 +70,11 @@ class CategoryConfigWidget(QFrame):
                                                dataChanged=self.__configChanged)
         vbox.addWidget(self.__configComboBox)
 
-        self.analysisRuleTableView = CommonTableView(addBtnTxt="添加Log分析配置", headers=HEADERS,
-                                                     items=self.__ruleList,
-                                                     addOrEditItemFunc=self.addOrEditItemFunc)
+        self.__analysisRuleTableView = CommonTableView(addBtnTxt="添加Log分析配置", headers=HEADERS,
+                                                       items=self.__ruleList,
+                                                       addOrEditItemFunc=self.addOrEditItemFunc)
         self.__updateRuleTableView()
-        vbox.addWidget(self.analysisRuleTableView, 1)
+        vbox.addWidget(self.__analysisRuleTableView, 1)
         # self.setAutoFillBackground(True)
         # self.setStyleSheet("CategoryConfigWidget{border:1px solid rgb(0,0,255)}")
         pass
@@ -120,6 +120,10 @@ class CategoryConfigWidget(QFrame):
         if deleteData:
             ListUtil.remove(self.__typeList, ListUtil.find(self.__typeList, KEY_NAME, deleteData))
         self.__defaultType = ListUtil.find(self.__typeList, KEY_NAME, config)
+        if not self.__defaultType and not deleteData:
+            # 添加新的配置
+            self.__defaultType = {KEY_NAME: config, KEY_ANALYSIS_RULES: []}
+            self.__typeList.append(self.__defaultType)
         self.__ruleList = copy.deepcopy(DictUtil.get(self.__defaultType, KEY_ANALYSIS_RULES, []))
         self.__updateRuleTableView()
         pass
@@ -139,11 +143,12 @@ class CategoryConfigWidget(QFrame):
         self.__categoryRuleInfo[KEY_FILE_PATH] = logFilePath
         self.__categoryRuleInfo[KEY_DATETIME_FORMAT_RULE] = datetimeFormatRule
         self.__categoryRuleInfo[KEY_DEFAULT_TYPE] = DictUtil.get(self.__defaultType, KEY_NAME, '')
+        self.__defaultType[KEY_ANALYSIS_RULES] = self.__analysisRuleTableView.getData()
         self.__categoryRuleInfo[KEY_TYPE_LIST] = self.__typeList
         return self.__categoryRuleInfo
 
     def __updateRuleTableView(self):
-        self.analysisRuleTableView.updateData(self.__ruleList)
+        self.__analysisRuleTableView.updateData(self.__ruleList)
         pass
 
     def addOrEditItemFunc(self, callback, default, items):
