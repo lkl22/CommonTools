@@ -5,9 +5,11 @@
 import copy
 from PyQt5.QtWidgets import QFrame
 from util.DictUtil import DictUtil
+from util.ListUtil import ListUtil
 from util.WidgetUtil import *
 from widget.analysis.AddOrEditAnalysisCfgDialog import AddOrEditAnalysisCfgDialog
 from widget.analysis.LogAnalysisManager import *
+from widget.custom.CommonComboBox import CommonComboBox
 from widget.custom.CommonDateTimeFormatEdit import CommonDateTimeFormatEdit
 from widget.custom.CommonTableView import CommonTableView
 from widget.custom.DragInputWidget import DragInputWidget
@@ -34,6 +36,8 @@ class CategoryConfigWidget(QFrame):
         self.__ruleList = []
         self.__logFilePath = None
         self.__datetimeFormatRule = None
+        self.__defaultType = {}
+        self.__typeList = []
         self.__isDebug = isDebug
 
         widgetLayout = WidgetUtil.createVBoxLayout()
@@ -60,6 +64,11 @@ class CategoryConfigWidget(QFrame):
                                                              labelMinSize=labelMinSize,
                                                              toolTip="请输入匹配Log文件名里的日期格式（例如：MM-dd_HH:mm:ss.SSS）")
         vbox.addWidget(self.__datetimeFormatEdit)
+
+        self.__configComboBox = CommonComboBox(label='选择分析类型',
+                                               isEditable=True, maxWidth=int(WidgetUtil.getScreenWidth() * 0.5),
+                                               dataChanged=self.__configChanged)
+        vbox.addWidget(self.__configComboBox)
 
         self.analysisRuleTableView = CommonTableView(addBtnTxt="添加Log分析配置", headers=HEADERS,
                                                      items=self.__ruleList,
@@ -92,7 +101,26 @@ class CategoryConfigWidget(QFrame):
         self.__datetimeFormatRule = DictUtil.get(self.__categoryRuleInfo, KEY_DATETIME_FORMAT_RULE, 0)
         self.__datetimeFormatEdit.updateData(self.__datetimeFormatRule)
 
-        self.__ruleList = copy.deepcopy(DictUtil.get(self.__categoryRuleInfo, KEY_ANALYSIS_RULES, []))
+        self.__typeList = DictUtil.get(self.__categoryRuleInfo, KEY_TYPE_LIST, [])
+        defaultTypeName = DictUtil.get(self.__categoryRuleInfo, KEY_DEFAULT_TYPE, '')
+        self.__defaultType = {}
+        if self.__typeList:
+            self.__defaultType = ListUtil.find(self.__typeList, KEY_NAME, defaultTypeName)
+            if not self.__defaultType:
+                self.__defaultType = self.__typeList[0]
+        self.__configComboBox.updateData(DictUtil.get(self.__defaultType, KEY_NAME, ''),
+                                         [item[KEY_NAME] for item in self.__typeList])
+
+        self.__ruleList = copy.deepcopy(DictUtil.get(self.__defaultType, KEY_ANALYSIS_RULES, []))
+        self.__updateRuleTableView()
+        pass
+
+    def __configChanged(self, config, deleteData):
+        LogUtil.d(TAG, '__configChanged cur data', config, 'delete data', deleteData)
+        if deleteData:
+            ListUtil.remove(self.__typeList, ListUtil.find(self.__typeList, KEY_NAME, deleteData))
+        self.__defaultType = ListUtil.find(self.__typeList, KEY_NAME, config)
+        self.__ruleList = copy.deepcopy(DictUtil.get(self.__defaultType, KEY_ANALYSIS_RULES, []))
         self.__updateRuleTableView()
         pass
 
@@ -110,7 +138,8 @@ class CategoryConfigWidget(QFrame):
             return None
         self.__categoryRuleInfo[KEY_FILE_PATH] = logFilePath
         self.__categoryRuleInfo[KEY_DATETIME_FORMAT_RULE] = datetimeFormatRule
-        self.__categoryRuleInfo[KEY_ANALYSIS_RULES] = self.__ruleList
+        self.__categoryRuleInfo[KEY_DEFAULT_TYPE] = DictUtil.get(self.__defaultType, KEY_NAME, '')
+        self.__categoryRuleInfo[KEY_TYPE_LIST] = self.__typeList
         return self.__categoryRuleInfo
 
     def __updateRuleTableView(self):

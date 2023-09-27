@@ -37,7 +37,7 @@ class CommonDateTimeFormatEdit(ICommonWidget):
     def __updateUi(self):
         self.__formatLineEdit.updateData(DictUtil.get(self.__value, KEY_DATETIME_FORMAT))
         self.__startIndexSpinBox.updateData(DictUtil.get(self.__value, KEY_START_INDEX, 0))
-        self.adjustSize()
+        # self.adjustSize()
         pass
 
     def updateData(self, value):

@@ -134,7 +134,8 @@ class LogAnalysisWindow(QMainWindow):
             srcFile = open(self.categoryRule[KEY_FILE_PATH], 'rb')
             timeIndex = self.categoryRule[KEY_DATETIME_FORMAT_RULE][KEY_START_INDEX]
             timeFormat = self.categoryRule[KEY_DATETIME_FORMAT_RULE][KEY_DATETIME_FORMAT]
-            ruleList = ListUtil.filter(self.categoryRule[KEY_ANALYSIS_RULES], KEY_IS_ENABLE, True,
+            typeInfo = ListUtil.find(self.categoryRule[KEY_TYPE_LIST], KEY_NAME, self.categoryRule[KEY_DEFAULT_TYPE])
+            ruleList = ListUtil.filter(typeInfo[KEY_ANALYSIS_RULES], KEY_IS_ENABLE, True,
                                        DEFAULT_VALUE_IS_ENABLE)
             line = StrUtil.decode(srcFile.readline())
             while line:

@@ -155,6 +155,6 @@ if __name__ == "__main__":
     #     {KEY_SHOW_TEXT: 'blue'}, {}
     # ], isEditable=True, toolTip='请选择需要的颜色', dataChanged=lambda data: LogUtil.d(TAG, data))
     e = CommonComboBox(label='选择颜色：', default='', groupList=[], isEditable=True, toolTip='请选择需要的颜色',
-                       dataChanged=lambda data: LogUtil.d(TAG, 'callback', data))
+                       dataChanged=lambda data, deleteData: LogUtil.d(TAG, 'callback', data, deleteData))
     e.show()
     sys.exit(app.exec_())

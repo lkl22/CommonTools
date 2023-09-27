@@ -40,7 +40,7 @@ class CommonDateTimeRangeEdit(ICommonWidget):
         self.__dateTimeEdit.setDateTime(QDateTime.fromString(DictUtil.get(self.__value, KEY_DATETIME), DATETIME_FORMAT))
         self.__beforeSpinBox.setValue(DictUtil.get(self.__value, KEY_BEFORE, 0))
         self.__afterSpinBox.setValue(DictUtil.get(self.__value, KEY_AFTER, 0))
-        self.adjustSize()
+        # self.adjustSize()
         pass
 
     def updateData(self, value):
