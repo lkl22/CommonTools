@@ -35,9 +35,12 @@ KEY_SRC_HEADER_ROW = 'srcHeaderRow'
 KEY_SRC_HEADERS = 'srcHeaders'
 # 选择的header
 KEY_SRC_SELECT_HEADER = 'srcSelectHeader'
+# 过滤规则
+KEY_SRC_FILTER_RULES = 'srcFilterRules'
 
 # 目标Excel文件存储路径
 KEY_DST_DP = 'dstDp'
+KEY_DST_EXCEL_NAME = 'dstExcelName'
 KEY_DST_SHEET_NAME = 'dstSheetName'
 KEY_DST_HEADER_ROW = 'dstHeaderRow'
 
@@ -67,12 +70,15 @@ class ExcelTransformDialog(QtWidgets.QDialog):
 
         self.__asyncFuncManager = AsyncFuncManager()
 
-        vbox = WidgetUtil.createVBoxLayout(self, margins=QMargins(10, 10, 10, 10), spacing=10)
+        vLayout = WidgetUtil.createVBoxLayout(self, margins=QMargins(10, 10, 10, 10), spacing=10)
         self.__configComboBox = CommonComboBox(label='选择配置', default=self.__defaultConfigName,
                                                groupList=DictUtil.get(self.__configs, KEY_LIST, []),
                                                isEditable=True, dataChanged=self.__configChanged)
-        vbox.addWidget(self.__configComboBox)
+        vLayout.addWidget(self.__configComboBox)
         labelMinSize = QSize(120, 0)
+
+        box = WidgetUtil.createGroupBox(self, title="源Excel相关配置")
+        vbox = WidgetUtil.createVBoxLayout(box, margins=QMargins(10, 10, 10, 10))
         self.__srcFpWidget = DragInputWidget(label='请选择源Excel文件',
                                              fileParam={KEY_CAPTION: '选择源Excel文件', KEY_FILTER: '*.xls;*.xlsx'},
                                              labelMinSize=labelMinSize)
@@ -91,7 +97,34 @@ class ExcelTransformDialog(QtWidgets.QDialog):
                                                           buttonClicked=self.__srcSelectHeaderChanged)
         vbox.addWidget(self.__srcSelectHeaderCheckBoxs)
 
-        vbox.addItem(WidgetUtil.createVSpacerItem())
+        hbox = WidgetUtil.createHBoxLayout(spacing=10)
+        self.__primaryKeyComboBox = CommonComboBox(label='选择主键', dataChanged=self.__primaryKeyChanged)
+        hbox.addWidget(self.__primaryKeyComboBox)
+
+        self.__srcFilterRulesEdit = CommonLineEdit(label='过滤规则',
+                                                   toolTip='输入Excel过滤规则。格式如下：{"title1": [value1, value2, value3], "title2": [value1, value2, value3]}')
+        hbox.addWidget(self.__srcFilterRulesEdit, 1)
+        vbox.addLayout(hbox)
+        vLayout.addWidget(box)
+
+        box = WidgetUtil.createGroupBox(self, title="目标Excel相关配置")
+        vbox = WidgetUtil.createVBoxLayout(box, margins=QMargins(10, 10, 10, 10))
+        self.__dstDpWidget = DragInputWidget(label='请选择目标Excel文件存放路径',
+                                             dirParam={KEY_CAPTION: '请选择目标Excel文件存放路径'},
+                                             labelMinSize=labelMinSize)
+        vbox.addWidget(self.__dstDpWidget)
+
+        splitter = WidgetUtil.createSplitter(self)
+        self.__dstExcelNameWidget = CommonLineEdit(label='Excel文件名')
+        splitter.addWidget(self.__dstExcelNameWidget)
+        self.__dstSheetNameWidget = CommonLineEdit(label='表名')
+        splitter.addWidget(self.__dstSheetNameWidget)
+        self.__dstHeaderRowWidget = CommonSpinBox(label='Title行', minValue=1, maxValue=10, prefix='第 ', suffix=' 行')
+        splitter.addWidget(self.__dstHeaderRowWidget)
+        vbox.addWidget(splitter)
+        vLayout.addWidget(box)
+
+        vLayout.addItem(WidgetUtil.createVSpacerItem())
         self.__updateUi()
         # self.setWindowModality(Qt.ApplicationModal)
         # 很关键，不加出不来
@@ -115,8 +148,11 @@ class ExcelTransformDialog(QtWidgets.QDialog):
         srcHeaderRow = DictUtil.get(self.__config, KEY_SRC_HEADER_ROW, 1)
         srcHeaders = DictUtil.get(self.__config, KEY_SRC_HEADERS, [])
         srcSelectHeader = DictUtil.get(self.__config, KEY_SRC_SELECT_HEADER, [])
+        srcPrimaryKey = DictUtil.get(self.__config, KEY_PRIMARY, '')
+        srcFilterRules = DictUtil.get(self.__config, KEY_SRC_FILTER_RULES, {})
 
         dstDp = DictUtil.get(self.__config, KEY_DST_DP)
+        dstExcelName = DictUtil.get(self.__config, KEY_DST_EXCEL_NAME)
         dstSheetName = DictUtil.get(self.__config, KEY_DST_SHEET_NAME)
         dstHeaderRow = DictUtil.get(self.__config, KEY_DST_HEADER_ROW)
 
@@ -124,6 +160,13 @@ class ExcelTransformDialog(QtWidgets.QDialog):
         self.__srcSheetNameWidget.updateData(srcSheetName)
         self.__srcHeaderRowWidget.updateData(srcHeaderRow)
         self.__srcSelectHeaderCheckBoxs.updateData(groupList=srcHeaders, defaultValue=srcSelectHeader)
+        self.__primaryKeyComboBox.updateData(default=srcPrimaryKey, groupList=['', *srcHeaders])
+        self.__srcFilterRulesEdit.updateData(srcFilterRules)
+
+        self.__dstDpWidget.updateData(dstDp)
+        self.__dstExcelNameWidget.updateData(dstExcelName)
+        self.__dstSheetNameWidget.updateData(dstSheetName)
+        self.__dstHeaderRowWidget.updateData(dstHeaderRow)
         pass
 
     def __getSrcHeader(self):
@@ -137,12 +180,19 @@ class ExcelTransformDialog(QtWidgets.QDialog):
             return
         LogUtil.d(TAG, '__getSrcHeader', res)
         srcSelectHeader = DictUtil.get(self.__config, KEY_SRC_SELECT_HEADER, [])
+        primaryKey = DictUtil.get(self.__config, KEY_PRIMARY, '')
         self.__config[KEY_SRC_HEADERS] = res
         self.__srcSelectHeaderCheckBoxs.updateData(groupList=res, defaultValue=srcSelectHeader)
+        self.__primaryKeyComboBox.updateData(default=primaryKey, groupList=['', *res])
         pass
 
     def __srcSelectHeaderChanged(self, data):
         self.__config[KEY_SRC_SELECT_HEADER] = data
+        self.__saveConfigs()
+        pass
+
+    def __primaryKeyChanged(self, curData, deleteData):
+        self.__config[KEY_PRIMARY] = curData
         self.__saveConfigs()
         pass
 
@@ -171,7 +221,14 @@ class ExcelTransformDialog(QtWidgets.QDialog):
             KEY_SRC_SHEET_NAME: self.__srcSheetNameWidget.getData(),
             KEY_SRC_HEADER_ROW: self.__srcHeaderRowWidget.getData(),
             KEY_SRC_HEADERS: self.__srcSelectHeaderCheckBoxs.getGroupData(),
-            KEY_SRC_SELECT_HEADER: self.__srcSelectHeaderCheckBoxs.getData()
+            KEY_SRC_SELECT_HEADER: self.__srcSelectHeaderCheckBoxs.getData(),
+            KEY_PRIMARY: self.__primaryKeyComboBox.getData(),
+            KEY_SRC_FILTER_RULES: self.__srcFilterRulesEdit.getData(),
+
+            KEY_DST_DP: self.__dstDpWidget.getData(),
+            KEY_DST_EXCEL_NAME: self.__dstExcelNameWidget.getData(),
+            KEY_DST_SHEET_NAME: self.__dstSheetNameWidget.getData(),
+            KEY_DST_HEADER_ROW: self.__dstHeaderRowWidget.getData(),
         }
         self.__operaIni.addItem(KEY_SECTION, MD5Util.md5(configDatas[KEY_DEFAULT]),
                                 JsonUtil.encode(configData, ensureAscii=False))

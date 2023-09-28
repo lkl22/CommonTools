@@ -34,6 +34,7 @@ class CommonComboBox(ICommonWidget):
         self.__default = ''
         self.__curIndex = -1
         self.__dataChanged = dataChanged
+        self.__isEditable = isEditable
 
         hBox = WidgetUtil.createHBoxLayout(self, margins=QMargins(5, 5, 5, 5), spacing=10)
         hBox.addWidget(WidgetUtil.createLabel(self, text=label))
@@ -69,7 +70,7 @@ class CommonComboBox(ICommonWidget):
             data = DictUtil.get(item, KEY_DATA, DictUtil.get(item, KEY_SHOW_TEXT))
             if self.__default == data:
                 curIndex = index
-        if not self.__groupList:
+        if not self.__groupList and self.__isEditable:
             self.__deleteBtn.setEnabled(False)
         self.__curIndex = curIndex
         self.__comboBox.setCurrentIndex(curIndex)
