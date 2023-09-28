@@ -11,10 +11,10 @@ TAG = 'CommonCheckBoxs'
 
 
 class CommonCheckBoxs(ICommonWidget):
-    def __init__(self, label: str, groupList: list[dict or str], defaultValue=None, buttonClicked=None, maxCount=12,
-                 spacing=30, toolTip=None):
+    def __init__(self, label: str, groupList: list[dict or str] = [], defaultValue=None, buttonClicked=None,
+                 maxCount=12, spacing=30, toolTip=None):
         """
-        创建通用的单选按钮选项组件
+        创建通用的复选按钮选项组件
         :param label: 选项描述文本
         :param groupList: 选项列表
         :param defaultValue: 默认选中选项的文本
@@ -24,6 +24,7 @@ class CommonCheckBoxs(ICommonWidget):
         :param toolTip: toolTip
         """
         super(CommonCheckBoxs, self).__init__()
+        self.__originalGroupList = []
         self.__groupList = []
         self.__defaultValue = []
         self.__buttonClicked = buttonClicked
@@ -84,8 +85,11 @@ class CommonCheckBoxs(ICommonWidget):
         self.adjustSize()
         pass
 
-    def updateData(self, groupList: list[dict or str], defaultValue=None):
-        if type(groupList[0]) == str:
+    def updateData(self, groupList: list[dict or str] = [], defaultValue=None):
+        self.__originalGroupList = groupList
+        if not groupList:
+            self.__groupList = []
+        elif type(groupList[0]) == str:
             self.__groupList = [{KEY_SHOW_TEXT: item} for item in groupList]
         else:
             self.__groupList = groupList
@@ -97,6 +101,9 @@ class CommonCheckBoxs(ICommonWidget):
 
     def getData(self):
         return self.__defaultValue
+
+    def getGroupData(self):
+        return self.__originalGroupList
 
 
 if __name__ == "__main__":

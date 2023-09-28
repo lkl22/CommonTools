@@ -15,6 +15,7 @@ from util.LogUtil import *
 from util.MD5Util import MD5Util
 from util.OperaIni import OperaIni
 from util.excel.ExcelOperator import ExcelOperator
+from widget.custom.CommonCheckBoxs import CommonCheckBoxs
 from widget.custom.CommonComboBox import CommonComboBox
 from widget.custom.CommonLineEdit import CommonLineEdit
 from widget.custom.CommonSpinBox import CommonSpinBox
@@ -30,6 +31,8 @@ KEY_SRC_FP = 'srcFp'
 KEY_SRC_SHEET_NAME = 'srcSheetName'
 # 表格header所在的行，默认从1开始
 KEY_SRC_HEADER_ROW = 'srcHeaderRow'
+# header数据
+KEY_SRC_HEADERS = 'srcHeaders'
 # 选择的header
 KEY_SRC_SELECT_HEADER = 'srcSelectHeader'
 
@@ -84,6 +87,10 @@ class ExcelTransformDialog(QtWidgets.QDialog):
                                                        onClicked=self.__getSrcHeader))
         vbox.addWidget(splitter)
 
+        self.__srcSelectHeaderCheckBoxs = CommonCheckBoxs(label='选择需要提取数据的Title',
+                                                          buttonClicked=self.__srcSelectHeaderChanged)
+        vbox.addWidget(self.__srcSelectHeaderCheckBoxs)
+
         vbox.addItem(WidgetUtil.createVSpacerItem())
         self.__updateUi()
         # self.setWindowModality(Qt.ApplicationModal)
@@ -106,6 +113,7 @@ class ExcelTransformDialog(QtWidgets.QDialog):
         srcFp = DictUtil.get(self.__config, KEY_SRC_FP)
         srcSheetName = DictUtil.get(self.__config, KEY_SRC_SHEET_NAME)
         srcHeaderRow = DictUtil.get(self.__config, KEY_SRC_HEADER_ROW, 1)
+        srcHeaders = DictUtil.get(self.__config, KEY_SRC_HEADERS, [])
         srcSelectHeader = DictUtil.get(self.__config, KEY_SRC_SELECT_HEADER, [])
 
         dstDp = DictUtil.get(self.__config, KEY_DST_DP)
@@ -115,6 +123,7 @@ class ExcelTransformDialog(QtWidgets.QDialog):
         self.__srcFpWidget.updateData(srcFp)
         self.__srcSheetNameWidget.updateData(srcSheetName)
         self.__srcHeaderRowWidget.updateData(srcHeaderRow)
+        self.__srcSelectHeaderCheckBoxs.updateData(groupList=srcHeaders, defaultValue=srcSelectHeader)
         pass
 
     def __getSrcHeader(self):
@@ -127,6 +136,14 @@ class ExcelTransformDialog(QtWidgets.QDialog):
             WidgetUtil.showErrorDialog(message=f"配置不正确。（{res}）")
             return
         LogUtil.d(TAG, '__getSrcHeader', res)
+        srcSelectHeader = DictUtil.get(self.__config, KEY_SRC_SELECT_HEADER, [])
+        self.__config[KEY_SRC_HEADERS] = res
+        self.__srcSelectHeaderCheckBoxs.updateData(groupList=res, defaultValue=srcSelectHeader)
+        pass
+
+    def __srcSelectHeaderChanged(self, data):
+        self.__config[KEY_SRC_SELECT_HEADER] = data
+        self.__saveConfigs()
         pass
 
     def __checkSrcConfig(self):
@@ -152,7 +169,9 @@ class ExcelTransformDialog(QtWidgets.QDialog):
         configData = {
             KEY_SRC_FP: self.__srcFpWidget.getData(),
             KEY_SRC_SHEET_NAME: self.__srcSheetNameWidget.getData(),
-            KEY_SRC_HEADER_ROW: self.__srcHeaderRowWidget.getData()
+            KEY_SRC_HEADER_ROW: self.__srcHeaderRowWidget.getData(),
+            KEY_SRC_HEADERS: self.__srcSelectHeaderCheckBoxs.getGroupData(),
+            KEY_SRC_SELECT_HEADER: self.__srcSelectHeaderCheckBoxs.getData()
         }
         self.__operaIni.addItem(KEY_SECTION, MD5Util.md5(configDatas[KEY_DEFAULT]),
                                 JsonUtil.encode(configData, ensureAscii=False))
