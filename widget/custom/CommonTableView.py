@@ -164,7 +164,7 @@ class CommonTableView(ICommonWidget):
         pass
 
     def updateData(self, items):
-        self.__items = items
+        self.__items = items if items else []
         self.__updateTableView()
         pass
 

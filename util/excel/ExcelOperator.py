@@ -97,15 +97,17 @@ class ExcelOperator:
         else:
             LogUtil.e('saveToExcel', 'not support file ext: ', fileExt)
             return None
+        bk = operator.createBook()
+        sheet = operator.addSheet(bk, sheetName)
+
         keyMap = {}
         for index, key in enumerate(keys):
             keyMap[key] = index + indexOffset
-        bk = operator.createBook()
-        sheet = operator.addSheet(bk, sheetName)
+            operator.writeSheet(sheet, indexOffset, index + indexOffset, key)
         for row, rowItem in enumerate(data):
             for key, item in rowItem.items():
                 if key in keyMap:
-                    operator.writeSheet(sheet, row + indexOffset, keyMap[key], DictUtil.get(item, KEY_VALUE, ''),
+                    operator.writeSheet(sheet, row + indexOffset + 1, keyMap[key], DictUtil.get(item, KEY_VALUE, ''),
                                         DictUtil.get(item, KEY_FORMAT, None))
         operator.saveBook(bk, fp)
         return True
