@@ -68,6 +68,7 @@ class ExtractMergeLogDialog(QtWidgets.QDialog):
         vbox.addWidget(self.__logFileRegEdit)
 
         self.__dateTimeRangeEdit = CommonDateTimeRangeEdit(label='提取Log日期范围', value=self.__datetimeRange,
+                                                           maxOffsetValue=900,
                                                            labelMinSize=labelMinSize)
         vbox.addWidget(self.__dateTimeRangeEdit)
 

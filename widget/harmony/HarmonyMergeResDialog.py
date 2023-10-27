@@ -53,6 +53,7 @@ class HarmonyMergeResDialog(QtWidgets.QDialog):
         self.__operaIni = OperaIni()
         self.__srcFilePath = self.__operaIni.getValue(KEY_SRC_FILE_PATH, KEY_SECTION)
         self.__dstFilePath = self.__operaIni.getValue(KEY_DST_FILE_PATH, KEY_SECTION)
+        self.__duplicateResources = []
         self.__asyncFuncManager = AsyncFuncManager()
 
         vLayout = WidgetUtil.createVBoxLayout(self, margins=QMargins(10, 10, 10, 10), spacing=10)
@@ -125,6 +126,7 @@ class HarmonyMergeResDialog(QtWidgets.QDialog):
             self.__mergeHarmonyRes(srcFileDirPath, dstFileDirPath, 'float')
         if resType == RES_TYPE_LIST[0] or resType == RES_TYPE_LIST[4]:
             self.__mergeMediaRes(srcFileDirPath, dstFileDirPath)
+        LogUtil.e(TAG, f'duplicate resources: {JsonUtil.encode(self.__duplicateResources)}')
         self.__asyncFuncManager.hideLoading()
         pass
 
@@ -142,7 +144,9 @@ class HarmonyMergeResDialog(QtWidgets.QDialog):
         for (key, value) in res.items():
             temp = {}
             for data in value:
-                temp[data['name']] = data
+                if data[KEY_NAME] in temp:
+                    self.__duplicateResources.append({KEY_NAME: data[KEY_NAME], 'language': key, 'resType': resType})
+                temp[data[KEY_NAME]] = data
             value = [item for item in temp.values()]
             dstFp = os.path.join(dstFileDirPath, 'resources', DictUtil.get(EXCHANGE_KEY, key, key), 'element',
                                  f'{resType}.json')
