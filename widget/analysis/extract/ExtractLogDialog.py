@@ -45,7 +45,6 @@ class ExtractLogDialog(QtWidgets.QDialog):
         self.__dstLogFilePath = self.__operaIni.getValue(KEY_DST_LOG_FILE_PATH, KEY_SECTION)
         self.__datetimeRange = JsonUtil.decode(self.__operaIni.getValue(KEY_DATETIME_RANGE, KEY_SECTION))
         self.__datetimeFormatRule = JsonUtil.decode(self.__operaIni.getValue(KEY_DATETIME_FORMAT_RULE, KEY_SECTION))
-        self.__validTimeFormat = None
         self.__datetimeIndex = None
         self.__datetimeFormat = None
         self.__dstFp = None
@@ -140,8 +139,6 @@ class ExtractLogDialog(QtWidgets.QDialog):
         LogUtil.d(TAG, '__execExtractLog start.', srcFp, dstFp, datetimeRange, datetimeFormat)
         self.__datetimeIndex = datetimeFormat[KEY_START_INDEX]
         self.__datetimeFormat = datetimeFormat[KEY_DATETIME_FORMAT]
-        self.__validTimeFormat = self.__datetimeFormat.replace('yyyy', '%Y').replace('MM', '%m'). \
-            replace('dd', '%d').replace('HH', '%H').replace('mm', '%M').replace('ss', '%S')
 
         startTime, endTime = self.__dateTimeRangeEdit.getDateRange()
         self.__dstFp = os.path.join(dstFp, startTime.toString('yyyyMMddHHmmss'))
@@ -181,7 +178,7 @@ class ExtractLogDialog(QtWidgets.QDialog):
     def __getDatetime(self, line):
         try:
             timeStr = line[self.__datetimeIndex: self.__datetimeIndex + len(self.__datetimeFormat)]
-            if DateUtil.isValidDate(timeStr, self.__validTimeFormat):
+            if DateUtil.isValidDate(timeStr, self.__datetimeFormat, True):
                 return QDateTime.fromString(timeStr, self.__datetimeFormat)
         except Exception as err:
             LogUtil.e(TAG, '__getDatetime 错误信息：', err)

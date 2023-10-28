@@ -5,6 +5,8 @@
 import os.path
 import threading
 from PyQt5.QtCore import pyqtSignal
+
+from util.DateUtil import DateUtil
 from util.DialogUtil import *
 from util.DictUtil import DictUtil
 from util.OperaIni import *
@@ -15,8 +17,6 @@ from widget.custom.DragInputWidget import DragInputWidget
 from widget.custom.LoadingDialog import LoadingDialog
 
 TAG = "ExtractMergeLogDialog"
-
-DATETIME_FORMAT = 'yyyy-MM-dd HH:mm:ss'
 
 KEY_SECTION = 'ExtractMergeLog'
 KEY_EXTRACT_LOG_FILE_PATH = 'extractLogFilePath'
@@ -59,6 +59,7 @@ class ExtractMergeLogDialog(QtWidgets.QDialog):
                                                   text=self.__extractLogFP,
                                                   dirParam={KEY_CAPTION: '日志文件所在路径'},
                                                   labelMinSize=labelMinSize,
+                                                  textChanged=self.__logDirChanged,
                                                   toolTip='日志文件所在路径')
         vbox.addWidget(self.__logDirPathWidget)
 
@@ -105,6 +106,32 @@ class ExtractMergeLogDialog(QtWidgets.QDialog):
         elif fp:
             dirPath, _ = os.path.split(fp)
             FileUtil.openFile(dirPath)
+        pass
+
+    def __logDirChanged(self, logDir):
+        LogUtil.d(TAG, '__logDirChanged', logDir)
+        self.__extractLogFileReg = self.__logFileRegEdit.getData()
+        self.__datetimeFormatRule = self.__datetimeFormatEdit.getData()
+        if not self.__extractLogFileReg or not self.__datetimeFormatRule:
+            return
+        srcFiles = FileUtil.findFilePathList(logDir, [self.__extractLogFileReg],
+                                             ['.*/tmp/.*', '.*/tmp1/.*'])
+        LogUtil.d(TAG, '__logDirChanged find files: ', srcFiles)
+        datetimeIndex = self.__datetimeFormatRule[KEY_START_INDEX]
+        datetimeFormat = self.__datetimeFormatRule[KEY_DATETIME_FORMAT]
+        times = []
+        for zipFile in srcFiles:
+            _, fn = os.path.split(zipFile)
+            time = fn[datetimeIndex: datetimeIndex + len(datetimeFormat)]
+            if DateUtil.isValidDate(time, datetimeFormat, True):
+                times.append(time)
+        if not times:
+            LogUtil.d(TAG, '__logDirChanged have not valid file.')
+            return
+        lastTime = sorted(times)[-1]
+        lastTime = DateUtil.reFormat(lastTime, datetimeFormat, DATETIME_FORMAT, True)
+        LogUtil.d(TAG, '__logDirChanged last file: ', lastTime)
+        self.__dateTimeRangeEdit.updateData(DictUtil.join([self.__dateTimeRangeEdit.getData(), {KEY_DATETIME: lastTime}]))
         pass
 
     def __extractLog(self, isClosed=False):

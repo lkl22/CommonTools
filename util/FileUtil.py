@@ -32,12 +32,12 @@ class FileUtil:
         for fn in fileNames:
             fp = os.path.join(dirPath, fn).replace("\\", "/")
             if os.path.isfile(fp):
-                if len(findPatterns) > 0 and not ReUtil.matchMore(fp, findPatterns):
+                if len(findPatterns) > 0 and not ReUtil.matchMore(fn, findPatterns):
                     LogUtil.i(TAG, f"findFilePathList {fp} not in {findPatterns}")
                     continue
                 L.append(fp)
             else:
-                if len(excludeDirPatterns) > 0 and ReUtil.matchMore(fp + "/", excludeDirPatterns):
+                if len(excludeDirPatterns) > 0 and ReUtil.matchMore(f'/{fn}/', excludeDirPatterns):
                     LogUtil.i(TAG, f"findFilePathList {fp} in {excludeDirPatterns}")
                     continue
                 L += FileUtil.findFilePathList(fp, findPatterns, excludeDirPatterns)

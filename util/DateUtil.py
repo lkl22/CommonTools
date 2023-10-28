@@ -43,15 +43,18 @@ class DateUtil:
             return None
 
     @staticmethod
-    def isValidDate(timeStr, timeFormat=DATE_TIME):
+    def isValidDate(timeStr, timeFormat=DATE_TIME, needTransform=False):
         """
         判断str是不是有效的时间格式
         :param timeStr: 要判断的字符串
-        :param timeFormat: 时间格式
+        :param timeFormat: 时间格式 比如：%y-%m-%d %H:%M:%S
+        :param needTransform: True 需要转换格式，yyyy-MM-dd HH:mm:ss -> %y-%m-%d %H:%M:%S
         :return: True 正确的时间格式
         """
         try:
-            # 转换成时间数组
+            if needTransform:
+                timeFormat = DateUtil.__formatStringTransform(timeFormat)
+                # 转换成时间数组
             time.strptime(timeStr, timeFormat)
             return True
         except Exception as err:
@@ -59,18 +62,24 @@ class DateUtil:
             return False
 
     @staticmethod
-    def reFormat(timeStr, oldFormat=DATE_TIME, newFormat=DATE_TIME):
+    def reFormat(timeStr, oldFormat=DATE_TIME, newFormat=DATE_TIME, needTransform=False):
         """
         时间格式转化
         :param timeStr: 时间str
         :param oldFormat: 旧的时间格式
         :param newFormat: 新的时间格式
+        :param needTransform: True 需要转换格式，yyyy-MM-dd HH:mm:ss -> %y-%m-%d %H:%M:%S
         :return: 新格式化的时间
         """
         # 转换成时间数组
-        timeArray = time.strptime(timeStr, oldFormat)
+        timeArray = time.strptime(timeStr, DateUtil.__formatStringTransform(oldFormat) if needTransform else oldFormat)
         # 转换成新的时间格式
-        return time.strftime(newFormat, timeArray)
+        return time.strftime(DateUtil.__formatStringTransform(newFormat) if needTransform else newFormat, timeArray)
+
+    @staticmethod
+    def __formatStringTransform(oldFormat):
+        return oldFormat.replace('yyyy', '%Y').replace('MM', '%m'). \
+            replace('dd', '%d').replace('HH', '%H').replace('mm', '%M').replace('ss', '%S')
 
     @staticmethod
     def nowTimestamp(isMilliSecond=False):
@@ -133,4 +142,8 @@ if __name__ == "__main__":
     # print(DateUtil.timestampStr2Seconds("1578740129"))
 
     print(DateUtil.isValidDate("12-12 12:23:12", '%m-%d %H:%M:%S'))
+    print(DateUtil.isValidDate("12-12 12:23:12", 'MM-dd HH:mm:ss', True))
+
+    print(DateUtil.reFormat("12-12 12:23:12", '%m-%d %H:%M:%S', '%m%d%H%M%S'))
+    print(DateUtil.reFormat("12-12 12:23:12", 'MM-dd HH:mm:ss', 'MMddHHmmss', True))
     print(DateUtil.nowTimeMs())
