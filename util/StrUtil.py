@@ -2,6 +2,8 @@
 # python 3.x
 # Filename: StrUtil.py
 # 定义一个StrUtil工具类实现字符串操作相关的功能
+
+import re
 from util.LogUtil import *
 
 TAG = 'StrUtil'
@@ -64,13 +66,24 @@ class StrUtil:
             LogUtil.e(TAG, 'decode 错误信息：', e)
         return ''
 
+    @staticmethod
+    def camel2under(data: str):
+        return re.sub(r'(?!^)([A-Z]+)', r'_\1', data).upper()
+
+    @staticmethod
+    def under2camel(data):
+        return StrUtil.decapitalize(''.join([_.capitalize() for _ in data.split('_')]))
+
 
 if __name__ == "__main__":
-    LogUtil.d(StrUtil.capitalize("thank"))
-    LogUtil.d(StrUtil.decapitalize("THANK"))
+    # LogUtil.d(StrUtil.capitalize("thank"))
+    # LogUtil.d(StrUtil.decapitalize("THANK"))
+    #
+    # LogUtil.d(StrUtil.capitalize("t"))
+    # LogUtil.d(StrUtil.decapitalize("T"))
+    #
+    # LogUtil.d(StrUtil.capitalize(""))
+    # LogUtil.d(StrUtil.decapitalize(""))
 
-    LogUtil.d(StrUtil.capitalize("t"))
-    LogUtil.d(StrUtil.decapitalize("T"))
-
-    LogUtil.d(StrUtil.capitalize(""))
-    LogUtil.d(StrUtil.decapitalize(""))
+    LogUtil.d(StrUtil.camel2under("helloWordLi"))
+    LogUtil.d(StrUtil.under2camel("HELLO_WORD_LI"))
