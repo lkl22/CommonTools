@@ -16,13 +16,18 @@ TAG = 'CommonTextEdit'
 class CommonTextEdit(ICommonWidget):
     __standardOutputSignal = pyqtSignal(list)
 
-    def __init__(self, text: str = None, isReadOnly: bool = True, holderText: str = None, toolTip=None):
+    def __init__(self, title: str = None, text: str = None, isReadOnly: bool = True, holderText: str = None,
+                 toolTip=None, isShowCopyFunc=True):
         super(CommonTextEdit, self).__init__()
         vbox = WidgetUtil.createVBoxLayout(self, margins=QMargins(5, 5, 5, 5))
-        hbox = WidgetUtil.createHBoxLayout()
-        hbox.addWidget(WidgetUtil.createPushButton(self, text='Copy', onClicked=self.__copyData))
-        hbox.addItem(WidgetUtil.createHSpacerItem())
-        vbox.addLayout(hbox)
+        if isShowCopyFunc or title:
+            hbox = WidgetUtil.createHBoxLayout(spacing=10)
+            if title:
+                hbox.addWidget(WidgetUtil.createLabel(self, text=title))
+            if isShowCopyFunc:
+                hbox.addWidget(WidgetUtil.createPushButton(self, text='Copy', onClicked=self.__copyData))
+            hbox.addItem(WidgetUtil.createHSpacerItem())
+            vbox.addLayout(hbox)
         self.__textEdit = WidgetUtil.createTextEdit(self, text=text, isReadOnly=isReadOnly, holderText=holderText)
         vbox.addWidget(self.__textEdit, 1)
         self.__standardOutputSignal.connect(self.__standardOutput)
@@ -59,8 +64,10 @@ class CommonTextEdit(ICommonWidget):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    e = CommonTextEdit(text='ddd\ndddfffeef',
+    e = CommonTextEdit(title='',
+                       text='ddd\ndddfffeef',
                        isReadOnly=False,
-                       toolTip='dddddd')
+                       toolTip='dddddd',
+                       isShowCopyFunc=False)
     e.show()
     sys.exit(app.exec_())

@@ -105,6 +105,8 @@ a = Analysis(['RunMain.py',
               'widget/findFileContent/FindFileContentUtil.py',
               'widget/findFileContent/FindFileContentWindow.py',
 
+              'widget/frameworkTools/decisionTree/DecisionTreeCodeGenDialog.py',
+
               'widget/harmony/HarmonyMergeResDialog.py',
               'widget/harmony/HarmonyStrResDiffDialog.py',
 
