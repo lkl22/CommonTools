@@ -44,6 +44,7 @@ class LogAnalysisWindow(QMainWindow):
         self.loadingDialog = None
         self.categoryInfo = None
         self.costTimeResult = {}
+        self.spliceLogResult = {}
         self.execResult = []
 
         layoutWidget = QtWidgets.QWidget(self)
@@ -159,7 +160,59 @@ class LogAnalysisWindow(QMainWindow):
                 self.__analysisLogMap(line, rule)
                 self.execResult.append({KEY_LOG: '\n', KEY_COLOR: '#000'})
             self.__analysisCostTime(line, rule, timeIndex, timeFormat)
+            self.__spliceLog(line, rule)
         pass
+
+    def __spliceLog(self, line, rule):
+        if not DictUtil.get(rule, KEY_NEED_SPLICE_LOG, DEFAULT_VALUE_NEED_SPLICE_LOG):
+            return
+        spliceParams = DictUtil.get(rule, KEY_SPLICE_PARAMS)
+        if not spliceParams:
+            return
+        startKeyword = DictUtil.get(spliceParams, KEY_START_LOG_KEYWORD)
+        splitRe = DictUtil.get(spliceParams, KEY_SPLIT_RE)
+        if not startKeyword or not splitRe:
+            return
+        endKeyword = DictUtil.get(spliceParams, KEY_END_LOG_KEYWORD)
+        if startKeyword in line:
+            if endKeyword and endKeyword in line:
+                self.spliceLogResult[rule[KEY_NAME]] = [f"{line[line.index(startKeyword):line.index(endKeyword)]}{endKeyword}"]
+                self.__handleSpliceLog(rule, spliceParams)
+                return
+            if ReUtil.match(line, f'.*{splitRe}.*'):
+                self.spliceLogResult[rule[KEY_NAME]] = [re.split(splitRe, line)[1]]
+                return
+        if not DictUtil.get(self.spliceLogResult, rule[KEY_NAME]):
+            return
+        if endKeyword and endKeyword in line:
+            if ReUtil.match(line, f'.*{splitRe}.*'):
+                log = re.split(splitRe, line)[1]
+                if endKeyword in log:
+                    log = log[:log.index(endKeyword)] + endKeyword
+                self.spliceLogResult[rule[KEY_NAME]].append(log)
+            else:
+                self.spliceLogResult[rule[KEY_NAME]].append(line[:line.index(endKeyword)] + endKeyword)
+            self.__handleSpliceLog(rule, spliceParams)
+            return
+        elif ReUtil.match(line, f'.*{splitRe}.*'):
+            self.spliceLogResult[rule[KEY_NAME]].append(re.split(splitRe, line)[1])
+        else:
+            self.__handleSpliceLog(rule, spliceParams)
+        pass
+
+    def __handleSpliceLog(self, rule, spliceParams):
+        log = ''.join(self.spliceLogResult[rule[KEY_NAME]])
+        func = DictUtil.get(spliceParams, KEY_FUNCTION)
+        if func:
+            myLocals = {'text': log, 'res': ''}
+            execResult = EvalUtil.exec(func, locals=myLocals)
+            log = myLocals['res'] + (str(execResult) if execResult else '')
+        self.execResult.append(
+            {KEY_LOG: f"{rule[KEY_NAME]}: \n{log}\n\n",
+             KEY_COLOR: '#f0f'})
+        self.spliceLogResult[rule[KEY_NAME]] = []
+        pass
+
 
     def __analysisLogMap(self, line, rule):
         if not DictUtil.get(rule, KEY_NEED_LOG_MAP, DEFAULT_VALUE_NEED_LOG_MAP):
