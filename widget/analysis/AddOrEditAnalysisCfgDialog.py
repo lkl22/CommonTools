@@ -8,6 +8,7 @@ from util.DictUtil import DictUtil
 from util.OperaIni import *
 from widget.analysis.AddOrEditResultMapDialog import AddOrEditResultMapDialog
 from widget.analysis.LogAnalysisManager import *
+from widget.analysis.SpliceLogParamsWidget import SpliceLogParamsWidget
 from widget.custom.CommonLineEdit import CommonLineEdit
 from widget.custom.CommonTableView import CommonTableView
 
@@ -31,8 +32,10 @@ class AddOrEditAnalysisCfgDialog(QtWidgets.QDialog):
         self.__default = default
         isEnable = DictUtil.get(self.__default, KEY_IS_ENABLE, DEFAULT_VALUE_IS_ENABLE)
         needCostTime = DictUtil.get(self.__default, KEY_NEED_COST_TIME, DEFAULT_VALUE_NEED_COST_TIME)
+        needSpliceLog = DictUtil.get(self.__default, KEY_NEED_SPLICE_LOG, DEFAULT_VALUE_NEED_SPLICE_LOG)
         needLogMap = DictUtil.get(self.__default, KEY_NEED_LOG_MAP, DEFAULT_VALUE_NEED_LOG_MAP)
         self.__logMapRules = copy.deepcopy(DictUtil.get(self.__default, KEY_RESULT_MAP, []))
+        self.__logSpliceParams = DictUtil.get(self.__default, KEY_SPLICE_PARAMS, {})
 
         vLayout = WidgetUtil.createVBoxLayout(self, margins=QMargins(10, 10, 10, 10), spacing=10)
         self.setLayout(vLayout)
@@ -50,17 +53,32 @@ class AddOrEditAnalysisCfgDialog(QtWidgets.QDialog):
                                                    labelMinSize=labelMinSize, toolTip="日志关键字，用于从日志中筛选指定Log")
         vLayout.addWidget(self.__logKeywordLineEdit)
 
+        self.__costTimeCheckBox = WidgetUtil.createCheckBox(self, text="统计耗时",
+                                                            toolTip="默认不统计耗时，只打印日志",
+                                                            isChecked=needCostTime,
+                                                            clicked=self.__costTimeCheckChange)
+        vLayout.addWidget(self.__costTimeCheckBox)
+        self.__costTimeBox = WidgetUtil.createHBoxLayout()
+        vLayout.addLayout(self.__costTimeBox)
         self.__startLogKeywordLineEdit = CommonLineEdit(label='起始时间的日志关键字',
                                                         text=DictUtil.get(default, KEY_START_LOG_KEYWORD),
                                                         labelMinSize=labelMinSize, toolTip="起始时间日志关键字，用于从日志中筛选指定Log",
                                                         isEnable=needCostTime)
-        vLayout.addWidget(self.__startLogKeywordLineEdit)
+        self.__costTimeBox.addWidget(self.__startLogKeywordLineEdit)
 
         self.__endLogKeywordLineEdit = CommonLineEdit(label='结束时间的日志关键字',
                                                       text=DictUtil.get(default, KEY_END_LOG_KEYWORD),
                                                       labelMinSize=labelMinSize, toolTip="结束时间日志关键字，用于从日志中筛选指定Log",
                                                       isEnable=needCostTime)
-        vLayout.addWidget(self.__endLogKeywordLineEdit)
+        self.__costTimeBox.addWidget(self.__endLogKeywordLineEdit)
+
+        self.__spliceLogCheckBox = WidgetUtil.createCheckBox(self, text="查找处理日志",
+                                                             isChecked=needSpliceLog,
+                                                             clicked=self.__spliceLogCheckChange)
+        vLayout.addWidget(self.__spliceLogCheckBox)
+        self.__spliceLogParamsWidget = SpliceLogParamsWidget(value=self.__logSpliceParams, isEnable=needSpliceLog,
+                                                             toolTip="处理分行打印日志，通过起始关键字查找日志，可以根据关键拆分正则表达式决策是否继续拼接，或者根据结束关键字结束log拼接，拼接后结果可以按指定函数执行输出结果")
+        vLayout.addWidget(self.__spliceLogParamsWidget)
 
         self.__logMapTableView = CommonTableView(addBtnTxt="添加Log映射配置", headers=HEADERS,
                                                  items=self.__logMapRules,
@@ -72,15 +90,9 @@ class AddOrEditAnalysisCfgDialog(QtWidgets.QDialog):
                                                           toolTip="默认Enable，规则生效",
                                                           isChecked=isEnable)
         hBox.addWidget(self.__enableCheckBox)
-        self.__costTimeCheckBox = WidgetUtil.createCheckBox(self, text="统计耗时",
-                                                            toolTip="默认不统计耗时，只打印日志",
-                                                            isChecked=needCostTime,
-                                                            clicked=self.__costTimeCheckChange)
-        hBox.addWidget(self.__costTimeCheckBox)
         self.__logMapCheckBox = WidgetUtil.createCheckBox(self, text="结果映射",
                                                           toolTip="默认不对日志结果做映射",
-                                                          isChecked=needLogMap,
-                                                          clicked=self.__costTimeCheckChange)
+                                                          isChecked=needLogMap)
         hBox.addWidget(self.__logMapCheckBox)
         hBox.addItem(WidgetUtil.createHSpacerItem(1, 1))
         vLayout.addLayout(hBox)
@@ -115,6 +127,11 @@ class AddOrEditAnalysisCfgDialog(QtWidgets.QDialog):
         isCheck = self.__costTimeCheckBox.isChecked()
         self.__startLogKeywordLineEdit.setEnabled(isCheck)
         self.__endLogKeywordLineEdit.setEnabled(isCheck)
+        pass
+
+    def __spliceLogCheckChange(self):
+        isCheck = self.__spliceLogCheckBox.isChecked()
+        self.__spliceLogParamsWidget.setEnabled(isCheck)
         pass
 
     def __addOrEditItemFunc(self, callback, default, items):
@@ -155,9 +172,14 @@ class AddOrEditAnalysisCfgDialog(QtWidgets.QDialog):
         self.__default[KEY_DESC] = desc
         self.__default[KEY_LOG_KEYWORD] = logKeyword
         self.__default[KEY_IS_ENABLE] = self.__enableCheckBox.isChecked()
+
         self.__default[KEY_NEED_COST_TIME] = isChecked
         self.__default[KEY_START_LOG_KEYWORD] = startLogKeyword
         self.__default[KEY_END_LOG_KEYWORD] = endLogKeyword
+
+        self.__default[KEY_NEED_SPLICE_LOG] = self.__spliceLogCheckBox.isChecked()
+        self.__default[KEY_SPLICE_PARAMS] = self.__spliceLogParamsWidget.getData()
+
         self.__default[KEY_NEED_LOG_MAP] = self.__logMapCheckBox.isChecked()
         self.__default[KEY_RESULT_MAP] = self.__logMapTableView.getData()
 

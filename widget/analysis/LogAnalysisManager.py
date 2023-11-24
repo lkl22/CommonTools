@@ -32,6 +32,16 @@ KEY_MAP_TXT = 'mapTxt'
 KEY_START_LOG_KEYWORD = 'startLogKeyword'
 KEY_END_LOG_KEYWORD = 'endLogKeyword'
 
+KEY_NEED_SPLICE_LOG = "needSpliceLog"
+DEFAULT_VALUE_NEED_SPLICE_LOG = False
+
+# 拼接日志相关参数
+KEY_SPLICE_PARAMS = 'spliceLogParams'
+# 拆分行日志正则表达式
+KEY_SPLIT_RE = 'spliceLogParams'
+# 处理函数
+KEY_FUNCTION = 'function'
+
 KEY_IS_CONTAIN = "isContain"
 DEFAULT_VALUE_IS_CONTAIN = True
 
