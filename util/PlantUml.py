@@ -13,6 +13,8 @@ from zlib import compress
 import httplib2
 import six
 from six.moves.urllib.parse import urlencode
+
+from util.FileUtil import FileUtil
 from util.NetworkUtil import NetworkUtil
 
 if six.PY2:
@@ -215,12 +217,13 @@ class PlantUML(object):
                     to. If this is not supplined, then it will be the
                     input ``outfile`` with the extension replaced with
                     '_error.html'.
-        :returns: ``True`` if the image write succedded, ``False`` if there was
+        :returns: ``out file path`` if the image write succedded, ``None`` if there was
                     an error written to ``errorfile``.
         """
         if not outfile:
-            return
+            return None
         outfile = path.splitext(outfile)[0] + '.png'
+        FileUtil.removeFile(outfile)
         if errorfile is None:
             errorfile = path.splitext(outfile)[0] + '_error.html'
         if directory and not path.exists(directory):
@@ -231,11 +234,12 @@ class PlantUML(object):
             err = open(path.join(directory, errorfile), 'w')
             err.write(e.content)
             err.close()
-            return False
-        out = open(path.join(directory, outfile), 'wb')
+            return None
+        fp = path.join(directory, outfile)
+        out = open(fp, 'wb')
         out.write(content)
         out.close()
-        return True
+        return fp
 
 
 if __name__ == '__main__':

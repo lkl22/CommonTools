@@ -41,6 +41,7 @@ KEY_SPLICE_PARAMS = 'spliceLogParams'
 KEY_SPLIT_RE = 'spliceLogParams'
 # 处理函数
 KEY_FUNCTION = 'function'
+KEY_ENABLE_UML_TRANSFORM = 'enableUmlTransform'
 
 KEY_IS_CONTAIN = "isContain"
 DEFAULT_VALUE_IS_CONTAIN = True

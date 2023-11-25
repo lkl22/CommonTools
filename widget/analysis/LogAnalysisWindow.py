@@ -5,11 +5,15 @@
 import threading
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QMainWindow
+
+from constant.ColorEnum import ColorEnum
+from util.DateUtil import DateUtil
 from util.DialogUtil import *
 from util.DictUtil import DictUtil
 from util.EvalUtil import EvalUtil
 from util.ListUtil import ListUtil
 from util.OperaIni import *
+from util.PlantUml import PlantUML
 from util.StrUtil import StrUtil
 from widget.analysis.CategoryConfigWidget import CategoryConfigWidget
 from widget.analysis.CategoryManagerWidget import CategoryManagerWidget
@@ -62,7 +66,7 @@ class LogAnalysisWindow(QMainWindow):
         self.categoryManageGroupBox = self.createCategoryManageGroupBox()
         hLayout.addWidget(self.categoryManageGroupBox, 3)
 
-        self.consoleTextEdit = CommonTextEdit()
+        self.consoleTextEdit = CommonTextEdit(linkClicked=self.__linkClicked)
         hLayout.addWidget(self.consoleTextEdit, 2)
 
         QtCore.QMetaObject.connectSlotsByName(self)
@@ -160,10 +164,10 @@ class LogAnalysisWindow(QMainWindow):
                 self.__analysisLogMap(line, rule)
                 self.execResult.append({KEY_LOG: '\n', KEY_COLOR: '#000'})
             self.__analysisCostTime(line, rule, timeIndex, timeFormat)
-            self.__spliceLog(line, rule)
+            self.__spliceLog(line, rule, timeIndex, timeFormat)
         pass
 
-    def __spliceLog(self, line, rule):
+    def __spliceLog(self, line, rule, timeIndex, timeFormat):
         if not DictUtil.get(rule, KEY_NEED_SPLICE_LOG, DEFAULT_VALUE_NEED_SPLICE_LOG):
             return
         spliceParams = DictUtil.get(rule, KEY_SPLICE_PARAMS)
@@ -174,10 +178,12 @@ class LogAnalysisWindow(QMainWindow):
         if not startKeyword or not splitRe:
             return
         endKeyword = DictUtil.get(spliceParams, KEY_END_LOG_KEYWORD)
+        time = self.__getLogTime(line, timeIndex, timeFormat)
         if startKeyword in line:
             if endKeyword and endKeyword in line:
-                self.spliceLogResult[rule[KEY_NAME]] = [f"{line[line.index(startKeyword):line.index(endKeyword)]}{endKeyword}"]
-                self.__handleSpliceLog(rule, spliceParams)
+                self.spliceLogResult[rule[KEY_NAME]] = [
+                    f"{line[line.index(startKeyword):line.index(endKeyword)]}{endKeyword}"]
+                self.__handleSpliceLog(rule, spliceParams, time)
                 return
             if ReUtil.match(line, f'.*{splitRe}.*'):
                 self.spliceLogResult[rule[KEY_NAME]] = [re.split(splitRe, line)[1]]
@@ -192,27 +198,34 @@ class LogAnalysisWindow(QMainWindow):
                 self.spliceLogResult[rule[KEY_NAME]].append(log)
             else:
                 self.spliceLogResult[rule[KEY_NAME]].append(line[:line.index(endKeyword)] + endKeyword)
-            self.__handleSpliceLog(rule, spliceParams)
+            self.__handleSpliceLog(rule, spliceParams, time)
             return
         elif ReUtil.match(line, f'.*{splitRe}.*'):
             self.spliceLogResult[rule[KEY_NAME]].append(re.split(splitRe, line)[1])
         else:
-            self.__handleSpliceLog(rule, spliceParams)
+            self.__handleSpliceLog(rule, spliceParams, time)
         pass
 
-    def __handleSpliceLog(self, rule, spliceParams):
+    def __handleSpliceLog(self, rule, spliceParams, time):
         log = ''.join(self.spliceLogResult[rule[KEY_NAME]])
         func = DictUtil.get(spliceParams, KEY_FUNCTION)
         if func:
             myLocals = {'text': log, 'res': ''}
             execResult = EvalUtil.exec(func, locals=myLocals)
             log = myLocals['res'] + (str(execResult) if execResult else '')
-        self.execResult.append(
-            {KEY_LOG: f"{rule[KEY_NAME]}: \n{log}\n\n",
-             KEY_COLOR: '#f0f'})
+        enableUml = DictUtil.get(spliceParams, KEY_ENABLE_UML_TRANSFORM, False)
+        if enableUml:
+            timeStr = DateUtil.nowTime("%Y%m%d%H%M%S")
+            if time:
+                timeStr = f"{time[0].toString('MM-dd HH:mm:ss')}.{time[1]} "
+            fp = PlantUML().processesContent(log, outfile=f'{timeStr.replace(" ", "").replace(":", "")}', directory='outputPic')
+            LogUtil.w(TAG, f'gen uml pic: {fp}')
+            self.consoleTextEdit.standardOutputOne(f"{rule[KEY_NAME]}: \n{log}", ColorEnum.Blue.value)
+            self.consoleTextEdit.hrefOutput(f"{timeStr}{rule[KEY_NAME]}: ", fp, 2)
+        else:
+            self.execResult.append({KEY_LOG: f"{rule[KEY_NAME]}: \n{log}\n\n", KEY_COLOR: ColorEnum.Blue.value})
         self.spliceLogResult[rule[KEY_NAME]] = []
         pass
-
 
     def __analysisLogMap(self, line, rule):
         if not DictUtil.get(rule, KEY_NEED_LOG_MAP, DEFAULT_VALUE_NEED_LOG_MAP):
@@ -264,6 +277,10 @@ class LogAnalysisWindow(QMainWindow):
         except Exception as e:
             LogUtil.e(TAG, '__getLogTime 错误信息：', e)
             return None
+
+    def __linkClicked(self, linkTxt):
+        FileUtil.openFile(linkTxt)
+        pass
 
 
 if __name__ == '__main__':

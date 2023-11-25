@@ -22,9 +22,11 @@ class ClickTextEdit(QTextEdit):
 
     def mousePressEvent(self, ev: QMouseEvent):
         self.link = self.anchorAt(ev.pos())
+        super(ClickTextEdit, self).mousePressEvent(ev)
         pass
 
     def mouseReleaseEvent(self, ev: QMouseEvent):
+        super(ClickTextEdit, self).mouseReleaseEvent(ev)
         if self.link:
             LogUtil.i(TAG, f"Clicked on {self.link}")
             if self.linkClicked:
