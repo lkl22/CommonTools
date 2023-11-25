@@ -706,7 +706,8 @@ class WidgetUtil:
         :param color: 颜色值
         :return: None
         """
-        textFormat = "<font color=\"" + color + "\">" + text.replace("\r\n", "<br/>").replace("\n", "<br/>") + "</font>"
+        textFormat = "<font color=\"" + color + "\">" + text.replace("\r\n", "<br/>").replace("\n", "<br/>").replace(
+            " ", "&nbsp;") + "</font>"
         textEdit.append(textFormat)
         # 触发实时显示数据
         QApplication.instance().processEvents()
@@ -723,7 +724,7 @@ class WidgetUtil:
         textFormat = ""
         for msg in messages:
             textFormat += "<font color=\"" + msg[KEY_COLOR] + "\">" + msg[KEY_LOG] \
-                .replace("\r\n", "<br/>").replace("\n", "<br/>") + "</font>"
+                .replace("\r\n", "<br/>").replace("\n", "<br/>").replace(" ", "&nbsp;") + "</font>"
         textEdit.append(textFormat)
         # 触发实时显示数据
         QApplication.instance().processEvents()
