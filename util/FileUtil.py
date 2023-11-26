@@ -6,7 +6,7 @@ import gzip
 import os
 import shutil
 import zipfile
-
+from PIL import Image
 from util.PlatformUtil import PlatformUtil
 from util.ReUtil import *
 from util.LogUtil import *
@@ -406,8 +406,20 @@ class FileUtil:
         if PlatformUtil.isMac():
             ShellUtil.exec(f"open {fp}")
         elif PlatformUtil.isWindows():
-            ShellUtil.exec(f"start notepad {fp}")
+            if FileUtil.isImage(fp):
+                ShellUtil.exec(f"explorer {fp}")
+            else:
+                ShellUtil.exec(f"start notepad {fp}")
         pass
+
+    @staticmethod
+    def isImage(filePath):
+        try:
+            with Image.open(filePath) as img:
+                img.verify()
+            return True
+        except (IOError, SyntaxError) as e:
+            return False
 
 
 if __name__ == "__main__":
@@ -434,4 +446,5 @@ if __name__ == "__main__":
     # print(FileUtil.existsFile('/aa/ad/../d/0C1A8658.JPG'))
     # print(FileUtil.existsFile('../resources/mockExam/题库模版.xlsx'))
 
-    print(FileUtil.findFilePathListByExclude('./', [".JPG", ".py"], [".*/111/.*", ".*/__pycache__/.*"]))
+    # print(FileUtil.findFilePathListByExclude('./', [".JPG", ".py"], [".*/111/.*", ".*/__pycache__/.*"]))
+    print(FileUtil.isImage('/Users/likunlun/PycharmProjects/CommonTools/widget/analysis/outputPic/1119205835.png'))

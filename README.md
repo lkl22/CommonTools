@@ -56,6 +56,8 @@ pip install chardet
 
 # 模版生成代码
 pip install jinja2
+
+pip install pillow
 ```
 
 4、PyCharm配置

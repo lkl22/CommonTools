@@ -54,6 +54,8 @@ class CommonTextEdit(ICommonWidget):
                     WidgetUtil.textEditAppendMessages(self.__textEdit, messages=data)
                     data = []
                     self.__hrefOutput(DictUtil.get(item, KEY_SHOW_TEXT, ''), DictUtil.get(item, KEY_HYPERLINK_TXT, 'link'), DictUtil.get(item, KEY_WRAP_NUM, 0))
+            if data:
+                WidgetUtil.textEditAppendMessages(self.__textEdit, messages=data)
         else:
             WidgetUtil.textEditAppendMessage(self.__textEdit, *message)
         pass
