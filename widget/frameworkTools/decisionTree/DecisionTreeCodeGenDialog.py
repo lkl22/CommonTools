@@ -14,6 +14,7 @@ from util.OperaIni import OperaIni
 from util.StrUtil import StrUtil
 from util.WidgetUtil import WidgetUtil
 from widget.custom.CommonTextEdit import CommonTextEdit
+from jinja2 import Template
 
 TAG = 'DecisionTreeCodeGenDialog'
 
@@ -36,6 +37,63 @@ check --> Failed
 init --> Failed
 @enduml
 """
+
+typeScriptTemplate = """Tasks:
+export const enum Tasks {
+{%- for index, task in enumerate(tasks) %}
+  {{ camel2under(task) }} = "{{task}}"
+  {%- if index != len(tasks) - 1 -%}
+    ,
+  {%- endif -%}
+{%- endfor %}
+}
+
+Build tree:
+export class DecisionTree {
+  private buildTree() {
+    let builder = new DecisionTreeBuilder<Tasks, TreeContext>();
+    {%- for key, childNodes in tree.items() %}
+    {%- if key != 'root' -%}
+    {{"\n"}}    builder.
+        {%- if key == root -%} 
+    root(Tasks.{{ camel2under(key) }}, async (ctx?: TreeContext) => {
+      return this.{{ key }}Action();
+    }
+        {%- else -%} 
+          node(Tasks.{{ camel2under(key) }}) 
+        {%- endif -%} 
+        {%- for childNode in childNodes %}
+            {%- if nodeInTree(childNode, tree) -%} 
+                {{"\n"}}    .leaf 
+            {%- else -%} 
+                {{"\n"}}    .nonLeaf 
+            {%- endif -%}
+            (Tasks.{{ camel2under(childNode) }}, async (ctx?: TreeContext) => {
+            {%- if nodeInTree(childNode, tree) -%} 
+                {{"\n"}}      this.{childNode}Action();
+            {%- else -%} 
+                {{"\n"}}      return this.{childNode}Action();
+            {%- endif -%}
+          {{"\n"}}    })
+        {%- endfor %}
+        {{""}}
+    {%- endif -%}
+    {%- endfor %}
+    this.tree = builder.build();
+  }
+
+  {%- for task in tasks %}
+
+  async {{ task }}Action(){
+  }
+  {%- endfor %}
+}
+"""
+
+
+def nodeInTree(node, tree):
+    return node in tree
+
 
 class DecisionTreeCodeGenDialog(QtWidgets.QDialog):
     def __init__(self, isDebug=False):
@@ -109,32 +167,14 @@ class DecisionTreeCodeGenDialog(QtWidgets.QDialog):
         self.__tree = tree
 
     def __genTsCode(self):
-        taskEnum = ''
-        for index, task in enumerate(self.__tasks):
-            sp = "" if index == 0 else ",\n"
-            taskEnum += f'{sp}  {StrUtil.camel2under(task)} = "{task}"'
-        self.__genCodeTextEdit.standardOutputOne('Tasks:', ColorEnum.RED.value)
-        self.__genCodeTextEdit.standardOutputOne("export const enum Tasks {\n" + taskEnum + "\n}", ColorEnum.BLUE.value)
-
-        self.__genCodeTextEdit.standardOutputOne('Build tree:', ColorEnum.RED.value)
-        self.__genCodeTextEdit.standardOutputOne('  private buildTree() {\n    let builder = new DecisionTreeBuilder<Tasks, TreeContext>();', ColorEnum.BLUE.value)
-
         root = self.__tree['root']
-        for key, childNodes in self.__tree.items():
-            if key == 'root':
-                continue
-            self.__genCodeTextEdit.standardOutputOne(
-                f'    builder.{"root" if key == root else "node"}(Tasks.{StrUtil.camel2under(key)}, async (ctx?: TreeContext) => {{\n      return this.{key}Action();\n    }}', ColorEnum.BLUE.value)
-            for childNode in childNodes:
-                isLeaf = False if childNode in self.__tree else True
-                funcContent = f"this.{childNode}Action();" if isLeaf else f"return this.{childNode}Action();"
-                self.__genCodeTextEdit.standardOutputOne(
-                    f'    {".leaf" if isLeaf else ".nonLeaf"}(Tasks.{StrUtil.camel2under(childNode)}, async (ctx?: TreeContext) => {{\n      {funcContent}\n    }}', ColorEnum.BLUE.value)
-            self.__genCodeTextEdit.standardOutputOne('', ColorEnum.BLUE.value)
-        self.__genCodeTextEdit.standardOutputOne('    this.tree = builder.build();\n  }', ColorEnum.BLUE.value)
-
-        for task in self.__tasks:
-            self.__genCodeTextEdit.standardOutputOne(f'\n  async {task}Action(){{\n  }}', ColorEnum.BLUE.value)
+        tmpl = Template(typeScriptTemplate)
+        tmpl.globals["camel2under"] = StrUtil.camel2under
+        tmpl.globals["enumerate"] = enumerate
+        tmpl.globals["len"] = len
+        tmpl.globals["nodeInTree"] = nodeInTree
+        ret = tmpl.render(tasks=self.__tasks, root=root, tree=self.__tree)
+        self.__genCodeTextEdit.standardOutputOne(ret, ColorEnum.LIGHT_ORANGE.value)
 
 
 if __name__ == '__main__':
