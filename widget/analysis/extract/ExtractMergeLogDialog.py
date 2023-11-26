@@ -192,8 +192,11 @@ class ExtractMergeLogDialog(QtWidgets.QDialog):
         dstFp = ''
         if len(files) > 0:
             _, fn = os.path.split(files[0])
+            tmpDstFp = os.path.join(tmp1Dir, 'tmp' + fn)
             dstFp = os.path.join(tmp1Dir, fn)
-            FileUtil.mergeFiles(files, dstFp)
+            FileUtil.mergeFiles(files, tmpDstFp)
+            encoding = FileUtil.getEncodingType(tmpDstFp)
+            FileUtil.convertEncodingType(tmpDstFp, dstFp, encoding)
         self.__hideLoadingSignal.emit(isClosed, dstFp)
         pass
 

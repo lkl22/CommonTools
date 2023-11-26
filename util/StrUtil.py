@@ -4,6 +4,7 @@
 # 定义一个StrUtil工具类实现字符串操作相关的功能
 
 import re
+import chardet
 from util.LogUtil import *
 
 TAG = 'StrUtil'
@@ -65,6 +66,15 @@ class StrUtil:
         except Exception as e:
             LogUtil.e(TAG, 'decode 错误信息：', e)
         return ''
+
+    @staticmethod
+    def detectEncoding(data):
+        result = chardet.detect(data)
+        # 编码格式
+        encoding = result['encoding']
+        # 可信度
+        confidence = result['confidence']
+        return encoding, confidence
 
     @staticmethod
     def camel2under(data: str):

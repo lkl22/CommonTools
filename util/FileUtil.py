@@ -2,6 +2,7 @@
 # python 3.x
 # Filename: FileUtil.py
 # 定义一个FileUtil工具类实现文件相关的功能
+import codecs
 import gzip
 import os
 import shutil
@@ -11,6 +12,7 @@ from util.PlatformUtil import PlatformUtil
 from util.ReUtil import *
 from util.LogUtil import *
 from util.ShellUtil import ShellUtil
+from util.StrUtil import StrUtil
 
 TAG = "FileUtil"
 
@@ -199,6 +201,32 @@ class FileUtil:
         except Exception as err:
             LogUtil.e(TAG, 'mergeFiles 错误信息：', err)
             return False
+
+    @staticmethod
+    def getEncodingType(fp):
+        """
+        获取文件编码类型
+        :param fp: 文件路径
+        :return: 文件编码
+        """
+        with open(fp, 'rb') as file:
+            data = file.read()
+            encoding, _ = StrUtil.detectEncoding(data)
+            return encoding
+
+    @staticmethod
+    def convertEncodingType(inFp, outFp, inEncode='gb2312', outEncode='utf-8'):
+        """
+        转换文件编码格式
+        :param inFp: 源文件路径
+        :param outFp: 目标文件路径
+        :param inEncode: 源文件编码
+        :param outEncode: 目标文件编码
+        """
+        with codecs.open(filename=inFp, mode='r', encoding=inEncode) as fi:
+            data = fi.read()
+            with open(outFp, mode='w', encoding=outEncode) as fo:
+                fo.write(data)
 
     @staticmethod
     def getProjectPath():
