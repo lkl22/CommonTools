@@ -6,11 +6,10 @@ import copy
 from util.DialogUtil import *
 from util.DictUtil import DictUtil
 from util.OperaIni import *
-from widget.analysis.AddOrEditResultMapDialog import AddOrEditResultMapDialog
 from widget.analysis.LogAnalysisManager import *
+from widget.analysis.LogTransformCfgWidget import LogTransformCfgWidget
 from widget.analysis.SpliceLogParamsWidget import SpliceLogParamsWidget
 from widget.custom.CommonLineEdit import CommonLineEdit
-from widget.custom.CommonTableView import CommonTableView
 
 TAG = "AddOrEditAnalysisCfgDialog"
 HEADERS = {
@@ -33,9 +32,10 @@ class AddOrEditAnalysisCfgDialog(QtWidgets.QDialog):
         isEnable = DictUtil.get(self.__default, KEY_IS_ENABLE, DEFAULT_VALUE_IS_ENABLE)
         needCostTime = DictUtil.get(self.__default, KEY_NEED_COST_TIME, DEFAULT_VALUE_NEED_COST_TIME)
         needSpliceLog = DictUtil.get(self.__default, KEY_NEED_SPLICE_LOG, DEFAULT_VALUE_NEED_SPLICE_LOG)
-        needLogMap = DictUtil.get(self.__default, KEY_NEED_LOG_MAP, DEFAULT_VALUE_NEED_LOG_MAP)
+        needLogTransform = DictUtil.get(self.__default, KEY_NEED_LOG_TRANSFORM, DEFAULT_VALUE_NEED_LOG_TRANSFORM)
         self.__logMapRules = copy.deepcopy(DictUtil.get(self.__default, KEY_RESULT_MAP, []))
         self.__logSpliceParams = DictUtil.get(self.__default, KEY_SPLICE_PARAMS, {})
+        self.__logTransformCfgs = DictUtil.get(self.__default, KEY_TRANSFORM_CFGS, {})
 
         vLayout = WidgetUtil.createVBoxLayout(self, margins=QMargins(10, 10, 10, 10), spacing=10)
         self.setLayout(vLayout)
@@ -80,20 +80,19 @@ class AddOrEditAnalysisCfgDialog(QtWidgets.QDialog):
                                                              toolTip="处理分行打印日志，通过起始关键字查找日志，可以根据关键拆分正则表达式决策是否继续拼接，或者根据结束关键字结束log拼接，拼接后结果可以按指定函数执行输出结果")
         vLayout.addWidget(self.__spliceLogParamsWidget)
 
-        self.__logMapTableView = CommonTableView(addBtnTxt="添加Log映射配置", headers=HEADERS,
-                                                 items=self.__logMapRules,
-                                                 addOrEditItemFunc=self.__addOrEditItemFunc)
-        vLayout.addWidget(self.__logMapTableView, 1)
+        self.__logTransformCheckBox = WidgetUtil.createCheckBox(self, text="结果转换", toolTip="默认不对日志结果做转换",
+                                                                isChecked=needLogTransform,
+                                                                clicked=self.__logTransformCheckChange)
+        vLayout.addWidget(self.__logTransformCheckBox)
+
+        self.__logTransformCfgWidget = LogTransformCfgWidget(value=self.__logTransformCfgs, isEnable=needLogTransform)
+        vLayout.addWidget(self.__logTransformCfgWidget, 1)
 
         hBox = WidgetUtil.createHBoxLayout(spacing=30)
         self.__enableCheckBox = WidgetUtil.createCheckBox(self, text="Enable",
                                                           toolTip="默认Enable，规则生效",
                                                           isChecked=isEnable)
         hBox.addWidget(self.__enableCheckBox)
-        self.__logMapCheckBox = WidgetUtil.createCheckBox(self, text="结果映射",
-                                                          toolTip="默认不对日志结果做映射",
-                                                          isChecked=needLogMap)
-        hBox.addWidget(self.__logMapCheckBox)
         hBox.addItem(WidgetUtil.createHSpacerItem(1, 1))
         vLayout.addLayout(hBox)
 
@@ -134,8 +133,10 @@ class AddOrEditAnalysisCfgDialog(QtWidgets.QDialog):
         self.__spliceLogParamsWidget.setEnabled(isCheck)
         pass
 
-    def __addOrEditItemFunc(self, callback, default, items):
-        AddOrEditResultMapDialog(callback=callback, default=default, ruleList=items)
+    def __logTransformCheckChange(self):
+        isCheck = self.__logTransformCheckBox.isChecked()
+        self.__logTransformCfgWidget.setEnabled(isCheck)
+        pass
 
     def __acceptFunc(self):
         name = self.__nameLineEdit.getData()
@@ -180,8 +181,8 @@ class AddOrEditAnalysisCfgDialog(QtWidgets.QDialog):
         self.__default[KEY_NEED_SPLICE_LOG] = self.__spliceLogCheckBox.isChecked()
         self.__default[KEY_SPLICE_PARAMS] = self.__spliceLogParamsWidget.getData()
 
-        self.__default[KEY_NEED_LOG_MAP] = self.__logMapCheckBox.isChecked()
-        self.__default[KEY_RESULT_MAP] = self.__logMapTableView.getData()
+        self.__default[KEY_NEED_LOG_TRANSFORM] = self.__logTransformCheckBox.isChecked()
+        self.__default[KEY_TRANSFORM_CFGS] = self.__logTransformCfgWidget.getData()
 
         self.__callback(self.__default if self.__isAdd else None)
         self.close()

@@ -28,6 +28,10 @@ KEY_LOG_KEYWORD = 'logKeyword'
 KEY_RESULT_MAP = 'resultMap'
 KEY_SRC_LOG = 'srcLog'
 KEY_MAP_TXT = 'mapTxt'
+# 结果转换配置
+KEY_TRANSFORM_CFGS = 'transformCfgs'
+# 结果转换列表
+KEY_TRANSFORM_FUNCS = 'transformFuncs'
 
 KEY_START_LOG_KEYWORD = 'startLogKeyword'
 KEY_END_LOG_KEYWORD = 'endLogKeyword'
@@ -55,8 +59,8 @@ DEFAULT_VALUE_IS_FUNCTION = False
 KEY_NEED_COST_TIME = "needCostTime"
 DEFAULT_VALUE_NEED_COST_TIME = False
 
-KEY_NEED_LOG_MAP = "needLogMap"
-DEFAULT_VALUE_NEED_LOG_MAP = False
+KEY_NEED_LOG_TRANSFORM = "needLogTransform"
+DEFAULT_VALUE_NEED_LOG_TRANSFORM = False
 
 
 class LogAnalysisManager:

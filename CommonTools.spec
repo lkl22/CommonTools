@@ -71,6 +71,7 @@ a = Analysis(['RunMain.py',
               'widget/analysis/CategoryManagerWidget.py',
               'widget/analysis/LogAnalysisManager.py',
               'widget/analysis/LogAnalysisWindow.py',
+              'widget/analysis/LogTransformCfgWidget.py',
               'widget/analysis/SpliceLogParamsWidget.py',
 
               'widget/colorManager/AddColorResDialog.py',

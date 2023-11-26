@@ -161,8 +161,8 @@ class LogAnalysisWindow(QMainWindow):
                 if not hasPrintLine:
                     hasPrintLine = True
                     self.execResult.append({KEY_LOG: line, KEY_COLOR: '#000'})
-                self.__analysisLogMap(line, rule)
                 self.execResult.append({KEY_LOG: '\n', KEY_COLOR: '#000'})
+            self.__analysisLogTransform(line, rule)
             self.__analysisCostTime(line, rule, timeIndex, timeFormat)
             self.__spliceLog(line, rule, timeIndex, timeFormat)
         pass
@@ -210,9 +210,7 @@ class LogAnalysisWindow(QMainWindow):
         log = ''.join(self.spliceLogResult[rule[KEY_NAME]])
         func = DictUtil.get(spliceParams, KEY_FUNCTION)
         if func:
-            myLocals = {'text': log, 'res': ''}
-            execResult = EvalUtil.exec(func, locals=myLocals)
-            log = myLocals['res'] + (str(execResult) if execResult else '')
+            log = EvalUtil.execFunc(func, log)
         enableUml = DictUtil.get(spliceParams, KEY_ENABLE_UML_TRANSFORM, False)
         if enableUml:
             timeStr = DateUtil.nowTime("%Y%m%d%H%M%S")
@@ -228,18 +226,34 @@ class LogAnalysisWindow(QMainWindow):
         self.spliceLogResult[rule[KEY_NAME]] = []
         pass
 
-    def __analysisLogMap(self, line, rule):
-        if not DictUtil.get(rule, KEY_NEED_LOG_MAP, DEFAULT_VALUE_NEED_LOG_MAP):
+    def __analysisLogTransform(self, line, rule):
+        if not DictUtil.get(rule, KEY_NEED_LOG_TRANSFORM, DEFAULT_VALUE_NEED_LOG_TRANSFORM):
             return
-        logMapRules = ListUtil.filter(DictUtil.get(rule, KEY_RESULT_MAP), KEY_IS_ENABLE, True, DEFAULT_VALUE_IS_ENABLE)
-        for rule in logMapRules:
-            if DictUtil.get(rule, KEY_IS_FUNCTION, DEFAULT_VALUE_IS_FUNCTION):
-                myLocals = {'text': line, 'res': ''}
-                execResult = EvalUtil.exec(rule[KEY_MAP_TXT], locals=myLocals)
-                res = myLocals['res'] + (str(execResult) if execResult else '')
-                self.execResult.append({KEY_LOG: f"mapResult: {res}\n", KEY_COLOR: '#f0f'})
-            elif rule[KEY_SRC_LOG] in line:
-                self.execResult.append({KEY_LOG: f"mapResult: {rule[KEY_MAP_TXT]}\n", KEY_COLOR: '#f0f'})
+        transformCfgs = DictUtil.get(rule, KEY_TRANSFORM_CFGS)
+        if not transformCfgs:
+            return
+        keywords = DictUtil.get(transformCfgs, KEY_LOG_KEYWORD)
+        function = DictUtil.get(transformCfgs, KEY_FUNCTION)
+        if not keywords or not function:
+            return
+        keywordList = [item for item in keywords.split(';') if item and item in line]
+        if not keywordList:
+            return
+        dicRes = EvalUtil.execFunc(function, line)
+        if type(dicRes) != dict:
+            self.execResult.append({KEY_LOG: f"转换结果: {dicRes}\n\n", KEY_COLOR: ColorEnum.RED.value})
+            return
+        funcs = DictUtil.get(transformCfgs, KEY_TRANSFORM_FUNCS)
+        self.execResult.append({KEY_LOG: f"转换结果: {dicRes}\n", KEY_COLOR: ColorEnum.RED.value})
+        if not funcs:
+            self.execResult.append({KEY_LOG: f"\n", KEY_COLOR: ColorEnum.RED.value})
+            return
+        for func in funcs:
+            value = DictUtil.get(dicRes, func[KEY_ITEM_KEY])
+            if value:
+                execResult = EvalUtil.execFunc(func[KEY_FUNCTION], value)
+                self.execResult.append({KEY_LOG: f"转换结果: {execResult}\n", KEY_COLOR: ColorEnum.RED.value})
+        self.execResult.append({KEY_LOG: f"\n", KEY_COLOR: ColorEnum.RED.value})
         pass
 
     def __analysisCostTime(self, line, rule, timeIndex, timeFormat):

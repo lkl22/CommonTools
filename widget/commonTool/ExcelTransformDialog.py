@@ -282,7 +282,6 @@ class ExcelTransformDialog(QtWidgets.QDialog):
         if self.__isDebug:
             dialog.show()
         pass
-        pass
 
     def __checkParams(self):
         if not DictUtil.get(self.__config, KEY_SRC_SELECT_HEADER):

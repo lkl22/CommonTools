@@ -39,6 +39,18 @@ class EvalUtil:
             LogUtil.e(TAG, 'exec Exception', err)
             return err
 
+    @staticmethod
+    def execFunc(func, text):
+        """
+        执行指定函数，接收一个text参数
+        :param text: 输入参数
+        :param func: 需要执行的函数
+        :return: 执行结果
+        """
+        myLocals = {'text': text, 'res': ''}
+        execResult = EvalUtil.exec(func, locals=myLocals)
+        return str(execResult) if execResult else myLocals['res']
+
 
 if __name__ == "__main__":
     print(EvalUtil.eval('x + y + z', locals={'x': 1, 'y': 2}))
