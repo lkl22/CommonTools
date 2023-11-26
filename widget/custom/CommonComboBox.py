@@ -6,6 +6,8 @@ import copy
 import sys
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QListView
+
+from constant.ColorEnum import ColorEnum
 from util.DictUtil import DictUtil
 from util.ListUtil import ListUtil
 from util.WidgetUtil import *
@@ -150,12 +152,18 @@ if __name__ == "__main__":
     # e = CommonComboBox()
     # e = CommonComboBox(fileParam=["file", "./", "*.py", "*.py"])
     # e = CommonComboBox(dirParam=["dir", "./"])
-    # e = CommonComboBox(label='选择颜色：', default='ss', groupList=[
-    #     {KEY_COLOR: '#FF0000', KEY_SHOW_TEXT: 'red', KEY_DATA: 'ss'},
-    #     {KEY_COLOR: '#00FF00', KEY_SHOW_TEXT: 'green'},
-    #     {KEY_SHOW_TEXT: 'blue'}, {}
-    # ], isEditable=True, toolTip='请选择需要的颜色', dataChanged=lambda data: LogUtil.d(TAG, data))
-    e = CommonComboBox(label='选择颜色：', default='', groupList=[], isEditable=True, toolTip='请选择需要的颜色',
-                       dataChanged=lambda data, deleteData: LogUtil.d(TAG, 'callback', data, deleteData))
+    e = CommonComboBox(label='选择颜色：', default='ss', groupList=[
+        {KEY_COLOR: ColorEnum.RED.value, KEY_SHOW_TEXT: 'red', KEY_DATA: 'ss'},
+        {KEY_COLOR: ColorEnum.GREEN.value, KEY_SHOW_TEXT: 'green'},
+        {KEY_COLOR: ColorEnum.LIGHT_YELLOW.value, KEY_SHOW_TEXT: 'LIGHT_YELLOW'},
+        {KEY_COLOR: ColorEnum.TEAL.value, KEY_SHOW_TEXT: 'TEAL'},
+        {KEY_COLOR: ColorEnum.BLUE_GREY.value, KEY_SHOW_TEXT: 'BLUE_GREY'},
+        {KEY_COLOR: ColorEnum.AQUA.value, KEY_SHOW_TEXT: 'AQUA'},
+        {KEY_COLOR: ColorEnum.LIGHT_ORANGE.value, KEY_SHOW_TEXT: 'LIGHT_ORANGE'},
+        {KEY_COLOR: ColorEnum.TURQUOISE.value, KEY_SHOW_TEXT: 'TURQUOISE'},
+        {KEY_SHOW_TEXT: 'blue'}, {}
+    ], isEditable=True, toolTip='请选择需要的颜色', dataChanged=lambda data: LogUtil.d(TAG, data))
+    # e = CommonComboBox(label='选择颜色：', default='', groupList=[], isEditable=True, toolTip='请选择需要的颜色',
+    #                    dataChanged=lambda data, deleteData: LogUtil.d(TAG, 'callback', data, deleteData))
     e.show()
     sys.exit(app.exec_())

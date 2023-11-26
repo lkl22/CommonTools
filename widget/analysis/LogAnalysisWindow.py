@@ -218,12 +218,13 @@ class LogAnalysisWindow(QMainWindow):
             timeStr = DateUtil.nowTime("%Y%m%d%H%M%S")
             if time:
                 timeStr = f"{time[0].toString('MM-dd HH:mm:ss')}.{time[1]} "
-            fp = PlantUML().processesContent(log, outfile=f'{timeStr.replace(" ", "").replace(":", "")}', directory='outputPic')
+            fp, err = PlantUML.jarProcesses(log, outfile=f'{timeStr.replace("-", "").replace(" ", "").replace(":", "")}', directory='outputPic')
             LogUtil.w(TAG, f'gen uml pic: {fp}')
-            self.consoleTextEdit.standardOutputOne(f"{rule[KEY_NAME]}: \n{log}", ColorEnum.Blue.value)
-            self.consoleTextEdit.hrefOutput(f"{timeStr}{rule[KEY_NAME]}: ", fp, 2)
+            self.consoleTextEdit.standardOutputOne(f"{rule[KEY_NAME]}: \n{log}", ColorEnum.BLUE.value)
+            if fp:
+                self.consoleTextEdit.hrefOutput(f"{timeStr}{rule[KEY_NAME]}: ", fp, 2)
         else:
-            self.execResult.append({KEY_LOG: f"{rule[KEY_NAME]}: \n{log}\n\n", KEY_COLOR: ColorEnum.Blue.value})
+            self.execResult.append({KEY_LOG: f"{rule[KEY_NAME]}: \n{log}\n\n", KEY_COLOR: ColorEnum.BLUE.value})
         self.spliceLogResult[rule[KEY_NAME]] = []
         pass
 

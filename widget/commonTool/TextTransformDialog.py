@@ -147,7 +147,7 @@ class TextTransformDialog(QtWidgets.QDialog):
         execResult = EvalUtil.exec(transformFunc, locals=myLocals)
         res = myLocals.get('res') + (str(execResult) if execResult else '')
         LogUtil.i(TAG, '__transformText res: ', res)
-        self.__textEdit.standardOutputOne(res, ColorEnum.Blue.value)
+        self.__textEdit.standardOutputOne(res, ColorEnum.BLUE.value)
         self.__asyncFuncManager.hideLoading()
         pass
 

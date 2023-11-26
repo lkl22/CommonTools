@@ -266,9 +266,9 @@ class TLVParseDialog(QtWidgets.QDialog):
         tlv = TLV(tags=tags, LLengthMap=lengthMap, VPrintFuncs=vPrintFuncs)
         try:
             self.__textEdit.standardOutputOne(tlv.toString(tlv.parse(parseData)).replace(' ', '&nbsp;'),
-                                              ColorEnum.Blue.value)
+                                              ColorEnum.BLUE.value)
         except Exception as err:
-            self.__textEdit.standardOutputOne(str(err), ColorEnum.Red.value)
+            self.__textEdit.standardOutputOne(str(err), ColorEnum.RED.value)
         self.__asyncFuncManager.hideLoading()
         pass
 

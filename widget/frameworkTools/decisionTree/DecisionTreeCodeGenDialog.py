@@ -113,28 +113,28 @@ class DecisionTreeCodeGenDialog(QtWidgets.QDialog):
         for index, task in enumerate(self.__tasks):
             sp = "" if index == 0 else ",\n"
             taskEnum += f'{sp}  {StrUtil.camel2under(task)} = "{task}"'
-        self.__genCodeTextEdit.standardOutputOne('Tasks:', ColorEnum.Red.value)
-        self.__genCodeTextEdit.standardOutputOne("export const enum Tasks {\n" + taskEnum + "\n}", ColorEnum.Blue.value)
+        self.__genCodeTextEdit.standardOutputOne('Tasks:', ColorEnum.RED.value)
+        self.__genCodeTextEdit.standardOutputOne("export const enum Tasks {\n" + taskEnum + "\n}", ColorEnum.BLUE.value)
 
-        self.__genCodeTextEdit.standardOutputOne('Build tree:', ColorEnum.Red.value)
-        self.__genCodeTextEdit.standardOutputOne('  private buildTree() {\n    let builder = new DecisionTreeBuilder<Tasks, TreeContext>();', ColorEnum.Blue.value)
+        self.__genCodeTextEdit.standardOutputOne('Build tree:', ColorEnum.RED.value)
+        self.__genCodeTextEdit.standardOutputOne('  private buildTree() {\n    let builder = new DecisionTreeBuilder<Tasks, TreeContext>();', ColorEnum.BLUE.value)
 
         root = self.__tree['root']
         for key, childNodes in self.__tree.items():
             if key == 'root':
                 continue
             self.__genCodeTextEdit.standardOutputOne(
-                f'    builder.{"root" if key == root else "node"}(Tasks.{StrUtil.camel2under(key)}, async (ctx?: TreeContext) => {{\n      return this.{key}Action();\n    }}', ColorEnum.Blue.value)
+                f'    builder.{"root" if key == root else "node"}(Tasks.{StrUtil.camel2under(key)}, async (ctx?: TreeContext) => {{\n      return this.{key}Action();\n    }}', ColorEnum.BLUE.value)
             for childNode in childNodes:
                 isLeaf = False if childNode in self.__tree else True
                 funcContent = f"this.{childNode}Action();" if isLeaf else f"return this.{childNode}Action();"
                 self.__genCodeTextEdit.standardOutputOne(
-                    f'    {".leaf" if isLeaf else ".nonLeaf"}(Tasks.{StrUtil.camel2under(childNode)}, async (ctx?: TreeContext) => {{\n      {funcContent}\n    }}', ColorEnum.Blue.value)
-            self.__genCodeTextEdit.standardOutputOne('', ColorEnum.Blue.value)
-        self.__genCodeTextEdit.standardOutputOne('    this.tree = builder.build();\n  }', ColorEnum.Blue.value)
+                    f'    {".leaf" if isLeaf else ".nonLeaf"}(Tasks.{StrUtil.camel2under(childNode)}, async (ctx?: TreeContext) => {{\n      {funcContent}\n    }}', ColorEnum.BLUE.value)
+            self.__genCodeTextEdit.standardOutputOne('', ColorEnum.BLUE.value)
+        self.__genCodeTextEdit.standardOutputOne('    this.tree = builder.build();\n  }', ColorEnum.BLUE.value)
 
         for task in self.__tasks:
-            self.__genCodeTextEdit.standardOutputOne(f'\n  async {task}Action(){{\n  }}', ColorEnum.Blue.value)
+            self.__genCodeTextEdit.standardOutputOne(f'\n  async {task}Action(){{\n  }}', ColorEnum.BLUE.value)
 
 
 if __name__ == '__main__':

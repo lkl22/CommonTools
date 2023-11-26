@@ -52,7 +52,7 @@ class CommonTextEdit(ICommonWidget):
 
     def __hrefOutput(self, showText, hrefContent, wrapNum=0):
         self.__textEdit.append(
-            f'<span>{showText}<a style="color: pink" href="{hrefContent}">{hrefContent}</a></span>{"".rjust(wrapNum, "&").replace("&", "<br/>")}')
+            f'<span>{showText}<a style="color: red" href="{hrefContent}">{hrefContent}</a></span>{"".rjust(wrapNum, "&").replace("&", "<br/>")}')
 
     def __copyData(self):
         ClipboardUtil.copyToClipboard(self.getData())

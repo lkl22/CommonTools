@@ -263,6 +263,7 @@ class PlantUML(object):
         out, err = ShellUtil.exec(f'java -jar {jarFp} -stdrpt:1 {tempFp}')
         FileUtil.removeFile(tempFp)
         if not err:
+            FileUtil.removeFile(tempFp)
             return path.splitext(outfile)[0] + '.png', None
         res = PlantUML().processesContent(content, outfile, directory=directory)
         return res, None if res else 'processes failed'

@@ -105,10 +105,10 @@ class HarmonyStrResDiffDialog(QtWidgets.QDialog):
             dstNames = set([item['name'] for item in dstStrings])
             diff = srcNames - dstNames
             LogUtil.d(TAG, len(diff), diff)
-            result = [{KEY_LOG: f'{dstFileDirPath} 总共缺失 {len(diff)} 条翻译，具体如下：\n', KEY_COLOR: ColorEnum.Red.value}]
+            result = [{KEY_LOG: f'{dstFileDirPath} 总共缺失 {len(diff)} 条翻译，具体如下：\n', KEY_COLOR: ColorEnum.RED.value}]
             for index, name in enumerate(diff):
                 result.append({KEY_LOG: f"{name}: {ListUtil.get(srcStrings, 'name', name, 'value', '')}\n",
-                               KEY_COLOR: ColorEnum.Blue.value if divmod(index, 2)[1] == 0 else ColorEnum.Green.value})
+                               KEY_COLOR: ColorEnum.BLUE.value if divmod(index, 2)[1] == 0 else ColorEnum.GREEN.value})
             self.__textEdit.standardOutput(result)
         except Exception as err:
             LogUtil.e(TAG, 'execDiff 错误信息：', err)
