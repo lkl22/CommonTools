@@ -16,6 +16,7 @@ from six.moves.urllib.parse import urlencode
 
 from util.FileUtil import FileUtil
 from util.NetworkUtil import NetworkUtil
+from util.ShellUtil import ShellUtil
 
 if six.PY2:
     from string import maketrans
@@ -241,10 +242,35 @@ class PlantUML(object):
         out.close()
         return fp
 
+    @staticmethod
+    def jarProcesses(content, outfile, directory=''):
+        if not outfile:
+            return None, 'outfile is empty'
+        jarFileName = 'plantuml-1.2023.12.jar'
+        url = f'https://gitee.com/python-dev/CommonTools/releases/download/v1.2.0/{jarFileName}'
+        jarFp = f'{FileUtil.getProjectPath()}/resources/plantuml/{jarFileName}'
+        if not FileUtil.existsFile(jarFp):
+            NetworkUtil.downloadPackage(url, jarFp)
+        if not FileUtil.existsFile(jarFp):
+            res = PlantUML().processesContent(content, outfile, directory=directory)
+            return res, None if res else 'processes failed'
+        tempFp = path.splitext(outfile)[0] + '.uml'
+        FileUtil.removeFile(tempFp)
+        if directory and not path.exists(directory):
+            makedirs(directory)
+        with open(tempFp, 'w+') as file:
+            file.writelines(content)
+        out, err = ShellUtil.exec(f'java -jar {jarFp} -stdrpt:1 {tempFp}')
+        FileUtil.removeFile(tempFp)
+        if not err:
+            return path.splitext(outfile)[0] + '.png', None
+        res = PlantUML().processesContent(content, outfile, directory=directory)
+        return res, None if res else 'processes failed'
+
 
 if __name__ == '__main__':
     # PlantUML().processesFile('testData')
-    PlantUML().processesContent("""@startuml
+    PlantUML.jarProcesses("""@startuml
 hide empty description
 state A #green
 state B #green

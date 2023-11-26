@@ -2,7 +2,9 @@
 # python 3.x
 # Filename: NetworkUtil.py
 # 定义一个NetworkUtil工具类实现网络操作相关的功能
+import os
 
+from util.FileUtil import FileUtil
 from util.LogUtil import LogUtil
 from urllib import request
 import ssl
@@ -48,11 +50,13 @@ class NetworkUtil:
         :return: True 下载成功
         """
         LogUtil.d("downloadPackage", "start download {} to {}".format(url, downloadFile))
+        FileUtil.mkDirs(os.path.split(downloadFile)[0])
         while not NetworkUtil.downloadFile(url, downloadFile):
             retryTimes -= 1
             LogUtil.e("downloadPackage", "download failed retry.")
             if retryTimes < 1:
                 return False
+        LogUtil.e("downloadPackage", "download success.")
         return True
 
 
