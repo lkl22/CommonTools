@@ -52,6 +52,22 @@ class EvalUtil:
         return str(execResult) if execResult else myLocals['res']
 
 
+def transform(text):
+    code = -1
+    try:
+        code = int(text)
+    except Exception as err:
+        return f"{text} invalid int"
+    if code == 0:
+        return "操作成功"
+    if code == -8:
+        return "网络异常"
+    if code > 80:
+        return "server error,please "
+    return "未知错误"
+# res = transform(text)
+
+
 if __name__ == "__main__":
     print(EvalUtil.eval('x + y + z', locals={'x': 1, 'y': 2}))
     # 定义全局命名空间和本地命名空间

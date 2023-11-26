@@ -218,9 +218,9 @@ class LogAnalysisWindow(QMainWindow):
                 timeStr = f"{time[0].toString('MM-dd HH:mm:ss')}.{time[1]} "
             fp, err = PlantUML.jarProcesses(log, outfile=f'{timeStr.replace("-", "").replace(" ", "").replace(":", "")}', directory='outputPic')
             LogUtil.w(TAG, f'gen uml pic: {fp}')
-            self.consoleTextEdit.standardOutputOne(f"{rule[KEY_NAME]}: \n{log}", ColorEnum.BLUE.value)
+            self.execResult.append({KEY_LOG: f"{rule[KEY_NAME]}: \n{log}", KEY_COLOR: ColorEnum.BLUE.value})
             if fp:
-                self.consoleTextEdit.hrefOutput(f"{timeStr}{rule[KEY_NAME]}: ", fp, 2)
+                self.execResult.append({KEY_SHOW_TEXT: f"{timeStr}{rule[KEY_NAME]}: ", KEY_HYPERLINK_TXT: fp, KEY_WRAP_NUM: 2, KEY_TYPE: KEY_HYPERLINK})
         else:
             self.execResult.append({KEY_LOG: f"{rule[KEY_NAME]}: \n{log}\n\n", KEY_COLOR: ColorEnum.BLUE.value})
         self.spliceLogResult[rule[KEY_NAME]] = []
@@ -239,6 +239,7 @@ class LogAnalysisWindow(QMainWindow):
         keywordList = [item for item in keywords.split(';') if item and item in line]
         if not keywordList:
             return
+        self.execResult.append({KEY_LOG: f"原始日志: {line}", KEY_COLOR: ColorEnum.BLUE.value})
         dicRes = EvalUtil.execFunc(function, line)
         if type(dicRes) != dict:
             self.execResult.append({KEY_LOG: f"转换结果: {dicRes}\n\n", KEY_COLOR: ColorEnum.RED.value})

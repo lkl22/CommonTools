@@ -30,6 +30,10 @@ KEY_LIST = 'list'
 # tableView title
 KEY_TITLE = 'title'
 KEY_NAME = 'name'
+KEY_TYPE = 'type'
+KEY_HYPERLINK = 'hyperlink'
+KEY_HYPERLINK_TXT = 'hyperlinkTxt'
+KEY_WRAP_NUM = 'wrapNum'
 
 # 打开文件/目录属性key
 KEY_CAPTION = 'caption'

@@ -7,6 +7,7 @@ import sys
 from PyQt5.QtCore import pyqtSignal
 
 from util.ClipboardUtil import ClipboardUtil
+from util.DictUtil import DictUtil
 from util.WidgetUtil import *
 from widget.custom.ClickTextEdit import ClickTextEdit
 from widget.custom.ICommonWidget import ICommonWidget
@@ -45,7 +46,14 @@ class CommonTextEdit(ICommonWidget):
 
     def __standardOutput(self, message):
         if type(message) == list:
-            WidgetUtil.textEditAppendMessages(self.__textEdit, messages=message)
+            data = []
+            for item in message:
+                if DictUtil.get(item, KEY_TYPE) != KEY_HYPERLINK:
+                    data.append(item)
+                else:
+                    WidgetUtil.textEditAppendMessages(self.__textEdit, messages=data)
+                    data = []
+                    self.__hrefOutput(DictUtil.get(item, KEY_SHOW_TEXT, ''), DictUtil.get(item, KEY_HYPERLINK_TXT, 'link'), DictUtil.get(item, KEY_WRAP_NUM, 0))
         else:
             WidgetUtil.textEditAppendMessage(self.__textEdit, *message)
         pass
