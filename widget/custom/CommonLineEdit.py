@@ -31,8 +31,9 @@ class CommonLineEdit(ICommonWidget):
         self.__lineEdit.setText(text if text else '')
         pass
 
-    def getData(self):
-        return self.__lineEdit.text().strip()
+    def getData(self, needStrip=False):
+        text = self.__lineEdit.text()
+        return text.strip() if needStrip else text
 
 
 if __name__ == "__main__":

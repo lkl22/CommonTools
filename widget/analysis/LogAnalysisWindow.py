@@ -185,7 +185,7 @@ class LogAnalysisWindow(QMainWindow):
                     f"{line[line.index(startKeyword):line.index(endKeyword)]}{endKeyword}"]
                 self.__handleSpliceLog(rule, spliceParams, time)
                 return
-            self.spliceLogResult[rule[KEY_NAME]] = [line[line.index(startKeyword):]]
+            self.spliceLogResult[rule[KEY_NAME]] = [line[line.index(startKeyword):].replace('\n', '')]
             return
         if not DictUtil.get(self.spliceLogResult, rule[KEY_NAME]):
             return
@@ -194,15 +194,19 @@ class LogAnalysisWindow(QMainWindow):
                 log = re.split(splitRe, line)[1]
                 if endKeyword in log:
                     log = log[:log.index(endKeyword)] + endKeyword
-                self.spliceLogResult[rule[KEY_NAME]].append(log)
+                self.__cacheSliceLog(rule, log)
             else:
-                self.spliceLogResult[rule[KEY_NAME]].append(line[:line.index(endKeyword)] + endKeyword)
+                self.__cacheSliceLog(rule, line[:line.index(endKeyword)] + endKeyword)
             self.__handleSpliceLog(rule, spliceParams, time)
             return
         elif ReUtil.match(line, f'.*{splitRe}.*'):
-            self.spliceLogResult[rule[KEY_NAME]].append(re.split(splitRe, line)[1])
+            self.__cacheSliceLog(rule, re.split(splitRe, line)[1].replace('\n', ''))
         else:
             self.__handleSpliceLog(rule, spliceParams, time)
+        pass
+
+    def __cacheSliceLog(self, rule, log):
+        self.spliceLogResult[rule[KEY_NAME]].append(log)
         pass
 
     def __handleSpliceLog(self, rule, spliceParams, time):
