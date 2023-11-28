@@ -15,6 +15,7 @@ import six
 from six.moves.urllib.parse import urlencode
 
 from util.FileUtil import FileUtil
+from util.LogUtil import LogUtil
 from util.NetworkUtil import NetworkUtil
 from util.ShellUtil import ShellUtil
 
@@ -70,7 +71,12 @@ def deflate_and_encode(plantuml_text):
     return base64.b64encode(compressed_string).translate(b64_to_plantuml).decode('utf-8')
 
 
+TAG = 'PlantUML'
+
+
 class PlantUML(object):
+    processesMode = 'All'
+
     """Connection to a PlantUML server with optional authentication.
 
     All parameters are optional.
@@ -171,8 +177,9 @@ class PlantUML(object):
         url = self.get_url(plantuml_text)
         try:
             response, content = self.http.request(url, **self.request_opts)
-        except self.HttpLib2Error as e:
+        except Exception as e:
             # raise PlantUMLConnectionError(e)
+            LogUtil.e(TAG, e)
             content = NetworkUtil.get(url)
         return content
 
@@ -231,9 +238,9 @@ class PlantUML(object):
             makedirs(directory)
         try:
             content = self.processes(content)
-        except PlantUMLHTTPError as e:
+        except Exception as e:
             err = open(path.join(directory, errorfile), 'w')
-            err.write(e.content)
+            err.write(f'{e}')
             err.close()
             return None
         fp = path.join(directory, outfile)
@@ -254,18 +261,24 @@ class PlantUML(object):
         if not FileUtil.existsFile(jarFp):
             res = PlantUML().processesContent(content, outfile, directory=directory)
             return res, None if res else 'processes failed'
-        tempFp = path.splitext(outfile)[0] + '.uml'
-        FileUtil.removeFile(tempFp)
-        if directory and not path.exists(directory):
-            makedirs(directory)
-        with open(tempFp, 'w+') as file:
-            file.writelines(content)
-        out, err = ShellUtil.exec(f'java -jar {jarFp} -stdrpt:1 {tempFp}')
-        FileUtil.removeFile(tempFp)
-        if not err:
+        if PlantUML.processesMode != 'Cloud':
+            tempFp = path.splitext(outfile)[0] + '.uml'
             FileUtil.removeFile(tempFp)
-            return path.splitext(outfile)[0] + '.png', None
+            if directory and not path.exists(directory):
+                makedirs(directory)
+            with open(tempFp, 'w+') as file:
+                file.writelines(content)
+            out, err = ShellUtil.exec(f'java -jar {jarFp} -stdrpt:1 {tempFp}')
+            FileUtil.removeFile(tempFp)
+            if not err:
+                PlantUML.processesMode = 'Jar'
+                FileUtil.removeFile(tempFp)
+                return path.splitext(outfile)[0] + '.png', None
+            if PlantUML.processesMode == 'Jar':
+                return None, err
         res = PlantUML().processesContent(content, outfile, directory=directory)
+        if res:
+            PlantUML.processesMode = 'Cloud'
         return res, None if res else 'processes failed'
 
 

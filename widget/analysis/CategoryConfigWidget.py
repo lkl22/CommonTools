@@ -137,6 +137,7 @@ class CategoryConfigWidget(QFrame):
         if not DictUtil.get(datetimeFormatRule, KEY_DATETIME_FORMAT):
             WidgetUtil.showErrorDialog(message="请输入日志中的时间格式")
             return None
+        self.__ruleList = self.__analysisRuleTableView.getData()
         if not self.__ruleList:
             WidgetUtil.showErrorDialog(message="请添加日志分析规则")
             return None

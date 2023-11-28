@@ -185,9 +185,8 @@ class LogAnalysisWindow(QMainWindow):
                     f"{line[line.index(startKeyword):line.index(endKeyword)]}{endKeyword}"]
                 self.__handleSpliceLog(rule, spliceParams, time)
                 return
-            if ReUtil.match(line, f'.*{splitRe}.*'):
-                self.spliceLogResult[rule[KEY_NAME]] = [re.split(splitRe, line)[1]]
-                return
+            self.spliceLogResult[rule[KEY_NAME]] = [line[line.index(startKeyword):]]
+            return
         if not DictUtil.get(self.spliceLogResult, rule[KEY_NAME]):
             return
         if endKeyword and endKeyword in line:
@@ -221,6 +220,8 @@ class LogAnalysisWindow(QMainWindow):
             self.execResult.append({KEY_LOG: f"{rule[KEY_NAME]}: \n{log}", KEY_COLOR: ColorEnum.BLUE.value})
             if fp:
                 self.execResult.append({KEY_SHOW_TEXT: f"{timeStr}{rule[KEY_NAME]}: ", KEY_HYPERLINK_TXT: fp, KEY_WRAP_NUM: 2, KEY_TYPE: KEY_HYPERLINK})
+            else:
+                self.execResult.append({KEY_LOG: f"\n{rule[KEY_NAME]}: \n{err}\n\n", KEY_COLOR: ColorEnum.RED.value})
         else:
             self.execResult.append({KEY_LOG: f"{rule[KEY_NAME]}: \n{log}\n\n", KEY_COLOR: ColorEnum.BLUE.value})
         self.spliceLogResult[rule[KEY_NAME]] = []
