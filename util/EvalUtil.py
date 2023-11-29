@@ -65,7 +65,7 @@ def transform(text):
     if code > 80:
         return 'server error,please<a style="color: red" href="https://www.baidu.com">https://www.baidu.com</a> '
     return "未知错误"
-res = transform(text)
+# res = transform(text)
 
 
 if __name__ == "__main__":

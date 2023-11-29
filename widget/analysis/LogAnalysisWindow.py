@@ -248,19 +248,19 @@ class LogAnalysisWindow(QMainWindow):
         self.execResult.append({KEY_LOG: f"原始日志: {line}", KEY_COLOR: ColorEnum.BLUE.value})
         dicRes = EvalUtil.execFunc(function, line)
         if type(dicRes) != dict:
-            self.execResult.append({KEY_LOG: f"转换结果: {dicRes}\n\n", KEY_COLOR: ColorEnum.RED.value})
+            self.execResult.append({KEY_LOG: f"转换结果: {dicRes}\n\n", KEY_COLOR: ColorEnum.OCEAN_BLUE.value})
             return
         funcs = DictUtil.get(transformCfgs, KEY_TRANSFORM_FUNCS)
-        self.execResult.append({KEY_LOG: f"转换结果: {dicRes}\n", KEY_COLOR: ColorEnum.RED.value})
+        self.execResult.append({KEY_LOG: f"转换结果: {dicRes}\n", KEY_COLOR: ColorEnum.OCEAN_BLUE.value})
         if not funcs:
-            self.execResult.append({KEY_LOG: f"\n", KEY_COLOR: ColorEnum.RED.value})
+            self.execResult.append({KEY_LOG: f"\n", KEY_COLOR: ColorEnum.OCEAN_BLUE.value})
             return
         for func in funcs:
             value = DictUtil.get(dicRes, func[KEY_ITEM_KEY])
             if value:
                 execResult = EvalUtil.execFunc(func[KEY_FUNCTION], value)
-                self.execResult.append({KEY_LOG: f"转换结果: {execResult}\n", KEY_COLOR: ColorEnum.RED.value})
-        self.execResult.append({KEY_LOG: f"\n", KEY_COLOR: ColorEnum.RED.value})
+                self.execResult.append({KEY_LOG: f"转换结果: {execResult}\n", KEY_COLOR: ColorEnum.OCEAN_BLUE.value})
+        self.execResult.append({KEY_LOG: f"\n", KEY_COLOR: ColorEnum.OCEAN_BLUE.value})
         pass
 
     def __analysisCostTime(self, line, rule, timeIndex, timeFormat):

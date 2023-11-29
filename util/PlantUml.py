@@ -263,6 +263,7 @@ class PlantUML(object):
             return res, None if res else 'processes failed'
         if PlantUML.processesMode != 'Cloud':
             tempFp = path.splitext(outfile)[0] + '.uml'
+            dstFn = path.splitext(outfile)[0] + '.png'
             FileUtil.removeFile(tempFp)
             if directory and not path.exists(directory):
                 makedirs(directory)
@@ -273,7 +274,9 @@ class PlantUML(object):
             if not err:
                 PlantUML.processesMode = 'Jar'
                 FileUtil.removeFile(tempFp)
-                return path.splitext(outfile)[0] + '.png', None
+                dst = path.join(directory, dstFn)
+                FileUtil.modifyFilePath(dstFn, dst, False)
+                return dst, None
             if PlantUML.processesMode == 'Jar':
                 return None, err
         res = PlantUML().processesContent(content, outfile, directory=directory)
