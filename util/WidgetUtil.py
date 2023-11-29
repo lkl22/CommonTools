@@ -706,8 +706,7 @@ class WidgetUtil:
         :param color: 颜色值
         :return: None
         """
-        textFormat = "<font color=\"" + color + "\">" + text.replace("\r\n", "<br/>").replace("\n", "<br/>").replace(
-            " ", "&nbsp;") + "</font>"
+        textFormat = f'<font color="{color}">{WidgetUtil.specialCharTransform(text)}</font>'
         textEdit.append(textFormat)
         # 触发实时显示数据
         QApplication.instance().processEvents()
@@ -723,12 +722,16 @@ class WidgetUtil:
         """
         textFormat = ""
         for msg in messages:
-            textFormat += "<font color=\"" + msg[KEY_COLOR] + "\">" + msg[KEY_LOG] \
-                .replace("\r\n", "<br/>").replace("\n", "<br/>").replace(" ", "&nbsp;") + "</font>"
+            textFormat += f'<font color="{msg[KEY_COLOR]}">{WidgetUtil.specialCharTransform(msg[KEY_LOG])}</font>'
         textEdit.append(textFormat)
         # 触发实时显示数据
         QApplication.instance().processEvents()
         pass
+
+    @staticmethod
+    def specialCharTransform(text: str):
+        return text.replace("\r\n", "<br/>").replace("\n", "<br/>").replace(" ", "&nbsp;")
+
 
     @staticmethod
     def createTreeWidget(parent: QWidget, objectName="TreeWidget", toolTip=None, headerLabels=['格式化数据'],

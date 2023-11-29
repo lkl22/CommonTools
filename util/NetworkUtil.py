@@ -3,6 +3,8 @@
 # Filename: NetworkUtil.py
 # 定义一个NetworkUtil工具类实现网络操作相关的功能
 import os
+import webbrowser
+from urllib.parse import urlparse
 
 from util.FileUtil import FileUtil
 from util.LogUtil import LogUtil
@@ -59,6 +61,32 @@ class NetworkUtil:
         LogUtil.e("downloadPackage", "download success.")
         return True
 
+    @staticmethod
+    def isUrl(url: str, scheme: [str] = None):
+        """
+        判断字符串是否为URL
+        @:param url 待校验数据
+        @:return true 合法待URL地址
+        """
+        try:
+            result = urlparse(url)
+            res = all([result.scheme, result.netloc])
+            if not res:
+                return False
+            if scheme:
+                return result.scheme in scheme
+            return True
+        except ValueError:
+            return False
+
+    @staticmethod
+    def openWebBrowser(url: str):
+        webbrowser.open(url)
+        pass
+
 
 if __name__ == "__main__":
-    print(NetworkUtil.downloadFile("https://github.com/lkl22/AndroidTestAssistTool/releases/download/v1.0.1/app-release.apk", 'dd.apk'))
+    # print(NetworkUtil.downloadFile("https://github.com/lkl22/AndroidTestAssistTool/releases/download/v1.0.1/app-release.apk", 'dd.apk'))
+    print(NetworkUtil.isUrl("https://github.com/lkl22/AndroidTestAssistTool/releases/download/v1.0.1/app-release.apk", ['https', 'http']))
+    print(NetworkUtil.isUrl("wwww://github.com/lkl22/AndroidTestAssistTool/releases/download/v1.0.1/app-release.apk", ['https', 'http']))
+    NetworkUtil.openWebBrowser('https://www.baidu.com')

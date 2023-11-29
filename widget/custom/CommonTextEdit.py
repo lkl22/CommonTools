@@ -49,7 +49,12 @@ class CommonTextEdit(ICommonWidget):
             data = []
             for item in message:
                 if DictUtil.get(item, KEY_TYPE) != KEY_HYPERLINK:
-                    data.append(item)
+                    if '<a style' in item[KEY_LOG]:
+                        WidgetUtil.textEditAppendMessages(self.__textEdit, messages=data)
+                        data = []
+                        self.__textEdit.append(f'<span style="color: {item[KEY_COLOR]}">{item[KEY_LOG]}</span>')
+                    else:
+                        data.append(item)
                 else:
                     WidgetUtil.textEditAppendMessages(self.__textEdit, messages=data)
                     data = []

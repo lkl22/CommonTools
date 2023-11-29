@@ -12,6 +12,7 @@ from util.DialogUtil import *
 from util.DictUtil import DictUtil
 from util.EvalUtil import EvalUtil
 from util.ListUtil import ListUtil
+from util.NetworkUtil import NetworkUtil
 from util.OperaIni import *
 from util.PlantUml import PlantUML
 from util.StrUtil import StrUtil
@@ -185,7 +186,7 @@ class LogAnalysisWindow(QMainWindow):
                     f"{line[line.index(startKeyword):line.index(endKeyword)]}{endKeyword}"]
                 self.__handleSpliceLog(rule, spliceParams, time)
                 return
-            self.spliceLogResult[rule[KEY_NAME]] = [line[line.index(startKeyword):].replace('\n', '')]
+            self.spliceLogResult[rule[KEY_NAME]] = [line[line.index(startKeyword):].rstrip()]
             return
         if not DictUtil.get(self.spliceLogResult, rule[KEY_NAME]):
             return
@@ -200,7 +201,7 @@ class LogAnalysisWindow(QMainWindow):
             self.__handleSpliceLog(rule, spliceParams, time)
             return
         elif ReUtil.match(line, f'.*{splitRe}.*'):
-            self.__cacheSliceLog(rule, re.split(splitRe, line)[1].replace('\n', ''))
+            self.__cacheSliceLog(rule, re.split(splitRe, line)[1].rstrip())
         else:
             self.__handleSpliceLog(rule, spliceParams, time)
         pass
@@ -210,7 +211,7 @@ class LogAnalysisWindow(QMainWindow):
         pass
 
     def __handleSpliceLog(self, rule, spliceParams, time):
-        log = ''.join(self.spliceLogResult[rule[KEY_NAME]])
+        log = ''.join([f"{item} " if item.endswith('state') else item for item in self.spliceLogResult[rule[KEY_NAME]]])
         func = DictUtil.get(spliceParams, KEY_FUNCTION)
         if func:
             log = EvalUtil.execFunc(func, log)
@@ -300,7 +301,10 @@ class LogAnalysisWindow(QMainWindow):
             return None
 
     def __linkClicked(self, linkTxt):
-        FileUtil.openFile(linkTxt)
+        if NetworkUtil.isUrl(linkTxt):
+            NetworkUtil.openWebBrowser(linkTxt)
+        else:
+            FileUtil.openFile(linkTxt)
         pass
 
 
