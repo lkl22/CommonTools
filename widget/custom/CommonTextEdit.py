@@ -7,7 +7,6 @@ import sys
 from PyQt5.QtCore import pyqtSignal
 
 from util.ClipboardUtil import ClipboardUtil
-from util.DictUtil import DictUtil
 from util.WidgetUtil import *
 from widget.custom.ClickTextEdit import ClickTextEdit
 from widget.custom.ICommonWidget import ICommonWidget
@@ -17,7 +16,6 @@ TAG = 'CommonTextEdit'
 
 class CommonTextEdit(ICommonWidget):
     __standardOutputSignal = pyqtSignal(list)
-    __hrefOutputSignal = pyqtSignal(str, str, int)
 
     def __init__(self, title: str = None, text: str = None, isReadOnly: bool = True, holderText: str = None,
                  toolTip=None, isShowCopyFunc=True, linkClicked=None):
@@ -38,7 +36,6 @@ class CommonTextEdit(ICommonWidget):
         vbox.addWidget(self.__textEdit, 1)
 
         self.__standardOutputSignal.connect(self.__standardOutput)
-        self.__hrefOutputSignal.connect(self.__hrefOutput)
         self.setAutoFillBackground(True)
         if toolTip:
             self.setToolTip(toolTip)
@@ -46,28 +43,10 @@ class CommonTextEdit(ICommonWidget):
 
     def __standardOutput(self, message):
         if type(message) == list:
-            data = []
-            for item in message:
-                if DictUtil.get(item, KEY_TYPE) != KEY_HYPERLINK:
-                    if '<a style' in item[KEY_LOG]:
-                        WidgetUtil.textEditAppendMessages(self.__textEdit, messages=data)
-                        data = []
-                        self.__textEdit.append(f'<span style="color: {item[KEY_COLOR]}">{item[KEY_LOG]}</span>')
-                    else:
-                        data.append(item)
-                else:
-                    WidgetUtil.textEditAppendMessages(self.__textEdit, messages=data)
-                    data = []
-                    self.__hrefOutput(DictUtil.get(item, KEY_SHOW_TEXT, ''), DictUtil.get(item, KEY_HYPERLINK_TXT, 'link'), DictUtil.get(item, KEY_WRAP_NUM, 0))
-            if data:
-                WidgetUtil.textEditAppendMessages(self.__textEdit, messages=data)
+            WidgetUtil.textEditAppendMessages(self.__textEdit, messages=message)
         else:
             WidgetUtil.textEditAppendMessage(self.__textEdit, *message)
         pass
-
-    def __hrefOutput(self, showText, hrefContent, wrapNum=0):
-        self.__textEdit.append(
-            f'<span>{showText}<a style="color: red" href="{hrefContent}">{hrefContent}</a></span>{"".rjust(wrapNum, "&").replace("&", "<br/>")}')
 
     def __copyData(self):
         ClipboardUtil.copyToClipboard(self.getData())
@@ -82,10 +61,6 @@ class CommonTextEdit(ICommonWidget):
 
     def standardOutputOne(self, log, color):
         self.__standardOutputSignal.emit([{KEY_LOG: log, KEY_COLOR: color}])
-        pass
-
-    def hrefOutput(self, showText, hrefContent, wrapNum=0):
-        self.__hrefOutputSignal.emit(showText, hrefContent, wrapNum)
         pass
 
     def getData(self):

@@ -149,7 +149,7 @@ class LogAnalysisWindow(QMainWindow):
                 line = StrUtil.decode(srcFile.readline())
             srcFile.close()
         else:
-            self.execResult.append({KEY_LOG: f'{self.categoryRule[KEY_FILE_PATH]} file not exist.', KEY_COLOR: '#f00'})
+            self.__appendLog(f'{self.categoryRule[KEY_FILE_PATH]} file not exist.', ColorEnum.RED)
         self.consoleTextEdit.standardOutput(self.execResult)
         self.hideLoadingSignal.emit()
         pass
@@ -161,8 +161,7 @@ class LogAnalysisWindow(QMainWindow):
             if logKeyword and logKeyword in line:
                 if not hasPrintLine:
                     hasPrintLine = True
-                    self.execResult.append({KEY_LOG: line, KEY_COLOR: '#000'})
-                self.execResult.append({KEY_LOG: '\n', KEY_COLOR: '#000'})
+                    self.__appendLog(line)
             self.__analysisLogTransform(line, rule)
             self.__analysisCostTime(line, rule, timeIndex, timeFormat)
             self.__spliceLog(line, rule, timeIndex, timeFormat)
@@ -220,15 +219,18 @@ class LogAnalysisWindow(QMainWindow):
             timeStr = DateUtil.nowTime("%Y%m%d%H%M%S")
             if time:
                 timeStr = f"{time[0].toString('MM-dd HH:mm:ss')}.{time[1]} "
-            fp, err = PlantUML.jarProcesses(log, outfile=f'{timeStr.replace("-", "").replace(" ", "").replace(":", "")}', directory='outputPic')
+            fp, err = PlantUML.jarProcesses(log,
+                                            outfile=f'{timeStr.replace("-", "").replace(" ", "").replace(":", "")}',
+                                            directory='outputPic')
             LogUtil.w(TAG, f'gen uml pic: {fp}')
-            self.execResult.append({KEY_LOG: f"{rule[KEY_NAME]}: \n{log}", KEY_COLOR: ColorEnum.BLUE.value})
+            self.__appendLog(f"{rule[KEY_NAME]}: \n{log}", ColorEnum.BLUE)
             if fp:
-                self.execResult.append({KEY_SHOW_TEXT: f"{timeStr}{rule[KEY_NAME]}: ", KEY_HYPERLINK_TXT: fp, KEY_WRAP_NUM: 2, KEY_TYPE: KEY_HYPERLINK})
+                self.__appendLog(f'{timeStr}{rule[KEY_NAME]}: <a style="color: red" href="{fp}">{fp}</a>', ColorEnum.BLUE)
+                self.__appendLog('\n')
             else:
-                self.execResult.append({KEY_LOG: f"\n{rule[KEY_NAME]}: \n{err}\n\n", KEY_COLOR: ColorEnum.RED.value})
+                self.__appendLog(f"\n{rule[KEY_NAME]}: \n{err}\n", ColorEnum.RED)
         else:
-            self.execResult.append({KEY_LOG: f"{rule[KEY_NAME]}: \n{log}\n\n", KEY_COLOR: ColorEnum.BLUE.value})
+            self.__appendLog(f"{rule[KEY_NAME]}: \n{log}\n", ColorEnum.BLUE)
         self.spliceLogResult[rule[KEY_NAME]] = []
         pass
 
@@ -245,23 +247,28 @@ class LogAnalysisWindow(QMainWindow):
         keywordList = [item for item in keywords.split(';') if item and item in line]
         if not keywordList:
             return
-        self.execResult.append({KEY_LOG: f"原始日志: {line}", KEY_COLOR: ColorEnum.BLUE.value})
+        self.__appendLog(f"原始日志: {line}", ColorEnum.BLUE)
         dicRes = EvalUtil.execFunc(function, line)
         if type(dicRes) != dict:
-            self.execResult.append({KEY_LOG: f"转换结果: {dicRes}\n\n", KEY_COLOR: ColorEnum.OCEAN_BLUE.value})
+            self.__appendLog(f"转换结果: {dicRes}\n", ColorEnum.OCEAN_BLUE)
             return
         funcs = DictUtil.get(transformCfgs, KEY_TRANSFORM_FUNCS)
-        self.execResult.append({KEY_LOG: f"转换结果: {dicRes}\n", KEY_COLOR: ColorEnum.OCEAN_BLUE.value})
+        self.__appendLog(f"转换结果: {dicRes}", ColorEnum.OCEAN_BLUE)
         if not funcs:
-            self.execResult.append({KEY_LOG: f"\n", KEY_COLOR: ColorEnum.OCEAN_BLUE.value})
             return
         for func in funcs:
             value = DictUtil.get(dicRes, func[KEY_ITEM_KEY])
             if value:
                 execResult = EvalUtil.execFunc(func[KEY_FUNCTION], value)
-                self.execResult.append({KEY_LOG: f"转换结果: {execResult}\n", KEY_COLOR: ColorEnum.OCEAN_BLUE.value})
-        self.execResult.append({KEY_LOG: f"\n", KEY_COLOR: ColorEnum.OCEAN_BLUE.value})
+                self.__appendLog(f"转换结果: {execResult}", ColorEnum.OCEAN_BLUE)
         pass
+
+    def __appendLog(self, log: str, color: ColorEnum = ColorEnum.BLACK):
+        self.execResult.append({KEY_LOG: log, KEY_COLOR: color.value})
+        if len(self.execResult) > 50:
+            res = self.execResult
+            self.execResult = []
+            self.consoleTextEdit.standardOutput(res)
 
     def __analysisCostTime(self, line, rule, timeIndex, timeFormat):
         if not DictUtil.get(rule, KEY_NEED_COST_TIME, DEFAULT_VALUE_NEED_COST_TIME):
@@ -281,11 +288,10 @@ class LogAnalysisWindow(QMainWindow):
             endTime = self.__getLogTime(line, timeIndex, timeFormat)
             if not endTime:
                 return
-            self.execResult.append({KEY_LOG: f"{startInfo[KEY_LOG]}{line[:MAX_BYTE]}", KEY_COLOR: '#000'})
+            self.__appendLog(f"{startInfo[KEY_LOG]}{line[:MAX_BYTE]}")
             costTime = startTime[0].msecsTo(endTime[0]) + endTime[1] - startTime[1]
-            self.execResult.append(
-                {KEY_LOG: f"\n耗时分析：{rule[KEY_NAME]}({DictUtil.get(rule, KEY_DESC, '')}) cost time: {costTime} ms\n\n",
-                 KEY_COLOR: '#f00'})
+            self.__appendLog(f"\n耗时分析：{rule[KEY_NAME]}({DictUtil.get(rule, KEY_DESC, '')}) cost time: {costTime} ms\n",
+                             ColorEnum.ORANGE)
         pass
 
     def __getLogTime(self, line, timeIndex, timeFormat: str):
