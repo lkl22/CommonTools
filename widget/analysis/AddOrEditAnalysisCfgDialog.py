@@ -20,15 +20,18 @@ HEADERS = {
 
 
 class AddOrEditAnalysisCfgDialog(QtWidgets.QDialog):
-    def __init__(self, callback, default=None, ruleList=None, isDebug=False):
+    def __init__(self, callback, default=None, ruleList=None, isAdd=False, isDebug=False):
         # 调用父类的构函
         QtWidgets.QDialog.__init__(self)
         self.__initWidgetConfig()
 
         self.__ruleList = ruleList if ruleList else []
         self.__callback = callback
-        self.__isAdd = default is None
-        self.__default = default
+        self.__isAdd = default is None or isAdd
+        self.__default = default if default else {}
+        if self.__default and self.__isAdd:
+            self.__default = copy.deepcopy(self.__default)
+
         isEnable = DictUtil.get(self.__default, KEY_IS_ENABLE, DEFAULT_VALUE_IS_ENABLE)
         needCostTime = DictUtil.get(self.__default, KEY_NEED_COST_TIME, DEFAULT_VALUE_NEED_COST_TIME)
         needSpliceLog = DictUtil.get(self.__default, KEY_NEED_SPLICE_LOG, DEFAULT_VALUE_NEED_SPLICE_LOG)

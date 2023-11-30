@@ -152,9 +152,9 @@ class CategoryConfigWidget(QFrame):
         self.__analysisRuleTableView.updateData(self.__ruleList)
         pass
 
-    def addOrEditItemFunc(self, callback, default, items):
+    def addOrEditItemFunc(self, callback, default, items, isAdd=False):
         if not default and not self.__categoryInfo:
             WidgetUtil.showErrorDialog(message="请先选择或者添加Log分析配置")
             return
 
-        AddOrEditAnalysisCfgDialog(callback=callback, default=default, ruleList=items)
+        AddOrEditAnalysisCfgDialog(callback=callback, default=default, ruleList=items, isAdd=isAdd)

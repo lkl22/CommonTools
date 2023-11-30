@@ -50,7 +50,7 @@ class LogTransformCfgWidget(ICommonWidget):
             self.setToolTip(toolTip)
         pass
 
-    def __addOrEditItemFunc(self, callback, default, items):
+    def __addOrEditItemFunc(self, callback, default, items, isAdd=False):
         dialog = CommonAddOrEditDialog(windowTitle='添加/编辑结果映射',
                                        optionInfos=[{
                                            KEY_ITEM_KEY: KEY_ITEM_KEY,
@@ -67,6 +67,7 @@ class LogTransformCfgWidget(ICommonWidget):
                                        callback=callback,
                                        default=default,
                                        items=items,
+                                       isAdd=isAdd,
                                        isDebug=self.__isDebug)
         if self.__isDebug:
             dialog.show()

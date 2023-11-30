@@ -26,6 +26,7 @@ class CommonTableView(ICommonWidget):
         """
         super(CommonTableView, self).__init__()
         self.setMinimumWidth(int(WidgetUtil.getScreenWidth() * 0.25))
+        self.setMinimumHeight(int(WidgetUtil.getScreenHeight() * 0.2))
 
         self.__headers = headers
         # 取字典的第一个键值
@@ -108,10 +109,10 @@ class CommonTableView(ICommonWidget):
 
     def __addItem(self):
         LogUtil.d(TAG, "__addItem")
-
         self.__addOrEditItemFunc(callback=self.__addOrEditItemCallback,
                                  default=None,
-                                 items=self.__items)
+                                 items=self.__items,
+                                 isAdd=True)
         pass
 
     def __addOrEditItemCallback(self, info):
@@ -127,15 +128,23 @@ class CommonTableView(ICommonWidget):
         LogUtil.d(TAG, "__tableDoubleClicked：row ", row, ' col', index.column(), ' data ', oldValue)
         self.__addOrEditItemFunc(callback=self.__addOrEditItemCallback,
                                  default=self.__items[row],
-                                 items=self.__items)
+                                 items=self.__items,
+                                 isAdd=False)
         pass
 
     def __customRightMenuRequested(self, pos):
         self.__curRow = self.__tableView.currentIndex().row()
         LogUtil.i(TAG, "__customRightMenuRequested", pos, ' row: ', self.__curRow)
-        menu = WidgetUtil.createMenu("删除", func1=self.__delItemDialog)
+        menu = WidgetUtil.createMenu("复制", func1=self.__copyItem, action2="删除", func2=self.__delItemDialog)
         menu.exec(self.__tableView.mapToGlobal(pos))
         pass
+
+    def __copyItem(self):
+        LogUtil.i(TAG, f"__copyItem {self.__curRow}")
+        self.__addOrEditItemFunc(callback=self.__addOrEditItemCallback,
+                                 default=self.__items[self.__curRow],
+                                 items=self.__items,
+                                 isAdd=True)
 
     def __delItemDialog(self):
         primaryName = self.__items[self.__curRow][self.__primaryKey]

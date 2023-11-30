@@ -246,7 +246,7 @@ class ExcelTransformDialog(QtWidgets.QDialog):
         self.__operaIni.saveIni()
         pass
 
-    def __addOrEditDstCol(self, callback, default=None, items=None):
+    def __addOrEditDstCol(self, callback, default=None, items=None, isAdd=False):
         if not default:
             config = self.__configComboBox.getData()
             if not config:
@@ -278,6 +278,7 @@ class ExcelTransformDialog(QtWidgets.QDialog):
                                        callback=callback,
                                        default=default,
                                        items=items,
+                                       isAdd=isAdd,
                                        isDebug=self.__isDebug)
         if self.__isDebug:
             dialog.show()

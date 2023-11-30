@@ -2,6 +2,7 @@
 # python 3.x
 # Filename: CommonAddOrEditDialog.py
 # 定义一个CommonAddOrEditDialog类实现添加、编辑相关数据相关的功能
+import copy
 import os.path
 import sys
 from util.DialogUtil import *
@@ -16,7 +17,7 @@ TAG = "CommonAddOrEditDialog"
 
 class CommonAddOrEditDialog(QtWidgets.QDialog):
     def __init__(self, windowTitle: str, optionInfos: [{}], default=None, items: [] = None, callback=None, width=0.3,
-                 height=0.2, isDebug=False):
+                 height=0.2, isAdd=False, isDebug=False):
         # 调用父类的构函
         QtWidgets.QDialog.__init__(self)
         windowFlags = Qt.Dialog | Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint
@@ -34,7 +35,9 @@ class CommonAddOrEditDialog(QtWidgets.QDialog):
         self.__default = default if default else {}
         self.__items = items if items else []
         self.__callback = callback
-        self.__isAdd = default is None
+        self.__isAdd = default is None or isAdd
+        if self.__default and self.__isAdd:
+            self.__default = copy.deepcopy(self.__default)
 
         self.__optionInfos = []
         self.__widgets: [ICommonWidget] = []

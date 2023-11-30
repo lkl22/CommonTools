@@ -152,7 +152,7 @@ class TLVParseDialog(QtWidgets.QDialog):
         self.__operaIni.saveIni()
         pass
 
-    def __addOrEditTagFunc(self, callback, default=None, items=None):
+    def __addOrEditTagFunc(self, callback, default=None, items=None, isAdd=False):
         if not default and not self.__defaultConfigName:
             WidgetUtil.showErrorDialog(message="请先添加配置项")
             return
@@ -172,12 +172,13 @@ class TLVParseDialog(QtWidgets.QDialog):
                                        callback=callback,
                                        default=default,
                                        items=items,
+                                       isAdd=isAdd,
                                        isDebug=self.__isDebug)
         if self.__isDebug:
             dialog.show()
         pass
 
-    def __addOrEditLengthTagFunc(self, callback, default=None, items=None):
+    def __addOrEditLengthTagFunc(self, callback, default=None, items=None, isAdd=False):
         if not default and not self.__defaultConfigName:
             WidgetUtil.showErrorDialog(message="请先添加配置项")
             return
@@ -200,12 +201,13 @@ class TLVParseDialog(QtWidgets.QDialog):
                                        callback=callback,
                                        default=default,
                                        items=items,
+                                       isAdd=isAdd,
                                        isDebug=self.__isDebug)
         if self.__isDebug:
             dialog.show()
         pass
 
-    def __addOrEditValueParseFunc(self, callback, default=None, items=None):
+    def __addOrEditValueParseFunc(self, callback, default=None, items=None, isAdd=False):
         if not default and not self.__defaultConfigName:
             WidgetUtil.showErrorDialog(message="请先添加配置项")
             return
@@ -225,6 +227,7 @@ class TLVParseDialog(QtWidgets.QDialog):
                                        callback=callback,
                                        default=default,
                                        items=items,
+                                       isAdd=isAdd,
                                        isDebug=self.__isDebug)
         if self.__isDebug:
             dialog.show()
