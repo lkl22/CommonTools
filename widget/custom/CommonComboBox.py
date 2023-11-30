@@ -72,8 +72,11 @@ class CommonComboBox(ICommonWidget):
             data = DictUtil.get(item, KEY_DATA, DictUtil.get(item, KEY_SHOW_TEXT))
             if self.__default == data:
                 curIndex = index
-        if not self.__groupList and self.__isEditable:
-            self.__deleteBtn.setEnabled(False)
+        if self.__isEditable:
+            if self.__groupList and len(self.__groupList) > 0:
+                self.__deleteBtn.setEnabled(True)
+            else:
+                self.__deleteBtn.setEnabled(False)
         self.__curIndex = curIndex
         self.__comboBox.setCurrentIndex(curIndex)
         pass

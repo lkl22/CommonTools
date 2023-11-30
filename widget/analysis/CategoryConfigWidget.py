@@ -119,11 +119,13 @@ class CategoryConfigWidget(QFrame):
         LogUtil.d(TAG, '__configChanged cur data', config, 'delete data', deleteData)
         if deleteData:
             ListUtil.remove(self.__typeList, ListUtil.find(self.__typeList, KEY_NAME, deleteData))
-        self.__defaultType = ListUtil.find(self.__typeList, KEY_NAME, config)
-        if not self.__defaultType and not deleteData:
-            # 添加新的配置
-            self.__defaultType = {KEY_NAME: config, KEY_ANALYSIS_RULES: []}
+        defaultType = ListUtil.find(self.__typeList, KEY_NAME, config)
+        if not defaultType and not deleteData:
+            # 添加新的配置，不清之前的cfg，复用
+            self.__defaultType = {KEY_NAME: config, KEY_ANALYSIS_RULES: copy.deepcopy(self.__ruleList)}
             self.__typeList.append(self.__defaultType)
+            return
+        self.__defaultType = defaultType
         self.__ruleList = copy.deepcopy(DictUtil.get(self.__defaultType, KEY_ANALYSIS_RULES, []))
         self.__updateRuleTableView()
         pass
