@@ -135,7 +135,6 @@ class ExtractMergeLogDialog(QtWidgets.QDialog):
             LogUtil.d(TAG, '__logDirChanged have not valid file.')
             return
         lastTime = sorted(times)[-1]
-        lastTime = DateUtil.reFormat(lastTime, datetimeFormat, DATETIME_FORMAT, True)
         LogUtil.d(TAG, '__logDirChanged last file: ', lastTime)
         self.__dateTimeRangeEdit.updateData(
             DictUtil.join([self.__dateTimeRangeEdit.getData(), {KEY_DATETIME: lastTime}]))

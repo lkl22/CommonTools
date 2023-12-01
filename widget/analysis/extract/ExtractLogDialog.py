@@ -17,8 +17,6 @@ from widget.custom.LoadingDialog import LoadingDialog
 
 TAG = "ExtractLogDialog"
 
-DATETIME_FORMAT = 'yyyy-MM-dd HH:mm:ss'
-
 KEY_SECTION = 'ExtractLog'
 KEY_SRC_LOG_FILE_PATH = 'srcLogFilePath'
 KEY_DST_LOG_FILE_PATH = 'dstLogFilePath'
@@ -69,11 +67,14 @@ class ExtractLogDialog(QtWidgets.QDialog):
         vbox.addWidget(self.__dstDirPathWidget)
 
         self.__dateTimeRangeEdit = CommonDateTimeRangeEdit(label='提取Log日期范围', value=self.__datetimeRange,
-                                                           labelMinSize=labelMinSize)
+                                                           labelMinSize=labelMinSize,
+                                                           datetimeFormat=DictUtil.get(self.__datetimeFormatRule,
+                                                                                       KEY_DATETIME_FORMAT))
         vbox.addWidget(self.__dateTimeRangeEdit)
 
         self.__datetimeFormatEdit = CommonDateTimeFormatEdit(label='文本日期格式规则', value=self.__datetimeFormatRule,
-                                                             labelMinSize=labelMinSize)
+                                                             labelMinSize=labelMinSize,
+                                                             editingFinished=self.__datetimeFormatChanged)
         vbox.addWidget(self.__datetimeFormatEdit)
 
         hbox = WidgetUtil.createHBoxLayout()
@@ -98,6 +99,10 @@ class ExtractLogDialog(QtWidgets.QDialog):
         if self.__loadingDialog:
             self.__loadingDialog.close()
             self.__loadingDialog = None
+        pass
+
+    def __datetimeFormatChanged(self):
+        self.__dateTimeRangeEdit.updateDatetimeFormat(self.__datetimeFormatEdit.getData()[KEY_DATETIME_FORMAT])
         pass
 
     def __extractLog(self):
@@ -141,7 +146,7 @@ class ExtractLogDialog(QtWidgets.QDialog):
         self.__datetimeFormat = datetimeFormat[KEY_DATETIME_FORMAT]
 
         startTime, endTime = self.__dateTimeRangeEdit.getDateRange()
-        self.__dstFp = os.path.join(dstFp, startTime.toString('yyyyMMddHHmmss'))
+        self.__dstFp = os.path.join(dstFp, startTime.toString(self.__datetimeFormat).replace(' ', '').replace(':', '').replace('-', ''))
         FileUtil.mkFilePath(self.__dstFp)
         FileUtil.removeFile(self.__dstFp)
 
