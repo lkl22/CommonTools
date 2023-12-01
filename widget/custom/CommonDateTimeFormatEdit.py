@@ -14,13 +14,15 @@ TAG = 'CommonDateTimeFormatEdit'
 
 
 class CommonDateTimeFormatEdit(ICommonWidget):
-    def __init__(self, label: str, value=None, labelMinSize: QSize = None, maxWidth=None, toolTip=None):
+    def __init__(self, label: str, value=None, labelMinSize: QSize = None, maxWidth=None, toolTip=None,
+                 editingFinished=None):
         super(CommonDateTimeFormatEdit, self).__init__()
         self.__value = {}
 
         hbox = WidgetUtil.createHBoxLayout(self, margins=QMargins(5, 5, 5, 5), spacing=10)
         hbox.addWidget(WidgetUtil.createLabel(self, text=label, minSize=labelMinSize))
-        self.__formatLineEdit = CommonLineEdit(label='日期格式', toolTip='请输入文本里日期文本的日期格式（例如：yyyyMMdd_HHmmss.SSS）')
+        self.__formatLineEdit = CommonLineEdit(label='日期格式', toolTip='请输入文本里日期文本的日期格式（例如：yyyyMMdd_HHmmss.SSS）',
+                                               editingFinished=editingFinished)
         hbox.addWidget(self.__formatLineEdit, 2)
         self.__startIndexSpinBox = CommonSpinBox(label='起始位置', value=0, minValue=0, step=1,
                                                  toolTip='日期在文本中的起始位置，从下标0开始')
@@ -57,7 +59,8 @@ if __name__ == "__main__":
     e = CommonDateTimeFormatEdit(label='日期格式',
                                  value={KEY_DATETIME_FORMAT: 'YYYY-MM-dd HH:mm:ss.SSS', KEY_START_INDEX: 3},
                                  labelMinSize=QSize(60, 0),
-                                 toolTip='dddddd')
+                                 toolTip='dddddd',
+                                 editingFinished=lambda: LogUtil.i(TAG, 'editingFinished'))
     e.show()
     LogUtil.d(TAG, e.getData())
     sys.exit(app.exec_())

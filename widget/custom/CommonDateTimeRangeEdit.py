@@ -13,13 +13,14 @@ TAG = 'CommonDateTimeRangeEdit'
 
 class CommonDateTimeRangeEdit(ICommonWidget):
     def __init__(self, label: str, value=None, maxOffsetValue=300, labelMinSize: QSize = None, maxWidth=None,
-                 toolTip=None):
+                 datetimeFormat=DATETIME_FORMAT, toolTip=None):
         super(CommonDateTimeRangeEdit, self).__init__()
         self.__value = {}
+        self.__datetimeFormat = datetimeFormat
 
         hbox = WidgetUtil.createHBoxLayout(self, margins=QMargins(5, 5, 5, 5), spacing=10)
         hbox.addWidget(WidgetUtil.createLabel(self, text=label, minSize=labelMinSize))
-        self.__dateTimeEdit = WidgetUtil.createDateTimeEdit(self, displayFormat=DATETIME_FORMAT)
+        self.__dateTimeEdit = WidgetUtil.createDateTimeEdit(self, displayFormat=datetimeFormat)
         hbox.addWidget(self.__dateTimeEdit, 2)
         self.__beforeSpinBox = WidgetUtil.createSpinBox(self, value=0, minValue=0, maxValue=maxOffsetValue, step=5,
                                                         prefix='before: ', suffix=' s')
@@ -37,7 +38,8 @@ class CommonDateTimeRangeEdit(ICommonWidget):
         pass
 
     def __updateUi(self):
-        self.__dateTimeEdit.setDateTime(QDateTime.fromString(DictUtil.get(self.__value, KEY_DATETIME), DATETIME_FORMAT))
+        self.__dateTimeEdit.setDateTime(
+            QDateTime.fromString(DictUtil.get(self.__value, KEY_DATETIME), self.__datetimeFormat))
         self.__beforeSpinBox.setValue(DictUtil.get(self.__value, KEY_BEFORE, 0))
         self.__afterSpinBox.setValue(DictUtil.get(self.__value, KEY_AFTER, 0))
         # self.adjustSize()
@@ -48,9 +50,17 @@ class CommonDateTimeRangeEdit(ICommonWidget):
         self.__updateUi()
         pass
 
+    def updateDatetimeFormat(self, datetimeFormat):
+        datetime = QDateTime.fromString(DictUtil.get(self.__value, KEY_DATETIME), self.__datetimeFormat)
+        self.__value[KEY_DATETIME] = datetime.toString(datetimeFormat)
+        self.__dateTimeEdit.setDisplayFormat(datetimeFormat)
+        self.__datetimeFormat = datetimeFormat
+        self.__updateUi()
+        pass
+
     def getData(self):
         return {
-            KEY_DATETIME: self.__dateTimeEdit.dateTime().toString(DATETIME_FORMAT),
+            KEY_DATETIME: self.__dateTimeEdit.dateTime().toString(self.__datetimeFormat),
             KEY_BEFORE: self.__beforeSpinBox.value(),
             KEY_AFTER: self.__afterSpinBox.value()
         }

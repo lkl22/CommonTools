@@ -70,11 +70,13 @@ class ExtractMergeLogDialog(QtWidgets.QDialog):
 
         self.__dateTimeRangeEdit = CommonDateTimeRangeEdit(label='提取Log日期范围', value=self.__datetimeRange,
                                                            maxOffsetValue=900,
-                                                           labelMinSize=labelMinSize)
+                                                           labelMinSize=labelMinSize,
+                                                           datetimeFormat=DictUtil.get(self.__datetimeFormatRule, KEY_DATETIME_FORMAT))
         vbox.addWidget(self.__dateTimeRangeEdit)
 
         self.__datetimeFormatEdit = CommonDateTimeFormatEdit(label='文本日期格式规则', value=self.__datetimeFormatRule,
-                                                             labelMinSize=labelMinSize)
+                                                             labelMinSize=labelMinSize,
+                                                             editingFinished=self.__datetimeFormatChanged)
         vbox.addWidget(self.__datetimeFormatEdit)
 
         hbox = WidgetUtil.createHBoxLayout()
@@ -108,6 +110,10 @@ class ExtractMergeLogDialog(QtWidgets.QDialog):
             FileUtil.openFile(dirPath)
         pass
 
+    def __datetimeFormatChanged(self):
+        self.__dateTimeRangeEdit.updateDatetimeFormat(self.__datetimeFormatEdit.getData()[KEY_DATETIME_FORMAT])
+        pass
+
     def __logDirChanged(self, logDir):
         LogUtil.d(TAG, '__logDirChanged', logDir)
         self.__extractLogFileReg = self.__logFileRegEdit.getData()
@@ -131,7 +137,8 @@ class ExtractMergeLogDialog(QtWidgets.QDialog):
         lastTime = sorted(times)[-1]
         lastTime = DateUtil.reFormat(lastTime, datetimeFormat, DATETIME_FORMAT, True)
         LogUtil.d(TAG, '__logDirChanged last file: ', lastTime)
-        self.__dateTimeRangeEdit.updateData(DictUtil.join([self.__dateTimeRangeEdit.getData(), {KEY_DATETIME: lastTime}]))
+        self.__dateTimeRangeEdit.updateData(
+            DictUtil.join([self.__dateTimeRangeEdit.getData(), {KEY_DATETIME: lastTime}]))
         pass
 
     def __extractLog(self, isClosed=False):
@@ -192,11 +199,8 @@ class ExtractMergeLogDialog(QtWidgets.QDialog):
         dstFp = ''
         if len(files) > 0:
             _, fn = os.path.split(files[0])
-            tmpDstFp = os.path.join(tmp1Dir, 'tmp' + fn)
             dstFp = os.path.join(tmp1Dir, fn)
-            FileUtil.mergeFiles(files, tmpDstFp)
-            encoding = FileUtil.getEncodingType(tmpDstFp)
-            FileUtil.convertEncodingType(tmpDstFp, dstFp, encoding)
+            FileUtil.mergeFiles(files, dstFp)
         self.__hideLoadingSignal.emit(isClosed, dstFp)
         pass
 

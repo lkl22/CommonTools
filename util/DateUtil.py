@@ -3,6 +3,8 @@
 # Filename: DateUtil.py
 # 定义一个DateUtil工具类实现时间相关的功能
 import time
+from dateutil.parser import parser
+
 from util.LogUtil import *
 
 DATE_TIME = "%Y-%m-%d %H:%M:%S"
@@ -59,6 +61,20 @@ class DateUtil:
             return True
         except Exception as err:
             LogUtil.e("isValidDate", err)
+            return False
+
+    @staticmethod
+    def isValidDatetime(timeStr):
+        """
+        判断str是不是有效的时间格式
+        :param timeStr: 要判断的字符串
+        :return: True 正确的时间格式
+        """
+        try:
+            parser().parse(timeStr)
+            return True
+        except Exception as err:
+            LogUtil.e("isValidDatetime", err)
             return False
 
     @staticmethod
@@ -147,3 +163,5 @@ if __name__ == "__main__":
     print(DateUtil.reFormat("12-12 12:23:12", '%m-%d %H:%M:%S', '%m%d%H%M%S'))
     print(DateUtil.reFormat("12-12 12:23:12", 'MM-dd HH:mm:ss', 'MMddHHmmss', True))
     print(DateUtil.nowTimeMs())
+
+    print(DateUtil.isValidDatetime('20191212 12:23:12.555'))
