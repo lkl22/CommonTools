@@ -25,15 +25,17 @@ class SpliceLogParamsWidget(ICommonWidget):
         hbox.addWidget(self.__startLogLineEdit, 1)
         self.__endLogLineEdit = CommonLineEdit(label='结束日志关键字')
         hbox.addWidget(self.__endLogLineEdit, 1)
-        self.__splitReLineEdit = CommonLineEdit(label='拆分正则表达式')
+        self.__splitReLineEdit = CommonLineEdit(label='拆分正则表达式', toolTip='多行日志时，拆分行日志的正则表达式，去除多余的日志前缀')
         hbox.addWidget(self.__splitReLineEdit, 1)
         vbox.addLayout(hbox)
 
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
         self.__funcLineEdit = CommonLineEdit(label='日志处理函数', toolTip='执行指定的代码，入参text，出参res')
-        hbox.addWidget(self.__funcLineEdit, 3)
+        hbox.addWidget(self.__funcLineEdit, 2)
+        self.__keywordLineEdit = CommonLineEdit(label='转图片关键日志', toolTip='勾选了plantuml日志转图片时，对包含指定文字的log（多条时使用;间隔）才需要将uml转为图片，空串默认需要转换')
+        hbox.addWidget(self.__keywordLineEdit, 2)
         self.__enableUmlCheckBox = WidgetUtil.createCheckBox(self, text="plantuml日志转图片", toolTip="对执行结果执行uml转换功能生成图片")
-        hbox.addWidget(self.__enableUmlCheckBox, 1)
+        hbox.addWidget(self.__enableUmlCheckBox)
         vbox.addLayout(hbox)
 
         self.updateData(value)
@@ -50,6 +52,7 @@ class SpliceLogParamsWidget(ICommonWidget):
         self.__endLogLineEdit.updateData(DictUtil.get(self.__value, KEY_END_LOG_KEYWORD))
         self.__splitReLineEdit.updateData(DictUtil.get(self.__value, KEY_SPLIT_RE))
         self.__funcLineEdit.updateData(DictUtil.get(self.__value, KEY_FUNCTION))
+        self.__keywordLineEdit.updateData(DictUtil.get(self.__value, KEY_LOG_KEYWORD))
         self.__enableUmlCheckBox.setChecked(DictUtil.get(self.__value, KEY_ENABLE_UML_TRANSFORM, False))
         # self.adjustSize()
         pass
@@ -65,6 +68,7 @@ class SpliceLogParamsWidget(ICommonWidget):
             KEY_END_LOG_KEYWORD: self.__endLogLineEdit.getData(),
             KEY_SPLIT_RE: self.__splitReLineEdit.getData(),
             KEY_FUNCTION: self.__funcLineEdit.getData(),
+            KEY_LOG_KEYWORD: self.__keywordLineEdit.getData(),
             KEY_ENABLE_UML_TRANSFORM: self.__enableUmlCheckBox.isChecked()
         }
 

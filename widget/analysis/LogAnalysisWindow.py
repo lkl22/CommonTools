@@ -181,11 +181,14 @@ class LogAnalysisWindow(QMainWindow):
         time = self.__getLogTime(line, timeIndex, timeFormat)
         if startKeyword in line:
             if endKeyword and endKeyword in line:
-                self.spliceLogResult[rule[KEY_NAME]] = [
-                    f"{line[line.index(startKeyword):line.index(endKeyword)]}{endKeyword}"]
+                self.spliceLogResult[rule[KEY_NAME]] = {
+                    KEY_LOG: [f"{line[line.index(startKeyword):line.index(endKeyword)]}{endKeyword}"],
+                    KEY_LOG_KEYWORD: line.rstrip()
+                }
                 self.__handleSpliceLog(rule, spliceParams, time)
                 return
-            self.spliceLogResult[rule[KEY_NAME]] = [line[line.index(startKeyword):].rstrip()]
+            self.spliceLogResult[rule[KEY_NAME]] = {KEY_LOG: [line[line.index(startKeyword):].rstrip()],
+                                                    KEY_LOG_KEYWORD: line.rstrip()}
             return
         if not DictUtil.get(self.spliceLogResult, rule[KEY_NAME]):
             return
@@ -206,32 +209,48 @@ class LogAnalysisWindow(QMainWindow):
         pass
 
     def __cacheSliceLog(self, rule, log):
-        self.spliceLogResult[rule[KEY_NAME]].append(log)
+        self.spliceLogResult[rule[KEY_NAME]][KEY_LOG].append(log)
         pass
 
     def __handleSpliceLog(self, rule, spliceParams, time):
-        log = ''.join([f"{item} " if item.endswith('state') else item for item in self.spliceLogResult[rule[KEY_NAME]]])
+        log = ''.join(
+            [f"{item} " if item.endswith('state') else item for item in self.spliceLogResult[rule[KEY_NAME]][KEY_LOG]])
         func = DictUtil.get(spliceParams, KEY_FUNCTION)
         if func:
             log = EvalUtil.execFunc(func, log)
         enableUml = DictUtil.get(spliceParams, KEY_ENABLE_UML_TRANSFORM, False)
+        self.__appendLog(f"{self.spliceLogResult[rule[KEY_NAME]][KEY_LOG_KEYWORD]}", ColorEnum.BLACK)
+        self.__appendLog(f"{rule[KEY_NAME]}: \n{log}", ColorEnum.BLUE)
         if enableUml:
-            timeStr = DateUtil.nowTime("%Y%m%d%H%M%S")
-            if time:
-                timeStr = f"{time[0].toString('MM-dd HH:mm:ss')}.{time[1]} "
-            fp, err = PlantUML.jarProcesses(log,
-                                            outfile=f'{timeStr.replace("-", "").replace(" ", "").replace(":", "")}',
-                                            directory='outputPic')
-            LogUtil.w(TAG, f'gen uml pic: {fp}')
-            self.__appendLog(f"{rule[KEY_NAME]}: \n{log}", ColorEnum.BLUE)
-            if fp:
-                self.__appendLog(f'{timeStr}{rule[KEY_NAME]}: <a style="color: red" href="{fp}">{fp}</a>', ColorEnum.BLUE)
-                self.__appendLog('\n')
-            else:
-                self.__appendLog(f"\n{rule[KEY_NAME]}: \n{err}\n", ColorEnum.RED)
+            self.__handleUml2Pic(rule, spliceParams, time, log)
+        self.__appendLog("\n")
+        self.spliceLogResult[rule[KEY_NAME]] = None
+        pass
+
+    def __handleUml2Pic(self, rule, spliceParams, time, log):
+        keyword = DictUtil.get(spliceParams, KEY_LOG_KEYWORD)
+        if keyword:
+            keywords = keyword.split(';')
+            line = self.spliceLogResult[rule[KEY_NAME]][KEY_LOG_KEYWORD]
+            needTransform = False
+            for item in keywords:
+                if item in line:
+                    needTransform = True
+                    break
+            if not needTransform:
+                return
+        timeStr = DateUtil.nowTime("%Y%m%d%H%M%S")
+        if time:
+            timeStr = f"{time[0].toString('MM-dd HH:mm:ss')}.{time[1]} "
+        fp, err = PlantUML.jarProcesses(log,
+                                        outfile=f'{timeStr.replace("-", "").replace(" ", "").replace(":", "")}',
+                                        directory='outputPic')
+        LogUtil.w(TAG, f'gen uml pic: {fp}')
+        if fp:
+            self.__appendLog(f'{timeStr}{rule[KEY_NAME]}: <a style="color: red" href="{fp}">{fp}</a>',
+                             ColorEnum.BLUE)
         else:
-            self.__appendLog(f"{rule[KEY_NAME]}: \n{log}\n", ColorEnum.BLUE)
-        self.spliceLogResult[rule[KEY_NAME]] = []
+            self.__appendLog(f"\n{rule[KEY_NAME]}: \n{err}", ColorEnum.RED)
         pass
 
     def __analysisLogTransform(self, line, rule):
@@ -262,13 +281,6 @@ class LogAnalysisWindow(QMainWindow):
                 execResult = EvalUtil.execFunc(func[KEY_FUNCTION], value)
                 self.__appendLog(f"转换结果: {execResult}", ColorEnum.OCEAN_BLUE)
         pass
-
-    def __appendLog(self, log: str, color: ColorEnum = ColorEnum.BLACK):
-        self.execResult.append({KEY_LOG: log, KEY_COLOR: color.value})
-        if len(self.execResult) > 50:
-            res = self.execResult
-            self.execResult = []
-            self.consoleTextEdit.standardOutput(res)
 
     def __analysisCostTime(self, line, rule, timeIndex, timeFormat):
         if not DictUtil.get(rule, KEY_NEED_COST_TIME, DEFAULT_VALUE_NEED_COST_TIME):
@@ -312,6 +324,13 @@ class LogAnalysisWindow(QMainWindow):
         else:
             FileUtil.openFile(linkTxt)
         pass
+
+    def __appendLog(self, log: str, color: ColorEnum = ColorEnum.BLACK):
+        self.execResult.append({KEY_LOG: log, KEY_COLOR: color.value})
+        if len(self.execResult) > 18:
+            res = self.execResult
+            self.execResult = []
+            self.consoleTextEdit.standardOutput(res)
 
 
 if __name__ == '__main__':
