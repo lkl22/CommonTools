@@ -172,8 +172,8 @@ class ExtractMergeLogDialog(QtWidgets.QDialog):
         datetimeIndex = self.__datetimeFormatRule[KEY_START_INDEX]
         datetimeFormat = self.__datetimeFormatRule[KEY_DATETIME_FORMAT]
         times = []
-        for zipFile in srcFiles:
-            _, fn = os.path.split(zipFile)
+        for srcFile in srcFiles:
+            _, fn = os.path.split(srcFile)
             time = fn[datetimeIndex: datetimeIndex + len(datetimeFormat)]
             if DateUtil.isValidDate(time, datetimeFormat, True):
                 times.append(time)
@@ -242,9 +242,14 @@ class ExtractMergeLogDialog(QtWidgets.QDialog):
         self.__startDatetime = QDateTime.fromString(startTime.toString(self.__datetimeFormat), self.__datetimeFormat)
         self.__endDatetime = QDateTime.fromString(endTime.toString(self.__datetimeFormat), self.__datetimeFormat)
 
-        for zipFile in srcFiles:
-            if self.__isValidFile(zipFile):
-                FileUtil.unzipFile(zipFile, tmpDir)
+        for srcFile in srcFiles:
+            if self.__isValidFile(srcFile):
+                _, ext = os.path.splitext(srcFile)
+                if FileUtil.isZipFile(srcFile):
+                    FileUtil.unzipFile(srcFile, tmpDir)
+                else:
+                    _, fn = os.path.split(srcFile)
+                    FileUtil.modifyFilePath(srcFile, os.path.join(tmpDir, fn))
         files = []
         for dirpath, dirnames, filenames in os.walk(tmpDir):
             for filename in sorted(filenames):

@@ -302,6 +302,16 @@ class FileUtil:
             LogUtil.e(TAG, 'FileUtil removeFile 错误信息：', e)
 
     @staticmethod
+    def isZipFile(fp):
+        """
+        判断是否压缩文件
+        :param fp: 需要判断文件路径
+        :return: True 压缩文件
+        """
+        _, ext = os.path.splitext(fp)
+        return ext in ['.gz', '.zip', 'rar']
+
+    @staticmethod
     def zipDir(dirPath, outFullName):
         """
         压缩指定文件夹
