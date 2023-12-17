@@ -2,6 +2,7 @@
 # python 3.x
 # Filename: ExtractMergeLogDialog.py
 # 定义一个ExtractMergeLogDialog类实现从log目录提取合并指定日期范围的log到一个log文件的功能
+import copy
 import os.path
 import threading
 from PyQt5.QtCore import pyqtSignal
@@ -9,7 +10,9 @@ from PyQt5.QtCore import pyqtSignal
 from util.DateUtil import DateUtil
 from util.DialogUtil import *
 from util.DictUtil import DictUtil
+from util.ListUtil import ListUtil
 from util.OperaIni import *
+from widget.custom.CommonComboBox import CommonComboBox
 from widget.custom.CommonDateTimeFormatEdit import CommonDateTimeFormatEdit
 from widget.custom.CommonDateTimeRangeEdit import CommonDateTimeRangeEdit
 from widget.custom.CommonLineEdit import CommonLineEdit
@@ -19,8 +22,6 @@ from widget.custom.LoadingDialog import LoadingDialog
 TAG = "ExtractMergeLogDialog"
 
 KEY_SECTION = 'ExtractMergeLog'
-KEY_EXTRACT_LOG_FILE_PATH = 'extractLogFilePath'
-KEY_EXTRACT_LOG_FILE_REG = 'extractLogFileReg'
 
 
 class ExtractMergeLogDialog(QtWidgets.QDialog):
@@ -41,10 +42,12 @@ class ExtractMergeLogDialog(QtWidgets.QDialog):
         self.__isDebug = isDebug
         self.__callback = callback
         self.__operaIni = OperaIni()
-        self.__extractLogFP = self.__operaIni.getValue(KEY_EXTRACT_LOG_FILE_PATH, KEY_SECTION)
-        self.__extractLogFileReg = self.__operaIni.getValue(KEY_EXTRACT_LOG_FILE_REG, KEY_SECTION)
-        self.__datetimeRange = JsonUtil.decode(self.__operaIni.getValue(KEY_DATETIME_RANGE, KEY_SECTION))
-        self.__datetimeFormatRule = JsonUtil.decode(self.__operaIni.getValue(KEY_DATETIME_FORMAT_RULE, KEY_SECTION))
+        self.__configs = JsonUtil.decode(self.__operaIni.getValue(KEY_CONFIGS, KEY_SECTION), {})
+        self.__list = DictUtil.get(self.__configs, KEY_LIST, [])
+        self.__defaultConfig = ListUtil.get(self.__list, KEY_NAME, DictUtil.get(self.__configs, KEY_DEFAULT),
+                                            KEY_CONFIG, {})
+
+        self.__initData()
         self.__datetimeIndex = None
         self.__datetimeFormat = None
         self.__startDatetime = None
@@ -55,6 +58,12 @@ class ExtractMergeLogDialog(QtWidgets.QDialog):
         vbox = WidgetUtil.createVBoxLayout(self, margins=QMargins(10, 10, 10, 10), spacing=10)
 
         labelMinSize = QSize(120, const.HEIGHT)
+        self.__configComboBox = CommonComboBox(label='选择规则', default=DictUtil.get(self.__configs, KEY_DEFAULT),
+                                               groupList=[item[KEY_NAME] for item in self.__list],
+                                               isEditable=True, maxWidth=int(WidgetUtil.getScreenWidth() * 0.5),
+                                               dataChanged=self.__configChanged)
+        vbox.addWidget(self.__configComboBox)
+
         self.__logDirPathWidget = DragInputWidget(label='日志文件路径',
                                                   text=self.__extractLogFP,
                                                   dirParam={KEY_CAPTION: '日志文件所在路径'},
@@ -71,7 +80,8 @@ class ExtractMergeLogDialog(QtWidgets.QDialog):
         self.__dateTimeRangeEdit = CommonDateTimeRangeEdit(label='提取Log日期范围', value=self.__datetimeRange,
                                                            maxOffsetValue=900,
                                                            labelMinSize=labelMinSize,
-                                                           datetimeFormat=DictUtil.get(self.__datetimeFormatRule, KEY_DATETIME_FORMAT))
+                                                           datetimeFormat=DictUtil.get(self.__datetimeFormatRule,
+                                                                                       KEY_DATETIME_FORMAT))
         vbox.addWidget(self.__dateTimeRangeEdit)
 
         self.__datetimeFormatEdit = CommonDateTimeFormatEdit(label='文本日期格式规则', value=self.__datetimeFormatRule,
@@ -110,15 +120,51 @@ class ExtractMergeLogDialog(QtWidgets.QDialog):
             FileUtil.openFile(dirPath)
         pass
 
+    def __configChanged(self, config, deleteData):
+        LogUtil.d(TAG, '__configChanged cur data', config, 'delete data', deleteData)
+        if deleteData:
+            ListUtil.remove(self.__list, ListUtil.find(self.__list, KEY_NAME, deleteData))
+        defaultConfig = ListUtil.get(self.__list, KEY_NAME, config, KEY_CONFIG, {})
+        if not defaultConfig and not deleteData:
+            # 添加新的配置，不清之前的cfg，复用
+            self.__defaultConfig = copy.deepcopy(self.__defaultConfig)
+            self.__list.append({KEY_NAME: config, KEY_CONFIG: self.__defaultConfig})
+            self.__configs = {KEY_DEFAULT: config, KEY_LIST: self.__list}
+            self.__saveConfig()
+            return
+        self.__defaultConfig = defaultConfig
+        self.__configs = {KEY_DEFAULT: config, KEY_LIST: self.__list}
+        self.__updateUi()
+        self.__saveConfig()
+        pass
+
+    def __initData(self):
+        self.__extractLogFP = DictUtil.get(self.__defaultConfig, KEY_FILE_PATH)
+        self.__extractLogFileReg = DictUtil.get(self.__defaultConfig, KEY_REG)
+        self.__datetimeRange = DictUtil.get(self.__defaultConfig, KEY_DATETIME_RANGE)
+        self.__datetimeFormatRule = DictUtil.get(self.__defaultConfig, KEY_DATETIME_FORMAT_RULE)
+        pass
+
+    def __updateUi(self):
+        self.__initData()
+        self.__logDirPathWidget.updateData(self.__extractLogFP)
+        self.__logFileRegEdit.updateData(self.__extractLogFileReg)
+
+        self.__dateTimeRangeEdit.updateData(self.__datetimeRange)
+        self.__dateTimeRangeEdit.updateDatetimeFormat(DictUtil.get(self.__datetimeFormatRule, KEY_DATETIME_FORMAT))
+        self.__datetimeFormatEdit.updateData(self.__datetimeFormatRule)
+        pass
+
     def __datetimeFormatChanged(self):
-        self.__dateTimeRangeEdit.updateDatetimeFormat(self.__datetimeFormatEdit.getData()[KEY_DATETIME_FORMAT])
+        self.__dateTimeRangeEdit.updateDatetimeFormat(
+            DictUtil.get(self.__datetimeFormatEdit.getData(), KEY_DATETIME_FORMAT))
         pass
 
     def __logDirChanged(self, logDir):
         LogUtil.d(TAG, '__logDirChanged', logDir)
         self.__extractLogFileReg = self.__logFileRegEdit.getData()
         self.__datetimeFormatRule = self.__datetimeFormatEdit.getData()
-        if not self.__extractLogFileReg or not self.__datetimeFormatRule:
+        if not self.__extractLogFileReg or not self.__datetimeFormatRule or not logDir:
             return
         srcFiles = FileUtil.findFilePathList(logDir, [self.__extractLogFileReg],
                                              ['.*/tmp/.*', '.*/tmp1/.*'])
@@ -140,28 +186,37 @@ class ExtractMergeLogDialog(QtWidgets.QDialog):
             DictUtil.join([self.__dateTimeRangeEdit.getData(), {KEY_DATETIME: lastTime}]))
         pass
 
-    def __extractLog(self, isClosed=False):
+    def __saveConfig(self):
+        if not self.__configs:
+            WidgetUtil.showErrorDialog(message="请选择或输入规则名称")
+            return False
         self.__extractLogFP = self.__logDirPathWidget.getData()
         if not self.__extractLogFP or not FileUtil.existsDir(self.__extractLogFP):
             WidgetUtil.showErrorDialog(message="请选择有效的日志文件所在目录（目录可能不存在了）")
-            return
+            return False
         self.__extractLogFileReg = self.__logFileRegEdit.getData()
         if not self.__extractLogFileReg:
             WidgetUtil.showErrorDialog(message="请输入匹配Log文件的正则表达式")
-            return
+            return False
         self.__datetimeFormatRule = self.__datetimeFormatEdit.getData()
         if not DictUtil.get(self.__datetimeFormatRule, KEY_DATETIME_FORMAT):
             WidgetUtil.showErrorDialog(message="请输入匹配Log文件名里的日期格式（例如：yyyyMMdd_HHmmss）")
-            return
+            return False
         self.__datetimeRange = self.__dateTimeRangeEdit.getData()
 
-        self.__operaIni.addItem(KEY_SECTION, KEY_EXTRACT_LOG_FILE_PATH, self.__extractLogFP)
-        self.__operaIni.addItem(KEY_SECTION, KEY_EXTRACT_LOG_FILE_REG, self.__extractLogFileReg)
-        self.__operaIni.addItem(KEY_SECTION, KEY_DATETIME_RANGE,
-                                JsonUtil.encode(self.__datetimeRange, ensureAscii=False))
-        self.__operaIni.addItem(KEY_SECTION, KEY_DATETIME_FORMAT_RULE,
-                                JsonUtil.encode(self.__datetimeFormatRule, ensureAscii=False))
+        self.__defaultConfig[KEY_FILE_PATH] = self.__extractLogFP
+        self.__defaultConfig[KEY_REG] = self.__extractLogFileReg
+        self.__defaultConfig[KEY_DATETIME_FORMAT_RULE] = self.__datetimeFormatRule
+        self.__defaultConfig[KEY_DATETIME_RANGE] = self.__datetimeRange
+        self.__operaIni.addItem(KEY_SECTION, KEY_CONFIGS,
+                                JsonUtil.encode(self.__configs, ensureAscii=False))
         self.__operaIni.saveIni()
+        return True
+
+    def __extractLog(self, isClosed=False):
+        if not self.__saveConfig():
+            LogUtil.d(TAG, 'sava config failed.')
+            return
 
         # 必须放到线程执行，否则加载框要等指令执行完才会弹
         threading.Thread(target=self.__execExtractLog, args=(isClosed,)).start()

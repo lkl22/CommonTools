@@ -43,7 +43,7 @@ class CommonDateTimeFormatEdit(ICommonWidget):
         pass
 
     def updateData(self, value):
-        self.__value = value
+        self.__value = value if value else {}
         self.__updateUi()
         pass
 

@@ -44,6 +44,11 @@ KEY_INITIAL_FILTER = 'initialFilter'
 KEY_LOG = 'log'
 KEY_TIME = 'time'
 
+KEY_CONFIGS = 'configs'
+KEY_CONFIG = 'config'
+KEY_FILE_PATH = 'filePath'
+# 正则
+KEY_REG = 'regular'
 # 通用时间段控件属性
 KEY_DATETIME_RANGE = 'datetimeRange'
 # 当前日期时间格式

@@ -46,12 +46,15 @@ class CommonDateTimeRangeEdit(ICommonWidget):
         pass
 
     def updateData(self, value):
-        self.__value = value
+        self.__value = value if value else {}
         self.__updateUi()
         pass
 
     def updateDatetimeFormat(self, datetimeFormat):
         datetime = QDateTime.fromString(DictUtil.get(self.__value, KEY_DATETIME), self.__datetimeFormat)
+        if not datetimeFormat:
+            LogUtil.d(TAG, '[updateDatetimeFormat] datetimeFormat is empty.')
+            return
         self.__value[KEY_DATETIME] = datetime.toString(datetimeFormat)
         self.__dateTimeEdit.setDisplayFormat(datetimeFormat)
         self.__datetimeFormat = datetimeFormat
