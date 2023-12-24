@@ -2,7 +2,6 @@
 # python 3.x
 # Filename: EFKLogSystemWindow.py
 # 定义一个EFKLogSystemWindow类实现EFK日志分析系统管理相关功能
-from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QMainWindow
 
 from constant.ColorEnum import ColorEnum
@@ -17,6 +16,11 @@ TAG = "EFKLogSystemWindow"
 
 DATETIME_FORMAT = 'yyyy-MM-dd HH:mm:ss'
 MAX_BYTE = 200
+download_urls = [
+    'https://artifacts.elastic.co/downloads/kibana/kibana-8.11.3-windows-x86_64.zip',
+    'https://artifacts.elastic.co/downloads/beats/filebeat/filebeat-8.11.3-windows-x86_64.zip',
+    'https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-8.11.3-windows-x86_64.zip'
+]
 
 
 class EFKLogSystemWindow(QMainWindow):
@@ -73,15 +77,7 @@ class EFKLogSystemWindow(QMainWindow):
         # vbox.addWidget(self.categoryConfigWidget, 7)
         vbox.addItem(WidgetUtil.createVSpacerItem(1, 1))
 
-        hbox = WidgetUtil.createHBoxLayout(spacing=10)
-        hbox.addItem(WidgetUtil.createHSpacerItem(1, 1))
-        # self.execBtn = WidgetUtil.createPushButton(box, text="开始执行", onClicked=self.__analysisLog)
-        # hbox.addWidget(self.execBtn)
-        hbox.addItem(WidgetUtil.createHSpacerItem(1, 1))
-        vbox.addLayout(hbox)
         return box
-
-
 
     def __cacheSliceLog(self, rule, log):
         # self.spliceLogResult[rule[KEY_NAME]][KEY_LOG].append(log)
