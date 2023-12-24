@@ -171,9 +171,10 @@ class MainWidget(QMainWindow):
 
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
         hbox.addWidget(WidgetUtil.createPushButton(box, text="Log分析辅助工具", onClicked=self.jumpLogAnalysisWindow), 1)
+        hbox.addWidget(WidgetUtil.createPushButton(box, text="EFK日志分析系统", onClicked=self.jumpEFKLogSystemWindow), 1)
         hbox.addWidget(WidgetUtil.createPushButton(box, text="TLV数据解析工具", onClicked=self.jumpTLVParseDialog), 1)
         hbox.addWidget(WidgetUtil.createPushButton(box, text="文本转换工具", onClicked=self.jumpTextTransformDialog), 1)
-        hbox.addWidget(WidgetUtil.createLabel(box), 2)
+        hbox.addWidget(WidgetUtil.createLabel(box), 1)
         vbox.addLayout(hbox)
 
         vbox.addItem(WidgetUtil.createVSpacerItem())
@@ -291,6 +292,16 @@ class MainWidget(QMainWindow):
         LogUtil.i(TAG, "jumpLogAnalysisWindow")
         from widget.analysis.LogAnalysisWindow import LogAnalysisWindow
         window = LogAnalysisWindow()
+        # 注：没有这句，是不打开另一个主界面的
+        self.windowList.append(window)
+        self.close()
+        window.show()
+        pass
+
+    def jumpEFKLogSystemWindow(self):
+        LogUtil.i(TAG, "jumpEFKLogSystemWindow")
+        from widget.EFK.EFKLogSystemWindow import EFKLogSystemWindow
+        window = EFKLogSystemWindow()
         # 注：没有这句，是不打开另一个主界面的
         self.windowList.append(window)
         self.close()

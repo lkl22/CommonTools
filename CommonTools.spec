@@ -57,8 +57,10 @@ a = Analysis(['RunMain.py',
               'util/Uiautomator.py',
               'util/WeditorUtil.py',
               'util/WidgetUtil.py',
+
               'widget/account/AccountManager.py',
               'widget/account/AccountManagerDialog.py',
+
               'widget/algorithm/sort/SelectionSortDialog.py',
               'widget/algorithm/AlgorithmDescDialog.py',
               'widget/algorithm/AlgorithmVisualizerManagerDialog.py',
@@ -101,6 +103,9 @@ a = Analysis(['RunMain.py',
               'widget/custom/DragInputWidget.py',
               'widget/custom/ICommonWidget.py',
               'widget/custom/LoadingDialog.py',
+
+              'widget/EFK/EFKLogSystemConfigManager.py',
+              'widget/EFK/EFKLogSystemWindow.py',
 
               'widget/findFileContent/AddOrEditConfigDialog.py',
               'widget/findFileContent/AddOrEditMatchDialog.py',
