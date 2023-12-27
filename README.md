@@ -58,6 +58,9 @@ pip install chardet
 pip install jinja2
 
 pip install pillow
+
+pip install Flask
+
 ```
 
 4、PyCharm配置
