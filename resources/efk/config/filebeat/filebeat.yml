@@ -27,6 +27,9 @@ filebeat.inputs:
       logType: harmony
 
     processors:
+      - fingerprint:
+          fields: [ "message" ]
+          target_field: "@metadata._id"
       - script:
           lang: javascript
           file: ${path.config}/js/splitBaseFields.js
@@ -54,6 +57,9 @@ filebeat.inputs:
           skip_newline: true
 
     processors:
+      - fingerprint:
+          fields: [ "message" ]
+          target_field: "@metadata._id"
       - script:
           lang: javascript
           file: ${path.config}/js/splitBaseFields.js
@@ -64,6 +70,13 @@ filebeat.inputs:
           - script:
               lang: javascript
               file: ${path.config}/js/handleSegmentData.js
+      - if:
+          contains:
+            message: "@startuml"
+        then:
+          - script:
+              lang: javascript
+              file: ${path.config}/js/handleUmlData.js
 
 # ============================== Filebeat modules ==============================
 
@@ -143,9 +156,6 @@ output.elasticsearch:
 
 # ================================= Processors =================================
 processors:
-  - fingerprint:
-      fields: [ "message" ]
-      target_field: "@metadata._id"
   - script:
       lang: javascript
       file: ${path.config}/js/generateFileInfo.js
