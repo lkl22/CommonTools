@@ -56,6 +56,9 @@ filebeat.inputs:
           target_field: "@metadata._id"
       - script:
           lang: javascript
+          file: ${path.config}/js/generateFileInfo.js
+      - script:
+          lang: javascript
           file: ${path.config}/js/splitBaseFields.js
 
 
