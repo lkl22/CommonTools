@@ -15,51 +15,49 @@
 filebeat.inputs:
   # filestream is an input for collecting log messages from files.
   - type: filestream
-
-    # Unique ID among all inputs, an ID is required.
-    id: phone-log
-
-    # Change to true to enable this input configuration.
+    id: harmony-log
     enabled: true
-
-    # Paths that should be crawled and fetched. Glob based paths.
     paths:
       - D:/log/harmony/HiLog.*.txt
       #- c:\programdata\elasticsearch\logs\*
 
-    # Exclude lines. A list of regular expressions to match. It drops the lines that are
-    # matching any regular expression from the list.
-    # Line filtering happens after the parsers pipeline. If you would like to filter lines
-    # before parsers, use include_message parser.
-    #exclude_lines: ['^DBG']
-
-    # Include lines. A list of regular expressions to match. It exports the lines that are
-    # matching any regular expression from the list.
-    # Line filtering happens after the parsers pipeline. If you would like to filter lines
-    # before parsers, use include_message parser.
-    #include_lines: ['^ERR', '^WARN']
-
-    # Exclude files. A list of regular expressions to match. Filebeat drops the files that
-    # are matching any regular expression from the list. By default, no files are dropped.
-    #prospector.scanner.exclude_files: ['.gz$']
-
-    # Optional additional fields. These fields can be freely picked
-    # to add additional information to the crawled log files for filtering
     timezone: Asia/Shanghai
     fields_under_root: true
     fields:
       logType: harmony
-    #  review: 1
+
     processors:
-      - fingerprint:
-          fields: [ "message" ]
-          target_field: "@metadata._id"
-      - script:
-          lang: javascript
-          file: ${path.config}/js/generateFileInfo.js
       - script:
           lang: javascript
           file: ${path.config}/js/splitBaseFields.js
+
+  # filestream is an input for collecting log messages from files.
+  - type: filestream
+    id: ohosStudy-log
+    enabled: true
+    paths:
+      - D:/log/harmony/HiLog.*.txt
+      #- c:\programdata\elasticsearch\logs\*
+
+    timezone: Asia/Shanghai
+    fields_under_root: true
+    fields:
+      logType: ohosStudy
+
+    parsers:
+      - include_message.patterns: [ "06666/ohosStudy" ]
+      - multiline:
+          type: pattern
+          pattern: Segment Data\[[1-9]\d*\]
+          negate: false
+          match: after
+          skip_newline: true
+
+    processors:
+      - script:
+          lang: javascript
+          file: ${path.config}/js/splitBaseFields.js
+
 
 
 # ============================== Filebeat modules ==============================
@@ -140,6 +138,12 @@ output.elasticsearch:
 
 # ================================= Processors =================================
 processors:
+  - fingerprint:
+      fields: [ "message" ]
+      target_field: "@metadata._id"
+  - script:
+      lang: javascript
+      file: ${path.config}/js/generateFileInfo.js
   - timestamp:
       field: temp_time
       layouts:
