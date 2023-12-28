@@ -57,8 +57,13 @@ filebeat.inputs:
       - script:
           lang: javascript
           file: ${path.config}/js/splitBaseFields.js
-
-
+      - if:
+          contains:
+            message: "Segment Data"
+        then:
+          - script:
+              lang: javascript
+              file: ${path.config}/js/handleSegmentData.js
 
 # ============================== Filebeat modules ==============================
 
