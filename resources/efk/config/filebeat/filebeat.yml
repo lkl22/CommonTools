@@ -45,6 +45,7 @@ filebeat.inputs:
 
     # Optional additional fields. These fields can be freely picked
     # to add additional information to the crawled log files for filtering
+    timezone: Asia/Shanghai
     fields_under_root: true
     fields:
       logType: harmony
@@ -117,24 +118,6 @@ setup.kibana:
   # IPv6 addresses should always be defined as: https://[2001:db8::1]:5601
   host: "localhost:5601"
 
-# Kibana Space ID
-# ID of the Kibana Space into which the dashboards should be loaded. By default,
-# the Default Space will be used.
-#space.id:
-
-# =============================== Elastic Cloud ================================
-
-# These settings simplify using Filebeat with the Elastic Cloud (https://cloud.elastic.co/).
-
-# The cloud.id setting overwrites the `output.elasticsearch.hosts` and
-# `setup.kibana.host` options.
-# You can find the `cloud.id` in the Elastic Cloud web UI.
-#cloud.id:
-
-# The cloud.auth setting overwrites the `output.elasticsearch.username` and
-# `output.elasticsearch.password` settings. The format is `<user>:<pass>`.
-#cloud.auth:
-
 # ================================== Outputs ===================================
 
 # Configure what output to use when sending the data collected by the beat.
@@ -154,22 +137,14 @@ output.elasticsearch:
 
 # ================================= Processors =================================
 processors:
-  #  #  - add_host_metadata:
-  #  #      when.not.contains.tags: forwarded
-  #  #  - add_cloud_metadata: ~
-  #  #  - add_docker_metadata: ~
-  #  #  - add_kubernetes_metadata: ~
-  #  - timestamp:
-  #      field: tempTime
-  #      timezone: Asia/Shanghai
-  #      layouts:
-  #        - '2006-01-02T15:04:05Z'
-  #        - '2006-01-02T15:04:05.999Z'
-  #        - '2006-01-02T15:04:05.999-07:00'
-  #      test:
-  #        - '2019-06-22T16:33:51Z'
-  #        - '2019-11-18T04:59:51.123Z'
-  #        - '2020-08-03T07:10:20.123456+02:00'
+  - timestamp:
+      field: temp_time
+      layouts:
+        - '2006-01-02 15:04:05'
+        - '2006-01-02 15:04:05.999'
+      test:
+        - '2019-06-22 16:33:51'
+        - '2019-11-18 04:59:51.123'
   - drop_fields:
-      fields: [ 'tempTime', 'agent', 'ecs' ]
+      fields: [ 'temp_time', 'agent', 'ecs' ]
 
