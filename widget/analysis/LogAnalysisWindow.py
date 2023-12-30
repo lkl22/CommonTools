@@ -14,7 +14,7 @@ from util.EvalUtil import EvalUtil
 from util.ListUtil import ListUtil
 from util.NetworkUtil import NetworkUtil
 from util.OperaIni import *
-from util.PlantUml import PlantUML
+from util.PlantUml import MyPlantUML
 from util.StrUtil import StrUtil
 from widget.analysis.CategoryConfigWidget import CategoryConfigWidget
 from widget.analysis.CategoryManagerWidget import CategoryManagerWidget
@@ -242,9 +242,9 @@ class LogAnalysisWindow(QMainWindow):
         timeStr = DateUtil.nowTime("%Y%m%d%H%M%S")
         if time:
             timeStr = f"{time[0].toString('MM-dd HH:mm:ss')}.{time[1]} "
-        fp, err = PlantUML.jarProcesses(log,
-                                        outfile=f'{timeStr.replace("-", "").replace(" ", "").replace(":", "")}',
-                                        directory='outputPic')
+        fp, err = MyPlantUML.jarProcesses(log,
+                                          outfile=f'{timeStr.replace("-", "").replace(" ", "").replace(":", "")}',
+                                          directory='outputPic')
         LogUtil.w(TAG, f'gen uml pic: {fp}')
         if fp:
             self.__appendLog(f'{timeStr}{rule[KEY_NAME]}: <a style="color: red" href="{fp}">{fp}</a>',

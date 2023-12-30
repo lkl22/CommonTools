@@ -5,8 +5,8 @@ function process(event) {
     if (regExecRes && regExecRes.length > 1) {
         for (var i = 1; i < regExecRes.length; i++) {
             if (i === 2) {
-                var umlData = regExecRes[i].trim().replace(/&/g, '\n');
-                event.Put(fields[i - 1], umlData);
+                var umlData = regExecRes[i].replace(/&/g, '\n');
+                event.Put(fields[i - 1], umlData.trim());
                 event.Put('imageId', event.Get('@metadata._id'));
             } else {
                 event.Put(fields[i - 1], regExecRes[i].trim());

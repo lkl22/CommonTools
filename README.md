@@ -61,6 +61,7 @@ pip install pillow
 
 pip install Flask
 
+pip install  Elasticsearch
 ```
 
 4、PyCharm配置

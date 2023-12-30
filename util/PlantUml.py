@@ -74,7 +74,7 @@ def deflate_and_encode(plantuml_text):
 TAG = 'PlantUML'
 
 
-class PlantUML(object):
+class MyPlantUML(object):
     processesMode = 'All'
 
     """Connection to a PlantUML server with optional authentication.
@@ -259,9 +259,9 @@ class PlantUML(object):
         if not FileUtil.existsFile(jarFp):
             NetworkUtil.downloadPackage(url, jarFp)
         if not FileUtil.existsFile(jarFp):
-            res = PlantUML().processesContent(content, outfile, directory=directory)
+            res = MyPlantUML().processesContent(content, outfile, directory=directory)
             return res, None if res else 'processes failed'
-        if PlantUML.processesMode != 'Cloud':
+        if MyPlantUML.processesMode != 'Cloud':
             tempFp = path.splitext(outfile)[0] + '.uml'
             dstFn = path.splitext(outfile)[0] + '.png'
             FileUtil.removeFile(tempFp)
@@ -272,22 +272,22 @@ class PlantUML(object):
             out, err = ShellUtil.exec(f'java -jar {jarFp} -stdrpt:1 {tempFp}')
             FileUtil.removeFile(tempFp)
             if not err:
-                PlantUML.processesMode = 'Jar'
+                MyPlantUML.processesMode = 'Jar'
                 FileUtil.removeFile(tempFp)
                 dst = path.join(directory, dstFn)
                 FileUtil.modifyFilePath(dstFn, dst, False)
                 return dst, None
-            if PlantUML.processesMode == 'Jar':
+            if MyPlantUML.processesMode == 'Jar':
                 return None, err
-        res = PlantUML().processesContent(content, outfile, directory=directory)
+        res = MyPlantUML().processesContent(content, outfile, directory=directory)
         if res:
-            PlantUML.processesMode = 'Cloud'
+            MyPlantUML.processesMode = 'Cloud'
         return res, None if res else 'processes failed'
 
 
 if __name__ == '__main__':
     # PlantUML().processesFile('testData')
-    PlantUML.jarProcesses("""@startuml
+    MyPlantUML.jarProcesses("""@startuml
 hide empty description
 state A #green
 state B #green

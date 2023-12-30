@@ -31,7 +31,7 @@ filebeat.inputs:
     timezone: Asia/Shanghai
     fields_under_root: true
     fields:
-      logType: harmony
+      logType: phone
 
     processors:
       - fingerprint:

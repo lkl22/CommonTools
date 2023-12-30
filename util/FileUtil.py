@@ -290,7 +290,7 @@ class FileUtil:
         try:
             shutil.rmtree(fp)
         except Exception as e:
-            LogUtil.e(TAG, 'FileUtil clearPath 错误信息：', e)
+            LogUtil.e(TAG, 'clearPath 错误信息：', e)
 
     @staticmethod
     def removeFile(fp):
@@ -301,7 +301,7 @@ class FileUtil:
         try:
             os.remove(fp)
         except Exception as e:
-            LogUtil.e(TAG, 'FileUtil removeFile 错误信息：', e)
+            LogUtil.e(TAG, 'removeFile 错误信息：', e)
 
     @staticmethod
     def isZipFile(fp):
