@@ -4,8 +4,8 @@
 # 定义一个EFKLogSystemConfigManager类实现EFK日志系统管理相关的功能
 from constant.WidgetConst import *
 from util.DictUtil import DictUtil
-from util.OperaIni import OperaIni
 from util.JsonUtil import JsonUtil
+from util.OperaIni import OperaIni
 
 KEY_SECTION = 'EFKLogSystem'
 
@@ -30,8 +30,8 @@ class EFKLogSystemConfigManager:
     def isInit(self):
         return DictUtil.get(self.configs, KEY_IS_INIT, DEFAULT_VALUE_IS_INIT)
 
-    def setInited(self):
-        self.configs[KEY_IS_INIT] = True
+    def setInited(self, isInit=True):
+        self.configs[KEY_IS_INIT] = isInit
         self.saveConfigs()
 
     def getEFKSoftwarePath(self):
@@ -40,6 +40,7 @@ class EFKLogSystemConfigManager:
     def setEFKSoftwarePath(self, path):
         if path:
             self.configs[KEY_EFK_SOFTWARE_PATH] = path
+            self.saveConfigs()
 
     def getLogDirPath(self):
         return DictUtil.get(self.configs, KEY_LOG_DIR_PATH, 'D:/log')
@@ -47,6 +48,7 @@ class EFKLogSystemConfigManager:
     def setLogDirPath(self, path):
         if path:
             self.configs[KEY_LOG_DIR_PATH] = path
+            self.saveConfigs()
 
     def getConfigDirPath(self):
         return DictUtil.get(self.configs, KEY_CONFIG_DIR_PATH, '')
@@ -54,3 +56,4 @@ class EFKLogSystemConfigManager:
     def setConfigDirPath(self, path):
         if path:
             self.configs[KEY_CONFIG_DIR_PATH] = path
+            self.saveConfigs()

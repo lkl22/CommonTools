@@ -1,6 +1,6 @@
 function process(event) {
     var message = event.Get("message");
-    var regExecRes = /(\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}\.\d{3})\s+(\d+)[\s-]+(\d+)[\w/?\.]*\s*(\w){1}\s+([^:]+): (.*)/.exec(message);
+    var regExecRes = /(\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}\.\d{3})\s+(\d+)[\s-]+(\d+)[\w/?\.]*\s+(\w){1}\s+(\S+): (.*)/.exec(message);
     var fields = ['temp_time', 'pid', 'tid', 'level', 'domain', 'message'];
     if (regExecRes && regExecRes.length > 1) {
         for (var i = 1; i < regExecRes.length; i++) {

@@ -4,18 +4,18 @@
 # 定义一个EFKLogSystemWindow类实现EFK日志分析系统管理相关功能
 
 import os.path
-from concurrent.futures import as_completed, CancelledError
+from concurrent.futures import as_completed, CancelledError, Future
 from concurrent.futures.thread import ThreadPoolExecutor
 
-from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QMainWindow
 
 from constant.ColorEnum import ColorEnum
 from manager.AsyncFuncManager import AsyncFuncManager
 from util.DialogUtil import *
+from util.ListUtil import ListUtil
 from util.NetworkUtil import NetworkUtil
 from util.OperaIni import *
-from util.ProcessManager import KEY_VALUE, ProcessManager, KEY_PROGRAM
+from util.ProcessManager import *
 from widget.EFK.EFKLogSystemConfigManager import EFKLogSystemConfigManager
 from widget.custom.CommonTextEdit import CommonTextEdit
 from widget.custom.DragInputWidget import DragInputWidget
@@ -33,6 +33,9 @@ SOFTWARE_NAME_ELASTICSEARCH = 'elasticsearch'
 SOFTWARE_NAME_KIBANA = 'kibana'
 SOFTWARE_NAME_FILEBEAT = 'filebeat'
 
+TYPE_READY = 1
+TYPE_STOPPED = 2
+
 
 def waitEsSystemStart():
     return ShellUtil.waitExecFinished('curl -XGET http://localhost:9200',
@@ -44,9 +47,14 @@ def waitKibanaSystemStart():
                                       '127.0.0.1:5601'), 'waitKibanaSystemStart', ''
 
 
+def showErrorDialog(msg):
+    WidgetUtil.showErrorDialog(message=msg)
+
+
 class EFKLogSystemWindow(QMainWindow):
     windowList = []
     __showErrorDialogSignal = pyqtSignal(str)
+    __changeBtnStatusSignal = pyqtSignal(int)
 
     def __init__(self, isDebug=False):
         # 调用父类的构函
@@ -66,13 +74,19 @@ class EFKLogSystemWindow(QMainWindow):
         self.__executor = ThreadPoolExecutor(max_workers=5, thread_name_prefix="LogSystem_")
         self.__futureList = []
         self.__execResult = []
+
         self.__esSoftwarePath = None
         self.__kibanaSoftwarePath = None
         self.__filebeatSoftwarePath = None
+
         self.__processEnv = []
         self.__esProcessManager: ProcessManager = None
         self.__kibanaProcessManager: ProcessManager = None
         self.__filebeatProcessManager: ProcessManager = None
+        self.__filebeatFuture: Future = None
+
+        self.__filebeatConfigDir = self.__configManager.getConfigDirPath()
+        self.__logDir = self.__configManager.getLogDirPath()
 
         layoutWidget = QtWidgets.QWidget(self)
         layoutWidget.setObjectName("layoutWidget")
@@ -86,7 +100,8 @@ class EFKLogSystemWindow(QMainWindow):
         self.consoleTextEdit = CommonTextEdit(linkClicked=self.__linkClicked)
         hLayout.addWidget(self.consoleTextEdit, 2)
 
-        self.__showErrorDialogSignal.connect(self.__showErrorDialog)
+        self.__showErrorDialogSignal.connect(showErrorDialog)
+        self.__changeBtnStatusSignal.connect(self.__changeBtnStatus)
         QtCore.QMetaObject.connectSlotsByName(self)
         self.show()
 
@@ -111,45 +126,95 @@ class EFKLogSystemWindow(QMainWindow):
                                                        text=self.__configManager.getEFKSoftwarePath(),
                                                        dirParam={KEY_CAPTION: 'EFK软件所在路径'},
                                                        labelMinSize=labelMinSize,
-                                                       toolTip='EFK软件所在路径')
+                                                       toolTip='EFK软件所在路径',
+                                                       textChanged=self.__softwarePathChanged)
         vBox.addWidget(self.__efkSoftwarePathWidget)
         self.__logDirPathWidget = DragInputWidget(label='Log文件路径',
                                                   text=self.__configManager.getLogDirPath(),
                                                   dirParam={KEY_CAPTION: '日志文件所在路径'},
                                                   labelMinSize=labelMinSize,
-                                                  toolTip='日志文件所在路径，待分析日志的根路径，默认：D:/log/，根路径下分Harmony|Android/group/[subDir/]日志格式')
+                                                  toolTip='日志文件所在路径，待分析日志的根路径，默认：D:/log/，根路径下分Harmony|Android/group/[subDir/]日志格式',
+                                                  textChanged=self.__logPathChanged)
         vBox.addWidget(self.__logDirPathWidget)
         self.__configDirPathWidget = DragInputWidget(label='config文件路径',
                                                      text=self.__configManager.getConfigDirPath(),
                                                      dirParam={KEY_CAPTION: 'filebeat config文件所在路径'},
                                                      labelMinSize=labelMinSize,
-                                                     toolTip='filebeat配置文件存放路径，不配默认filebeat软件安装路径下')
+                                                     toolTip='filebeat配置文件存放路径，不配默认filebeat软件安装路径下',
+                                                     textChanged=self.__filebeatConfigPathChanged)
         vBox.addWidget(self.__configDirPathWidget)
         hBox = WidgetUtil.createHBoxLayout()
         self.__startSystemBtn = WidgetUtil.createPushButton(box, text='启动EFK系统',
                                                             onClicked=self.__startSystemClickEvent)
         hBox.addWidget(self.__startSystemBtn)
-        self.__stopSystemBtn = WidgetUtil.createPushButton(box, text='停止EFK系统', isEnable=False)
+        self.__stopSystemBtn = WidgetUtil.createPushButton(box, text='停止EFK系统', isEnable=False,
+                                                           onClicked=self.__stopSystemClickEvent)
         hBox.addWidget(self.__stopSystemBtn)
-        self.__restartSystemBtn = WidgetUtil.createPushButton(box, text='重启EFK系统', isEnable=False)
+        self.__restartSystemBtn = WidgetUtil.createPushButton(box, text='重启EFK系统', isEnable=False,
+                                                              onClicked=self.__restartSystemClickEvent)
         hBox.addWidget(self.__restartSystemBtn)
-        self.__openSystemBtn = WidgetUtil.createPushButton(box, text='打开EFK系统', isEnable=False)
+        self.__openSystemBtn = WidgetUtil.createPushButton(box, text='打开EFK系统', isEnable=False,
+                                                           onClicked=self.__openSystemClickEvent)
         hBox.addWidget(self.__openSystemBtn)
         vBox.addLayout(hBox)
         vBox.addItem(WidgetUtil.createVSpacerItem(1, 1))
         return box
 
+    def __softwarePathChanged(self, fp):
+        LogUtil.i(TAG, '[__softwarePathChanged]', fp)
+        self.__configManager.setInited(False)
+
+    def __logPathChanged(self, fp):
+        LogUtil.i(TAG, '[__logPathChanged]', fp)
+        self.__refreshLogDir()
+        if not self.__startSystemBtn.isEnabled():
+            self.__startFilebeatProcess()
+
+    def __filebeatConfigPathChanged(self, fp):
+        LogUtil.i(TAG, '[__filebeatConfigPathChanged]', fp)
+        self.__refreshFilebeatConfig()
+        if not self.__startSystemBtn.isEnabled():
+            self.__startFilebeatProcess()
+
+    def __changeBtnStatus(self, type: int):
+        if type == TYPE_READY:
+            self.__startSystemBtn.setEnabled(False)
+            self.__stopSystemBtn.setEnabled(True)
+            self.__restartSystemBtn.setEnabled(True)
+            self.__openSystemBtn.setEnabled(True)
+        elif type == TYPE_STOPPED:
+            self.__startSystemBtn.setEnabled(True)
+            self.__stopSystemBtn.setEnabled(False)
+            self.__restartSystemBtn.setEnabled(False)
+            self.__openSystemBtn.setEnabled(False)
+
     def __startSystemClickEvent(self):
         LogUtil.i(TAG, '[__startSystemClickEvent]')
+        self.__executor = ThreadPoolExecutor(max_workers=5, thread_name_prefix="LogSystem_")
         self.consoleTextEdit.clear()
         softwarePath = self.__efkSoftwarePathWidget.getData()
         if not softwarePath:
             WidgetUtil.showErrorDialog(message="请输入软件安装路径")
             return
         self.__configManager.setEFKSoftwarePath(softwarePath)
-        self.__configManager.saveConfigs()
 
         self.__asyncFuncManager.asyncExec(self.__startSystem, 'startSystem', (softwarePath,))
+        pass
+
+    def __stopSystemClickEvent(self):
+        LogUtil.i(TAG, '[__stopSystemClickEvent]')
+        self.__destroy()
+        self.__changeBtnStatusSignal.emit(TYPE_STOPPED)
+        pass
+
+    def __restartSystemClickEvent(self):
+        LogUtil.i(TAG, '[__restartSystemClickEvent]')
+        self.__startFilebeatProcess()
+        pass
+
+    def __openSystemClickEvent(self):
+        LogUtil.i(TAG, '[__openSystemClickEvent]')
+        NetworkUtil.openWebBrowser('http://localhost:5601')
         pass
 
     def __startSystem(self, softwarePath):
@@ -157,9 +222,9 @@ class EFKLogSystemWindow(QMainWindow):
             self.__showErrorDialogSignal.emit('请先下载安装相应软件')
             self.__asyncFuncManager.hideLoading()
             return
+        self.__refreshConfig()
         self.__prepareProcessEnv()
         self.__startEsProcess()
-        as_completed(self.__futureList)
         self.__asyncFuncManager.hideLoading()
         pass
 
@@ -181,6 +246,7 @@ class EFKLogSystemWindow(QMainWindow):
             try:
                 isSuccess, taskName, resultData = future.result()
                 if taskName == 'waitEsSystemStart':
+                    ListUtil.remove(self.__futureList, waitFuture)
                     if isSuccess:
                         LogUtil.i(TAG, taskName, 'exec success.')
                         self.__startKibanaProcess()
@@ -207,7 +273,10 @@ class EFKLogSystemWindow(QMainWindow):
             try:
                 isSuccess, taskName, resultData = future.result()
                 if taskName == 'waitKibanaSystemStart':
+                    ListUtil.remove(self.__futureList, waitFuture)
                     if isSuccess:
+                        self.__asyncFuncManager.hideLoading()
+                        self.__changeBtnStatusSignal.emit(TYPE_READY)
                         self.__startFilebeatProcess()
                     else:
                         self.__destroy()
@@ -216,8 +285,68 @@ class EFKLogSystemWindow(QMainWindow):
         pass
 
     def __startFilebeatProcess(self):
-        self.__asyncFuncManager.hideLoading()
         LogUtil.i(TAG, '[__startFilebeatProcess]')
+        self.__killFilebeatSystem()
+        self.__refreshFilebeatConfig()
+        dataDir = FileUtil.formatPath(os.path.join(self.__filebeatSoftwarePath, "data"))
+        softwareRunlogDir = FileUtil.formatPath(os.path.join(self.__filebeatSoftwarePath, "logs"))
+        cmdList = [
+            # 清除es的data stream
+            {KEY_PROGRAM: 'curl', KEY_ARGUMENTS: '-X DELETE http://localhost:9200/_data_stream/filebeat-8.11.3'},
+            {KEY_PROGRAM: 'cmd /c rmdir', KEY_ARGUMENTS: f'/s /q "{dataDir}"'},
+            {KEY_PROGRAM: 'cmd /c rmdir', KEY_ARGUMENTS: f'/s /q "{softwareRunlogDir}"'},
+            {
+                KEY_PROGRAM: FileUtil.formatPath(os.path.join(self.__filebeatSoftwarePath, "filebeat")),
+                KEY_ARGUMENTS: f'-e -c "{FileUtil.formatPath(os.path.join(self.__filebeatConfigDir, "filebeat.yml"))}" ' +
+                               f'-E "scriptPath={self.__filebeatConfigDir}" ' +
+                               f'-E "logDir={self.__logDir}" '
+            },
+        ]
+        self.__filebeatProcessManager = ProcessManager(name='filebeat',
+                                                       cmdList=cmdList,
+                                                       workingDir=self.__filebeatSoftwarePath,
+                                                       processEnv=self.__processEnv,
+                                                       standardOutput=self.standardOutput,
+                                                       standardError=self.standardError)
+        self.__filebeatFuture = self.__executor.submit(self.__filebeatProcessManager.run)
+        self.__futureList.append(self.__filebeatFuture)
+
+    def __refreshConfig(self):
+        LogUtil.i(TAG, '[__refreshConfig]', self.__configManager.isInit())
+        if self.__configManager.isInit():
+            return
+        FileUtil.modifyFilePath(os.path.join(FileUtil.getProjectPath(), 'resources/efk/config/elasticsearch.yml'),
+                                os.path.join(self.__esSoftwarePath, 'config/elasticsearch.yml'))
+        FileUtil.modifyFilePath(os.path.join(FileUtil.getProjectPath(), 'resources/efk/config/kibana.yml'),
+                                os.path.join(self.__kibanaSoftwarePath, 'config/kibana.yml'))
+        self.__refreshFilebeatConfig()
+        self.__refreshLogDir()
+        self.__configManager.setInited()
+        pass
+
+    def __refreshFilebeatConfig(self):
+        LogUtil.i(TAG, '[__refreshFilebeatConfig]')
+        filebeatConfigDir = self.__configDirPathWidget.getData()
+        if not filebeatConfigDir:
+            filebeatConfigDir = self.__filebeatSoftwarePath
+        self.__filebeatConfigDir = FileUtil.formatPath(filebeatConfigDir)
+        self.__configManager.setConfigDirPath(filebeatConfigDir)
+
+        FileUtil.modifyFilePath(os.path.join(FileUtil.getProjectPath(), 'resources/efk/config/filebeat/filebeat.yml'),
+                                os.path.join(filebeatConfigDir, 'filebeat.yml'))
+        FileUtil.modifyFilesPath(['.*.js$'],
+                                 os.path.join(FileUtil.getProjectPath(), 'resources/efk/config/filebeat/js'),
+                                 os.path.join(filebeatConfigDir, 'js'))
+
+    def __refreshLogDir(self):
+        logDir = FileUtil.formatPath(self.__logDirPathWidget.getData())
+        if logDir:
+            self.__logDir = logDir
+            self.__configManager.setLogDirPath(logDir)
+        FileUtil.mkDirs(os.path.join(logDir, 'harmony/realtime'))
+        FileUtil.mkDirs(os.path.join(logDir, 'Android/realtime'))
+        LogUtil.i(TAG, '[__refreshLogDir]', logDir)
+        pass
 
     def __prepareProcessEnv(self):
         self.__processEnv = [
@@ -267,10 +396,6 @@ class EFKLogSystemWindow(QMainWindow):
             f'href=\"{downloadUrl}\">{downloadUrl}</a>',
             color=ColorEnum.PURPLE)
 
-    def __cacheSliceLog(self, rule, log):
-        # self.spliceLogResult[rule[KEY_NAME]][KEY_LOG].append(log)
-        pass
-
     def __linkClicked(self, linkTxt):
         if NetworkUtil.isUrl(linkTxt):
             NetworkUtil.openWebBrowser(linkTxt)
@@ -293,14 +418,18 @@ class EFKLogSystemWindow(QMainWindow):
             self.__execResult = []
             self.consoleTextEdit.standardOutput(res)
 
-    def __showErrorDialog(self, msg):
-        WidgetUtil.showErrorDialog(message=msg)
-
-    def __destroy(self):
-        LogUtil.i(TAG, '__destroy')
+    def __killFilebeatSystem(self):
+        LogUtil.i(TAG, '__killFilebeatSystem')
         if self.__filebeatProcessManager:
             self.__filebeatProcessManager.kill()
             self.__filebeatProcessManager = None
+        if self.__filebeatFuture:
+            self.__filebeatFuture.cancel()
+            ListUtil.remove(self.__futureList, self.__filebeatFuture)
+
+    def __destroy(self):
+        LogUtil.i(TAG, '__destroy')
+        self.__killFilebeatSystem()
         if self.__kibanaProcessManager:
             self.__kibanaProcessManager.kill()
             self.__kibanaProcessManager = None
@@ -310,7 +439,9 @@ class EFKLogSystemWindow(QMainWindow):
         for future in self.__futureList:
             future.cancel()
         self.__futureList.clear()
-        self.__executor.shutdown(wait=False, cancel_futures=True)
+        if self.__executor:
+            self.__executor.shutdown(wait=False, cancel_futures=True)
+            self.__executor = None
         self.__asyncFuncManager.hideLoading()
 
 

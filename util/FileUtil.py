@@ -159,6 +159,8 @@ class FileUtil:
         """
         # 查找需要复制/移动的文件列表
         srcFiles = FileUtil.findFilePathList(dirPath=srcFp, findPatterns=fnPatterns)
+        srcFp = srcFp.replace('\\', '/')
+        dstFp = dstFp.replace('\\', '/')
         for srcFile in srcFiles:
             dstFile = srcFile.replace(srcFp, dstFp)
             FileUtil.modifyFilePath(srcFile, dstFile, isCopy)
@@ -457,6 +459,10 @@ class FileUtil:
             return True
         except (IOError, SyntaxError) as e:
             return False
+
+    @staticmethod
+    def formatPath(filePath: str):
+        return filePath.replace('\\', '/')
 
 
 if __name__ == "__main__":

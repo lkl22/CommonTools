@@ -15,10 +15,17 @@
 filebeat.inputs:
   # filestream is an input for collecting log messages from files.
   - type: filestream
-    id: harmony-log
+    id: phone-log
     enabled: true
     paths:
-      - D:/log/harmony/HiLog.*.txt
+      - ${logDir}/harmony/*/*/*/HiLog.*.txt
+      - ${logDir}/harmony/*/*/HiLog.*.txt
+      - ${logDir}/harmony/*/HiLog.*.txt
+      - ${logDir}/harmony/realtime/HiLog.*.txt
+      - ${logDir}/Android/*/*/*/HiLog.*.txt
+      - ${logDir}/Android/*/*/HiLog.*.txt
+      - ${logDir}/Android/*/HiLog.*.txt
+      - ${logDir}/Android/realtime/HiLog.*.txt
       #- c:\programdata\elasticsearch\logs\*
 
     timezone: Asia/Shanghai
@@ -39,7 +46,14 @@ filebeat.inputs:
     id: ohosStudy-log
     enabled: true
     paths:
-      - D:/log/harmony/HiLog.*.txt
+      - ${logDir}/harmony/*/*/*/HiLog.*.txt
+      - ${logDir}/harmony/*/*/HiLog.*.txt
+      - ${logDir}/harmony/*/HiLog.*.txt
+      - ${logDir}/harmony/realtime/HiLog.*.txt
+      - ${logDir}/Android/*/*/*/HiLog.*.txt
+      - ${logDir}/Android/*/*/HiLog.*.txt
+      - ${logDir}/Android/*/HiLog.*.txt
+      - ${logDir}/Android/realtime/HiLog.*.txt
       #- c:\programdata\elasticsearch\logs\*
 
     timezone: Asia/Shanghai
