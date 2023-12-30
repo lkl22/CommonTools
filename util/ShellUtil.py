@@ -79,10 +79,10 @@ class ShellUtil:
         return os.system(cmd) == 0
 
     @staticmethod
-    def waitExecFinished(cmd: str, successMsg: str, waitTime=3, waitInterval=3):
+    def waitExecFinished(cmd: str, successMsg: str, waitTimes=10, waitInterval=5):
         out, err = ShellUtil.exec(cmd)
-        while successMsg not in f'{out} {err}' and waitTime > 1:
-            waitTime -= 1
+        while successMsg not in f'{out} {err}' and waitTimes > 1:
+            waitTimes -= 1
             time.sleep(waitInterval)
             out, err = ShellUtil.exec(cmd)
         return successMsg in f'{out} {err}'
