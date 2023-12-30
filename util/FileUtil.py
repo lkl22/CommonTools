@@ -341,10 +341,9 @@ class FileUtil:
         fileName, ext = os.path.splitext(fn)
         if ext == '.gz':
             outFp = os.path.join(unzipToDir, fileName)
-            FileUtil.__unzipGzFile(zipFileName, outFp)
+            return FileUtil.__unzipGzFile(zipFileName, outFp)
         else:
-            FileUtil.__unzipFile(zipFileName, unzipToDir)
-        pass
+            return FileUtil.__unzipFile(zipFileName, unzipToDir)
 
     @staticmethod
     def __unzipFile(zipFileName, unzipToDir):
@@ -357,7 +356,7 @@ class FileUtil:
             zfObj = zipfile.ZipFile(zipFileName)
         except Exception as e:
             LogUtil.e(TAG, '__unzipFile 错误信息：', e)
-            return
+            return False
         for name in zfObj.namelist():
             name = name.replace('\\', '/')
             if name.endswith('/'):
@@ -369,7 +368,7 @@ class FileUtil:
                     os.mkdir(extDir)
                 with open(extFileName, 'wb') as outfile:
                     outfile.write(zfObj.read(name))
-        pass
+        return True
 
     @staticmethod
     def __unzipGzFile(zipFileName, outFp):
@@ -383,12 +382,12 @@ class FileUtil:
             gFile = gzip.GzipFile(zipFileName)
         except Exception as e:
             LogUtil.e(TAG, '__unzipGzFile 错误信息：', e)
-            return
+            return False
         # 读取解压后的文件，并写入去掉后缀名的同名文件（即得到解压后的文件）
         with open(outFp, 'wb') as outfile:
             outfile.write(gFile.read())
         gFile.close()
-        pass
+        return True
 
     @staticmethod
     def readFile(fp, encoding='utf8'):

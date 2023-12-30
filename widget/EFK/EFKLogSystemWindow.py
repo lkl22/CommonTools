@@ -2,6 +2,8 @@
 # python 3.x
 # Filename: EFKLogSystemWindow.py
 # 定义一个EFKLogSystemWindow类实现EFK日志分析系统管理相关功能
+import os.path
+
 from PyQt5.QtWidgets import QMainWindow
 
 from constant.ColorEnum import ColorEnum
@@ -122,31 +124,46 @@ class EFKLogSystemWindow(QMainWindow):
         self.__configManager.setEFKSoftwarePath(softwarePath)
         self.__configManager.saveConfigs()
 
-        self.__parseEFKSoftwarePath(softwarePath)
+        # self.__asyncFuncManager.asyncExec()
+        if not self.__parseEFKSoftwarePath(softwarePath):
+            WidgetUtil.showErrorDialog(message="请先下载安装相应软件")
+            return
         pass
 
     def __parseEFKSoftwarePath(self, softwarePath):
         fileNames = os.listdir(softwarePath)
+        esZipFp = None
+        kibanaZipFp = None
+        filebeatZipFp = None
         for fn in fileNames:
-            if os.path.isfile(fn):
+            fp = os.path.join(softwarePath, fn)
+            if os.path.isfile(fp):
+                if fn.startswith(SOFTWARE_NAME_ELASTICSEARCH):
+                    esZipFp = fp
+                elif fn.startswith(SOFTWARE_NAME_KIBANA):
+                    kibanaZipFp = fp
+                elif fn.startswith(SOFTWARE_NAME_FILEBEAT):
+                    filebeatZipFp = fp
                 continue
-            parent, fp = os.path.split(fn)
-            if fp.startswith(SOFTWARE_NAME_ELASTICSEARCH):
-                self.__esSoftwarePath = fn
-            elif fp.startswith(SOFTWARE_NAME_KIBANA):
-                self.__kibanaSoftwarePath = fn
-            elif fp.startswith(SOFTWARE_NAME_FILEBEAT):
-                self.__filebeatSoftwarePath = fn
+            if fn.startswith(SOFTWARE_NAME_ELASTICSEARCH):
+                self.__esSoftwarePath = fp
+            elif fn.startswith(SOFTWARE_NAME_KIBANA):
+                self.__kibanaSoftwarePath = fp
+            elif fn.startswith(SOFTWARE_NAME_FILEBEAT):
+                self.__filebeatSoftwarePath = fp
         isSuccess = True
         if not self.__esSoftwarePath:
-            self.__showDownloadInfo(softwarePath, SOFTWARE_NAME_ELASTICSEARCH, DOWNLOAD_URLS[0])
-            isSuccess = False
+            if not esZipFp or not FileUtil.unzipFile(esZipFp, os.path.split(esZipFp)[0]):
+                self.__showDownloadInfo(softwarePath, SOFTWARE_NAME_ELASTICSEARCH, DOWNLOAD_URLS[0])
+                isSuccess = False
         if not self.__kibanaSoftwarePath:
-            self.__showDownloadInfo(softwarePath, SOFTWARE_NAME_KIBANA, DOWNLOAD_URLS[1])
-            isSuccess = False
+            if not kibanaZipFp or not FileUtil.unzipFile(kibanaZipFp, os.path.split(kibanaZipFp)[0]):
+                self.__showDownloadInfo(softwarePath, SOFTWARE_NAME_KIBANA, DOWNLOAD_URLS[1])
+                isSuccess = False
         if not self.__filebeatSoftwarePath:
-            self.__showDownloadInfo(softwarePath, SOFTWARE_NAME_FILEBEAT, DOWNLOAD_URLS[2])
-            isSuccess = False
+            if not filebeatZipFp or not FileUtil.unzipFile(filebeatZipFp, os.path.split(filebeatZipFp)[0]):
+                self.__showDownloadInfo(softwarePath, SOFTWARE_NAME_FILEBEAT, DOWNLOAD_URLS[2])
+                isSuccess = False
         return isSuccess
 
     def __showDownloadInfo(self, softwarePath, softwareName, downloadUrl):
