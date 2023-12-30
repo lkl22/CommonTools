@@ -4,6 +4,8 @@
 # 定义一个ShellUtil工具类实现shell指令相关的功能
 import os
 import subprocess
+import time
+
 from util.LogUtil import *
 
 
@@ -20,7 +22,8 @@ class ShellUtil:
         # ），还是老mac格式的行结束符（'/r' ），还是windows 格式的行结束符（'/r/n' ）都将被视为 '/n' 。
         try:
             LogUtil.d("执行指令：\n", cmd)
-            p: subprocess.Popen = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, universal_newlines=True)
+            p: subprocess.Popen = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True,
+                                                   universal_newlines=True)
             (stdout, stderr) = p.communicate(timeout=timeout)
             LogUtil.d("执行指令结果：\n", stdout)
             if stderr:
@@ -75,6 +78,15 @@ class ShellUtil:
         """
         return os.system(cmd) == 0
 
+    @staticmethod
+    def waitExecFinished(cmd: str, successMsg: str, waitTime=3, waitInterval=3):
+        out, err = ShellUtil.exec(cmd)
+        while successMsg not in f'{out} {err}' and waitTime > 1:
+            waitTime -= 1
+            time.sleep(waitInterval)
+            out, err = ShellUtil.exec(cmd)
+        return successMsg in f'{out} {err}'
+
 
 if __name__ == "__main__":
     # ShellUtil.exec("ls -l ")
@@ -93,4 +105,4 @@ if __name__ == "__main__":
         inputStr = input()
 
     ShellUtil.exec("adb kill-server")
-    print('finished')
+    print(ShellUtil.waitExecFinished('curl -XGET http://localhost:9200', '"cluster_name" : "elk"'))
