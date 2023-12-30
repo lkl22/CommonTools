@@ -32,7 +32,7 @@ filebeat.inputs:
           target_field: "@metadata._id"
       - script:
           lang: javascript
-          file: ${path.config}/js/splitBaseFields.js
+          file: ${scriptPath}/js/splitBaseFields.js
 
   # filestream is an input for collecting log messages from files.
   - type: filestream
@@ -62,21 +62,21 @@ filebeat.inputs:
           target_field: "@metadata._id"
       - script:
           lang: javascript
-          file: ${path.config}/js/splitBaseFields.js
+          file: ${scriptPath}/js/splitBaseFields.js
       - if:
           contains:
             message: "Segment Data"
         then:
           - script:
               lang: javascript
-              file: ${path.config}/js/handleSegmentData.js
+              file: ${scriptPath}/js/handleSegmentData.js
       - if:
           contains:
             message: "@startuml"
         then:
           - script:
               lang: javascript
-              file: ${path.config}/js/handleUmlData.js
+              file: ${scriptPath}/js/handleUmlData.js
 
 # ============================== Filebeat modules ==============================
 
@@ -158,7 +158,7 @@ output.elasticsearch:
 processors:
   - script:
       lang: javascript
-      file: ${path.config}/js/generateFileInfo.js
+      file: ${scriptPath}/js/generateFileInfo.js
   - timestamp:
       field: temp_time
       layouts:
