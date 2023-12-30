@@ -4,13 +4,14 @@
 # 定义一个ESImageFileSystem类实现图片文件系统
 import os.path
 
-from flask import Flask, send_file
+from flask import Flask, send_file, make_response
 
 from util.PlantUml import MyPlantUML
 from util.ElasticsearchManager import ElasticsearchManager
 from util.FileUtil import FileUtil
 from util.LogUtil import LogUtil
 from util.MD5Util import MD5Util
+from util.ShellUtil import ShellUtil
 
 TAG = 'ESImageFileSystem'
 
@@ -18,7 +19,7 @@ TAG = 'ESImageFileSystem'
 app = Flask(__name__)
 
 
-@app.route('/images/<path:id>')
+@app.route('/images/uml/<path:id>')
 def getImage(id: str):
     LogUtil.i(TAG, f'getImage {id}')
     errPic = os.path.join(FileUtil.getProjectPath(), 'resources/icons/projectManager/error.png')
@@ -26,7 +27,7 @@ def getImage(id: str):
     if not umlData:
         return send_file(errPic, mimetype='image/png')
     fileName = MD5Util.md5(umlData)
-    tmpDir = os.path.join(FileUtil.getProjectPath(), 'temp/image')
+    tmpDir = os.path.join(FileUtil.getProjectPath(), 'temp/image/uml')
     FileUtil.mkDirs(tmpDir)
     imageFp = os.path.join(tmpDir, fileName)
     if FileUtil.existsFile(imageFp):
@@ -35,6 +36,16 @@ def getImage(id: str):
     if fp:
         return send_file(fp, mimetype='image/png')
     return send_file(errPic, mimetype='image/png')
+
+
+@app.route('/open/file/<path:fileInfo>')
+def openFile(fileInfo: str):
+    LogUtil.i(TAG, f'openFile {fileInfo}')
+    data = fileInfo.split(';')
+    fp = data[0]
+    position = data[1]
+    ShellUtil.exec(f'D:/Ksoftware/notepad++/notepad++ "{fp}" -p{position}')
+    return make_response()
 
 
 class ESServiceSystem:
