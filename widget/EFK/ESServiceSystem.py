@@ -4,7 +4,7 @@
 # 定义一个ESImageFileSystem类实现图片文件系统
 import os.path
 
-from flask import Flask, send_file, make_response
+from flask import Flask, send_file
 
 from util.PlantUml import MyPlantUML
 from util.ElasticsearchManager import ElasticsearchManager
@@ -12,6 +12,7 @@ from util.FileUtil import FileUtil
 from util.LogUtil import LogUtil
 from util.MD5Util import MD5Util
 from util.ShellUtil import ShellUtil
+from widget.EFK.EFKLogSystemConfigManager import EFKLogSystemConfigManager
 
 TAG = 'ESImageFileSystem'
 
@@ -43,9 +44,14 @@ def openFile(fileInfo: str):
     LogUtil.i(TAG, f'openFile {fileInfo}')
     data = fileInfo.split(';')
     fp = data[0]
-    position = data[1]
-    ShellUtil.exec(f'D:/Ksoftware/notepad++/notepad++ "{fp}" -p{position}')
-    return make_response()
+    try:
+        position = data[1]
+        configManager = EFKLogSystemConfigManager()
+        notepadPath = configManager.getNotepadDirPath()
+        ShellUtil.exec(f'{os.path.join(notepadPath, "notepad++")} "{fp}" -p{position}')
+    except Exception as e:
+        LogUtil.e(TAG, 'openFile 错误信息：', e)
+    return send_file(fp, mimetype='text/plain')
 
 
 class ESServiceSystem:

@@ -144,6 +144,14 @@ class EFKLogSystemWindow(QMainWindow):
                                                      textChanged=self.__filebeatConfigPathChanged)
         vBox.addWidget(self.__configDirPathWidget)
 
+        self.__notepadDirPathWidget = DragInputWidget(label='notepad++安装路径',
+                                                      text=self.__configManager.getNotepadDirPath(),
+                                                      dirParam={KEY_CAPTION: 'notepad++安装路径'},
+                                                      labelMinSize=labelMinSize,
+                                                      toolTip='notepad++安装路径，可以通过notepad++打开对应文件',
+                                                      textChanged=self.__notepadDirPathWidgetChanged)
+        vBox.addWidget(self.__notepadDirPathWidget)
+
         hBox = WidgetUtil.createHBoxLayout()
         self.__openConfigDirBtn = WidgetUtil.createPushButton(box, text='打开配置文件路径',
                                                               onClicked=self.__openConfigDirEvent)
@@ -182,6 +190,10 @@ class EFKLogSystemWindow(QMainWindow):
         self.__refreshFilebeatConfig()
         if not self.__startSystemBtn.isEnabled():
             self.__startFilebeatProcess()
+
+    def __notepadDirPathWidgetChanged(self, fp):
+        LogUtil.i(TAG, '[__notepadDirPathWidgetChanged]', fp)
+        self.__configManager.setNotepadDirPath(fp)
 
     def __changeBtnStatus(self, type: int):
         if type == TYPE_READY:
