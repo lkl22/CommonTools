@@ -107,7 +107,7 @@ a = Analysis(['RunMain.py',
 
               'widget/EFK/EFKLogSystemConfigManager.py',
               'widget/EFK/EFKLogSystemWindow.py',
-              'widget/EFK/ESServiceSystem.py',
+              'widget/EFK/EFKServiceSystem.py',
 
               'widget/findFileContent/AddOrEditConfigDialog.py',
               'widget/findFileContent/AddOrEditMatchDialog.py',

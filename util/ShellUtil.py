@@ -6,6 +6,7 @@ import os
 import subprocess
 import time
 
+from util.ListUtil import ListUtil
 from util.LogUtil import *
 from util.PlatformUtil import PlatformUtil
 
@@ -91,7 +92,7 @@ class ShellUtil:
     @staticmethod
     def findPidsByPort(port: str):
         if PlatformUtil.isWindows():
-            out, err = ShellUtil.exec(f'netstat -ano | findstr {port}')
+            out, err = ShellUtil.exec(f'netstat -ano | findstr {port} | findstr "LISTENING ESTABLISHED"')
             pids = []
             if out:
                 lines: [str] = out.split('\n')
@@ -99,7 +100,7 @@ class ShellUtil:
                     if not line:
                         continue
                     pid = line.strip().split(' ')[-1].strip()
-                    if pid:
+                    if pid and pid not in pids:
                         pids.append(pid)
             return pids
 
@@ -114,7 +115,7 @@ class ShellUtil:
                     if not line:
                         continue
                     imageName = line.strip().split(' ')[0].strip()
-                    if imageName:
+                    if imageName and imageName not in imageNames:
                         imageNames.append(imageName)
             return imageNames
 
@@ -125,8 +126,9 @@ class ShellUtil:
                 ShellUtil.exec(f'TASKKILL /F /IM {imageName} /T')
 
     @staticmethod
-    def killByPids(pids: [str]):
+    def killByPids(pids: [str], excludePid):
         if PlatformUtil.isWindows():
+            ListUtil.remove(pids, excludePid)
             pid = ' '.join([f'/PID {item}' for item in pids])
             ShellUtil.exec(f'TASKKILL /F {pid} /T')
 

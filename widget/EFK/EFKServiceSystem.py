@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # python 3.x
-# Filename: ESServiceSystem.py
-# 定义一个ESImageFileSystem类实现图片文件系统
+# Filename: EFKServiceSystem.py
+# 定义一个EFKServiceSystem类实现图片文件系统
 import os.path
 
 from flask import Flask, send_file
@@ -54,7 +54,7 @@ def openFile(fileInfo: str):
     return send_file(fp, mimetype='text/plain')
 
 
-class ESServiceSystem:
+class EFKServiceSystem:
     @staticmethod
     def start():
         app.run()
@@ -65,4 +65,4 @@ class ESServiceSystem:
 
 
 if __name__ == '__main__':
-    ESServiceSystem.start()
+    EFKServiceSystem.start()

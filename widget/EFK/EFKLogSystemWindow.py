@@ -17,6 +17,7 @@ from util.NetworkUtil import NetworkUtil
 from util.OperaIni import *
 from util.ProcessManager import *
 from widget.EFK.EFKLogSystemConfigManager import EFKLogSystemConfigManager
+from widget.EFK.EFKServiceSystem import EFKServiceSystem
 from widget.custom.CommonTextEdit import CommonTextEdit
 from widget.custom.DragInputWidget import DragInputWidget
 
@@ -47,6 +48,10 @@ def waitKibanaSystemStart():
                                       '127.0.0.1:5601'), 'waitKibanaSystemStart', ''
 
 
+def startEFKServiceSystem():
+    return EFKServiceSystem.start(), 'startEFKServiceSystem', ''
+
+
 def showErrorDialog(msg):
     WidgetUtil.showErrorDialog(message=msg)
 
@@ -62,7 +67,7 @@ class EFKLogSystemWindow(QMainWindow):
         # self.setWindowFlags(Qt.Dialog | Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint)
         EFKLogSystemWindow.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.8)
         EFKLogSystemWindow.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.7)
-        LogUtil.d(TAG, "Init EFK Log System Window")
+        LogUtil.d(TAG, f'Init EFK Log System Window. pid: {os.getpid()}')
         self.setObjectName("EFKLogSystemWindow")
         self.resize(EFKLogSystemWindow.WINDOW_WIDTH, EFKLogSystemWindow.WINDOW_HEIGHT)
         # self.setFixedSize(EFKLogSystemWindow.WINDOW_WIDTH, EFKLogSystemWindow.WINDOW_HEIGHT)
@@ -84,6 +89,7 @@ class EFKLogSystemWindow(QMainWindow):
         self.__kibanaProcessManager: ProcessManager = None
         self.__filebeatProcessManager: ProcessManager = None
         self.__filebeatFuture: Future = None
+        self.__efkServiceFuture: Future = None
 
         self.__filebeatConfigDir = self.__configManager.getConfigDirPath()
         self.__logDir = self.__configManager.getLogDirPath()
@@ -108,6 +114,8 @@ class EFKLogSystemWindow(QMainWindow):
     # 重写关闭事件，回到第一界面
     def closeEvent(self, event):
         self.__destroy()
+        EFKServiceSystem.stop()
+        ShellUtil.killByPids([os.getpid()])
         if self.__isDebug:
             return
         from widget.MainWidget import MainWidget
@@ -226,7 +234,7 @@ class EFKLogSystemWindow(QMainWindow):
             WidgetUtil.showErrorDialog(message="请输入软件安装路径")
             return
         self.__configManager.setEFKSoftwarePath(softwarePath)
-
+        self.__startSystemBtn.setEnabled(False)
         self.__asyncFuncManager.asyncExec(self.__startSystem, 'startSystem', (softwarePath,))
         pass
 
@@ -249,6 +257,7 @@ class EFKLogSystemWindow(QMainWindow):
     def __startSystem(self, softwarePath):
         if not self.__parseEFKSoftwarePath(softwarePath):
             self.__showErrorDialogSignal.emit('请先下载安装相应软件')
+            self.__changeBtnStatusSignal.emit(TYPE_STOPPED)
             self.__asyncFuncManager.hideLoading()
             return
         self.__refreshConfig()
@@ -306,11 +315,22 @@ class EFKLogSystemWindow(QMainWindow):
                     if isSuccess:
                         self.__asyncFuncManager.hideLoading()
                         self.__changeBtnStatusSignal.emit(TYPE_READY)
+                        self.__startEFKServiceProcess()
                         self.__startFilebeatProcess()
                     else:
                         self.__destroy()
             except CancelledError as err:
                 LogUtil.e(TAG, "[__startKibanaProcess] CancelledError", err)
+        pass
+
+    def __startEFKServiceProcess(self):
+        LogUtil.i(TAG, '[__startEFKServiceProcess]')
+        self.__efkServiceFuture = self.__executor.submit(startEFKServiceSystem)
+        for future in as_completed([self.__efkServiceFuture]):
+            try:
+                _, taskName, resultData = future.result()
+            except CancelledError as err:
+                LogUtil.e(TAG, "[__startEFKServiceProcess] CancelledError", err)
         pass
 
     def __startFilebeatProcess(self):
@@ -458,13 +478,19 @@ class EFKLogSystemWindow(QMainWindow):
 
     def __destroy(self):
         LogUtil.i(TAG, '__destroy')
+        self.__changeBtnStatusSignal.emit(TYPE_STOPPED)
         self.__killFilebeatSystem()
         if self.__kibanaProcessManager:
             self.__kibanaProcessManager.kill()
             self.__kibanaProcessManager = None
+            ShellUtil.killByPids(ShellUtil.findPidsByPort('5601'), excludePid=os.getpid())
         if self.__esProcessManager:
             self.__esProcessManager.kill()
             self.__esProcessManager = None
+            ShellUtil.killByPids(ShellUtil.findPidsByPort('9200'), excludePid=os.getpid())
+        if self.__efkServiceFuture:
+            self.__efkServiceFuture.cancel()
+            self.__efkServiceFuture = None
         for future in self.__futureList:
             future.cancel()
         self.__futureList.clear()
