@@ -143,6 +143,13 @@ class EFKLogSystemWindow(QMainWindow):
                                                      toolTip='filebeat配置文件存放路径，不配默认filebeat软件安装路径下',
                                                      textChanged=self.__filebeatConfigPathChanged)
         vBox.addWidget(self.__configDirPathWidget)
+
+        hBox = WidgetUtil.createHBoxLayout()
+        self.__openConfigDirBtn = WidgetUtil.createPushButton(box, text='打开配置文件路径',
+                                                              onClicked=self.__openConfigDirEvent)
+        hBox.addWidget(self.__openConfigDirBtn)
+        vBox.addLayout(hBox)
+
         hBox = WidgetUtil.createHBoxLayout()
         self.__startSystemBtn = WidgetUtil.createPushButton(box, text='启动EFK系统',
                                                             onClicked=self.__startSystemClickEvent)
@@ -187,6 +194,9 @@ class EFKLogSystemWindow(QMainWindow):
             self.__stopSystemBtn.setEnabled(False)
             self.__restartSystemBtn.setEnabled(False)
             self.__openSystemBtn.setEnabled(False)
+
+    def __openConfigDirEvent(self):
+        FileUtil.openFile(os.path.join(FileUtil.getProjectPath(), 'resources/efk/config/filebeat'))
 
     def __startSystemClickEvent(self):
         LogUtil.i(TAG, '[__startSystemClickEvent]')

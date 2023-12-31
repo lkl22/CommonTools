@@ -445,6 +445,9 @@ class FileUtil:
         if PlatformUtil.isMac():
             ShellUtil.exec(f"open {fp}")
         elif PlatformUtil.isWindows():
+            if os.path.isdir(fp):
+                ShellUtil.exec(f'start {fp}')
+                return
             if FileUtil.isImage(fp):
                 ShellUtil.exec(f"explorer {fp}")
             else:
