@@ -7,6 +7,7 @@ import subprocess
 import time
 
 from util.LogUtil import *
+from util.PlatformUtil import PlatformUtil
 
 
 class ShellUtil:
@@ -87,6 +88,48 @@ class ShellUtil:
             out, err = ShellUtil.exec(cmd)
         return successMsg in f'{out} {err}'
 
+    @staticmethod
+    def findPidsByPort(port: str):
+        if PlatformUtil.isWindows():
+            out, err = ShellUtil.exec(f'netstat -ano | findstr {port}')
+            pids = []
+            if out:
+                lines: [str] = out.split('\n')
+                for line in lines:
+                    if not line:
+                        continue
+                    pid = line.strip().split(' ')[-1].strip()
+                    if pid:
+                        pids.append(pid)
+            return pids
+
+    @staticmethod
+    def findImageNamesByPid(pid: str):
+        if PlatformUtil.isWindows():
+            out, err = ShellUtil.exec(f'tasklist | findstr {pid}')
+            imageNames = []
+            if out:
+                lines: [str] = out.split('\n')
+                for line in lines:
+                    if not line:
+                        continue
+                    imageName = line.strip().split(' ')[0].strip()
+                    if imageName:
+                        imageNames.append(imageName)
+            return imageNames
+
+    @staticmethod
+    def killByImageNames(imageNames: [str]):
+        if PlatformUtil.isWindows():
+            for imageName in imageNames:
+                ShellUtil.exec(f'TASKKILL /F /IM {imageName} /T')
+
+    @staticmethod
+    def killByPids(pids: [str]):
+        if PlatformUtil.isWindows():
+            pid = ' '.join([f'/PID {item}' for item in pids])
+            ShellUtil.exec(f'TASKKILL /F {pid} /T')
+
 
 if __name__ == "__main__":
     # ShellUtil.exec("ls -l ")
@@ -97,12 +140,16 @@ if __name__ == "__main__":
     # ShellUtil.system('python -m pip install --upgrade pip --index-url https://pypi.tuna.tsinghua.edu.cn/simple/')
     # print(ShellUtil.system('pip install -U weditor --index-url https://pypi.tuna.tsinghua.edu.cn/simple/'))
 
-    log = open("test", 'w')
-    p = ShellUtil.run("adb logcat -c && adb logcat -v threadtime", log)
-
-    inputStr = input()
-    while not inputStr.startswith("quit"):
-        inputStr = input()
-
-    ShellUtil.exec("adb kill-server")
-    print(ShellUtil.waitExecFinished('curl -XGET http://localhost:9200', '"cluster_name" : "elk"'))
+    # log = open("test", 'w')
+    # p = ShellUtil.run("adb logcat -c && adb logcat -v threadtime", log)
+    #
+    # inputStr = input()
+    # while not inputStr.startswith("quit"):
+    #     inputStr = input()
+    #
+    # ShellUtil.exec("adb kill-server")
+    # print(ShellUtil.waitExecFinished('curl -XGET http://localhost:9200', '"cluster_name" : "elk"'))
+    # print(ShellUtil.findPidsByPort('5000'))
+    # print(ShellUtil.findImageNamesByPid('26420'))
+    # print(ShellUtil.killByImageNames(ShellUtil.findImageNamesByPid(ShellUtil.findPidsByPort('5000')[0])))
+    print(ShellUtil.killByPids(ShellUtil.findPidsByPort('5601')))

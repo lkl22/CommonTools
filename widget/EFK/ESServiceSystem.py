@@ -55,7 +55,7 @@ class ESServiceSystem:
 
     @staticmethod
     def stop():
-        app.request.environ.get('werkzeug.server.shutdown')()
+        ShellUtil.killByPids(ShellUtil.findPidsByPort('5000'))
 
 
 if __name__ == '__main__':
