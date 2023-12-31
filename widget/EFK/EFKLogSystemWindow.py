@@ -156,6 +156,9 @@ class EFKLogSystemWindow(QMainWindow):
         self.__openConfigDirBtn = WidgetUtil.createPushButton(box, text='打开配置文件路径',
                                                               onClicked=self.__openConfigDirEvent)
         hBox.addWidget(self.__openConfigDirBtn)
+        self.__openFieldCfgDocBtn = WidgetUtil.createPushButton(box, text='打开配置data view Field指导',
+                                                                onClicked=self.__openFieldCfgDocEvent)
+        hBox.addWidget(self.__openFieldCfgDocBtn)
         vBox.addLayout(hBox)
 
         hBox = WidgetUtil.createHBoxLayout()
@@ -209,6 +212,10 @@ class EFKLogSystemWindow(QMainWindow):
 
     def __openConfigDirEvent(self):
         FileUtil.openFile(os.path.join(FileUtil.getProjectPath(), 'resources/efk/config/filebeat'))
+
+    def __openFieldCfgDocEvent(self):
+        NetworkUtil.openWebBrowser(
+            'https://github.com/lkl22/CommonTools/blob/master/doc/efkSystem/editDataViewField.md')
 
     def __startSystemClickEvent(self):
         LogUtil.i(TAG, '[__startSystemClickEvent]')
