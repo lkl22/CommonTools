@@ -100,8 +100,13 @@ class EFKLogSystemWindow(QMainWindow):
         hLayout = WidgetUtil.createHBoxLayout(margins=QMargins(10, 10, 10, 10), spacing=10)
         layoutWidget.setLayout(hLayout)
 
-        self.categoryManageGroupBox = self.createManageGroupBox()
-        hLayout.addWidget(self.categoryManageGroupBox, 3)
+        vBox = WidgetUtil.createVBoxLayout()
+        self.efkManageGroupBox = self.createManageGroupBox()
+        vBox.addWidget(self.efkManageGroupBox)
+        self.phoneLogGroupBox = self.createPhoneLogGroupBox()
+        vBox.addWidget(self.phoneLogGroupBox)
+        vBox.addSpacerItem(WidgetUtil.createVSpacerItem())
+        hLayout.addLayout(vBox, 3)
 
         self.consoleTextEdit = CommonTextEdit(linkClicked=self.__linkClicked)
         hLayout.addWidget(self.consoleTextEdit, 2)
@@ -125,7 +130,7 @@ class EFKLogSystemWindow(QMainWindow):
         pass
 
     def createManageGroupBox(self):
-        box = WidgetUtil.createGroupBox(self, title="")
+        box = WidgetUtil.createGroupBox(self, title="EFK系统管理")
         vBox = WidgetUtil.createVBoxLayout(box, margins=QMargins(10, 10, 10, 10), spacing=5)
         labelMinSize = QSize(130, 0)
         self.__efkSoftwarePathWidget = DragInputWidget(label='EFK软件路径',
@@ -181,6 +186,22 @@ class EFKLogSystemWindow(QMainWindow):
         self.__openSystemBtn = WidgetUtil.createPushButton(box, text='打开EFK系统', isEnable=False,
                                                            onClicked=self.__openSystemClickEvent)
         hBox.addWidget(self.__openSystemBtn)
+        vBox.addLayout(hBox)
+        vBox.addItem(WidgetUtil.createVSpacerItem(1, 1))
+        return box
+
+    def createPhoneLogGroupBox(self):
+        box = WidgetUtil.createGroupBox(self, title="手机日志系统")
+        vBox = WidgetUtil.createVBoxLayout(box, margins=QMargins(10, 10, 10, 10), spacing=5)
+        labelMinSize = QSize(130, 0)
+
+        hBox = WidgetUtil.createHBoxLayout()
+        self.__clearPhoneLogBtn = WidgetUtil.createPushButton(box, text='清除手机日志',
+                                                              onClicked=self.__clearPhoneLogEvent)
+        hBox.addWidget(self.__clearPhoneLogBtn)
+        self.__startLogcatBtn = WidgetUtil.createPushButton(box, text='启动实时日志',
+                                                            onClicked=self.__startLogcatEvent)
+        hBox.addWidget(self.__startLogcatBtn)
         vBox.addLayout(hBox)
         vBox.addItem(WidgetUtil.createVSpacerItem(1, 1))
         return box
@@ -498,6 +519,14 @@ class EFKLogSystemWindow(QMainWindow):
             self.__executor.shutdown(wait=False, cancel_futures=True)
             self.__executor = None
         self.__asyncFuncManager.hideLoading()
+
+    def __clearPhoneLogEvent(self):
+        LogUtil.i(TAG, '__clearPhoneLogEvent')
+        pass
+
+    def __startLogcatEvent(self):
+        LogUtil.i(TAG, '__startLogcatEvent')
+        pass
 
 
 if __name__ == '__main__':

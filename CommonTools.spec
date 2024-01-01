@@ -22,6 +22,11 @@ a = Analysis(['RunMain.py',
               'util/excel/ExcelOperator.py',
               'util/excel/IExcelOperator.py',
 
+              'util/phoneCmd/AndroidOperator.py',
+              'util/phoneCmd/HarmonyOperator.py',
+              'util/phoneCmd/IPhoneOperator.py',
+              'util/phoneCmd/PhoneOperator.py',
+
               'util/AdbUtil.py',
               'util/AutoTestUtil.py',
               'util/CipherUtil.py',
