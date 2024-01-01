@@ -18,7 +18,7 @@ TAG = 'DragInputWidget'
 
 class DragInputWidget(ICommonWidget):
     def __init__(self, label=None, text=None, fileParam=None, dirParam=None, isReadOnly=True, holderText=None,
-                 labelMinSize: QSize = None, toolTip=None, textChanged=None):
+                 labelMinSize: QSize = None, toolTip=None, textChanged=None, required=False):
         super(DragInputWidget, self).__init__()
         # self.setWindowFlags(QtCore.Qt.SplashScreen | QtCore.Qt.FramelessWindowHint)
         self.fileParam = fileParam
@@ -26,7 +26,7 @@ class DragInputWidget(ICommonWidget):
 
         hbox = WidgetUtil.createHBoxLayout(self, margins=QMargins(5, 5, 5, 5), spacing=10)
         if label:
-            hbox.addWidget(WidgetUtil.createLabel(self, text=label, minSize=labelMinSize))
+            hbox.addWidget(WidgetUtil.createLabel(self, text=label, minSize=labelMinSize, required=required))
         self.lineEdit = WidgetUtil.createLineEdit(self, text=text, holderText=holderText, toolTip=toolTip,
                                                   textChanged=textChanged, isReadOnly=isReadOnly)
         if dirParam:

@@ -12,7 +12,7 @@ TAG = 'CommonCheckBoxs'
 
 class CommonCheckBoxs(ICommonWidget):
     def __init__(self, label: str, groupList: list[dict or str] = [], defaultValue=None, buttonClicked=None,
-                 maxCount=12, spacing=30, toolTip=None):
+                 maxCount=12, spacing=30, toolTip=None, required=False):
         """
         创建通用的复选按钮选项组件
         :param label: 选项描述文本
@@ -34,7 +34,7 @@ class CommonCheckBoxs(ICommonWidget):
         self.__buttonGroup = None
 
         self.__vbox = WidgetUtil.createVBoxLayout(self, margins=QMargins(5, 5, 5, 5), spacing=10)
-        self.__labelWidget = WidgetUtil.createLabel(self, text=label)
+        self.__labelWidget = WidgetUtil.createLabel(self, text=label, required=required)
 
         self.updateData(groupList, defaultValue)
 

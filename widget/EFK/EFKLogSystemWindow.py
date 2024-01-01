@@ -133,7 +133,8 @@ class EFKLogSystemWindow(QMainWindow):
                                                        dirParam={KEY_CAPTION: 'EFK软件所在路径'},
                                                        labelMinSize=labelMinSize,
                                                        toolTip='EFK软件所在路径',
-                                                       textChanged=self.__softwarePathChanged)
+                                                       textChanged=self.__softwarePathChanged,
+                                                       required=True)
         vBox.addWidget(self.__efkSoftwarePathWidget)
         self.__logDirPathWidget = DragInputWidget(label='Log文件路径',
                                                   text=self.__configManager.getLogDirPath(),
@@ -154,7 +155,7 @@ class EFKLogSystemWindow(QMainWindow):
                                                       text=self.__configManager.getNotepadDirPath(),
                                                       dirParam={KEY_CAPTION: 'notepad++安装路径'},
                                                       labelMinSize=labelMinSize,
-                                                      toolTip='notepad++安装路径，可以通过notepad++打开对应文件',
+                                                      toolTip='notepad++安装路径，可以通过notepad++打开对应文件，不配将不会通过notepad++打开',
                                                       textChanged=self.__notepadDirPathWidgetChanged)
         vBox.addWidget(self.__notepadDirPathWidget)
 

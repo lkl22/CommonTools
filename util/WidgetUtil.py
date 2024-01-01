@@ -410,7 +410,7 @@ class WidgetUtil:
 
     @staticmethod
     def createLabel(parent: QWidget, objectName="Label", text="", toolTip=None,
-                    alignment=Qt.AlignVCenter | Qt.AlignLeft,
+                    alignment=Qt.AlignVCenter | Qt.AlignLeft, required=False,
                     geometry: QRect = None, minSize: QSize = None, sizePolicy: QSizePolicy = None):
         """
         创建一个Label标签
@@ -419,6 +419,7 @@ class WidgetUtil:
         :param text: text
         :param toolTip: toolTip
         :param alignment: 文本对其方式，默认左居中
+        :param required: 必填项，文本前带红色 *
         :param geometry: geometry
         :param minSize: minSize
         :param sizePolicy: 缩放策略
@@ -427,7 +428,7 @@ class WidgetUtil:
         widget = QtWidgets.QLabel(parent)
         widgetSetAttrs(widget, objectName, toolTip=toolTip, geometry=geometry, minSize=minSize, sizePolicy=sizePolicy)
         widget.setAlignment(alignment)
-        widget.setText(_translate(contextName, text))
+        widget.setText(("<font color = red>*</font> " if required else '') + _translate(contextName, text))
         return widget
 
     @staticmethod

@@ -13,13 +13,13 @@ TAG = 'CommonDateTimeRangeEdit'
 
 class CommonDateTimeRangeEdit(ICommonWidget):
     def __init__(self, label: str, value=None, maxOffsetValue=300, labelMinSize: QSize = None, maxWidth=None,
-                 datetimeFormat=DATETIME_FORMAT, toolTip=None):
+                 datetimeFormat=DATETIME_FORMAT, toolTip=None, required=False):
         super(CommonDateTimeRangeEdit, self).__init__()
         self.__value = {}
         self.__datetimeFormat = datetimeFormat
 
         hbox = WidgetUtil.createHBoxLayout(self, margins=QMargins(5, 5, 5, 5), spacing=10)
-        hbox.addWidget(WidgetUtil.createLabel(self, text=label, minSize=labelMinSize))
+        hbox.addWidget(WidgetUtil.createLabel(self, text=label, minSize=labelMinSize, required=required))
         self.__dateTimeEdit = WidgetUtil.createDateTimeEdit(self, displayFormat=datetimeFormat)
         hbox.addWidget(self.__dateTimeEdit, 2)
         self.__beforeSpinBox = WidgetUtil.createSpinBox(self, value=0, minValue=0, maxValue=maxOffsetValue, step=5,

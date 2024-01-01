@@ -18,7 +18,7 @@ TAG = 'CommonComboBox'
 
 class CommonComboBox(ICommonWidget):
     def __init__(self, label: str, default=None, groupList: [{} or str] = [], isEditable=False, maxWidth=None,
-                 toolTip=None, dataChanged=None):
+                 toolTip=None, dataChanged=None, required=False):
         """
         创建下拉选择框
         :param label: label
@@ -39,7 +39,7 @@ class CommonComboBox(ICommonWidget):
         self.__isEditable = isEditable
 
         hBox = WidgetUtil.createHBoxLayout(self, margins=QMargins(5, 5, 5, 5), spacing=10)
-        hBox.addWidget(WidgetUtil.createLabel(self, text=label))
+        hBox.addWidget(WidgetUtil.createLabel(self, text=label, required=required))
         self.__comboBox = WidgetUtil.createComboBox(self, isEditable=isEditable, activated=self.__activated)
         self.__comboBox.setView(QListView())
         self.setStyleSheet('QComboBox QAbstractItemView::item {padding-top:2px;padding-bottom:2px}')

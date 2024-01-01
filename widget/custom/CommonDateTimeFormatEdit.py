@@ -15,12 +15,12 @@ TAG = 'CommonDateTimeFormatEdit'
 
 class CommonDateTimeFormatEdit(ICommonWidget):
     def __init__(self, label: str, value=None, labelMinSize: QSize = None, maxWidth=None, toolTip=None,
-                 editingFinished=None):
+                 editingFinished=None, required=False):
         super(CommonDateTimeFormatEdit, self).__init__()
         self.__value = {}
 
         hbox = WidgetUtil.createHBoxLayout(self, margins=QMargins(5, 5, 5, 5), spacing=10)
-        hbox.addWidget(WidgetUtil.createLabel(self, text=label, minSize=labelMinSize))
+        hbox.addWidget(WidgetUtil.createLabel(self, text=label, minSize=labelMinSize, required=required))
         self.__formatLineEdit = CommonLineEdit(label='日期格式', toolTip='请输入文本里日期文本的日期格式（例如：yyyyMMdd_HHmmss.SSS）',
                                                editingFinished=editingFinished)
         hbox.addWidget(self.__formatLineEdit, 2)
