@@ -52,6 +52,8 @@ pip install pycryptodomex -i https://pypi.douban.com/simple
 
 pip install networkx==2.8.7 pydot==1.4.2 matplotlib==3.6.1 
 
+pip install httplib2
+
 pip install chardet
 
 # 模版生成代码

@@ -17,7 +17,6 @@ from util.NetworkUtil import NetworkUtil
 from util.OperaIni import *
 from util.ProcessManager import *
 from widget.EFK.EFKLogSystemConfigManager import EFKLogSystemConfigManager
-from widget.EFK.EFKServiceSystem import EFKServiceSystem
 from widget.custom.CommonTextEdit import CommonTextEdit
 from widget.custom.DragInputWidget import DragInputWidget
 
@@ -49,7 +48,8 @@ def waitKibanaSystemStart():
 
 
 def startEFKServiceSystem():
-    return EFKServiceSystem.start(), 'startEFKServiceSystem', ''
+    return ShellUtil.runCode('''from widget.EFK.EFKServiceSystem import *
+EFKServiceSystem.start()'''), 'startEFKServiceSystem', ''
 
 
 def showErrorDialog(msg):
@@ -114,8 +114,6 @@ class EFKLogSystemWindow(QMainWindow):
     # 重写关闭事件，回到第一界面
     def closeEvent(self, event):
         self.__destroy()
-        EFKServiceSystem.stop()
-        ShellUtil.killByPids([os.getpid()])
         if self.__isDebug:
             return
         from widget.MainWidget import MainWidget
@@ -491,6 +489,7 @@ class EFKLogSystemWindow(QMainWindow):
         if self.__efkServiceFuture:
             self.__efkServiceFuture.cancel()
             self.__efkServiceFuture = None
+            ShellUtil.killByPids(ShellUtil.findPidsByPort('5000'), excludePid=os.getpid())
         for future in self.__futureList:
             future.cancel()
         self.__futureList.clear()

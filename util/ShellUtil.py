@@ -10,7 +10,6 @@ from util.ListUtil import ListUtil
 from util.LogUtil import *
 from util.PlatformUtil import PlatformUtil
 
-
 class ShellUtil:
     @staticmethod
     def exec(cmd: str, timeout=10):
@@ -46,6 +45,17 @@ class ShellUtil:
         LogUtil.d("Running cmd: %s" % cmd)
         p = subprocess.Popen(cmd, shell=True, universal_newlines=True, stderr=subprocess.STDOUT, stdout=logfile)
         return p
+
+    @staticmethod
+    def runCode(code: str):
+        """
+        运行指定的python代码
+        :param code: 指令代码
+        :return: Popen对象
+        """
+        p = subprocess.Popen(['python'], stdin=subprocess.PIPE)
+        (output, _) = p.communicate(input=(code + '\n').encode())
+        return output
 
     @staticmethod
     def cmdOutput(cmd, *args, **kwargs):
@@ -91,6 +101,8 @@ class ShellUtil:
 
     @staticmethod
     def findPidsByPort(port: str):
+        if not port:
+            return []
         if PlatformUtil.isWindows():
             out, err = ShellUtil.exec(f'netstat -ano | findstr {port} | findstr "LISTENING ESTABLISHED"')
             pids = []
@@ -106,6 +118,8 @@ class ShellUtil:
 
     @staticmethod
     def findImageNamesByPid(pid: str):
+        if not pid:
+            return []
         if PlatformUtil.isWindows():
             out, err = ShellUtil.exec(f'tasklist | findstr {pid}')
             imageNames = []
@@ -121,14 +135,19 @@ class ShellUtil:
 
     @staticmethod
     def killByImageNames(imageNames: [str]):
+        if not imageNames:
+            return
         if PlatformUtil.isWindows():
             for imageName in imageNames:
                 ShellUtil.exec(f'TASKKILL /F /IM {imageName} /T')
 
     @staticmethod
-    def killByPids(pids: [str], excludePid):
+    def killByPids(pids: [str], excludePid=None):
+        if not pids:
+            return
         if PlatformUtil.isWindows():
-            ListUtil.remove(pids, excludePid)
+            if excludePid:
+                ListUtil.remove(pids, excludePid)
             pid = ' '.join([f'/PID {item}' for item in pids])
             ShellUtil.exec(f'TASKKILL /F {pid} /T')
 
@@ -154,4 +173,6 @@ if __name__ == "__main__":
     # print(ShellUtil.findPidsByPort('5000'))
     # print(ShellUtil.findImageNamesByPid('26420'))
     # print(ShellUtil.killByImageNames(ShellUtil.findImageNamesByPid(ShellUtil.findPidsByPort('5000')[0])))
-    print(ShellUtil.killByPids(ShellUtil.findPidsByPort('5601')))
+    # print(ShellUtil.killByPids(ShellUtil.findPidsByPort('5601')))
+    print(ShellUtil.runCode('''from widget.EFK.EFKServiceSystem import *
+EFKServiceSystem.start()'''))
