@@ -8,10 +8,18 @@ from util.phoneCmd.IPhoneOperator import IPhoneOperator
 
 class HarmonyOperator(IPhoneOperator):
     @staticmethod
-    def connectDevice():
+    def isDeviceConnect():
         """
-        连接设备
-        @return IPhoneOperator 连接上了设备后对应的操作类，None 未连接
+        检查device是否连接成功
+        :return: True 已经连接成功
+        """
+        pass
+
+    @staticmethod
+    def getDeviceId():
+        """
+        获取设备唯一标识
+        :return: 设备唯一标识
         """
         pass
 
