@@ -18,14 +18,14 @@ filebeat.inputs:
     id: phone-log
     enabled: true
     paths:
-      - ${logDir}/harmony/*/*/*/HiLog.*.txt
-      - ${logDir}/harmony/*/*/HiLog.*.txt
-      - ${logDir}/harmony/*/HiLog.*.txt
-      - ${logDir}/harmony/realtime/HiLog.*.txt
-      - ${logDir}/Android/*/*/*/HiLog.*.txt
-      - ${logDir}/Android/*/*/HiLog.*.txt
-      - ${logDir}/Android/*/HiLog.*.txt
-      - ${logDir}/Android/realtime/HiLog.*.txt
+      - ${logDir}/harmony/*/*/*/hilog.*.txt
+      - ${logDir}/harmony/*/*/hilog.*.txt
+      - ${logDir}/harmony/*/hilog.*.txt
+      - ${logDir}/harmony/realtime/hilog.*.txt
+      - ${logDir}/android/*/*/*/hilog.*.txt
+      - ${logDir}/android/*/*/hilog.*.txt
+      - ${logDir}/android/*/hilog.*.txt
+      - ${logDir}/android/realtime/hilog.*.txt
       #- c:\programdata\elasticsearch\logs\*
 
     timezone: Asia/Shanghai
@@ -46,14 +46,14 @@ filebeat.inputs:
     id: ohosStudy-log
     enabled: true
     paths:
-      - ${logDir}/harmony/*/*/*/HiLog.*.txt
-      - ${logDir}/harmony/*/*/HiLog.*.txt
-      - ${logDir}/harmony/*/HiLog.*.txt
-      - ${logDir}/harmony/realtime/HiLog.*.txt
-      - ${logDir}/Android/*/*/*/HiLog.*.txt
-      - ${logDir}/Android/*/*/HiLog.*.txt
-      - ${logDir}/Android/*/HiLog.*.txt
-      - ${logDir}/Android/realtime/HiLog.*.txt
+      - ${logDir}/harmony/*/*/*/hilog.*.txt
+      - ${logDir}/harmony/*/*/hilog.*.txt
+      - ${logDir}/harmony/*/hilog.*.txt
+      - ${logDir}/harmony/realtime/hilog.*.txt
+      - ${logDir}/android/*/*/*/hilog.*.txt
+      - ${logDir}/android/*/*/hilog.*.txt
+      - ${logDir}/android/*/hilog.*.txt
+      - ${logDir}/android/realtime/hilog.*.txt
       #- c:\programdata\elasticsearch\logs\*
 
     timezone: Asia/Shanghai

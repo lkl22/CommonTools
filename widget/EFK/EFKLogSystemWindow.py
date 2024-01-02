@@ -413,7 +413,7 @@ class EFKLogSystemWindow(QMainWindow):
             self.__logDir = logDir
             self.__configManager.setLogDirPath(logDir)
         FileUtil.mkDirs(os.path.join(logDir, 'harmony/realtime'))
-        FileUtil.mkDirs(os.path.join(logDir, 'Android/realtime'))
+        FileUtil.mkDirs(os.path.join(logDir, 'android/realtime'))
         LogUtil.i(TAG, '[__refreshLogDir]', logDir)
         pass
 

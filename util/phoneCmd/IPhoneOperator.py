@@ -32,3 +32,12 @@ class IPhoneOperator(metaclass=ABCMeta):
         清除手机里缓存的日志文件
         """
         pass
+
+    @staticmethod
+    @abstractmethod
+    def captureRealTimeLogs(pathPre: str):
+        """
+        实时抓取手机日志到指定文件
+        @param pathPre 文件路径前缀
+        """
+        pass
