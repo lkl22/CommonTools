@@ -16,6 +16,7 @@ TAG = 'CommonTextEdit'
 
 class CommonTextEdit(ICommonWidget):
     __standardOutputSignal = pyqtSignal(list)
+    __clearSignal = pyqtSignal()
 
     def __init__(self, title: str = None, text: str = None, isReadOnly: bool = True, holderText: str = None,
                  toolTip=None, isShowCopyFunc=True, linkClicked=None):
@@ -36,6 +37,7 @@ class CommonTextEdit(ICommonWidget):
         vbox.addWidget(self.__textEdit, 1)
 
         self.__standardOutputSignal.connect(self.__standardOutput)
+        self.__clearSignal.connect(self.__clear)
         self.setAutoFillBackground(True)
         if toolTip:
             self.setToolTip(toolTip)
@@ -51,8 +53,12 @@ class CommonTextEdit(ICommonWidget):
     def __copyData(self):
         ClipboardUtil.copyToClipboard(self.getData())
 
-    def clear(self):
+    def __clear(self):
         self.__textEdit.clear()
+        pass
+
+    def clear(self):
+        self.__clearSignal.emit()
         pass
 
     def standardOutput(self, message: list[dict]):

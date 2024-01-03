@@ -32,9 +32,9 @@ class HarmonyOperator(IPhoneOperator):
         return None
 
     @staticmethod
-    def killServer():
+    def restartServer():
         """
-        杀掉服务
+        重启服务
         """
         ShellUtil.exec("hdc kill")
         pass

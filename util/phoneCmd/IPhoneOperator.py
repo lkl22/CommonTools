@@ -27,9 +27,9 @@ class IPhoneOperator(metaclass=ABCMeta):
 
     @staticmethod
     @abstractmethod
-    def killServer():
+    def restartServer():
         """
-        杀掉服务
+        重启服务
         """
         pass
 

@@ -16,6 +16,7 @@ from util.ListUtil import ListUtil
 from util.NetworkUtil import NetworkUtil
 from util.OperaIni import *
 from util.ProcessManager import *
+from util.phoneCmd.PhoneOperator import PhoneOperator
 from widget.EFK.EFKLogSystemConfigManager import EFKLogSystemConfigManager
 from widget.custom.CommonTextEdit import CommonTextEdit
 from widget.custom.DragInputWidget import DragInputWidget
@@ -78,7 +79,6 @@ class EFKLogSystemWindow(QMainWindow):
         self.__asyncFuncManager = AsyncFuncManager()
         self.__executor = ThreadPoolExecutor(max_workers=5, thread_name_prefix="LogSystem_")
         self.__futureList = []
-        self.__execResult = []
 
         self.__esSoftwarePath = None
         self.__kibanaSoftwarePath = None
@@ -108,8 +108,14 @@ class EFKLogSystemWindow(QMainWindow):
         vBox.addSpacerItem(WidgetUtil.createVSpacerItem())
         hLayout.addLayout(vBox, 3)
 
-        self.consoleTextEdit = CommonTextEdit(linkClicked=self.__linkClicked)
-        hLayout.addWidget(self.consoleTextEdit, 2)
+        vBox = WidgetUtil.createVBoxLayout()
+        self.__consoleTextEdit = CommonTextEdit(title="System运行日志", isShowCopyFunc=False,
+                                                linkClicked=self.__linkClicked)
+        vBox.addWidget(self.__consoleTextEdit, 1)
+        self.__filebeatTextEdit = CommonTextEdit(title="Filebeat运行日志", isShowCopyFunc=False,
+                                                 linkClicked=self.__linkClicked)
+        vBox.addWidget(self.__filebeatTextEdit, 2)
+        hLayout.addLayout(vBox, 2)
 
         self.__showErrorDialogSignal.connect(showErrorDialog)
         self.__changeBtnStatusSignal.connect(self.__changeBtnStatus)
@@ -235,7 +241,8 @@ class EFKLogSystemWindow(QMainWindow):
     def __startSystemClickEvent(self):
         LogUtil.i(TAG, '[__startSystemClickEvent]')
         self.__executor = ThreadPoolExecutor(max_workers=5, thread_name_prefix="LogSystem_")
-        self.consoleTextEdit.clear()
+        self.__consoleTextEdit.clear()
+        self.__filebeatTextEdit.clear()
         softwarePath = self.__efkSoftwarePathWidget.getData()
         if not softwarePath:
             WidgetUtil.showErrorDialog(message="请输入软件安装路径")
@@ -343,6 +350,7 @@ class EFKLogSystemWindow(QMainWindow):
     def __startFilebeatProcess(self):
         LogUtil.i(TAG, '[__startFilebeatProcess]')
         self.__killFilebeatSystem()
+        self.__filebeatTextEdit.clear()
         dataDir = FileUtil.formatPath(os.path.join(self.__filebeatSoftwarePath, "data"))
         softwareRunlogDir = FileUtil.formatPath(os.path.join(self.__filebeatSoftwarePath, "logs"))
         cmdList = [
@@ -361,8 +369,8 @@ class EFKLogSystemWindow(QMainWindow):
                                                        cmdList=cmdList,
                                                        workingDir=self.__filebeatSoftwarePath,
                                                        processEnv=self.__processEnv,
-                                                       standardOutput=self.standardOutput,
-                                                       standardError=self.standardError)
+                                                       standardOutput=self.filebeatStandardOutput,
+                                                       standardError=self.filebeatStandardError)
         self.__filebeatFuture = self.__executor.submit(self.__filebeatProcessManager.run)
         self.__futureList.append(self.__filebeatFuture)
 
@@ -451,12 +459,19 @@ class EFKLogSystemWindow(QMainWindow):
         self.__appendLog(log, color=ColorEnum.RED)
         pass
 
-    def __appendLog(self, log: str, color: ColorEnum = ColorEnum.BLACK, limitLine=0):
-        self.__execResult.append({KEY_LOG: log, KEY_COLOR: color.value})
-        if len(self.__execResult) > limitLine:
-            res = self.__execResult
-            self.__execResult = []
-            self.consoleTextEdit.standardOutput(res)
+    def filebeatStandardOutput(self, log):
+        self.__appendLog(log, color=ColorEnum.BLUE, isSystemLog=False)
+        pass
+
+    def filebeatStandardError(self, log):
+        self.__appendLog(log, color=ColorEnum.RED, isSystemLog=False)
+        pass
+
+    def __appendLog(self, log: str, color: ColorEnum = ColorEnum.BLACK, isSystemLog=True):
+        if isSystemLog:
+            self.__consoleTextEdit.standardOutputOne(log, color.value)
+        else:
+            self.__filebeatTextEdit.standardOutputOne(log, color.value)
 
     def __killFilebeatSystem(self):
         LogUtil.i(TAG, '__killFilebeatSystem')
@@ -493,10 +508,12 @@ class EFKLogSystemWindow(QMainWindow):
 
     def __clearPhoneLogEvent(self):
         LogUtil.i(TAG, '__clearPhoneLogEvent')
+        PhoneOperator.clearPhoneLog()
         pass
 
     def __startLogcatEvent(self):
         LogUtil.i(TAG, '__startLogcatEvent')
+        PhoneOperator.captureRealTimeLogs(self.__logDir)
         pass
 
 

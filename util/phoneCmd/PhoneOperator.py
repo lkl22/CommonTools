@@ -41,18 +41,19 @@ class PhoneOperator:
         operator = PhoneOperator.__connectDevice()
         if not operator:
             return '未连接手机或者指令连接手机失败'
+        operator.restartServer()
         operator.captureRealTimeLogs(pathPre)
         return None
 
     @staticmethod
-    def killServer():
+    def restartServer():
         """
-        杀掉服务
+        重启服务
         """
         operator = PhoneOperator.__connectDevice()
         if not operator:
             return '未连接手机或者指令连接手机失败'
-        operator.killServer()
+        operator.restartServer()
         return None
 
 

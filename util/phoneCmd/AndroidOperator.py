@@ -37,11 +37,12 @@ class AndroidOperator(IPhoneOperator):
         return None
 
     @staticmethod
-    def killServer():
+    def restartServer():
         """
-        杀掉服务
+        重启服务
         """
         AdbUtil.killAdbServer()
+        AdbUtil.startAdbServer()
         pass
 
     @staticmethod
