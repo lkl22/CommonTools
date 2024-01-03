@@ -182,6 +182,10 @@ class EFKLogSystemWindow(QMainWindow):
         self.__restartSystemBtn = WidgetUtil.createPushButton(box, text='重启EFK系统', isEnable=False,
                                                               onClicked=self.__restartSystemClickEvent)
         hBox.addWidget(self.__restartSystemBtn)
+        self.__restartSystemClearLogBtn = WidgetUtil.createPushButton(box, text='重启EFK系统（清除Log文件）',
+                                                                      isEnable=False,
+                                                                      onClicked=self.__restartSystemClearLogClickEvent)
+        hBox.addWidget(self.__restartSystemClearLogBtn)
         self.__openSystemBtn = WidgetUtil.createPushButton(box, text='打开EFK系统', isEnable=False,
                                                            onClicked=self.__openSystemClickEvent)
         hBox.addWidget(self.__openSystemBtn)
@@ -224,11 +228,13 @@ class EFKLogSystemWindow(QMainWindow):
             self.__startSystemBtn.setEnabled(False)
             self.__stopSystemBtn.setEnabled(True)
             self.__restartSystemBtn.setEnabled(True)
+            self.__restartSystemClearLogBtn.setEnabled(True)
             self.__openSystemBtn.setEnabled(True)
         elif type == TYPE_STOPPED:
             self.__startSystemBtn.setEnabled(True)
             self.__stopSystemBtn.setEnabled(False)
             self.__restartSystemBtn.setEnabled(False)
+            self.__restartSystemClearLogBtn.setEnabled(False)
             self.__openSystemBtn.setEnabled(False)
 
     def __openConfigDirEvent(self):
@@ -261,6 +267,12 @@ class EFKLogSystemWindow(QMainWindow):
     def __restartSystemClickEvent(self):
         LogUtil.i(TAG, '[__restartSystemClickEvent]')
         self.__startFilebeatProcess()
+        pass
+
+    def __restartSystemClearLogClickEvent(self):
+        LogUtil.i(TAG, '[__restartSystemClearLogClickEvent]')
+        WidgetUtil.showQuestionDialog(message='确认需要删除本地的Log文件吗？删除后没办法恢复，会丢失原始数据。',
+                                      acceptFunc=lambda: self.__startFilebeatProcess(True))
         pass
 
     def __openSystemClickEvent(self):
@@ -321,6 +333,7 @@ class EFKLogSystemWindow(QMainWindow):
         future = self.__executor.submit(self.__kibanaProcessManager.run)
         self.__futureList.append(future)
         waitFuture = self.__executor.submit(waitKibanaSystemStart)
+        self.__futureList.append(waitFuture)
         for future in as_completed([future, waitFuture]):
             try:
                 isSuccess, taskName, resultData = future.result()
@@ -347,7 +360,7 @@ class EFKLogSystemWindow(QMainWindow):
                 LogUtil.e(TAG, "[__startEFKServiceProcess] CancelledError", err)
         pass
 
-    def __startFilebeatProcess(self):
+    def __startFilebeatProcess(self, isClearLog=False):
         LogUtil.i(TAG, '[__startFilebeatProcess]')
         self.__killFilebeatSystem()
         self.__filebeatTextEdit.clear()
@@ -365,6 +378,8 @@ class EFKLogSystemWindow(QMainWindow):
                                f'-E "logDir={self.__logDir}" '
             },
         ]
+        if isClearLog:
+            cmdList.insert(0, {KEY_PROGRAM: 'rmdir', KEY_ARGUMENTS: f'/s /q "{self.__logDir}"'})
         self.__filebeatProcessManager = ProcessManager(name='filebeat',
                                                        cmdList=cmdList,
                                                        workingDir=self.__filebeatSoftwarePath,

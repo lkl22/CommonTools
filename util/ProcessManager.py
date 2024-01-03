@@ -170,7 +170,7 @@ class ProcessManager(QObject):
 
     def handleStandardOutput(self, log):
         self.standardOutput.emit(
-            f"{DateUtil.nowTimeMs()} {os.getpid()} {threading.current_thread().ident} {self.name} {log}")
+            f"{DateUtil.nowTimeMs()} pid:{self.__getPid()} tid:{threading.current_thread().ident} {self.name} {log}")
 
     def readStandardError(self, cmdInfo):
         log = QTextCodec.codecForLocale().toUnicode(self.process.readAllStandardError())
@@ -184,8 +184,11 @@ class ProcessManager(QObject):
 
     def handleStandardError(self, log):
         self.standardError.emit(
-            f"{DateUtil.nowTimeMs()} {os.getpid()} {threading.current_thread().ident} {self.name} {log}")
+            f"{DateUtil.nowTimeMs()} pid:{self.__getPid()} tid:{threading.current_thread().ident} {self.name} {log}")
         pass
+
+    def __getPid(self):
+        return f'{os.getpid()} {self.process.processId() if self.process else ""}'
 
     def handleConditionInput(self, cmdInfo, log):
         conditionInput = DictUtil.get(cmdInfo, KEY_CONDITION_INPUT, [])
