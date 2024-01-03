@@ -6,7 +6,6 @@ function process(event) {
         event.Put("log.file.parentPath", regExecRes[1].trim());
     }
     event.Put("log.file.position", fp + ';' + offset);
-    event.Delete("log.file.path");
     event.Delete("log.offset");
     event.Delete("log.file.vol");
     event.Delete("log.file.idxhi");

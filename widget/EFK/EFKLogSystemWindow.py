@@ -91,7 +91,7 @@ class EFKLogSystemWindow(QMainWindow):
         self.__filebeatFuture: Future = None
         self.__efkServiceFuture: Future = None
 
-        self.__filebeatConfigDir = self.__configManager.getConfigDirPath()
+        self.__filebeatConfigDir = os.path.join(FileUtil.getProjectPath(), 'resources/efk/config/filebeat')
         self.__logDir = self.__configManager.getLogDirPath()
 
         layoutWidget = QtWidgets.QWidget(self)
@@ -148,13 +148,6 @@ class EFKLogSystemWindow(QMainWindow):
                                                   toolTip='日志文件所在路径，待分析日志的根路径，默认：D:/log/，根路径下分Harmony|Android/group/[subDir/]日志格式',
                                                   textChanged=self.__logPathChanged)
         vBox.addWidget(self.__logDirPathWidget)
-        self.__configDirPathWidget = DragInputWidget(label='config文件路径',
-                                                     text=self.__configManager.getConfigDirPath(),
-                                                     dirParam={KEY_CAPTION: 'filebeat config文件所在路径'},
-                                                     labelMinSize=labelMinSize,
-                                                     toolTip='filebeat配置文件存放路径，不配默认filebeat软件安装路径下',
-                                                     textChanged=self.__filebeatConfigPathChanged)
-        vBox.addWidget(self.__configDirPathWidget)
 
         self.__notepadDirPathWidget = DragInputWidget(label='notepad++安装路径',
                                                       text=self.__configManager.getNotepadDirPath(),
@@ -216,12 +209,6 @@ class EFKLogSystemWindow(QMainWindow):
         if not self.__startSystemBtn.isEnabled():
             self.__startFilebeatProcess()
 
-    def __filebeatConfigPathChanged(self, fp):
-        LogUtil.i(TAG, '[__filebeatConfigPathChanged]', fp)
-        self.__refreshFilebeatConfig()
-        if not self.__startSystemBtn.isEnabled():
-            self.__startFilebeatProcess()
-
     def __notepadDirPathWidgetChanged(self, fp):
         LogUtil.i(TAG, '[__notepadDirPathWidgetChanged]', fp)
         self.__configManager.setNotepadDirPath(fp)
@@ -239,7 +226,7 @@ class EFKLogSystemWindow(QMainWindow):
             self.__openSystemBtn.setEnabled(False)
 
     def __openConfigDirEvent(self):
-        FileUtil.openFile(os.path.join(FileUtil.getProjectPath(), 'resources/efk/config/filebeat'))
+        FileUtil.openFile(self.__filebeatConfigDir)
 
     def __openFieldCfgDocEvent(self):
         NetworkUtil.openWebBrowser(
@@ -335,8 +322,8 @@ class EFKLogSystemWindow(QMainWindow):
                     if isSuccess:
                         self.__asyncFuncManager.hideLoading()
                         self.__changeBtnStatusSignal.emit(TYPE_READY)
-                        self.__startEFKServiceProcess()
                         self.__startFilebeatProcess()
+                        self.__startEFKServiceProcess()
                     else:
                         self.__destroy()
             except CancelledError as err:
@@ -356,14 +343,13 @@ class EFKLogSystemWindow(QMainWindow):
     def __startFilebeatProcess(self):
         LogUtil.i(TAG, '[__startFilebeatProcess]')
         self.__killFilebeatSystem()
-        self.__refreshFilebeatConfig()
         dataDir = FileUtil.formatPath(os.path.join(self.__filebeatSoftwarePath, "data"))
         softwareRunlogDir = FileUtil.formatPath(os.path.join(self.__filebeatSoftwarePath, "logs"))
         cmdList = [
             # 清除es的data stream
             {KEY_PROGRAM: 'curl', KEY_ARGUMENTS: '-X DELETE http://localhost:9200/_data_stream/filebeat-8.11.3'},
-            {KEY_PROGRAM: 'cmd /c rmdir', KEY_ARGUMENTS: f'/s /q "{dataDir}"'},
-            {KEY_PROGRAM: 'cmd /c rmdir', KEY_ARGUMENTS: f'/s /q "{softwareRunlogDir}"'},
+            {KEY_PROGRAM: 'rmdir', KEY_ARGUMENTS: f'/s /q "{dataDir}"'},
+            {KEY_PROGRAM: 'rmdir', KEY_ARGUMENTS: f'/s /q "{softwareRunlogDir}"'},
             {
                 KEY_PROGRAM: FileUtil.formatPath(os.path.join(self.__filebeatSoftwarePath, "filebeat")),
                 KEY_ARGUMENTS: f'-e -c "{FileUtil.formatPath(os.path.join(self.__filebeatConfigDir, "filebeat.yml"))}" ' +
@@ -388,24 +374,9 @@ class EFKLogSystemWindow(QMainWindow):
                                 os.path.join(self.__esSoftwarePath, 'config/elasticsearch.yml'))
         FileUtil.modifyFilePath(os.path.join(FileUtil.getProjectPath(), 'resources/efk/config/kibana.yml'),
                                 os.path.join(self.__kibanaSoftwarePath, 'config/kibana.yml'))
-        self.__refreshFilebeatConfig()
         self.__refreshLogDir()
         self.__configManager.setInited()
         pass
-
-    def __refreshFilebeatConfig(self):
-        LogUtil.i(TAG, '[__refreshFilebeatConfig]')
-        filebeatConfigDir = self.__configDirPathWidget.getData()
-        if not filebeatConfigDir:
-            filebeatConfigDir = self.__filebeatSoftwarePath
-        self.__filebeatConfigDir = FileUtil.formatPath(filebeatConfigDir)
-        self.__configManager.setConfigDirPath(filebeatConfigDir)
-
-        FileUtil.modifyFilePath(os.path.join(FileUtil.getProjectPath(), 'resources/efk/config/filebeat/filebeat.yml'),
-                                os.path.join(filebeatConfigDir, 'filebeat.yml'))
-        FileUtil.modifyFilesPath(['.*.js$'],
-                                 os.path.join(FileUtil.getProjectPath(), 'resources/efk/config/filebeat/js'),
-                                 os.path.join(filebeatConfigDir, 'js'))
 
     def __refreshLogDir(self):
         logDir = FileUtil.formatPath(self.__logDirPathWidget.getData())

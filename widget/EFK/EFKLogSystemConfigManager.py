@@ -14,7 +14,6 @@ KEY_IS_INIT = 'isInit'
 DEFAULT_VALUE_IS_INIT = False
 KEY_EFK_SOFTWARE_PATH = 'efkSoftwarePath'
 KEY_LOG_DIR_PATH = 'logDirPath'
-KEY_CONFIG_DIR_PATH = 'configDirPath'
 KEY_NOTEPAD_DIR_PATH = 'notepadDirPath'
 
 
@@ -49,14 +48,6 @@ class EFKLogSystemConfigManager:
     def setLogDirPath(self, path):
         if path:
             self.configs[KEY_LOG_DIR_PATH] = path
-            self.saveConfigs()
-
-    def getConfigDirPath(self):
-        return DictUtil.get(self.configs, KEY_CONFIG_DIR_PATH, '')
-
-    def setConfigDirPath(self, path):
-        if path:
-            self.configs[KEY_CONFIG_DIR_PATH] = path
             self.saveConfigs()
 
     def getNotepadDirPath(self):

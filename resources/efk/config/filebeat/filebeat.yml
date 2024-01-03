@@ -21,12 +21,11 @@ filebeat.inputs:
       - ${logDir}/harmony/*/*/*/hilog.*.txt
       - ${logDir}/harmony/*/*/hilog.*.txt
       - ${logDir}/harmony/*/hilog.*.txt
-      - ${logDir}/harmony/realtime/hilog.*.txt
+      - ${logDir}/harmony/realtime/*/hilog.*.txt
       - ${logDir}/android/*/*/*/hilog.*.txt
       - ${logDir}/android/*/*/hilog.*.txt
       - ${logDir}/android/*/hilog.*.txt
-      - ${logDir}/android/realtime/hilog.*.txt
-      #- c:\programdata\elasticsearch\logs\*
+      - ${logDir}/android/realtime/*/hilog.*.txt
 
     timezone: Asia/Shanghai
     fields_under_root: true
@@ -49,12 +48,7 @@ filebeat.inputs:
       - ${logDir}/harmony/*/*/*/hilog.*.txt
       - ${logDir}/harmony/*/*/hilog.*.txt
       - ${logDir}/harmony/*/hilog.*.txt
-      - ${logDir}/harmony/realtime/hilog.*.txt
-      - ${logDir}/android/*/*/*/hilog.*.txt
-      - ${logDir}/android/*/*/hilog.*.txt
-      - ${logDir}/android/*/hilog.*.txt
-      - ${logDir}/android/realtime/hilog.*.txt
-      #- c:\programdata\elasticsearch\logs\*
+      - ${logDir}/harmony/realtime/*/hilog.*.txt
 
     timezone: Asia/Shanghai
     fields_under_root: true

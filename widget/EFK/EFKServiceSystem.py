@@ -48,7 +48,7 @@ class EFKServiceSystem:
             position = data[1]
             configManager = EFKLogSystemConfigManager()
             notepadPath = configManager.getNotepadDirPath()
-            ShellUtil.exec(f'{os.path.join(notepadPath, "notepad++")} "{fp}" -p{position}')
+            ShellUtil.exec(f'"{os.path.join(notepadPath, "notepad++")}" "{fp}" -p{position}')
         except Exception as e:
             LogUtil.e(TAG, 'openFile 错误信息：', e)
         return send_file(fp, mimetype='text/plain')
