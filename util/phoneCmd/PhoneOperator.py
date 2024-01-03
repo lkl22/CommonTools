@@ -2,7 +2,6 @@
 # python 3.x
 # Filename: PhoneOperator.py
 # 定义一个PhoneOperator接口类定义phone cmd相关的接口
-from util.LogUtil import LogUtil
 from util.phoneCmd.AndroidOperator import AndroidOperator
 from util.phoneCmd.HarmonyOperator import HarmonyOperator
 
@@ -30,9 +29,31 @@ class PhoneOperator:
         operator = PhoneOperator.__connectDevice()
         if not operator:
             return '未连接手机或者指令连接手机失败'
-        deviceId = operator.getDeviceId()
-        LogUtil.i(TAG, 'clearPhoneLog getDeviceId', deviceId)
-        pass
+        operator.clearPhoneLog()
+        return None
+
+    @staticmethod
+    def captureRealTimeLogs(pathPre: str):
+        """
+        实时抓取手机日志到指定文件
+        @param pathPre 文件路径前缀
+        """
+        operator = PhoneOperator.__connectDevice()
+        if not operator:
+            return '未连接手机或者指令连接手机失败'
+        operator.captureRealTimeLogs(pathPre)
+        return None
+
+    @staticmethod
+    def killServer():
+        """
+        杀掉服务
+        """
+        operator = PhoneOperator.__connectDevice()
+        if not operator:
+            return '未连接手机或者指令连接手机失败'
+        operator.killServer()
+        return None
 
 
 if __name__ == "__main__":

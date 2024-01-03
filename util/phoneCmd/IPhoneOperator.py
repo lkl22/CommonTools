@@ -27,6 +27,14 @@ class IPhoneOperator(metaclass=ABCMeta):
 
     @staticmethod
     @abstractmethod
+    def killServer():
+        """
+        杀掉服务
+        """
+        pass
+
+    @staticmethod
+    @abstractmethod
     def clearPhoneLog():
         """
         清除手机里缓存的日志文件

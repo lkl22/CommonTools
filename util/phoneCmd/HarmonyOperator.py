@@ -5,6 +5,7 @@
 import os
 
 from util.DateUtil import DateUtil, DATE_TIME_COMPACT
+from util.FileUtil import FileUtil
 from util.ShellUtil import ShellUtil
 from util.phoneCmd.IPhoneOperator import IPhoneOperator
 
@@ -27,8 +28,16 @@ class HarmonyOperator(IPhoneOperator):
         # sn
         out, err = ShellUtil.exec("hdc list targets -v | findstr Connected")
         if out:
-            return out.split(' ')[0]
+            return out.split('\t')[0]
         return None
+
+    @staticmethod
+    def killServer():
+        """
+        杀掉服务
+        """
+        ShellUtil.exec("hdc kill")
+        pass
 
     @staticmethod
     def clearPhoneLog():
@@ -70,7 +79,9 @@ class HarmonyOperator(IPhoneOperator):
         @param pathPre 文件路径前缀
         """
         ShellUtil.exec("hdc shell hilog -r")
-        logFile = open(os.path.join(pathPre, "harmony/realtime", f'hilog.{DateUtil.nowTime(DATE_TIME_COMPACT)}.txt'),
-                       'w')
+        fp = os.path.join(pathPre, "harmony/realtime", HarmonyOperator.getDeviceId(),
+                          f'hilog.{DateUtil.nowTime(DATE_TIME_COMPACT)}.txt')
+        FileUtil.mkFilePath(fp)
+        logFile = open(fp, 'w')
         ShellUtil.run("hdc hilog", logFile)
         return logFile

@@ -6,6 +6,7 @@ import os
 
 from util.AdbUtil import AdbUtil
 from util.DateUtil import DateUtil, DATE_TIME_COMPACT
+from util.FileUtil import FileUtil
 from util.ShellUtil import ShellUtil
 from util.phoneCmd.IPhoneOperator import IPhoneOperator
 
@@ -36,6 +37,14 @@ class AndroidOperator(IPhoneOperator):
         return None
 
     @staticmethod
+    def killServer():
+        """
+        杀掉服务
+        """
+        AdbUtil.killAdbServer()
+        pass
+
+    @staticmethod
     def clearPhoneLog():
         """
         清除手机里缓存的日志文件
@@ -50,7 +59,9 @@ class AndroidOperator(IPhoneOperator):
         实时抓取手机日志到指定文件
         @param pathPre 文件路径前缀
         """
-        logFile = open(os.path.join(pathPre, "android/realtime", f'hilog.{DateUtil.nowTime(DATE_TIME_COMPACT)}.txt'),
-                       'w')
+        fp = os.path.join(pathPre, "android/realtime", AndroidOperator.getDeviceId(),
+                          f'hilog.{DateUtil.nowTime(DATE_TIME_COMPACT)}.txt')
+        FileUtil.mkFilePath(fp)
+        logFile = open(fp, 'w')
         ShellUtil.run("adb logcat -c && adb logcat -v threadtime", logFile)
         return logFile
