@@ -2,18 +2,16 @@
 # python 3.x
 # Filename: HarmonyResManagerDialog.py
 # 定义一个HarmonyResManagerDialog类实现Harmony资源管理，查找字串对应的模块，交换字串等
-import os
 import sys
 
-from constant.ColorEnum import ColorEnum
 from manager.AsyncFuncManager import AsyncFuncManager
 from util.DialogUtil import *
 from util.DictUtil import DictUtil
 from util.FileUtil import *
 from util.JsonUtil import JsonUtil
-from util.ListUtil import ListUtil
 from util.LogUtil import *
 from util.OperaIni import OperaIni
+from widget.custom.CommonLineEdit import CommonLineEdit
 from widget.custom.CommonTextEdit import CommonTextEdit
 from widget.custom.DragInputWidget import DragInputWidget
 from widget.custom.SwapTextWidget import SwapTextWidget, KEY_LEFT_TXT, KEY_RIGHT_TXT
@@ -25,8 +23,10 @@ EXCLUDE_DIR_PATTERNS = ['.*/\.hvigor/.*', '.*/\.git/.*', '.*/\.idea/.*', '.*/\.c
 
 KEY_SECTION = 'HarmonyResManager'
 KEY_PROJECT_FILE_PATH = 'projectFilePath'
-KEY_EXCEL_FILE_PATH = 'excelFilePath'
 KEY_SWAP_DATA = 'swapData'
+KEY_FIND_RES_INFO_CONFIG = 'findResInfoConfig'
+KEY_EXCEL_PATH = 'excelPath'
+KEY_COL_NAME = 'colName'
 
 
 class HarmonyResManagerDialog(QtWidgets.QDialog):
@@ -45,7 +45,7 @@ class HarmonyResManagerDialog(QtWidgets.QDialog):
         self.__isDebug = isDebug
         self.__operaIni = OperaIni()
         self.__projectFilePath = self.__operaIni.getValue(KEY_PROJECT_FILE_PATH, KEY_SECTION)
-        self.__excelFilePath = self.__operaIni.getValue(KEY_EXCEL_FILE_PATH, KEY_SECTION)
+        self.__findResInfoConfig = JsonUtil.decode(self.__operaIni.getValue(KEY_FIND_RES_INFO_CONFIG, KEY_SECTION))
         self.__swapData = JsonUtil.decode(self.__operaIni.getValue(KEY_SWAP_DATA, KEY_SECTION), {})
         self.__asyncFuncManager = AsyncFuncManager()
 
@@ -63,17 +63,8 @@ class HarmonyResManagerDialog(QtWidgets.QDialog):
         groupBox = self.__createSwapStrGroupBox(self)
         vLayout.addWidget(groupBox)
 
-        self.__excelFilePathWidget = DragInputWidget(label="待处理字串excel文件",
-                                                     text=self.__excelFilePath,
-                                                     fileParam={KEY_CAPTION: '请选择待处理字串excel文件'},
-                                                     labelMinSize=QSize(labelWidth, 0),
-                                                     toolTip='请选择待处理字串excel文件')
-        vLayout.addWidget(self.__excelFilePathWidget)
-
-        hbox = WidgetUtil.createHBoxLayout()
-        hbox.addWidget(WidgetUtil.createPushButton(self, text="对比", onClicked=self.diffRes))
-        hbox.addItem(WidgetUtil.createHSpacerItem(1, 1))
-        vLayout.addLayout(hbox)
+        groupBox = self.__createFindStrInfoGroupBox(self)
+        vLayout.addWidget(groupBox)
 
         self.__textEdit = CommonTextEdit()
         vLayout.addWidget(self.__textEdit, 1)
@@ -89,6 +80,27 @@ class HarmonyResManagerDialog(QtWidgets.QDialog):
         vbox.addWidget(self.__swapTextWidget)
         hbox = WidgetUtil.createHBoxLayout()
         btn = WidgetUtil.createPushButton(box, text='交换', onClicked=self.__swapResEvent)
+        hbox.addWidget(btn)
+        hbox.addSpacerItem(WidgetUtil.createHSpacerItem())
+        vbox.addLayout(hbox)
+        return box
+
+    def __createFindStrInfoGroupBox(self, parent):
+        box = WidgetUtil.createGroupBox(parent, title="查找字串资源扩展信息")
+        vbox = WidgetUtil.createVBoxLayout(box, margins=QMargins(10, 10, 10, 10), spacing=10)
+
+        self.__excelFilePathWidget = DragInputWidget(label="待处理字串Excel文件",
+                                                     text=DictUtil.get(self.__findResInfoConfig, KEY_EXCEL_PATH),
+                                                     fileParam={KEY_CAPTION: '请选择待处理字串Excel文件',
+                                                                KEY_FILTER: '*.xlsx;*.xls'},
+                                                     toolTip='请选择待处理字串excel文件')
+        vbox.addWidget(self.__excelFilePathWidget)
+        self.__colNameLineEdit = CommonLineEdit(label='Excel中的列名',
+                                                text=DictUtil.get(self.__findResInfoConfig, KEY_COL_NAME),
+                                                toolTip='字串name对应的Excel中的列名')
+        vbox.addWidget(self.__colNameLineEdit)
+        hbox = WidgetUtil.createHBoxLayout()
+        btn = WidgetUtil.createPushButton(box, text='获取信息', onClicked=self.__findResInfoEvent)
         hbox.addWidget(btn)
         hbox.addSpacerItem(WidgetUtil.createHSpacerItem())
         vbox.addLayout(hbox)
@@ -136,34 +148,30 @@ class HarmonyResManagerDialog(QtWidgets.QDialog):
             FileUtil.removeDir(fp=tmpResDir)
         self.__asyncFuncManager.hideLoading()
 
-    def diffRes(self):
-        dstFileDirPath = self.__excelFilePathWidget.getData()
-        if not dstFileDirPath:
-            WidgetUtil.showErrorDialog(message="请选择目标文件")
+    def __findResInfoEvent(self):
+        if not self.__checkProjectDir():
             return
-        self.__operaIni.addItem(KEY_SECTION, KEY_EXCEL_FILE_PATH, dstFileDirPath)
+        excelFilePath = self.__excelFilePathWidget.getData()
+        if not excelFilePath:
+            WidgetUtil.showErrorDialog(message="请选择待处理字串Excel文件")
+            return False
+        colName = self.__colNameLineEdit.getData()
+        if not colName:
+            WidgetUtil.showErrorDialog(message="请选择字串name对应的Excel中的列名")
+            return False
+        findResInfoConfig = {
+            KEY_EXCEL_PATH: excelFilePath,
+            KEY_COL_NAME: colName,
+        }
+        self.__operaIni.addItem(KEY_SECTION, KEY_FIND_RES_INFO_CONFIG, JsonUtil.encode(findResInfoConfig))
         self.__operaIni.saveIni()
-
-        self.__textEdit.clear()
+        self.__asyncFuncManager.asyncExec(target=self.__findResInfo, args=(findResInfoConfig,))
         pass
 
-    def execDiff(self, srcFileDirPath, dstFileDirPath):
-        LogUtil.i(TAG, 'execDiff', srcFileDirPath, dstFileDirPath)
-        try:
-            srcStrings = JsonUtil.load(srcFileDirPath)['string']
-            srcNames = set([item['name'] for item in srcStrings])
-            dstStrings = JsonUtil.load(dstFileDirPath)['string']
-            dstNames = set([item['name'] for item in dstStrings])
-            diff = srcNames - dstNames
-            LogUtil.d(TAG, len(diff), diff)
-            result = [
-                {KEY_LOG: f'{dstFileDirPath} 总共缺失 {len(diff)} 条翻译，具体如下：\n', KEY_COLOR: ColorEnum.RED.value}]
-            for index, name in enumerate(diff):
-                result.append({KEY_LOG: f"{name}: {ListUtil.get(srcStrings, 'name', name, 'value', '')}\n",
-                               KEY_COLOR: ColorEnum.BLUE.value if divmod(index, 2)[1] == 0 else ColorEnum.GREEN.value})
-            self.__textEdit.standardOutput(result)
-        except Exception as err:
-            LogUtil.e(TAG, 'execDiff 错误信息：', err)
+    def __findResInfo(self, findResInfoConfig):
+        LogUtil.i(TAG, f'__findResInfo {findResInfoConfig}')
+        excelFilePath = DictUtil.get(findResInfoConfig, KEY_EXCEL_PATH)
+        colName = DictUtil.get(findResInfoConfig, KEY_COL_NAME)
         self.__asyncFuncManager.hideLoading()
         pass
 
