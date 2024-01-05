@@ -7,10 +7,11 @@ import gzip
 import os
 import shutil
 import zipfile
+
 from PIL import Image
+
 from util.PlatformUtil import PlatformUtil
 from util.ReUtil import *
-from util.LogUtil import *
 from util.ShellUtil import ShellUtil
 from util.StrUtil import StrUtil
 
@@ -28,6 +29,8 @@ class FileUtil:
         :return: 查找到的文件path列表
         """
         L = []
+        if not FileUtil.existsDir(dirPath):
+            return L
         # for循环自动完成递归枚举
         # 三个参数：分别返回1.父目录（当前路径） 2.所有文件夹名字（不含路径） 3.所有文件名字（不含路径）
         fileNames = os.listdir(dirPath)
@@ -55,6 +58,8 @@ class FileUtil:
         :return: 查找到的子目录列表
         """
         L = []
+        if not FileUtil.existsDir(dirPath):
+            return L
         fileNames = os.listdir(dirPath)
         for fn in fileNames:
             fp = os.path.join(dirPath, fn).replace("\\", "/")
@@ -79,6 +84,8 @@ class FileUtil:
         :return: 查找到的文件path列表
         """
         L = []
+        if not FileUtil.existsDir(dirPath):
+            return L
         # for循环自动完成递归枚举
         # 三个参数：分别返回1.父目录（当前路径） 2.所有文件夹名字（不含路径） 3.所有文件名字（不含路径）
         for parent, dirnames, filenames in os.walk(dirPath):
@@ -306,7 +313,7 @@ class FileUtil:
         return path + fn
 
     @staticmethod
-    def clearPath(fp):
+    def removeDir(fp):
         """
         删除指定目录下所有的文件
         :param fp: 目录path

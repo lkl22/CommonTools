@@ -125,7 +125,7 @@ class ProcessManager(QObject):
             return
         if "I wonder if you are in the middle of another rebase" in self.log:
             rebaseApplyDir = os.path.join(workingDir, ".git/rebase-apply")
-            FileUtil.clearPath(rebaseApplyDir)
+            FileUtil.removeDir(rebaseApplyDir)
             cmd = "git pull --rebase"
             self.runCmd(cmd=cmd, cmdInfo=cmdInfo)
         if needStash:

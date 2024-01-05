@@ -234,8 +234,8 @@ class ExtractMergeLogDialog(QtWidgets.QDialog):
         LogUtil.d(TAG, 'execExtractLog find files: ', srcFiles)
         tmpDir = os.path.join(self.__extractLogFP, 'tmp')
         tmp1Dir = os.path.join(self.__extractLogFP, 'tmp1')
-        FileUtil.clearPath(tmpDir)
-        FileUtil.clearPath(tmp1Dir)
+        FileUtil.removeDir(tmpDir)
+        FileUtil.removeDir(tmp1Dir)
 
         startTime, endTime = self.__dateTimeRangeEdit.getDateRange()
         # 时间范围转为文件名中相同格式
