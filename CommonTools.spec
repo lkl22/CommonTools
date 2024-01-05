@@ -123,6 +123,7 @@ a = Analysis(['RunMain.py',
               'widget/frameworkTools/decisionTree/DecisionTreeCodeGenDialog.py',
 
               'widget/harmony/HarmonyMergeResDialog.py',
+              'widget/harmony/HarmonyResManagerDialog.py',
               'widget/harmony/HarmonyStrResDiffDialog.py',
 
               'widget/mockExam/Excel2Word.py',

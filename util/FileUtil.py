@@ -46,6 +46,30 @@ class FileUtil:
         return L
 
     @staticmethod
+    def findDirPathList(dirPath, findPatterns=[], excludeDirPatterns=[]):
+        """
+        查找指定目录下匹配的目录
+        :param dirPath: 查找目录path
+        :param findPatterns: 目录匹配正则，不传返回目录下所有子目录
+        :param excludeDirPatterns: 需要排除的目录，在排除的目录列表下的排除掉
+        :return: 查找到的子目录列表
+        """
+        L = []
+        fileNames = os.listdir(dirPath)
+        for fn in fileNames:
+            fp = os.path.join(dirPath, fn).replace("\\", "/")
+            if os.path.isdir(fp):
+                if len(excludeDirPatterns) > 0 and ReUtil.matchMore(f'/{fn}/', excludeDirPatterns):
+                    LogUtil.i(TAG, f"findDirPathList {fp} in excludeDir {excludeDirPatterns}")
+                    continue
+                if len(findPatterns) > 0 and not ReUtil.matchMore(fp, findPatterns):
+                    LogUtil.i(TAG, f"findDirPathList {fp} not in {findPatterns}")
+                    L += FileUtil.findDirPathList(fp, findPatterns, excludeDirPatterns)
+                    continue
+                L.append(fp)
+        return L
+
+    @staticmethod
     def findFilePathListByExclude(dirPath, excludeExtPatterns=[], excludeDirPatterns=[]):
         """
         查找指定目录下排除了指定目录/后缀文件的文件路径
@@ -493,4 +517,8 @@ if __name__ == "__main__":
     # print(FileUtil.existsFile('../resources/mockExam/题库模版.xlsx'))
 
     # print(FileUtil.findFilePathListByExclude('./', [".JPG", ".py"], [".*/111/.*", ".*/__pycache__/.*"]))
-    print(FileUtil.isImage('/Users/likunlun/PycharmProjects/CommonTools/widget/analysis/outputPic/1119205835.png'))
+    # print(FileUtil.isImage('/Users/likunlun/PycharmProjects/CommonTools/widget/analysis/outputPic/1119205835.png'))
+    print(FileUtil.findDirPathList('D:/Projects/DeveloperDocuments/HarmonyStudy', ['.*/resources'],
+                                   ['.*/\.hvigor/.*', '.*/\.git/.*', '.*/\.idea/.*', '.*/\.cxx/.*', '.*/build/.*',
+                                    '.*/libs/.*', '.*/node_modules/.*', '.*/oh_modules/.*', '.*/cpp/.*', '.*/ets/.*',
+                                    '.*/ohosTest/.*', '.*/\.preview/.*']))
