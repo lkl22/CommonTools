@@ -109,6 +109,7 @@ a = Analysis(['RunMain.py',
               'widget/custom/DragInputWidget.py',
               'widget/custom/ICommonWidget.py',
               'widget/custom/LoadingDialog.py',
+              'widget/custom/ReadExcelWidget.py',
               'widget/custom/SwapTextWidget.py',
 
               'widget/EFK/EFKLogSystemConfigManager.py',

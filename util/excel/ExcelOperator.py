@@ -3,15 +3,20 @@
 # Filename: ExcelOperator.py
 # 定义一个ExcelOperator工具类实现Excel相关的功能
 import os
+
+from constant.WidgetConst import KEY_PRIMARY
 from util.DictUtil import DictUtil
 from util.LogUtil import *
 from util.excel.IExcelOperator import IExcelOperator, KEY_VALUE, KEY_FORMAT, KEY_BG_COLOR
 from util.excel.Excel2003Operator import Excel2003Operator
 from util.excel.Excel2007Operator import Excel2007Operator
 
-KEY_TITLE_INDEX = 'titleIndex'
-KEY_COL_KEYS = 'colKeys'
-KEY_PRIMARY_KEY = 'primaryKey'
+KEY_SHEET_NAME = 'sheetName'
+# header数据
+KEY_HEADERS = 'headers'
+KEY_HEADER_INDEX = 'headerIndex'
+# 需要选择的列header key列表
+KEY_SELECT_COL_KEYS = 'selectColKeys'
 KEY_FILTER_RULES = 'filterRules'
 
 
@@ -121,12 +126,12 @@ class ExcelOperator:
         :param rows: 行数
         :param cols: 列数
         :param indexOffset: index偏移
-        :param extendInfo: 扩展信息
+        :param extendInfo: 扩展信息 KEY_FILTER_RULES 没有不过滤 KEY_PRIMARY 没有，行号作为kay KEY_SELECT_COL_KEYS 没有，获取所有列数据
         :return: 获取满足指定条件的数据
         """
-        titleIndex = DictUtil.get(extendInfo, KEY_TITLE_INDEX, 0)
-        colKeys = DictUtil.get(extendInfo, KEY_COL_KEYS, None)
-        primaryKey = DictUtil.get(extendInfo, KEY_PRIMARY_KEY, None)
+        titleIndex = DictUtil.get(extendInfo, KEY_HEADER_INDEX, 0)
+        colKeys = DictUtil.get(extendInfo, KEY_SELECT_COL_KEYS, None)
+        primaryKey = DictUtil.get(extendInfo, KEY_PRIMARY, None)
         filterRules = DictUtil.get(extendInfo, KEY_FILTER_RULES, [])
         LogUtil.i(f"__getFilterData titleIndex: {titleIndex} primaryKey: {primaryKey} filterRules: {filterRules}")
         colKeyMap = {}
@@ -181,14 +186,14 @@ class ExcelOperator:
 if __name__ == "__main__":
     # LogUtil.d(ExcelOperator.getExcelData("/Users/likunlun/PycharmProjects/res/values/AndroidRes.xls", 'color',
     #                                      {KEY_TITLE_INDEX: 0, KEY_COL_KEYS: ['key', 'normal', 'dark'],
-    #                                       KEY_PRIMARY_KEY: 'key',
+    #                                       KEY_PRIMARY: 'key',
     #                                       KEY_FILTER_RULES: {'dark': ['', '#000000', '#43CDF9'],
     #                                                          'normal': ['#6633B5E5', '#1CA9F2']}}))
     #
     # LogUtil.d(
     #     ExcelOperator.getExcelData("/Users/likunlun/PycharmProjects/CommonTools/resources/mockExam/题库模版.xlsx", '单选题',
     #                                {KEY_TITLE_INDEX: 0, KEY_COL_KEYS: ['题干', '答案', '选项A'],
-    #                                 KEY_PRIMARY_KEY: '题干',
+    #                                 KEY_PRIMARY: '题干',
     #                                 KEY_FILTER_RULES: {'答案': ['A', 'C']}}))
     ExcelOperator.saveToExcel('./test.xls', '11', ['key', 'normal', 'dark'],
                               [{'key': {KEY_VALUE: 'key', KEY_FORMAT: {KEY_BG_COLOR: 4}},

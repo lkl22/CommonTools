@@ -13,6 +13,9 @@ if PlatformUtil.isMac():
 else:
     const.GROUP_BOX_MARGIN_TOP = 20
 
+# 文件路径
+KEY_FILE_PATH = 'filePath'
+
 # widget需要显示的文案
 KEY_SHOW_TEXT = 'showText'
 # widget关联的数据

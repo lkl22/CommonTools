@@ -4,36 +4,26 @@
 # 定义一个ExcelTransformDialog类实现Excel转换功能
 import os.path
 import sys
+
 from manager.AsyncFuncManager import AsyncFuncManager
-from util.FileUtil import *
 from util.DialogUtil import *
+from util.FileUtil import *
 from util.JsonUtil import JsonUtil
 from util.MD5Util import MD5Util
 from util.OperaIni import OperaIni
 from util.excel.ExcelOperator import *
 from widget.custom.CommonAddOrEditDialog import CommonAddOrEditDialog
-from widget.custom.CommonCheckBoxs import CommonCheckBoxs
 from widget.custom.CommonComboBox import CommonComboBox
 from widget.custom.CommonLineEdit import CommonLineEdit
-from widget.custom.CommonSpinBox import CommonSpinBox
 from widget.custom.CommonTableView import CommonTableView
 from widget.custom.DragInputWidget import DragInputWidget
+from widget.custom.ReadExcelWidget import ReadExcelWidget
 
 TAG = "ExcelTransformDialog"
 
 KEY_SECTION = 'ExcelTransform'
 KEY_CONFIGS = 'configs'
-# 源Excel文件
-KEY_SRC_FP = 'srcFp'
-KEY_SRC_SHEET_NAME = 'srcSheetName'
-# 表格header所在的行，默认从1开始
-KEY_SRC_HEADER_ROW = 'srcHeaderRow'
-# header数据
-KEY_SRC_HEADERS = 'srcHeaders'
-# 选择的header
-KEY_SRC_SELECT_HEADER = 'srcSelectHeader'
-# 过滤规则
-KEY_SRC_FILTER_RULES = 'srcFilterRules'
+KEY_SRC_EXCEL_CFG = 'srcExcelCfg'
 
 # 目标Excel文件存储路径
 KEY_DST_DP = 'dstDp'
@@ -77,38 +67,12 @@ class ExcelTransformDialog(QtWidgets.QDialog):
                                                groupList=DictUtil.get(self.__configs, KEY_LIST, []),
                                                isEditable=True, dataChanged=self.__configChanged)
         vLayout.addWidget(self.__configComboBox)
+
+        self.__srcExcelCfgWidget = ReadExcelWidget(label='源Excel相关配置',
+                                                   data=DictUtil.get(self.__config, KEY_SRC_EXCEL_CFG))
+        vLayout.addWidget(self.__srcExcelCfgWidget)
+
         labelMinSize = QSize(120, 0)
-
-        box = WidgetUtil.createGroupBox(self, title="源Excel相关配置")
-        vbox = WidgetUtil.createVBoxLayout(box, margins=QMargins(10, 10, 10, 10))
-        self.__srcFpWidget = DragInputWidget(label='请选择源Excel文件',
-                                             fileParam={KEY_CAPTION: '选择源Excel文件', KEY_FILTER: '*.xls;*.xlsx'},
-                                             labelMinSize=labelMinSize)
-        vbox.addWidget(self.__srcFpWidget)
-
-        splitter = WidgetUtil.createSplitter(self)
-        self.__srcSheetNameWidget = CommonLineEdit(label='表名')
-        splitter.addWidget(self.__srcSheetNameWidget)
-        self.__srcHeaderRowWidget = CommonSpinBox(label='Title行', minValue=1, maxValue=10, prefix='第 ', suffix=' 行')
-        splitter.addWidget(self.__srcHeaderRowWidget)
-        splitter.addWidget(WidgetUtil.createPushButton(self, text='Get', toolTip='获取Title信息，展示在下方，可以选择需要提取出来的数据列',
-                                                       onClicked=self.__getSrcHeader))
-        vbox.addWidget(splitter)
-
-        self.__srcSelectHeaderCheckBoxs = CommonCheckBoxs(label='选择需要提取数据的Title',
-                                                          buttonClicked=self.__srcSelectHeaderChanged)
-        vbox.addWidget(self.__srcSelectHeaderCheckBoxs)
-
-        hbox = WidgetUtil.createHBoxLayout(spacing=10)
-        self.__primaryKeyComboBox = CommonComboBox(label='选择主键', dataChanged=self.__primaryKeyChanged)
-        hbox.addWidget(self.__primaryKeyComboBox)
-
-        self.__srcFilterRulesEdit = CommonLineEdit(label='过滤规则',
-                                                   toolTip='输入Excel过滤规则。格式如下：{"title1": [value1, value2, value3], "title2": [value1, value2, value3]}')
-        hbox.addWidget(self.__srcFilterRulesEdit, 1)
-        vbox.addLayout(hbox)
-        vLayout.addWidget(box)
-
         box = WidgetUtil.createGroupBox(self, title="目标Excel相关配置")
         vbox = WidgetUtil.createVBoxLayout(box, margins=QMargins(10, 10, 10, 10))
         self.__dstDpWidget = DragInputWidget(label='请选择目标Excel文件存放路径',
@@ -154,25 +118,12 @@ class ExcelTransformDialog(QtWidgets.QDialog):
         pass
 
     def __updateUi(self):
-        srcFp = DictUtil.get(self.__config, KEY_SRC_FP)
-        srcSheetName = DictUtil.get(self.__config, KEY_SRC_SHEET_NAME)
-        srcHeaderRow = DictUtil.get(self.__config, KEY_SRC_HEADER_ROW, 1)
-        srcHeaders = DictUtil.get(self.__config, KEY_SRC_HEADERS, [])
-        srcSelectHeader = DictUtil.get(self.__config, KEY_SRC_SELECT_HEADER, [])
-        srcPrimaryKey = DictUtil.get(self.__config, KEY_PRIMARY, '')
-        srcFilterRules = DictUtil.get(self.__config, KEY_SRC_FILTER_RULES, {})
-
         dstDp = DictUtil.get(self.__config, KEY_DST_DP)
         dstExcelName = DictUtil.get(self.__config, KEY_DST_EXCEL_NAME)
         dstSheetName = DictUtil.get(self.__config, KEY_DST_SHEET_NAME)
         dstColsInfo = DictUtil.get(self.__config, KEY_DST_COLS_INFO)
 
-        self.__srcFpWidget.updateData(srcFp)
-        self.__srcSheetNameWidget.updateData(srcSheetName)
-        self.__srcHeaderRowWidget.updateData(srcHeaderRow)
-        self.__srcSelectHeaderCheckBoxs.updateData(groupList=srcHeaders, defaultValue=srcSelectHeader)
-        self.__primaryKeyComboBox.updateData(default=srcPrimaryKey, groupList=['', *srcHeaders])
-        self.__srcFilterRulesEdit.updateData(JsonUtil.encode(srcFilterRules, ensureAscii=False, indent=0))
+        self.__srcExcelCfgWidget.updateData(DictUtil.get(self.__config, KEY_SRC_EXCEL_CFG))
 
         self.__dstDpWidget.updateData(dstDp)
         self.__dstExcelNameWidget.updateData(dstExcelName)
@@ -180,61 +131,11 @@ class ExcelTransformDialog(QtWidgets.QDialog):
         self.__dstColsInfoTableView.updateData(dstColsInfo)
         pass
 
-    def __getSrcHeader(self):
-        srcFp, srcSheetName, srcHeaderRow = self.__checkSrcConfig()
-        if not srcFp:
-            return
-        LogUtil.d(TAG, '__getSrcHeader', srcFp, 'sheetName', srcSheetName, 'titleRow', srcHeaderRow)
-        res = ExcelOperator.getExcelHeaderData(srcFp, srcSheetName, srcHeaderRow - 1)
-        if type(res) == str:
-            WidgetUtil.showErrorDialog(message=f"配置不正确。（{res}）")
-            return
-        LogUtil.d(TAG, '__getSrcHeader', res)
-        srcSelectHeader = DictUtil.get(self.__config, KEY_SRC_SELECT_HEADER, [])
-        primaryKey = DictUtil.get(self.__config, KEY_PRIMARY, '')
-        self.__config[KEY_SRC_HEADERS] = res
-        self.__srcSelectHeaderCheckBoxs.updateData(groupList=res, defaultValue=srcSelectHeader)
-        self.__primaryKeyComboBox.updateData(default=primaryKey, groupList=['', *res])
-        pass
-
-    def __srcSelectHeaderChanged(self, data):
-        self.__config[KEY_SRC_SELECT_HEADER] = data
-        self.__saveConfigs()
-        pass
-
-    def __primaryKeyChanged(self, curData, deleteData):
-        self.__config[KEY_PRIMARY] = curData
-        self.__saveConfigs()
-        pass
-
-    def __checkSrcConfig(self):
-        config = self.__configComboBox.getData()
-        if not config:
-            WidgetUtil.showErrorDialog(message="请选择配置")
-            return None, None, None
-        srcFp = self.__srcFpWidget.getData()
-        if not srcFp:
-            WidgetUtil.showErrorDialog(message="请选择源Excel文件")
-            return None, None, None
-        srcSheetName = self.__srcSheetNameWidget.getData()
-        if not srcSheetName:
-            WidgetUtil.showErrorDialog(message="请输入源Excel文件里要处理的表名")
-            return None, None, None
-        srcHeaderRow = self.__srcHeaderRowWidget.getData()
-        self.__saveConfigs()
-        return srcFp, srcSheetName, srcHeaderRow
-
     def __saveConfigs(self):
         configDatas = {KEY_DEFAULT: self.__configComboBox.getData(), KEY_LIST: self.__configComboBox.getGroupList()}
         self.__operaIni.addItem(KEY_SECTION, KEY_CONFIGS, JsonUtil.encode(configDatas, ensureAscii=False))
         self.__config = {
-            KEY_SRC_FP: self.__srcFpWidget.getData(),
-            KEY_SRC_SHEET_NAME: self.__srcSheetNameWidget.getData(),
-            KEY_SRC_HEADER_ROW: self.__srcHeaderRowWidget.getData(),
-            KEY_SRC_HEADERS: self.__srcSelectHeaderCheckBoxs.getGroupData(),
-            KEY_SRC_SELECT_HEADER: self.__srcSelectHeaderCheckBoxs.getData(),
-            KEY_PRIMARY: self.__primaryKeyComboBox.getData(),
-            KEY_SRC_FILTER_RULES: JsonUtil.decode(self.__srcFilterRulesEdit.getData()),
+            KEY_SRC_EXCEL_CFG: self.__srcExcelCfgWidget.getData(),
 
             KEY_DST_DP: self.__dstDpWidget.getData(),
             KEY_DST_EXCEL_NAME: self.__dstExcelNameWidget.getData(),
@@ -252,8 +153,8 @@ class ExcelTransformDialog(QtWidgets.QDialog):
             if not config:
                 WidgetUtil.showErrorDialog(message="请添加配置")
                 return
-            if not DictUtil.get(self.__config, KEY_SRC_SELECT_HEADER):
-                WidgetUtil.showErrorDialog(message="请选择需要提取数据的Title")
+            if not self.__srcExcelCfgWidget.getData():
+                WidgetUtil.showErrorDialog(message="请设置源Excel配置")
                 return False
         dialog = CommonAddOrEditDialog(windowTitle='添加/编辑列配置信息',
                                        optionInfos=[{
@@ -285,16 +186,6 @@ class ExcelTransformDialog(QtWidgets.QDialog):
         pass
 
     def __checkParams(self):
-        if not DictUtil.get(self.__config, KEY_SRC_SELECT_HEADER):
-            WidgetUtil.showErrorDialog(message="请选择需要提取数据的Title")
-            return False
-        if not DictUtil.get(self.__config, KEY_PRIMARY):
-            WidgetUtil.showErrorDialog(message="请选择源Excel主键")
-            return False
-        if not DictUtil.get(self.__config, KEY_SRC_FILTER_RULES):
-            WidgetUtil.showErrorDialog(message="请输入源Excel数据过滤规则")
-            return False
-
         if not DictUtil.get(self.__config, KEY_DST_DP):
             WidgetUtil.showErrorDialog(message="请选择目标Excel文件存放路径")
             return False
@@ -314,11 +205,8 @@ class ExcelTransformDialog(QtWidgets.QDialog):
         if not config:
             WidgetUtil.showErrorDialog(message="请添加配置")
             return
-        srcFp, srcSheetName, srcHeaderRow = self.__checkSrcConfig()
-        if not srcFp:
-            return
-        if not FileUtil.existsFile(srcFp):
-            WidgetUtil.showErrorDialog(message="选择的Excel文件已经不存在了，请重新选择")
+        srcCfg = self.__srcExcelCfgWidget.getData()
+        if not srcCfg:
             return
         if not self.__checkParams():
             return
@@ -327,23 +215,19 @@ class ExcelTransformDialog(QtWidgets.QDialog):
         if ext != '.xls' and ext != '.xlsx':
             WidgetUtil.showErrorDialog(message="请输入正确的文件名，后缀为xls或xlsx")
             return
+        self.__saveConfigs()
         if FileUtil.existsFile(dstFp):
-            WidgetUtil.showQuestionDialog(message=f"目标文件 <span style='color:red;'>{dstFp}</span> 已经存在，你确定要覆盖吗？",
-                                          acceptFunc=lambda: self.__asyncFuncManager.asyncExec(
-                                              target=self.__execTransform))
+            WidgetUtil.showQuestionDialog(
+                message=f"目标文件 <span style='color:red;'>{dstFp}</span> 已经存在，你确定要覆盖吗？",
+                acceptFunc=lambda: self.__asyncFuncManager.asyncExec(
+                    target=self.__execTransform))
         else:
             self.__asyncFuncManager.asyncExec(target=self.__execTransform)
         pass
 
     def __execTransform(self):
         LogUtil.i(TAG, '__execTransform start: ', self.__config)
-        srcFp = os.path.join(self.__config[KEY_SRC_FP])
-        srcDatas = ExcelOperator.getExcelData(srcFp, self.__config[KEY_SRC_SHEET_NAME], {
-            KEY_PRIMARY_KEY: self.__config[KEY_PRIMARY],
-            KEY_TITLE_INDEX: self.__config[KEY_SRC_HEADER_ROW] - 1,
-            KEY_COL_KEYS: self.__config[KEY_SRC_SELECT_HEADER],
-            KEY_FILTER_RULES: self.__config[KEY_SRC_FILTER_RULES],
-        })
+        srcDatas = self.__srcExcelCfgWidget.getExcelData()
         LogUtil.i(TAG, '__execTransform src data', srcDatas)
 
         dstFp = os.path.join(self.__config[KEY_DST_DP], self.__config[KEY_DST_EXCEL_NAME])
