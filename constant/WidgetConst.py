@@ -2,8 +2,8 @@
 # python 3.x
 # Filename: WidgetConst.py
 # 定义一个Widget常量类实现Widget常量的功能
-from util.PlatformUtil import *
 import constant.const as const
+from util.PlatformUtil import *
 
 const.PADDING = 10
 const.HEIGHT = 25
@@ -13,8 +13,9 @@ if PlatformUtil.isMac():
 else:
     const.GROUP_BOX_MARGIN_TOP = 20
 
-# 文件路径
-KEY_FILE_PATH = 'filePath'
+KEY_VALUE = 'value'
+KEY_MODULE_NAME = 'moduleName'
+KEY_AUTHOR = 'author'
 
 # widget需要显示的文案
 KEY_SHOW_TEXT = 'showText'

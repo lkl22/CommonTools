@@ -11,6 +11,7 @@ from util.FileUtil import *
 from util.JsonUtil import JsonUtil
 from util.LogUtil import *
 from util.OperaIni import OperaIni
+from widget.custom.CommonLineEdit import CommonLineEdit
 from widget.custom.CommonTextEdit import CommonTextEdit
 from widget.custom.DragInputWidget import DragInputWidget
 from widget.custom.ReadExcelWidget import ReadExcelWidget
@@ -26,6 +27,7 @@ KEY_PROJECT_FILE_PATH = 'projectFilePath'
 KEY_SWAP_DATA = 'swapData'
 KEY_FIND_RES_INFO_CONFIG = 'findResInfoConfig'
 KEY_SRC_EXCEL_CFG = 'srcExcelCfg'
+KEY_LANGUAGE = 'language'
 
 
 class HarmonyResManagerDialog(QtWidgets.QDialog):
@@ -41,6 +43,7 @@ class HarmonyResManagerDialog(QtWidgets.QDialog):
         # self.setFixedSize(HarmonyResManagerDialog.WINDOW_WIDTH, HarmonyResManagerDialog.WINDOW_HEIGHT)
         self.setWindowTitle(WidgetUtil.translate(text="Harmony资源管理"))
 
+        self.__strResInfos = {}
         self.__isDebug = isDebug
         self.__operaIni = OperaIni()
         self.__projectFilePath = self.__operaIni.getValue(KEY_PROJECT_FILE_PATH, KEY_SECTION)
@@ -91,14 +94,20 @@ class HarmonyResManagerDialog(QtWidgets.QDialog):
 
     def __createFindStrInfoGroupBox(self, parent):
         box = WidgetUtil.createGroupBox(parent, title="查找字串资源扩展信息")
-        vbox = WidgetUtil.createVBoxLayout(box, margins=QMargins(10, 10, 10, 10), spacing=10)
+        vbox = WidgetUtil.createVBoxLayout(box, spacing=10)
 
         self.__excelCfgWidget = ReadExcelWidget(label="待处理字串Excel文件信息",
                                                 data=DictUtil.get(self.__findResInfoConfig, KEY_SRC_EXCEL_CFG),
                                                 toolTip='请选择待处理字串Excel文件配置信息')
         vbox.addWidget(self.__excelCfgWidget)
+
+        self.__languageLineEdit = CommonLineEdit(label='字符资源目录',
+                                                 text=DictUtil.get(self.__findResInfoConfig, KEY_LANGUAGE, 'zh_CN'),
+                                                 toolTip='字符资源所在的目录，选择一种作为基准，默认中文（zh_CN）',
+                                                 required=True)
+        vbox.addWidget(self.__languageLineEdit)
         hbox = WidgetUtil.createHBoxLayout()
-        btn = WidgetUtil.createPushButton(box, text='获取信息', onClicked=self.__findResInfoEvent)
+        btn = WidgetUtil.createPushButton(box, text='获取信息', onClicked=self.__findStrResInfoEvent)
         hbox.addWidget(btn)
         hbox.addSpacerItem(WidgetUtil.createHSpacerItem())
         vbox.addLayout(hbox)
@@ -146,7 +155,7 @@ class HarmonyResManagerDialog(QtWidgets.QDialog):
             FileUtil.removeDir(fp=tmpResDir)
         self.__asyncFuncManager.hideLoading()
 
-    def __findResInfoEvent(self):
+    def __findStrResInfoEvent(self):
         if not self.__checkProjectDir():
             return
         excelCfg = self.__excelCfgWidget.getData()
@@ -155,18 +164,38 @@ class HarmonyResManagerDialog(QtWidgets.QDialog):
             return False
         findResInfoConfig = {
             KEY_SRC_EXCEL_CFG: excelCfg,
+            KEY_LANGUAGE: self.__languageLineEdit.getData(),
         }
         self.__operaIni.addItem(KEY_SECTION, KEY_FIND_RES_INFO_CONFIG, JsonUtil.encode(findResInfoConfig))
         self.__operaIni.saveIni()
-        self.__asyncFuncManager.asyncExec(target=self.__findResInfo, args=(findResInfoConfig,))
+        self.__asyncFuncManager.asyncExec(target=self.__findStrResInfo, args=(findResInfoConfig,))
         pass
 
-    def __findResInfo(self, findResInfoConfig):
-        LogUtil.i(TAG, f'__findResInfo {findResInfoConfig}')
+    def __findStrResInfo(self, findResInfoConfig):
+        LogUtil.i(TAG, f'__findStrResInfo {findResInfoConfig}')
         srcExcelData = self.__excelCfgWidget.getExcelData()
-        LogUtil.i(TAG, f'__findResInfo srcExcelData: {srcExcelData}')
+        language = self.__languageLineEdit.getData()
+        LogUtil.i(TAG, f'__findStrResInfo language: {language} srcExcelData: {srcExcelData}')
+        self.__getStrResInfo(language)
         self.__asyncFuncManager.hideLoading()
         pass
+
+    def __getStrResInfo(self, language: str):
+        LogUtil.i(TAG, f'__getStrResInfo {language}')
+        resDirs = FileUtil.findDirPathList(self.__projectFilePath, findPatterns=[f'.*/resources/{language}'],
+                                          excludeDirPatterns=EXCLUDE_DIR_PATTERNS)
+        LogUtil.i(TAG, f'__getStrResInfo resDirs: {resDirs}')
+        for resDir in resDirs:
+            resFps = FileUtil.findFilePathList(resDir, findPatterns=['.*string\.json', '.*plural\.json'])
+            LogUtil.i(TAG, f'__getStrResInfo resFps: {resFps}')
+            for resFp in resFps:
+                self.__getStrResInfoFromFp(resFp)
+        pass
+
+    def __getStrResInfoFromFp(self, fp: str):
+        strRes = JsonUtil.load(fp)
+        resDatas = DictUtil.get(strRes, 'string', DictUtil.get(strRes, 'plural'))
+        LogUtil.i(TAG, f'__getStrResInfoFromFp resDatas: {resDatas}')
 
 
 if __name__ == '__main__':

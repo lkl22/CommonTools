@@ -25,11 +25,11 @@ class ReadExcelWidget(ICommonWidget):
         super(ReadExcelWidget, self).__init__()
         # self.setWindowFlags(QtCore.Qt.SplashScreen | QtCore.Qt.FramelessWindowHint)
         self.__data = None
-        vLayout = WidgetUtil.createVBoxLayout(self)
+        vLayout = WidgetUtil.createVBoxLayout(self, margins=QMargins(0, 0, 0, 0))
         box = WidgetUtil.createGroupBox(self, title=label)
         vLayout.addWidget(box)
 
-        vbox = WidgetUtil.createVBoxLayout(box, margins=QMargins(10, 10, 10, 10))
+        vbox = WidgetUtil.createVBoxLayout(box)
         self.__fpWidget = DragInputWidget(label='请选择源Excel文件',
                                           fileParam={KEY_CAPTION: '选择源Excel文件', KEY_FILTER: '*.xls;*.xlsx'},
                                           required=True)
