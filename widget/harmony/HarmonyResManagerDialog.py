@@ -11,9 +11,9 @@ from util.FileUtil import *
 from util.JsonUtil import JsonUtil
 from util.LogUtil import *
 from util.OperaIni import OperaIni
-from widget.custom.CommonLineEdit import CommonLineEdit
 from widget.custom.CommonTextEdit import CommonTextEdit
 from widget.custom.DragInputWidget import DragInputWidget
+from widget.custom.ReadExcelWidget import ReadExcelWidget
 from widget.custom.SwapTextWidget import SwapTextWidget, KEY_LEFT_TXT, KEY_RIGHT_TXT
 
 TAG = "HarmonyResManagerDialog"
@@ -25,8 +25,7 @@ KEY_SECTION = 'HarmonyResManager'
 KEY_PROJECT_FILE_PATH = 'projectFilePath'
 KEY_SWAP_DATA = 'swapData'
 KEY_FIND_RES_INFO_CONFIG = 'findResInfoConfig'
-KEY_EXCEL_PATH = 'excelPath'
-KEY_COL_NAME = 'colName'
+KEY_SRC_EXCEL_CFG = 'srcExcelCfg'
 
 
 class HarmonyResManagerDialog(QtWidgets.QDialog):
@@ -34,7 +33,7 @@ class HarmonyResManagerDialog(QtWidgets.QDialog):
         # 调用父类的构函
         QtWidgets.QDialog.__init__(self)
         self.setWindowFlags(Qt.Dialog | Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint)
-        HarmonyResManagerDialog.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.5)
+        HarmonyResManagerDialog.WINDOW_WIDTH = int(WidgetUtil.getScreenWidth() * 0.8)
         HarmonyResManagerDialog.WINDOW_HEIGHT = int(WidgetUtil.getScreenHeight() * 0.5)
         LogUtil.d(TAG, "Init Harmony Res Manager Dialog")
         self.setObjectName("HarmonyResManagerDialog")
@@ -45,11 +44,12 @@ class HarmonyResManagerDialog(QtWidgets.QDialog):
         self.__isDebug = isDebug
         self.__operaIni = OperaIni()
         self.__projectFilePath = self.__operaIni.getValue(KEY_PROJECT_FILE_PATH, KEY_SECTION)
-        self.__findResInfoConfig = JsonUtil.decode(self.__operaIni.getValue(KEY_FIND_RES_INFO_CONFIG, KEY_SECTION))
         self.__swapData = JsonUtil.decode(self.__operaIni.getValue(KEY_SWAP_DATA, KEY_SECTION), {})
+        self.__findResInfoConfig = JsonUtil.decode(self.__operaIni.getValue(KEY_FIND_RES_INFO_CONFIG, KEY_SECTION))
         self.__asyncFuncManager = AsyncFuncManager()
 
-        vLayout = WidgetUtil.createVBoxLayout(self, margins=QMargins(10, 10, 10, 10), spacing=10)
+        hLayout = WidgetUtil.createHBoxLayout(self, margins=QMargins(10, 10, 10, 10), spacing=10)
+        vLayout = WidgetUtil.createVBoxLayout(margins=QMargins(10, 10, 10, 10), spacing=10)
 
         labelWidth = 150
         self.__projectFilePathWidget = DragInputWidget(label="工程路径",
@@ -66,8 +66,12 @@ class HarmonyResManagerDialog(QtWidgets.QDialog):
         groupBox = self.__createFindStrInfoGroupBox(self)
         vLayout.addWidget(groupBox)
 
+        vLayout.addSpacerItem(WidgetUtil.createVSpacerItem())
+
+        hLayout.addLayout(vLayout, 2)
         self.__textEdit = CommonTextEdit()
-        vLayout.addWidget(self.__textEdit, 1)
+        hLayout.addWidget(self.__textEdit, 1)
+
         self.setWindowModality(Qt.ApplicationModal)
         # 很关键，不加出不来
         if not isDebug:
@@ -89,16 +93,10 @@ class HarmonyResManagerDialog(QtWidgets.QDialog):
         box = WidgetUtil.createGroupBox(parent, title="查找字串资源扩展信息")
         vbox = WidgetUtil.createVBoxLayout(box, margins=QMargins(10, 10, 10, 10), spacing=10)
 
-        self.__excelFilePathWidget = DragInputWidget(label="待处理字串Excel文件",
-                                                     text=DictUtil.get(self.__findResInfoConfig, KEY_EXCEL_PATH),
-                                                     fileParam={KEY_CAPTION: '请选择待处理字串Excel文件',
-                                                                KEY_FILTER: '*.xlsx;*.xls'},
-                                                     toolTip='请选择待处理字串excel文件')
-        vbox.addWidget(self.__excelFilePathWidget)
-        self.__colNameLineEdit = CommonLineEdit(label='Excel中的列名',
-                                                text=DictUtil.get(self.__findResInfoConfig, KEY_COL_NAME),
-                                                toolTip='字串name对应的Excel中的列名')
-        vbox.addWidget(self.__colNameLineEdit)
+        self.__excelCfgWidget = ReadExcelWidget(label="待处理字串Excel文件信息",
+                                                data=DictUtil.get(self.__findResInfoConfig, KEY_SRC_EXCEL_CFG),
+                                                toolTip='请选择待处理字串Excel文件配置信息')
+        vbox.addWidget(self.__excelCfgWidget)
         hbox = WidgetUtil.createHBoxLayout()
         btn = WidgetUtil.createPushButton(box, text='获取信息', onClicked=self.__findResInfoEvent)
         hbox.addWidget(btn)
@@ -151,17 +149,12 @@ class HarmonyResManagerDialog(QtWidgets.QDialog):
     def __findResInfoEvent(self):
         if not self.__checkProjectDir():
             return
-        excelFilePath = self.__excelFilePathWidget.getData()
-        if not excelFilePath:
-            WidgetUtil.showErrorDialog(message="请选择待处理字串Excel文件")
-            return False
-        colName = self.__colNameLineEdit.getData()
-        if not colName:
-            WidgetUtil.showErrorDialog(message="请选择字串name对应的Excel中的列名")
+        excelCfg = self.__excelCfgWidget.getData()
+        if not excelCfg:
+            WidgetUtil.showErrorDialog(message="请设置待处理字串Excel文件配置信息")
             return False
         findResInfoConfig = {
-            KEY_EXCEL_PATH: excelFilePath,
-            KEY_COL_NAME: colName,
+            KEY_SRC_EXCEL_CFG: excelCfg,
         }
         self.__operaIni.addItem(KEY_SECTION, KEY_FIND_RES_INFO_CONFIG, JsonUtil.encode(findResInfoConfig))
         self.__operaIni.saveIni()
@@ -170,8 +163,8 @@ class HarmonyResManagerDialog(QtWidgets.QDialog):
 
     def __findResInfo(self, findResInfoConfig):
         LogUtil.i(TAG, f'__findResInfo {findResInfoConfig}')
-        excelFilePath = DictUtil.get(findResInfoConfig, KEY_EXCEL_PATH)
-        colName = DictUtil.get(findResInfoConfig, KEY_COL_NAME)
+        srcExcelData = self.__excelCfgWidget.getExcelData()
+        LogUtil.i(TAG, f'__findResInfo srcExcelData: {srcExcelData}')
         self.__asyncFuncManager.hideLoading()
         pass
 
