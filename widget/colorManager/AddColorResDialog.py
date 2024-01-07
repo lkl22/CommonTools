@@ -82,7 +82,7 @@ class AddColorResDialog(QtWidgets.QDialog):
         if not normalColor:
             WidgetUtil.showErrorDialog(message="请输入normal color颜色值（#FFFFFFFF、#FFF、#FFFFFF）")
             return False
-        if not ReUtil.matchColor(normalColor):
+        if not ReUtil.isMatchColor(normalColor):
             WidgetUtil.showErrorDialog(message="normal color请输入正确的颜色值（#FFF、#FFFFFF、#FFFFFFFF、666、666666、66666666）")
             return False
         for colorRes in self.srcFindColorRes:
@@ -92,7 +92,7 @@ class AddColorResDialog(QtWidgets.QDialog):
                     return False
 
         darkColor = self.darkColorLineEdit.text().strip().upper()
-        if darkColor and not ReUtil.matchColor(darkColor):
+        if darkColor and not ReUtil.isMatchColor(darkColor):
             WidgetUtil.showErrorDialog(message="dark color请输入正确的颜色值（#FFF、#FFFFFF、#FFFFFFFF、666、666666、66666666）")
             return False
         if not normalColor.startswith('#'):

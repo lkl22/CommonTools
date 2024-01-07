@@ -193,7 +193,7 @@ class LogAnalysisWindow(QMainWindow):
         if not DictUtil.get(self.spliceLogResult, rule[KEY_NAME]):
             return
         if endKeyword and endKeyword in line:
-            if ReUtil.match(line, f'.*{splitRe}.*'):
+            if ReUtil.isMatch(pattern=f'.*{splitRe}.*', string=line):
                 log = re.split(splitRe, line)[1]
                 if endKeyword in log:
                     log = log[:log.index(endKeyword)] + endKeyword
@@ -202,7 +202,7 @@ class LogAnalysisWindow(QMainWindow):
                 self.__cacheSliceLog(rule, line[:line.index(endKeyword)] + endKeyword)
             self.__handleSpliceLog(rule, spliceParams, time)
             return
-        elif ReUtil.match(line, f'.*{splitRe}.*'):
+        elif ReUtil.isMatch(pattern=f'.*{splitRe}.*', string=line):
             self.__cacheSliceLog(rule, re.split(splitRe, line)[1].rstrip())
         else:
             self.__handleSpliceLog(rule, spliceParams, time)

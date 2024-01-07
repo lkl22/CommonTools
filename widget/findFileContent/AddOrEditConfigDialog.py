@@ -188,7 +188,7 @@ class AddOrEditConfigDialog(QtWidgets.QDialog):
         if not desc:
             WidgetUtil.showErrorDialog(message="请输入配置描述")
             return
-        if not ReUtil.match(name, "\\w*"):
+        if not ReUtil.isMatch(pattern="\\w*", string=name):
             WidgetUtil.showErrorDialog(message="请输入正确的配置名（只能包含字母数字及下划线）")
             return
         if self.isAdd or DictUtil.get(self.default, KEY_NAME) != name:

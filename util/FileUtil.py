@@ -37,12 +37,12 @@ class FileUtil:
         for fn in fileNames:
             fp = os.path.join(dirPath, fn).replace("\\", "/")
             if os.path.isfile(fp):
-                if len(findPatterns) > 0 and not ReUtil.matchMore(fn, findPatterns):
+                if len(findPatterns) > 0 and not ReUtil.isMatchMore(patternList=findPatterns, string=fn):
                     LogUtil.i(TAG, f"findFilePathList {fp} not in {findPatterns}")
                     continue
                 L.append(fp)
             else:
-                if len(excludeDirPatterns) > 0 and ReUtil.matchMore(f'/{fn}/', excludeDirPatterns):
+                if len(excludeDirPatterns) > 0 and ReUtil.isMatchMore(patternList=excludeDirPatterns, string=f'/{fn}/'):
                     LogUtil.i(TAG, f"findFilePathList {fp} in {excludeDirPatterns}")
                     continue
                 L += FileUtil.findFilePathList(fp, findPatterns, excludeDirPatterns)
@@ -64,10 +64,10 @@ class FileUtil:
         for fn in fileNames:
             fp = os.path.join(dirPath, fn).replace("\\", "/")
             if os.path.isdir(fp):
-                if len(excludeDirPatterns) > 0 and ReUtil.matchMore(f'/{fn}/', excludeDirPatterns):
+                if len(excludeDirPatterns) > 0 and ReUtil.isMatchMore(patternList=excludeDirPatterns, string=f'/{fn}/'):
                     LogUtil.i(TAG, f"findDirPathList {fp} in excludeDir {excludeDirPatterns}")
                     continue
-                if len(findPatterns) > 0 and not ReUtil.matchMore(fp, findPatterns):
+                if len(findPatterns) > 0 and not ReUtil.isMatchMore(patternList=findPatterns, string=fp):
                     LogUtil.i(TAG, f"findDirPathList {fp} not in {findPatterns}")
                     L += FileUtil.findDirPathList(fp, findPatterns, excludeDirPatterns)
                     continue
@@ -94,7 +94,7 @@ class FileUtil:
                 fp, fn = os.path.split(filePath)
                 _, fileExt = os.path.splitext(fn)
 
-                if len(excludeDirPatterns) > 0 and ReUtil.matchMore(fp + "/", excludeDirPatterns):
+                if len(excludeDirPatterns) > 0 and ReUtil.isMatchMore(patternList=excludeDirPatterns, string=fp + "/"):
                     LogUtil.i(TAG, f"findFilePathListByExclude {filePath} in {excludeDirPatterns}")
                     continue
 

@@ -383,7 +383,7 @@ class AndroidColorResDialog(QtWidgets.QDialog):
                 self.curEditColorRes[AndroidColorResDialog.KEY_COLOR_NAME] = newData
                 self.editExcel()
         elif AndroidColorResDialog.KEY_NORMAL_COLOR_COL_NUM == col:
-            if not ReUtil.matchColor(newData):
+            if not ReUtil.isMatchColor(newData):
                 WidgetUtil.showErrorDialog(message="normal color请输入正确的颜色值（#FFF、#FFFFFF、#FFFFFFFF、666、666666、66666666）")
                 item.setText(self.curEditColorRes[AndroidColorResDialog.KEY_NORMAL_COLOR])
                 return
@@ -392,7 +392,7 @@ class AndroidColorResDialog(QtWidgets.QDialog):
                 self.curEditColorRes[AndroidColorResDialog.KEY_NORMAL_COLOR] = newData
                 self.editExcel()
         elif AndroidColorResDialog.KEY_DARK_COLOR_COL_NUM == col:
-            if newData and not ReUtil.matchColor(newData):
+            if newData and not ReUtil.isMatchColor(newData):
                 WidgetUtil.showErrorDialog(message="dark color请输入正确的颜色值（#FFF、#FFFFFF、#FFFFFFFF、666、666666、66666666）")
                 item.setText(self.curEditColorRes[AndroidColorResDialog.KEY_DARK_COLOR])
                 return

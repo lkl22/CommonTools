@@ -120,7 +120,7 @@ class AccountManagerDialog(QtWidgets.QDialog):
 
     def aesKeyChanged(self):
         aesKey = self.aesKeyLineEdit.text().strip()
-        if not ReUtil.match(aesKey, ".{16}"):
+        if not ReUtil.isMatch(pattern=".{16}", string=aesKey):
             WidgetUtil.showAboutDialog(text="请输入16位的密钥，否则会引起密码加解密问题。")
         else:
             AccountManagerDialog.AES_KEY = aesKey
@@ -374,7 +374,7 @@ class AddFlavorDialog(QtWidgets.QDialog):
         if not flavorDesc:
             WidgetUtil.showErrorDialog(message="请输入渠道描述")
             return
-        if not ReUtil.match(flavorName, "\\w*"):
+        if not ReUtil.isMatch(pattern="\\w*", string=flavorName):
             WidgetUtil.showErrorDialog(message="请输入正确的渠道名（只能包含字母数字及下划线）")
             return
         for item in self.flavorList:

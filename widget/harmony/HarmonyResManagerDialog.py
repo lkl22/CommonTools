@@ -194,8 +194,14 @@ class HarmonyResManagerDialog(QtWidgets.QDialog):
 
     def __getStrResInfoFromFp(self, fp: str):
         strRes = JsonUtil.load(fp)
-        resDatas = DictUtil.get(strRes, 'string', DictUtil.get(strRes, 'plural'))
+        resDatas = DictUtil.get(strRes, 'string', [])
+        resDatas += DictUtil.get(strRes, 'plural', [])
+        re.Match
         LogUtil.i(TAG, f'__getStrResInfoFromFp resDatas: {resDatas}')
+        for item in resDatas:
+            data = self.__strResInfos.get(item['name'])
+            if not data:
+                data = {KEY_VALUE: []}
 
 
 if __name__ == '__main__':
