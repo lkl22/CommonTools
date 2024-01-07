@@ -184,7 +184,6 @@ class HarmonyResManagerDialog(QtWidgets.QDialog):
 
     def __findStrResInfo(self, findResInfoConfig):
         LogUtil.i(TAG, f'__findStrResInfo {findResInfoConfig}')
-        # srcExcelData = self.__excelCfgWidget.getExcelData()
         language = self.__languageLineEdit.getData()
         excludeAuthor = self.__excludeAuthorLineEdit.getData()
         LogUtil.i(TAG,
@@ -192,6 +191,7 @@ class HarmonyResManagerDialog(QtWidgets.QDialog):
         self.__strResInfos.clear()
         self.__getStrResInfo(language, excludeAuthor)
         LogUtil.i(TAG, f'__findStrResInfo strResInfos: {self.__strResInfos}')
+        self.__excelCfgWidget.updateExcel(self.__strResInfos)
         self.__asyncFuncManager.hideLoading()
         pass
 

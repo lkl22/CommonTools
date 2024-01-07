@@ -7,7 +7,8 @@ import sys
 from util.DictUtil import DictUtil
 from util.FileUtil import FileUtil
 from util.WidgetUtil import *
-from util.excel.ExcelOperator import ExcelOperator, KEY_HEADER_INDEX, KEY_SHEET_NAME, KEY_HEADERS
+from util.excel.ExcelOperator import ExcelOperator, KEY_HEADER_INDEX, KEY_SHEET_NAME, KEY_HEADERS, KEY_COL_TITLE, \
+    KEY_SOURCE_KEY
 from widget.custom.CommonAddOrEditDialog import CommonAddOrEditDialog
 from widget.custom.CommonComboBox import CommonComboBox
 from widget.custom.CommonLineEdit import CommonLineEdit
@@ -17,8 +18,6 @@ from widget.custom.DragInputWidget import DragInputWidget
 from widget.custom.ICommonWidget import ICommonWidget
 
 TAG = 'UpdateExcelWidget'
-KEY_COL_TITLE = 'colTitle'
-KEY_SOURCE_KEY = 'sourceKey'
 KEY_UPDATE_COL_CFG = 'updateColCfg'
 DST_COL_HEADERS = {KEY_COL_TITLE: {KEY_TITLE: "列Title"}, KEY_SOURCE_KEY: {KEY_TITLE: "数据源中对应的Key"},
                    KEY_DEFAULT: {KEY_TITLE: "默认值"}}
@@ -162,13 +161,19 @@ class UpdateExcelWidget(ICommonWidget):
             KEY_SHEET_NAME: self.__sheetNameWidget.getData(),
             KEY_HEADER_INDEX: self.__headerRowWidget.getData(),
             KEY_PRIMARY: self.__primaryComboBox.getData(),
-            KEY_HEADERS: self.__headers,
+            KEY_HEADERS: self.__headers if self.__headers else [],
             KEY_UPDATE_COL_CFG: self.__colCfgTableView.getData()
         }
         return self.__data
 
     def updateExcel(self, sourceData={}):
-        pass
+        fp = DictUtil.get(self.__data, KEY_FILE_PATH)
+        sheetName = DictUtil.get(self.__data, KEY_SHEET_NAME)
+        titleIndex = DictUtil.get(self.__data, KEY_HEADER_INDEX)
+        primary = DictUtil.get(self.__data, KEY_PRIMARY)
+        colCfgs = DictUtil.get(self.__data, KEY_UPDATE_COL_CFG)
+        return ExcelOperator.updateExcel(fp=fp, sheetName=sheetName, titleIndex=titleIndex - 1, primaryTitle=primary,
+                                         updateCols=colCfgs, data=sourceData)
 
 
 if __name__ == "__main__":

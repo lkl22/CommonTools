@@ -4,12 +4,12 @@
 # 定义一个ExcelOperator工具类实现Excel相关的功能
 import os
 
-from constant.WidgetConst import KEY_PRIMARY
+from constant.WidgetConst import KEY_PRIMARY, KEY_DEFAULT
 from util.DictUtil import DictUtil
 from util.LogUtil import *
-from util.excel.IExcelOperator import IExcelOperator, KEY_VALUE, KEY_FORMAT, KEY_BG_COLOR
 from util.excel.Excel2003Operator import Excel2003Operator
 from util.excel.Excel2007Operator import Excel2007Operator
+from util.excel.IExcelOperator import IExcelOperator, KEY_VALUE, KEY_FORMAT, KEY_BG_COLOR
 
 KEY_SHEET_NAME = 'sheetName'
 # header数据
@@ -18,6 +18,9 @@ KEY_HEADER_INDEX = 'headerIndex'
 # 需要选择的列header key列表
 KEY_SELECT_COL_KEYS = 'selectColKeys'
 KEY_FILTER_RULES = 'filterRules'
+
+KEY_COL_TITLE = 'colTitle'
+KEY_SOURCE_KEY = 'sourceKey'
 
 
 class ExcelOperator:
@@ -114,6 +117,71 @@ class ExcelOperator:
                 if key in keyMap:
                     operator.writeSheet(sheet, row + indexOffset + 1, keyMap[key], DictUtil.get(item, KEY_VALUE, ''),
                                         DictUtil.get(item, KEY_FORMAT, None))
+        operator.saveBook(bk, fp)
+        return True
+
+    @staticmethod
+    def updateExcel(fp, sheetName, titleIndex, primaryTitle, updateCols: [], data: {}):
+        if not updateCols or not data or not primaryTitle:
+            LogUtil.e('updateExcel', 'no data need add to excel.')
+            return False
+        _, fileExt = os.path.splitext(fp)
+        operator: IExcelOperator
+        indexOffset = 0
+        if fileExt == '.xls':
+            operator = Excel2003Operator()
+        elif fileExt == '.xlsx':
+            operator = Excel2007Operator()
+            # xlsx的下标从1开始
+            indexOffset = 1
+        else:
+            LogUtil.e('updateExcel', 'not support file ext: ', fileExt)
+            return False
+        bk = operator.getBook(fp)
+        if not bk:
+            return False
+        sheet = operator.getSheetByName(bk, sheetName)
+        if not sheet:
+            LogUtil.e('updateExcel', 'not support file ext: ', fileExt)
+            return False
+        rows = operator.getRows(sheet)
+        cols = operator.getColumns(sheet)
+
+        colKeyMap = {}
+        primaryIndex = -1
+        for col in range(indexOffset, cols + indexOffset):
+            cellValue = operator.getCell(sheet, titleIndex + indexOffset, col)
+            if primaryTitle == cellValue:
+                primaryIndex = col
+            colKeyMap[cellValue] = col
+        if primaryIndex == -1:
+            LogUtil.e('updateExcel', 'not find primary in title row.')
+            return False
+        newCol = cols + indexOffset
+        for updateCol in updateCols:
+            if updateCol[KEY_COL_TITLE] not in colKeyMap:
+                operator.writeSheet(st=sheet, row=titleIndex + indexOffset, col=newCol, value=updateCol[KEY_COL_TITLE])
+                colKeyMap[updateCol[KEY_COL_TITLE]] = newCol
+                newCol += 1
+        LogUtil.e('updateExcel', f'colKeyMap {colKeyMap}')
+        for row in range(titleIndex + indexOffset + 1, rows + indexOffset):
+            primaryValue = operator.getCell(sheet, row, primaryIndex)
+            updateRowData = DictUtil.get(data, primaryValue)
+            if not updateRowData:
+                continue
+            if type(updateRowData) == list:
+                for updateCol in updateCols:
+                    value = [DictUtil.get(item, updateCol[KEY_SOURCE_KEY], updateCol[KEY_DEFAULT]) for item in
+                             updateRowData if updateCol[KEY_SOURCE_KEY] in item]
+                    cellData = updateCol[KEY_DEFAULT] if len(value) == 0 else (value[0] if len(value) == 1 else value)
+                    col = colKeyMap[updateCol[KEY_COL_TITLE]]
+                    operator.writeSheet(st=sheet, row=row, col=col, value=f"{cellData}")
+            elif type(updateRowData) == dict:
+                for updateCol in updateCols:
+                    value = DictUtil.get(updateRowData, updateCol[KEY_SOURCE_KEY], updateCol[KEY_DEFAULT])
+                    col = colKeyMap[updateCol[KEY_COL_TITLE]]
+                    operator.writeSheet(st=sheet, row=row, col=col, value=f"{value}")
+
         operator.saveBook(bk, fp)
         return True
 
