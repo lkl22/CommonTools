@@ -15,8 +15,8 @@ from util.OperaIni import OperaIni
 from widget.custom.CommonLineEdit import CommonLineEdit
 from widget.custom.CommonTextEdit import CommonTextEdit
 from widget.custom.DragInputWidget import DragInputWidget
-from widget.custom.ReadExcelWidget import ReadExcelWidget
 from widget.custom.SwapTextWidget import SwapTextWidget, KEY_LEFT_TXT, KEY_RIGHT_TXT
+from widget.custom.UpdateExcelWidget import UpdateExcelWidget
 
 TAG = "HarmonyResManagerDialog"
 EXCLUDE_DIR_PATTERNS = ['.*/\.hvigor/.*', '.*/\.git/.*', '.*/\.idea/.*', '.*/\.cxx/.*', '.*/build/.*', '.*/libs/.*',
@@ -27,7 +27,7 @@ KEY_SECTION = 'HarmonyResManager'
 KEY_PROJECT_FILE_PATH = 'projectFilePath'
 KEY_SWAP_DATA = 'swapData'
 KEY_FIND_RES_INFO_CONFIG = 'findResInfoConfig'
-KEY_SRC_EXCEL_CFG = 'srcExcelCfg'
+KEY_UPDATE_EXCEL_CFG = 'updateExcelCfg'
 KEY_LANGUAGE = 'language'
 KEY_EXCLUDE_AUTHOR = 'excludeAuthor'
 
@@ -98,9 +98,9 @@ class HarmonyResManagerDialog(QtWidgets.QDialog):
         box = WidgetUtil.createGroupBox(parent, title="查找字串资源扩展信息")
         vbox = WidgetUtil.createVBoxLayout(box, spacing=10)
 
-        self.__excelCfgWidget = ReadExcelWidget(label="待处理字串Excel文件信息",
-                                                data=DictUtil.get(self.__findResInfoConfig, KEY_SRC_EXCEL_CFG),
-                                                toolTip='请选择待处理字串Excel文件配置信息')
+        self.__excelCfgWidget = UpdateExcelWidget(label="待处理字串Excel文件信息",
+                                                  data=DictUtil.get(self.__findResInfoConfig, KEY_UPDATE_EXCEL_CFG),
+                                                  toolTip='请设置待处理字串Excel文件配置信息')
         vbox.addWidget(self.__excelCfgWidget)
 
         hbox = WidgetUtil.createHBoxLayout(spacing=10)
@@ -173,7 +173,7 @@ class HarmonyResManagerDialog(QtWidgets.QDialog):
             WidgetUtil.showErrorDialog(message="请设置待处理字串Excel文件配置信息")
             return False
         findResInfoConfig = {
-            KEY_SRC_EXCEL_CFG: excelCfg,
+            KEY_UPDATE_EXCEL_CFG: excelCfg,
             KEY_LANGUAGE: self.__languageLineEdit.getData(),
             KEY_EXCLUDE_AUTHOR: self.__excludeAuthorLineEdit.getData(),
         }
@@ -184,11 +184,11 @@ class HarmonyResManagerDialog(QtWidgets.QDialog):
 
     def __findStrResInfo(self, findResInfoConfig):
         LogUtil.i(TAG, f'__findStrResInfo {findResInfoConfig}')
-        srcExcelData = self.__excelCfgWidget.getExcelData()
+        # srcExcelData = self.__excelCfgWidget.getExcelData()
         language = self.__languageLineEdit.getData()
         excludeAuthor = self.__excludeAuthorLineEdit.getData()
         LogUtil.i(TAG,
-                  f'__findStrResInfo language: {language} srcExcelData: {srcExcelData} excludeAuthor {excludeAuthor}')
+                  f'__findStrResInfo language: {language} excludeAuthor {excludeAuthor}')
         self.__strResInfos.clear()
         self.__getStrResInfo(language, excludeAuthor)
         LogUtil.i(TAG, f'__findStrResInfo strResInfos: {self.__strResInfos}')

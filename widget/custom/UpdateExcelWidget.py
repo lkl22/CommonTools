@@ -30,6 +30,7 @@ class UpdateExcelWidget(ICommonWidget):
         # self.setWindowFlags(QtCore.Qt.SplashScreen | QtCore.Qt.FramelessWindowHint)
         self.__isDebug = isDebug
         self.__data = None
+        self.__headers = None
 
         vLayout = WidgetUtil.createVBoxLayout(self, margins=QMargins(0, 0, 0, 0))
         box = WidgetUtil.createGroupBox(self, title=label)
@@ -83,6 +84,7 @@ class UpdateExcelWidget(ICommonWidget):
         LogUtil.d(TAG, '__getHeader', res)
         primaryKey = DictUtil.get(self.__data, KEY_PRIMARY, '')
         self.__data[KEY_HEADERS] = res
+        self.__headers = res
         self.__primaryComboBox.updateData(default=primaryKey, groupList=['', *res])
         pass
 
@@ -97,10 +99,6 @@ class UpdateExcelWidget(ICommonWidget):
         srcSheetName = self.__sheetNameWidget.getData()
         if not srcSheetName:
             WidgetUtil.showErrorDialog(message="请输入Excel文件里要处理的表名")
-            return None, None, None
-        primaryColName = self.__primaryComboBox.getData()
-        if not primaryColName:
-            WidgetUtil.showErrorDialog(message="请选择作为数据源中查找的key数据对应的列")
             return None, None, None
         srcHeaderRow = self.__headerRowWidget.getData()
         return srcFp, srcSheetName, srcHeaderRow
@@ -155,14 +153,22 @@ class UpdateExcelWidget(ICommonWidget):
         srcFp, srcSheetName, srcHeaderRow = self.__checkConfig()
         if not srcFp:
             return None
+        primaryColName = self.__primaryComboBox.getData()
+        if not primaryColName:
+            WidgetUtil.showErrorDialog(message="请选择作为数据源中查找的key数据对应的列")
+            return None
         self.__data = {
             KEY_FILE_PATH: self.__fpWidget.getData(),
             KEY_SHEET_NAME: self.__sheetNameWidget.getData(),
             KEY_HEADER_INDEX: self.__headerRowWidget.getData(),
             KEY_PRIMARY: self.__primaryComboBox.getData(),
+            KEY_HEADERS: self.__headers,
             KEY_UPDATE_COL_CFG: self.__colCfgTableView.getData()
         }
         return self.__data
+
+    def updateExcel(self, sourceData={}):
+        pass
 
 
 if __name__ == "__main__":
