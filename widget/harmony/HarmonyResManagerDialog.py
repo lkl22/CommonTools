@@ -9,6 +9,7 @@ from util.DialogUtil import *
 from util.DictUtil import DictUtil
 from util.FileUtil import *
 from util.JsonUtil import JsonUtil
+from util.ListUtil import ListUtil
 from util.LogUtil import *
 from util.OperaIni import OperaIni
 from widget.custom.CommonLineEdit import CommonLineEdit
@@ -176,14 +177,16 @@ class HarmonyResManagerDialog(QtWidgets.QDialog):
         srcExcelData = self.__excelCfgWidget.getExcelData()
         language = self.__languageLineEdit.getData()
         LogUtil.i(TAG, f'__findStrResInfo language: {language} srcExcelData: {srcExcelData}')
+        self.__strResInfos.clear()
         self.__getStrResInfo(language)
+        LogUtil.i(TAG, f'__findStrResInfo strResInfos: {self.__strResInfos}')
         self.__asyncFuncManager.hideLoading()
         pass
 
     def __getStrResInfo(self, language: str):
         LogUtil.i(TAG, f'__getStrResInfo {language}')
         resDirs = FileUtil.findDirPathList(self.__projectFilePath, findPatterns=[f'.*/resources/{language}'],
-                                          excludeDirPatterns=EXCLUDE_DIR_PATTERNS)
+                                           excludeDirPatterns=EXCLUDE_DIR_PATTERNS)
         LogUtil.i(TAG, f'__getStrResInfo resDirs: {resDirs}')
         for resDir in resDirs:
             resFps = FileUtil.findFilePathList(resDir, findPatterns=['.*string\.json', '.*plural\.json'])
@@ -196,12 +199,31 @@ class HarmonyResManagerDialog(QtWidgets.QDialog):
         strRes = JsonUtil.load(fp)
         resDatas = DictUtil.get(strRes, 'string', [])
         resDatas += DictUtil.get(strRes, 'plural', [])
-        re.Match
-        LogUtil.i(TAG, f'__getStrResInfoFromFp resDatas: {resDatas}')
+        match = ReUtil.match(f'{self.__projectFilePath}/*(.*)/resources/.*', fp)
+        module = match.group(1).replace('/src/main', '')
+        LogUtil.i(TAG, f'__getStrResInfoFromFp module: {module}')
         for item in resDatas:
-            data = self.__strResInfos.get(item['name'])
+            key = item['name']
+            value = item['value']
+            data = self.__strResInfos.get(key)
+            resInfo = {KEY_MODULE_NAME: module, KEY_VALUE: value, KEY_FILE_PATH: fp}
             if not data:
-                data = {KEY_VALUE: []}
+                data = [resInfo]
+                self.__strResInfos[key] = data
+            else:
+                data.append(resInfo)
+        out, err = ShellUtil.exec(f'cd {self.__projectFilePath} && git blame {fp} | findstr "name"')
+        if err:
+            LogUtil.e(TAG, f'__getStrResInfoFromFp parse author failed: {err}')
+            return
+        lines = out.split('\n')
+        lines = [line for line in lines if line]
+        for line in lines:
+            gitInfos = ReUtil.match('.*\(\s*(.*)\s+(\d{4}-\d{2}-\d{2}\s*\d{2}:\d{2}:\d{2}).*"name":\s*"(.*)".*', line)
+            if gitInfos:
+                data = ListUtil.find(self.__strResInfos[gitInfos.group(3)], KEY_FILE_PATH, fp)
+                data[KEY_AUTHOR] = gitInfos.group(1)
+                data[KEY_DATETIME] = gitInfos.group(2)
 
 
 if __name__ == '__main__':
