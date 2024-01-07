@@ -29,6 +29,7 @@ KEY_SWAP_DATA = 'swapData'
 KEY_FIND_RES_INFO_CONFIG = 'findResInfoConfig'
 KEY_SRC_EXCEL_CFG = 'srcExcelCfg'
 KEY_LANGUAGE = 'language'
+KEY_EXCLUDE_AUTHOR = 'excludeAuthor'
 
 
 class HarmonyResManagerDialog(QtWidgets.QDialog):
@@ -102,11 +103,19 @@ class HarmonyResManagerDialog(QtWidgets.QDialog):
                                                 toolTip='请选择待处理字串Excel文件配置信息')
         vbox.addWidget(self.__excelCfgWidget)
 
+        hbox = WidgetUtil.createHBoxLayout(spacing=10)
         self.__languageLineEdit = CommonLineEdit(label='字符资源目录',
                                                  text=DictUtil.get(self.__findResInfoConfig, KEY_LANGUAGE, 'zh_CN'),
                                                  toolTip='字符资源所在的目录，选择一种作为基准，默认中文（zh_CN）',
                                                  required=True)
-        vbox.addWidget(self.__languageLineEdit)
+        hbox.addWidget(self.__languageLineEdit)
+
+        self.__excludeAuthorLineEdit = CommonLineEdit(label='需要排除的Author',
+                                                      text=DictUtil.get(self.__findResInfoConfig, KEY_EXCLUDE_AUTHOR),
+                                                      toolTip='需要排除的Author，多个Author之间使用;间隔',
+                                                      required=True)
+        hbox.addWidget(self.__excludeAuthorLineEdit)
+        vbox.addLayout(hbox)
         hbox = WidgetUtil.createHBoxLayout()
         btn = WidgetUtil.createPushButton(box, text='获取信息', onClicked=self.__findStrResInfoEvent)
         hbox.addWidget(btn)
@@ -166,6 +175,7 @@ class HarmonyResManagerDialog(QtWidgets.QDialog):
         findResInfoConfig = {
             KEY_SRC_EXCEL_CFG: excelCfg,
             KEY_LANGUAGE: self.__languageLineEdit.getData(),
+            KEY_EXCLUDE_AUTHOR: self.__excludeAuthorLineEdit.getData(),
         }
         self.__operaIni.addItem(KEY_SECTION, KEY_FIND_RES_INFO_CONFIG, JsonUtil.encode(findResInfoConfig))
         self.__operaIni.saveIni()
@@ -176,14 +186,16 @@ class HarmonyResManagerDialog(QtWidgets.QDialog):
         LogUtil.i(TAG, f'__findStrResInfo {findResInfoConfig}')
         srcExcelData = self.__excelCfgWidget.getExcelData()
         language = self.__languageLineEdit.getData()
-        LogUtil.i(TAG, f'__findStrResInfo language: {language} srcExcelData: {srcExcelData}')
+        excludeAuthor = self.__excludeAuthorLineEdit.getData()
+        LogUtil.i(TAG,
+                  f'__findStrResInfo language: {language} srcExcelData: {srcExcelData} excludeAuthor {excludeAuthor}')
         self.__strResInfos.clear()
-        self.__getStrResInfo(language)
+        self.__getStrResInfo(language, excludeAuthor)
         LogUtil.i(TAG, f'__findStrResInfo strResInfos: {self.__strResInfos}')
         self.__asyncFuncManager.hideLoading()
         pass
 
-    def __getStrResInfo(self, language: str):
+    def __getStrResInfo(self, language: str, excludeAuthor: str):
         LogUtil.i(TAG, f'__getStrResInfo {language}')
         resDirs = FileUtil.findDirPathList(self.__projectFilePath, findPatterns=[f'.*/resources/{language}'],
                                            excludeDirPatterns=EXCLUDE_DIR_PATTERNS)
@@ -192,10 +204,10 @@ class HarmonyResManagerDialog(QtWidgets.QDialog):
             resFps = FileUtil.findFilePathList(resDir, findPatterns=['.*string\.json', '.*plural\.json'])
             LogUtil.i(TAG, f'__getStrResInfo resFps: {resFps}')
             for resFp in resFps:
-                self.__getStrResInfoFromFp(resFp)
+                self.__getStrResInfoFromFp(resFp, excludeAuthor)
         pass
 
-    def __getStrResInfoFromFp(self, fp: str):
+    def __getStrResInfoFromFp(self, fp: str, excludeAuthor: str):
         strRes = JsonUtil.load(fp)
         resDatas = DictUtil.get(strRes, 'string', [])
         resDatas += DictUtil.get(strRes, 'plural', [])
@@ -212,10 +224,15 @@ class HarmonyResManagerDialog(QtWidgets.QDialog):
                 self.__strResInfos[key] = data
             else:
                 data.append(resInfo)
-        out, err = ShellUtil.exec(f'cd {self.__projectFilePath} && git blame {fp} | findstr "name"')
+        self.__getGitInfoByFp(fp, excludeAuthor)
+        pass
+
+    def __getGitInfoByFp(self, fp: str, excludeAuthor: str):
+        out, err = ShellUtil.exec(f'cd {self.__projectFilePath} && git annotate {fp} | findstr "name"')
         if err:
-            LogUtil.e(TAG, f'__getStrResInfoFromFp parse author failed: {err}')
+            LogUtil.e(TAG, f'__getGitInfoByFp parse author failed: {err}')
             return
+        excludeAuthors = [item for item in excludeAuthor.split(';') if item]
         lines = out.split('\n')
         lines = [line for line in lines if line]
         for line in lines:
@@ -224,6 +241,28 @@ class HarmonyResManagerDialog(QtWidgets.QDialog):
                 data = ListUtil.find(self.__strResInfos[gitInfos.group(3)], KEY_FILE_PATH, fp)
                 data[KEY_AUTHOR] = gitInfos.group(1)
                 data[KEY_DATETIME] = gitInfos.group(2)
+                if excludeAuthors and data[KEY_AUTHOR] in excludeAuthors:
+                    author, datetime = self.__getCodeAuthor(fp, gitInfos.group(3), excludeAuthors)
+                    if author:
+                        data[KEY_AUTHOR] = author
+                        data[KEY_DATETIME] = datetime
+        pass
+
+    def __getCodeAuthor(self, fp, resName, excludeAuthors, num=1):
+        out, err = ShellUtil.exec(
+            f'cd {self.__projectFilePath} && git annotate {fp} -s HEAD~{num} | findstr "{resName}"')
+        if not out:
+            return None, None
+        lines = [line for line in out.split('\n') if line]
+        if not lines:
+            return None, None
+        gitInfos = ReUtil.match('.*\(\s*(.*)\s+(\d{4}-\d{2}-\d{2}\s*\d{2}:\d{2}:\d{2}).*"name":\s*"(.*)".*', lines[0])
+        if not gitInfos:
+            return None, None
+        if gitInfos.group(1) in excludeAuthors:
+            # 还是excludeAuthor继续往前查找
+            return self.__getCodeAuthor(fp, resName, excludeAuthors, num + 1)
+        return gitInfos.group(1), gitInfos.group(2)
 
 
 if __name__ == '__main__':
