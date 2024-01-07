@@ -17,7 +17,7 @@ TAG = "CommonAddOrEditDialog"
 
 class CommonAddOrEditDialog(QtWidgets.QDialog):
     def __init__(self, windowTitle: str, optionInfos: [{}], default=None, items: [] = None, callback=None, width=0.3,
-                 height=0.2, isAdd=False, isDebug=False):
+                 height=0.2, labelWidth=120, isAdd=False, isDebug=False):
         # 调用父类的构函
         QtWidgets.QDialog.__init__(self)
         windowFlags = Qt.Dialog | Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint
@@ -45,7 +45,6 @@ class CommonAddOrEditDialog(QtWidgets.QDialog):
         vLayout = WidgetUtil.createVBoxLayout(self, margins=QMargins(10, 10, 10, 10), spacing=10)
         self.setLayout(vLayout)
 
-        labelWidth = 120
         for optionInfo in optionInfos:
             itemType = DictUtil.get(optionInfo, KEY_ITEM_TYPE)
             defaultValue = DictUtil.get(self.__default, optionInfo[KEY_ITEM_KEY], '')

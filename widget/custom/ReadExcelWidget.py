@@ -30,8 +30,8 @@ class ReadExcelWidget(ICommonWidget):
         vLayout.addWidget(box)
 
         vbox = WidgetUtil.createVBoxLayout(box)
-        self.__fpWidget = DragInputWidget(label='请选择源Excel文件',
-                                          fileParam={KEY_CAPTION: '选择源Excel文件', KEY_FILTER: '*.xls;*.xlsx'},
+        self.__fpWidget = DragInputWidget(label='请选择Excel文件',
+                                          fileParam={KEY_CAPTION: '选择Excel文件', KEY_FILTER: '*.xls;*.xlsx'},
                                           required=True)
         vbox.addWidget(self.__fpWidget)
 
