@@ -111,14 +111,14 @@ class Excel2003Operator(IExcelOperator):
         return xlwt.Workbook()
 
     @staticmethod
-    def addSheet(bk: Workbook, sheetname):
+    def addSheet(bk: Workbook, sheetName):
         """
         添加Excel工作表
         :param bk: Workbook
-        :param sheetname: sheetname
+        :param sheetName: sheet name
         :return: Worksheet
         """
-        return bk.add_sheet(sheetname, True)
+        return bk.add_sheet(sheetName, True)
 
     @staticmethod
     def writeSheet(st: Worksheet, row, col, value, cellFormat=None):

@@ -6,6 +6,7 @@ import os
 
 from constant.WidgetConst import KEY_PRIMARY, KEY_DEFAULT
 from util.DictUtil import DictUtil
+from util.FileUtil import FileUtil
 from util.LogUtil import *
 from util.excel.Excel2003Operator import Excel2003Operator
 from util.excel.Excel2007Operator import Excel2007Operator
@@ -125,7 +126,7 @@ class ExcelOperator:
         if not updateCols or not data or not primaryTitle:
             LogUtil.e('updateExcel', 'no data need add to excel.')
             return False
-        _, fileExt = os.path.splitext(fp)
+        fileName, fileExt = os.path.splitext(fp)
         operator: IExcelOperator
         indexOffset = 0
         if fileExt == '.xls':
@@ -147,6 +148,15 @@ class ExcelOperator:
         rows = operator.getRows(sheet)
         cols = operator.getColumns(sheet)
 
+        newBk = None
+        newSheet = None
+        if fileExt == '.xls':
+            newBk = operator.createBook()
+            newSheet = operator.addSheet(newBk, sheetName=sheetName)
+            for row in range(rows):
+                for col in range(cols):
+                    operator.writeSheet(newSheet, row=row, col=col, value=operator.getCell(st=sheet, row=row, col=col))
+
         colKeyMap = {}
         primaryIndex = -1
         for col in range(indexOffset, cols + indexOffset):
@@ -160,7 +170,8 @@ class ExcelOperator:
         newCol = cols + indexOffset
         for updateCol in updateCols:
             if updateCol[KEY_COL_TITLE] not in colKeyMap:
-                operator.writeSheet(st=sheet, row=titleIndex + indexOffset, col=newCol, value=updateCol[KEY_COL_TITLE])
+                operator.writeSheet(st=newSheet if newSheet else sheet, row=titleIndex + indexOffset, col=newCol,
+                                    value=updateCol[KEY_COL_TITLE])
                 colKeyMap[updateCol[KEY_COL_TITLE]] = newCol
                 newCol += 1
         LogUtil.e('updateExcel', f'colKeyMap {colKeyMap}')
@@ -175,14 +186,17 @@ class ExcelOperator:
                              updateRowData if updateCol[KEY_SOURCE_KEY] in item]
                     cellData = updateCol[KEY_DEFAULT] if len(value) == 0 else (value[0] if len(value) == 1 else value)
                     col = colKeyMap[updateCol[KEY_COL_TITLE]]
-                    operator.writeSheet(st=sheet, row=row, col=col, value=f"{cellData}")
+                    operator.writeSheet(st=newSheet if newSheet else sheet, row=row, col=col, value=f"{cellData}")
             elif type(updateRowData) == dict:
                 for updateCol in updateCols:
                     value = DictUtil.get(updateRowData, updateCol[KEY_SOURCE_KEY], updateCol[KEY_DEFAULT])
                     col = colKeyMap[updateCol[KEY_COL_TITLE]]
-                    operator.writeSheet(st=sheet, row=row, col=col, value=f"{value}")
-
-        operator.saveBook(bk, fp)
+                    operator.writeSheet(st=newSheet if newSheet else sheet, row=row, col=col, value=f"{value}")
+        if newBk:
+            FileUtil.removeFile(fileName + '_new.xls')
+            operator.saveBook(newBk, fileName + '_new.xls')
+        else:
+            operator.saveBook(bk, fp)
         return True
 
     @staticmethod

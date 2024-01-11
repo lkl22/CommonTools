@@ -85,15 +85,15 @@ class Excel2007Operator(IExcelOperator):
         return Workbook()
 
     @staticmethod
-    def addSheet(book: Workbook, sheetName, index=0):
+    def addSheet(bk: Workbook, sheetName, index=0):
         """
         添加Excel工作表
-        :param book: Workbook
+        :param bk: Workbook
         :param sheetName: 表名
         :param index: 表位置
         :return: Worksheet
         """
-        return book.create_sheet(sheetName, index)
+        return bk.create_sheet(sheetName, index)
 
     @staticmethod
     def writeSheet(st: Worksheet, row, col, value, cellFormat=None):
