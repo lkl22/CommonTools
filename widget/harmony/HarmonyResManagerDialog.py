@@ -99,7 +99,8 @@ class HarmonyResManagerDialog(QtWidgets.QDialog):
         vbox = WidgetUtil.createVBoxLayout(box, spacing=10)
 
         self.__excelCfgWidget = UpdateExcelWidget(label="待处理字串Excel文件信息",
-                                                  data=DictUtil.get(self.__findResInfoConfig, KEY_UPDATE_EXCEL_CFG),
+                                                  cfgData=DictUtil.get(self.__findResInfoConfig, KEY_UPDATE_EXCEL_CFG),
+                                                  dataKeys=['', KEY_MODULE_NAME, KEY_AUTHOR, KEY_DATETIME],
                                                   toolTip='请设置待处理字串Excel文件配置信息')
         vbox.addWidget(self.__excelCfgWidget)
 

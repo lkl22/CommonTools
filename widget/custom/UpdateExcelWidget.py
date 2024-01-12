@@ -24,11 +24,19 @@ DST_COL_HEADERS = {KEY_COL_TITLE: {KEY_TITLE: "列Title"}, KEY_SOURCE_KEY: {KEY_
 
 
 class UpdateExcelWidget(ICommonWidget):
-    def __init__(self, label=None, data=None, toolTip=None, isDebug=False):
+    def __init__(self, label=None, cfgData=None, dataKeys=[], toolTip=None, isDebug=False):
+        """
+        更新excel配置信息窗口
+        :param label: label
+        :param cfgData: 已有的配置信息
+        :param dataKeys: 要插入到Excel里数据源的key值列表，用于用户选择要将哪个数据插入对应的列
+        :param toolTip: toolTip
+        """
         super(UpdateExcelWidget, self).__init__()
         # self.setWindowFlags(QtCore.Qt.SplashScreen | QtCore.Qt.FramelessWindowHint)
         self.__isDebug = isDebug
-        self.__data = None
+        self.__cfgData = None
+        self.__dataKeys = dataKeys
         self.__headers = None
 
         vLayout = WidgetUtil.createVBoxLayout(self, margins=QMargins(0, 0, 0, 0))
@@ -63,7 +71,7 @@ class UpdateExcelWidget(ICommonWidget):
                                                  toolTip='输出Excel中列信息，设置列Title，默认值，映射的源Excel内容')
 
         vbox.addWidget(self.__colCfgTableView)
-        self.__updateContent(data)
+        self.__updateContent(cfgData)
         self.setAutoFillBackground(True)
 
         self.setToolTip(toolTip)
@@ -81,8 +89,8 @@ class UpdateExcelWidget(ICommonWidget):
             WidgetUtil.showErrorDialog(message=f"配置不正确。（{res}）")
             return
         LogUtil.d(TAG, '__getHeader', res)
-        primaryKey = DictUtil.get(self.__data, KEY_PRIMARY, '')
-        self.__data[KEY_HEADERS] = res
+        primaryKey = DictUtil.get(self.__cfgData, KEY_PRIMARY, '')
+        self.__cfgData[KEY_HEADERS] = res
         self.__headers = res
         self.__primaryComboBox.updateData(default=primaryKey, groupList=['', *res])
         pass
@@ -102,15 +110,15 @@ class UpdateExcelWidget(ICommonWidget):
         srcHeaderRow = self.__headerRowWidget.getData()
         return srcFp, srcSheetName, srcHeaderRow
 
-    def __updateContent(self, data):
-        self.__data = data if data else {}
-        headers = DictUtil.get(self.__data, KEY_HEADERS, [])
-        self.__fpWidget.updateData(DictUtil.get(self.__data, KEY_FILE_PATH))
-        self.__sheetNameWidget.updateData(DictUtil.get(self.__data, KEY_SHEET_NAME, 'Sheet1'))
-        self.__headerRowWidget.updateData(DictUtil.get(self.__data, KEY_HEADER_INDEX, 1))
-        self.__primaryComboBox.updateData(default=DictUtil.get(self.__data, KEY_PRIMARY),
+    def __updateContent(self, cfgData):
+        self.__cfgData = cfgData if cfgData else {}
+        headers = DictUtil.get(self.__cfgData, KEY_HEADERS, [])
+        self.__fpWidget.updateData(DictUtil.get(self.__cfgData, KEY_FILE_PATH))
+        self.__sheetNameWidget.updateData(DictUtil.get(self.__cfgData, KEY_SHEET_NAME, 'Sheet1'))
+        self.__headerRowWidget.updateData(DictUtil.get(self.__cfgData, KEY_HEADER_INDEX, 1))
+        self.__primaryComboBox.updateData(default=DictUtil.get(self.__cfgData, KEY_PRIMARY),
                                           groupList=['', *headers])
-        self.__colCfgTableView.updateData(items=DictUtil.get(self.__data, KEY_UPDATE_COL_CFG))
+        self.__colCfgTableView.updateData(items=DictUtil.get(self.__cfgData, KEY_UPDATE_COL_CFG))
         pass
 
     def __addOrEditDstCol(self, callback, default=None, items=None, isAdd=False):
@@ -123,9 +131,10 @@ class UpdateExcelWidget(ICommonWidget):
                                            KEY_IS_UNIQUE: True
                                        }, {
                                            KEY_ITEM_KEY: KEY_SOURCE_KEY,
-                                           KEY_ITEM_TYPE: TYPE_LINE_EDIT,
+                                           KEY_ITEM_TYPE: TYPE_COMBO_BOX,
                                            KEY_ITEM_LABEL: '数据源中对应的Key',
-                                           KEY_IS_OPTIONAL: True,
+                                           KEY_GROUP_LIST: self.__dataKeys,
+                                           KEY_IS_OPTIONAL: False,
                                            KEY_TOOL_TIP: '数据源中对应的Key，从数据源中获取数据填充表格'
                                        }, {
                                            KEY_ITEM_KEY: KEY_DEFAULT,
@@ -138,14 +147,14 @@ class UpdateExcelWidget(ICommonWidget):
                                        default=default,
                                        items=items,
                                        isAdd=isAdd,
-                                       labelWidth=150,
+                                       labelWidth=180,
                                        isDebug=self.__isDebug)
         if self.__isDebug:
             dialog.show()
         pass
 
-    def updateData(self, data):
-        self.__updateContent(data)
+    def updateData(self, cfgData):
+        self.__updateContent(cfgData)
         pass
 
     def getData(self):
@@ -156,7 +165,7 @@ class UpdateExcelWidget(ICommonWidget):
         if not primaryColName:
             WidgetUtil.showErrorDialog(message="请选择作为数据源中查找的key数据对应的列")
             return None
-        self.__data = {
+        self.__cfgData = {
             KEY_FILE_PATH: self.__fpWidget.getData(),
             KEY_SHEET_NAME: self.__sheetNameWidget.getData(),
             KEY_HEADER_INDEX: self.__headerRowWidget.getData(),
@@ -164,14 +173,14 @@ class UpdateExcelWidget(ICommonWidget):
             KEY_HEADERS: self.__headers if self.__headers else [],
             KEY_UPDATE_COL_CFG: self.__colCfgTableView.getData()
         }
-        return self.__data
+        return self.__cfgData
 
     def updateExcel(self, sourceData={}):
-        fp = DictUtil.get(self.__data, KEY_FILE_PATH)
-        sheetName = DictUtil.get(self.__data, KEY_SHEET_NAME)
-        titleIndex = DictUtil.get(self.__data, KEY_HEADER_INDEX)
-        primary = DictUtil.get(self.__data, KEY_PRIMARY)
-        colCfgs = DictUtil.get(self.__data, KEY_UPDATE_COL_CFG)
+        fp = DictUtil.get(self.__cfgData, KEY_FILE_PATH)
+        sheetName = DictUtil.get(self.__cfgData, KEY_SHEET_NAME)
+        titleIndex = DictUtil.get(self.__cfgData, KEY_HEADER_INDEX)
+        primary = DictUtil.get(self.__cfgData, KEY_PRIMARY)
+        colCfgs = DictUtil.get(self.__cfgData, KEY_UPDATE_COL_CFG)
         return ExcelOperator.updateExcel(fp=fp, sheetName=sheetName, titleIndex=titleIndex - 1, primaryTitle=primary,
                                          updateCols=colCfgs, data=sourceData)
 
@@ -179,7 +188,7 @@ class UpdateExcelWidget(ICommonWidget):
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     # e = UpdateExcelWidget(label='源Excel相关配置', toolTip="test toolTip")
-    e = UpdateExcelWidget(label='源Excel相关配置', data={
+    e = UpdateExcelWidget(label='源Excel相关配置', cfgData={
         KEY_FILE_PATH: 'D:/Projects/Python/CommonTools/widget/harmony/test/testData.xlsx'
     }, toolTip="test toolTip", isDebug=True)
     e.show()

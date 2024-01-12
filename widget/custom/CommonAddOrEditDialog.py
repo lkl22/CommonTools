@@ -7,6 +7,7 @@ import os.path
 import sys
 from util.DialogUtil import *
 from util.DictUtil import DictUtil
+from widget.custom.CommonComboBox import CommonComboBox
 from widget.custom.CommonLineEdit import CommonLineEdit
 from widget.custom.CommonSpinBox import CommonSpinBox
 from widget.custom.DragInputWidget import DragInputWidget, KEY_CAPTION, KEY_DIRECTORY, KEY_FILTER, KEY_INITIAL_FILTER
@@ -52,7 +53,8 @@ class CommonAddOrEditDialog(QtWidgets.QDialog):
                 widget = CommonLineEdit(label=DictUtil.get(optionInfo, KEY_ITEM_LABEL),
                                         text=defaultValue,
                                         labelMinSize=QSize(labelWidth, 0),
-                                        toolTip=DictUtil.get(optionInfo, KEY_TOOL_TIP))
+                                        toolTip=DictUtil.get(optionInfo, KEY_TOOL_TIP),
+                                        required=not DictUtil.get(optionInfo, KEY_IS_OPTIONAL, False))
             elif itemType == TYPE_SPIN_BOX:
                 widget = CommonSpinBox(label=DictUtil.get(optionInfo, KEY_ITEM_LABEL),
                                        value=defaultValue,
@@ -63,7 +65,8 @@ class CommonAddOrEditDialog(QtWidgets.QDialog):
                                        suffix=DictUtil.get(optionInfo, KEY_SUFFIX),
                                        intBase=DictUtil.get(optionInfo, KEY_INT_BASE),
                                        labelMinSize=QSize(labelWidth, 0),
-                                       toolTip=DictUtil.get(optionInfo, KEY_TOOL_TIP))
+                                       toolTip=DictUtil.get(optionInfo, KEY_TOOL_TIP),
+                                       required=not DictUtil.get(optionInfo, KEY_IS_OPTIONAL, False))
             elif itemType == TYPE_SELECT_FILE:
                 fileParam = DictUtil.get(optionInfo, KEY_FILE_PARAM, {KEY_DIRECTORY: ''})
                 if defaultValue:
@@ -73,7 +76,8 @@ class CommonAddOrEditDialog(QtWidgets.QDialog):
                                          text=defaultValue,
                                          fileParam=fileParam,
                                          labelMinSize=QSize(labelWidth, 0),
-                                         toolTip=DictUtil.get(optionInfo, KEY_TOOL_TIP))
+                                         toolTip=DictUtil.get(optionInfo, KEY_TOOL_TIP),
+                                         required=not DictUtil.get(optionInfo, KEY_IS_OPTIONAL, False))
             elif itemType == TYPE_SELECT_DIR:
                 dirParam = DictUtil.get(optionInfo, KEY_DIR_PARAM, {KEY_DIRECTORY: ''})
                 if defaultValue:
@@ -83,7 +87,16 @@ class CommonAddOrEditDialog(QtWidgets.QDialog):
                                          text=defaultValue,
                                          dirParam=dirParam,
                                          labelMinSize=QSize(labelWidth, 0),
-                                         toolTip=DictUtil.get(optionInfo, KEY_TOOL_TIP))
+                                         toolTip=DictUtil.get(optionInfo, KEY_TOOL_TIP),
+                                         required=not DictUtil.get(optionInfo, KEY_IS_OPTIONAL, False))
+            elif itemType == TYPE_COMBO_BOX:
+                widget = CommonComboBox(label=DictUtil.get(optionInfo, KEY_ITEM_LABEL),
+                                        default=defaultValue,
+                                        groupList=DictUtil.get(optionInfo, KEY_GROUP_LIST),
+                                        isEditable=DictUtil.get(optionInfo, KEY_IS_EDITABLE, False),
+                                        labelMinSize=QSize(labelWidth, 0),
+                                        toolTip=DictUtil.get(optionInfo, KEY_TOOL_TIP),
+                                        required=not DictUtil.get(optionInfo, KEY_IS_OPTIONAL, False))
             else:
                 LogUtil.e(TAG, f'{itemType} not support.')
                 continue
@@ -131,26 +144,33 @@ if __name__ == '__main__':
                                        KEY_ITEM_KEY: 'name',
                                        KEY_ITEM_TYPE: TYPE_LINE_EDIT,
                                        KEY_ITEM_LABEL: '规则名：',
-                                       KEY_IS_OPTIONAL: True,
+                                       KEY_IS_OPTIONAL: False,
                                        KEY_TOOL_TIP: '请输入规则名',
                                        KEY_IS_UNIQUE: True
                                    }, {
                                        KEY_ITEM_KEY: 'srcFile',
                                        KEY_ITEM_TYPE: TYPE_SELECT_FILE,
                                        KEY_ITEM_LABEL: '请选则源文件：',
-                                       KEY_IS_OPTIONAL: True,
+                                       KEY_IS_OPTIONAL: False,
                                        KEY_FILE_PARAM: {KEY_CAPTION: "file", KEY_DIRECTORY: "./", KEY_FILTER: "*.py",
                                                         KEY_INITIAL_FILTER: "*.py"}
                                    }, {
                                        KEY_ITEM_KEY: 'dstDst',
                                        KEY_ITEM_TYPE: TYPE_SELECT_DIR,
                                        KEY_ITEM_LABEL: '请选则目标路径：',
-                                       KEY_IS_OPTIONAL: True,
+                                       KEY_IS_OPTIONAL: False,
                                        KEY_DIR_PARAM: {KEY_CAPTION: "file", KEY_DIRECTORY: "./"}
+                                   }, {
+                                       KEY_ITEM_KEY: 'comboBox',
+                                       KEY_ITEM_TYPE: TYPE_COMBO_BOX,
+                                       KEY_ITEM_LABEL: '请选择颜色：',
+                                       KEY_GROUP_LIST: ['', 'red', 'green'],
+                                       KEY_IS_OPTIONAL: False
                                    }],
                                    callback=lambda it: LogUtil.d(TAG, "callback", it),
                                    # default={"name": 'dd', 'srcFile': '/Users/likunlun/PycharmProjects/CommonTools/widget/custom/progressBar/RoundProgressBar.py'},
                                    items=[{"name": 'dd'}],
+                                   labelWidth=180,
                                    isDebug=True)
     window.show()
     sys.exit(app.exec_())

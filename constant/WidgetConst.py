@@ -98,6 +98,11 @@ KEY_FILE_PARAM = 'fileParam'
 # 打开目录弹框参数
 KEY_DIR_PARAM = 'dirParam'
 
+# CommonComboBox 是否可以编辑，默认False
+KEY_IS_EDITABLE = 'isEditable'
+# CommonComboBox 选项列表
+KEY_GROUP_LIST = 'groupList'
+
 # widget类型 - 输入文本框
 TYPE_LINE_EDIT = 'lineEdit'
 # widget类型 - 计数器控件 - 用于整数的显示和输入，一般显示十进制数，也可以显示二进制、十六进制的数，而且可以在显示框中增加前缀或后缀
@@ -108,3 +113,5 @@ TYPE_SELECT_FILE = 'selectFile'
 TYPE_SELECT_DIR = 'selectDir'
 # widget类型 - tableView
 TYPE_TABLE_VIEW = 'tableView'
+# widget类型 - comboBox
+TYPE_COMBO_BOX = 'comboBox'
