@@ -146,6 +146,7 @@ class MainWidget(QMainWindow):
         hbox = WidgetUtil.createHBoxLayout()
         hbox.addWidget(WidgetUtil.createPushButton(box, text="Harmony合并资源", onClicked=self.jumpHarmonyMergeResDialog))
         hbox.addWidget(WidgetUtil.createPushButton(box, text="Harmony查找缺失的多语言翻译", onClicked=self.jumpHarmonyStrResDiffDialog))
+        hbox.addWidget(WidgetUtil.createPushButton(box, text="Harmony字符资源管理", onClicked=self.jumpHarmonyResManagerDialog))
         hbox.addItem(WidgetUtil.createHSpacerItem())
         vbox.addLayout(hbox)
         return box
@@ -286,6 +287,12 @@ class MainWidget(QMainWindow):
         LogUtil.i(TAG, "jumpHarmonyStrResDiffDialog")
         from widget.harmony.HarmonyStrResDiffDialog import HarmonyStrResDiffDialog
         HarmonyStrResDiffDialog()
+        pass
+
+    def jumpHarmonyResManagerDialog(self):
+        LogUtil.i(TAG, "jumpHarmonyResManagerDialog")
+        from widget.harmony.HarmonyResManagerDialog import HarmonyResManagerDialog
+        HarmonyResManagerDialog()
         pass
 
     def jumpLogAnalysisWindow(self):
